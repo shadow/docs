@@ -1,0 +1,40 @@
+name: Build and publish docs
+
+on:
+  schedule:
+    # once per day
+    - cron: "0 0 * * *"
+  # run manually from the GitHub Actions webpage
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: pages
+    - uses: actions/checkout@v2
+      with:
+        path: shadow
+        repository: shadow/shadow
+        ref: 'dev'
+    - name: Build
+      run: cd shadow/src/main && cargo doc --document-private-items
+    - name: Copy
+      run: |
+        rm -rf pages/docs
+        mv shadow/build/src/main/target/doc pages/docs
+        echo '<meta http-equiv="refresh" content="0; url=/docs/shadow_rs/">' > pages/docs/index.html
+    - name: Commit
+      run: |
+        COMMIT="$(cd shadow && git rev-parse --short HEAD)"
+        cd pages
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git diff-index --quiet HEAD || git commit -m "Generated docs for shadow/shadow@$COMMIT"
+        git push
