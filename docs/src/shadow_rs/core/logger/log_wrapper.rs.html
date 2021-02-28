@@ -65,9 +65,17 @@
 <span id="62">62</span>
 <span id="63">63</span>
 <span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Level</span>, <span class="ident">LevelFilter</span>, <span class="ident">Log</span>, <span class="ident">Metadata</span>, <span class="ident">Record</span>, <span class="ident">SetLoggerError</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
+
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Level</span>, <span class="ident">LevelFilter</span>, <span class="ident">Log</span>, <span class="ident">Metadata</span>, <span class="ident">Record</span>, <span class="ident">SetLoggerError</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi</span>, <span class="ident">fmt</span>};
 
 <span class="kw">static</span> <span class="ident">LOGGER</span>: <span class="ident">ShadowLogger</span> <span class="op">=</span> <span class="ident">ShadowLogger</span> {};
@@ -88,6 +96,10 @@
             <span class="ident">Level</span>::<span class="ident">Debug</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_DEBUG</span>,
             <span class="ident">Level</span>::<span class="ident">Trace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_TRACE</span>,
         };
+
+        <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">shadow_logger_shouldFilter</span>(<span class="ident">c</span>::<span class="ident">shadow_logger_getDefault</span>(), <span class="ident">log_level</span>) } {
+            <span class="kw">return</span>;
+        }
 
         <span class="comment">// allocate null-terminated strings</span>
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">record</span>.<span class="ident">file</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&lt;none&gt;&quot;</span>)).<span class="ident">unwrap</span>();
