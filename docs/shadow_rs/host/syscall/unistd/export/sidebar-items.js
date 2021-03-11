@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["rustsyscallhandler_close",""],["rustsyscallhandler_dup",""],["rustsyscallhandler_pipe",""],["rustsyscallhandler_pipe2",""],["rustsyscallhandler_read",""],["rustsyscallhandler_write",""]]});
+initSidebarItems({"fn":[["rustsyscallhandler_close",""],["rustsyscallhandler_dup",""],["rustsyscallhandler_pipe",""],["rustsyscallhandler_pipe2",""],["rustsyscallhandler_pread64",""],["rustsyscallhandler_pwrite64",""],["rustsyscallhandler_read",""],["rustsyscallhandler_write",""]]});
