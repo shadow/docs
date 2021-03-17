@@ -1316,6 +1316,35 @@
 <span id="1313">1313</span>
 <span id="1314">1314</span>
 <span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallReg</span>};
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">thread</span>::{<span class="ident">CThread</span>, <span class="ident">Thread</span>};
@@ -1324,7 +1353,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">proc_maps</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">proc_maps</span>::{<span class="ident">MappingPath</span>, <span class="ident">Sharing</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">syscall</span>;
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">warn</span>};
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">info</span>, <span class="ident">log</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">nix</span>::{<span class="ident">fcntl</span>, <span class="ident">sys</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
@@ -1336,6 +1365,15 @@
 
 <span class="kw">static</span> <span class="ident">HEAP_PROT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">PROT_READ</span> <span class="op">|</span> <span class="ident">libc</span>::<span class="ident">PROT_WRITE</span>;
 <span class="kw">static</span> <span class="ident">STACK_PROT</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">PROT_READ</span> <span class="op">|</span> <span class="ident">libc</span>::<span class="ident">PROT_WRITE</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="doccomment">/// We assume throughout that we can do arithmetic on void pointers as if the size of &quot;void&quot; was 1.</span>
+<span class="doccomment">/// While this seems like a reasonable assumption, it doesn&#39;t seem to be documented or guaranteed</span>
+<span class="doccomment">/// anywhere, so we validate it:</span>
+<span class="kw">fn</span> <span class="ident">test_validate_void_size</span>() {
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">c_void</span><span class="op">&gt;</span>(), <span class="number">1</span>);
+}
 
 <span class="kw">fn</span> <span class="ident">page_size</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">sysconf</span>(<span class="ident">libc</span>::<span class="ident">_SC_PAGESIZE</span>) <span class="kw">as</span> <span class="ident">usize</span> }
@@ -1363,6 +1401,25 @@
     <span class="ident">sharing</span>: <span class="ident">proc_maps</span>::<span class="ident">Sharing</span>,
     <span class="comment">// The *original* path. Not the path to our mem file.</span>
     <span class="ident">original_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">proc_maps</span>::<span class="ident">MappingPath</span><span class="op">&gt;</span>,
+}
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
+<span class="kw">fn</span> <span class="ident">log_regions</span><span class="op">&lt;</span><span class="ident">It</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Interval</span>, <span class="ident">Region</span>)<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">level</span>: <span class="ident">log</span>::<span class="ident">Level</span>, <span class="ident">regions</span>: <span class="ident">It</span>) {
+    <span class="kw">if</span> <span class="ident">log</span>::<span class="macro">log_enabled</span><span class="macro">!</span>(<span class="ident">level</span>) {
+        <span class="macro">log</span><span class="macro">!</span>(<span class="ident">level</span>, <span class="string">&quot;MemoryManager regions:&quot;</span>);
+        <span class="kw">for</span> (<span class="ident">interval</span>, <span class="ident">mapping</span>) <span class="kw">in</span> <span class="ident">regions</span> {
+            <span class="comment">// Invoking the logger multiple times may cause these to be interleaved with other</span>
+            <span class="comment">// log statements, but loggers may truncate the result if we instead formatted this</span>
+            <span class="comment">// into one giant string.</span>
+            <span class="macro">log</span><span class="macro">!</span>(
+                <span class="ident">level</span>,
+                <span class="string">&quot;{:x}-{:x} {:?}&quot;</span>,
+                <span class="ident">interval</span>.<span class="ident">start</span>,
+                <span class="ident">interval</span>.<span class="ident">end</span>,
+                <span class="ident">mapping</span>
+            );
+        }
+    }
 }
 
 <span class="doccomment">/// Manages the address-space for a plugin process.</span>
@@ -1410,19 +1467,20 @@
         <span class="ident">fcntl</span>::<span class="ident">posix_fallocate</span>(
             <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">as_raw_fd</span>(),
             <span class="ident">interval</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">i64</span>,
-            (<span class="ident">interval</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">interval</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">i64</span>,
+            <span class="ident">interval</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>,
         )
         .<span class="ident">unwrap</span>();
     }
 
     <span class="doccomment">/// De-allocate space in the file for the given interval.</span>
     <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>) {
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;dealloc {:?}&quot;</span>, <span class="ident">interval</span>);
         <span class="ident">fcntl</span>::<span class="ident">fallocate</span>(
             <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">as_raw_fd</span>(),
             <span class="ident">fcntl</span>::<span class="ident">FallocateFlags</span>::<span class="ident">FALLOC_FL_PUNCH_HOLE</span>
-                <span class="op">&amp;</span> <span class="ident">fcntl</span>::<span class="ident">FallocateFlags</span>::<span class="ident">FALLOC_FL_KEEP_SIZE</span>,
+                <span class="op">|</span> <span class="ident">fcntl</span>::<span class="ident">FallocateFlags</span>::<span class="ident">FALLOC_FL_KEEP_SIZE</span>,
             <span class="ident">interval</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="ident">i64</span>,
-            (<span class="ident">interval</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">interval</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">i64</span>,
+            <span class="ident">interval</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>,
         )
         .<span class="ident">unwrap</span>();
     }
@@ -1432,7 +1490,7 @@
         <span class="kw">unsafe</span> {
             <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">mmap</span>(
                 <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
-                <span class="ident">interval</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">interval</span>.<span class="ident">start</span>,
+                <span class="ident">interval</span>.<span class="ident">len</span>(),
                 <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">ProtFlags</span>::<span class="ident">from_bits</span>(<span class="ident">prot</span>).<span class="ident">unwrap</span>(),
                 <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">MapFlags</span>::<span class="ident">MAP_SHARED</span>,
                 <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">as_raw_fd</span>(),
@@ -1514,13 +1572,6 @@
         <span class="comment">// Regions shouldn&#39;t overlap.</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mutations</span>.<span class="ident">len</span>(), <span class="number">0</span>);
     }
-    <span class="comment">// Useful for debugging.</span>
-    <span class="comment">/*
-    println!(&quot;regions&quot;);
-    for (interval, mapping) in regions.iter() {
-        println!(&quot;{:?} {:?}&quot;, interval, mapping);
-    }
-    */</span>
     <span class="ident">regions</span>
 }
 
@@ -1604,21 +1655,14 @@
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">MemoryManager</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        {
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;MemoryManager misses (consider extending MemoryManager to remap regions with a high miss count)&quot;</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">misses_by_path</span>.<span class="ident">is_empty</span>() {
+            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;MemoryManager misses: None&quot;</span>);
+        } <span class="kw">else</span> {
+            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;MemoryManager misses: (consider extending MemoryManager to remap regions with a high miss count)&quot;</span>);
             <span class="kw">for</span> (<span class="ident">path</span>, <span class="ident">count</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">misses_by_path</span>.<span class="ident">iter</span>() {
                 <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;\t{} in {}&quot;</span>, <span class="ident">count</span>, <span class="ident">path</span>);
             }
         }
-        <span class="comment">// Useful for debugging</span>
-        <span class="comment">/*
-        println!(&quot;MemoryManager regions&quot;);
-        let regions = self.regions.borrow();
-        for (interval, mapping) in regions.iter() {
-            println!(&quot;{:?} {:?}&quot;, interval, mapping);
-        }
-        drop(regions);
-        */</span>
 
         <span class="comment">// Mappings are no longer valid. Clear out our map, and unmap those regions from Shadow&#39;s</span>
         <span class="comment">// address space.</span>
@@ -1718,17 +1762,16 @@
                         <span class="kw">continue</span>;
                     }
                     <span class="kw">let</span> <span class="ident">removed_range</span> <span class="op">=</span> <span class="ident">interval</span>.<span class="ident">start</span>..<span class="ident">new_start</span>;
-                    <span class="kw">let</span> <span class="ident">removed_size</span> <span class="op">=</span> <span class="ident">removed_range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">removed_range</span>.<span class="ident">start</span>;
 
                     <span class="comment">// Deallocate</span>
                     <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="ident">removed_range</span>);
 
                     <span class="comment">// Unmap range from Shadow&#39;s address space.</span>
-                    <span class="kw">unsafe</span> { <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">munmap</span>(<span class="ident">region</span>.<span class="ident">shadow_base</span>, <span class="ident">removed_size</span>) }
+                    <span class="kw">unsafe</span> { <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">munmap</span>(<span class="ident">region</span>.<span class="ident">shadow_base</span>, <span class="ident">removed_range</span>.<span class="ident">len</span>()) }
                         .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;munmap: {}&quot;</span>, <span class="ident">e</span>));
 
                     <span class="comment">// Adjust base</span>
-                    <span class="ident">region</span>.<span class="ident">shadow_base</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">removed_size</span>) };
+                    <span class="ident">region</span>.<span class="ident">shadow_base</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">removed_range</span>.<span class="ident">len</span>()) };
                 }
                 <span class="ident">Mutation</span>::<span class="ident">ModifiedEnd</span>(<span class="ident">interval</span>, <span class="ident">new_end</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">region</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">interval</span>.<span class="ident">start</span>).<span class="ident">unwrap</span>();
@@ -1741,8 +1784,13 @@
                     <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="ident">removed_range</span>);
 
                     <span class="comment">// Unmap range from Shadow&#39;s address space.</span>
-                    <span class="kw">unsafe</span> { <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">munmap</span>(<span class="ident">region</span>.<span class="ident">shadow_base</span>, <span class="ident">removed_range</span>.<span class="ident">len</span>()) }
-                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;munmap: {}&quot;</span>, <span class="ident">e</span>));
+                    <span class="kw">unsafe</span> {
+                        <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">munmap</span>(
+                            <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>((<span class="ident">interval</span>.<span class="ident">start</span>..<span class="ident">new_end</span>).<span class="ident">len</span>()),
+                            <span class="ident">removed_range</span>.<span class="ident">len</span>(),
+                        )
+                    }
+                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;munmap: {}&quot;</span>, <span class="ident">e</span>));
                 }
                 <span class="ident">Mutation</span>::<span class="ident">Split</span>(<span class="ident">_original</span>, <span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">left_region</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">left</span>.<span class="ident">start</span>).<span class="ident">unwrap</span>();
@@ -1759,7 +1807,7 @@
                     <span class="comment">// Unmap range from Shadow&#39;s address space.</span>
                     <span class="kw">unsafe</span> {
                         <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">munmap</span>(
-                            (<span class="ident">left_region</span>.<span class="ident">shadow_base</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">left</span>.<span class="ident">end</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+                            (<span class="ident">left_region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">left</span>.<span class="ident">len</span>())) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
                             <span class="ident">removed_range</span>.<span class="ident">len</span>(),
                         )
                     }
@@ -1936,6 +1984,7 @@
         <span class="ident">addr</span>: <span class="ident">PluginPtr</span>,
         <span class="ident">length</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;handle_munmap({:?}, {})&quot;</span>, <span class="ident">addr</span>, <span class="ident">length</span>);
         <span class="ident">thread</span>.<span class="ident">native_munmap</span>(<span class="ident">addr</span>, <span class="ident">length</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
@@ -2212,6 +2261,7 @@
         <span class="ident">size</span>: <span class="ident">usize</span>,
         <span class="ident">prot</span>: <span class="ident">i32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;mprotect({:?}, {}, {:?})&quot;</span>, <span class="ident">addr</span>, <span class="ident">size</span>, <span class="ident">prot</span>);
         <span class="ident">thread</span>.<span class="ident">native_mprotect</span>(<span class="ident">addr</span>, <span class="ident">size</span>, <span class="ident">prot</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">protflags</span> <span class="op">=</span> <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">ProtFlags</span>::<span class="ident">from_bits</span>(<span class="ident">prot</span>).<span class="ident">unwrap</span>();
 
@@ -2240,7 +2290,15 @@
                                 <span class="ident">protflags</span>,
                             )
                         }
-                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;mprotect: {}&quot;</span>, <span class="ident">e</span>));
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+                            <span class="macro">warn</span><span class="macro">!</span>(
+                                <span class="string">&quot;mprotect({:?}, {:?}, {:?}): {}&quot;</span>,
+                                <span class="ident">modified_region</span>.<span class="ident">shadow_base</span>,
+                                <span class="ident">modified_interval</span>.<span class="ident">len</span>(),
+                                <span class="ident">protflags</span>,
+                                <span class="ident">e</span>
+                            );
+                        });
                     }
                     <span class="comment">// Reinsert region with updated prot.</span>
                     <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>
