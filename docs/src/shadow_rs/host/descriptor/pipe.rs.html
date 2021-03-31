@@ -304,6 +304,7 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
+<span id="304">304</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">atomic_refcell</span>::<span class="ident">AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
@@ -322,7 +323,8 @@
     <span class="ident">status</span>: <span class="ident">FileStatus</span>,
     <span class="ident">mode</span>: <span class="ident">FileMode</span>,
     <span class="ident">flags</span>: <span class="ident">FileFlags</span>,
-    <span class="ident">buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileStatus</span>, <span class="ident">FileStatus</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="comment">// we only store this so that the handle is dropped when we are</span>
+    <span class="ident">_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileStatus</span>, <span class="ident">FileStatus</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">PipeFile</span> {
@@ -333,7 +335,7 @@
             <span class="ident">status</span>: <span class="ident">FileStatus</span>::<span class="ident">ACTIVE</span>,
             <span class="ident">mode</span>,
             <span class="ident">flags</span>,
-            <span class="ident">buffer_event_handle</span>: <span class="prelude-val">None</span>,
+            <span class="ident">_buffer_event_handle</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="ident">rv</span>.<span class="ident">status</span>
@@ -427,7 +429,7 @@
                 <span class="comment">// remove any status flags that aren&#39;t relevant to us</span>
                 <span class="kw">let</span> <span class="ident">monitoring</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">filter_status</span>(<span class="ident">monitoring</span>);
 
-                <span class="ident">f</span>.<span class="ident">buffer_event_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>.<span class="ident">buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
+                <span class="ident">f</span>.<span class="ident">_buffer_event_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>.<span class="ident">buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
                     <span class="ident">monitoring</span>,
                     <span class="ident">NewStatusListenerFilter</span>::<span class="ident">Always</span>,
                     <span class="kw">move</span> <span class="op">|</span><span class="ident">status</span>, <span class="ident">_changed</span>, <span class="ident">event_queue</span><span class="op">|</span> {

@@ -1,3 +1,4 @@
 (function() {var implementors = {};
 implementors["nix"] = [{"text":"impl Add&lt;TimeSpec&gt; for TimeSpec","synthetic":false,"types":[]},{"text":"impl Add&lt;TimeVal&gt; for TimeVal","synthetic":false,"types":[]}];
+implementors["shadow_rs"] = [{"text":"impl Add&lt;Counter&gt; for Counter","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
