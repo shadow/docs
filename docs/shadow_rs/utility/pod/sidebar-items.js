@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["Pod","Marker trait that the given type is Plain Old Data; i.e. that it is safe to interpret any pattern of bits as a value of this type."]]});

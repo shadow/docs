@@ -140,6 +140,19 @@
 <span id="137">137</span>
 <span id="138">138</span>
 <span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span>;
@@ -147,6 +160,12 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PluginPtr</span> {
     <span class="ident">ptr</span>: <span class="ident">c</span>::<span class="ident">PluginPtr</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">PluginPtr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PluginPtr</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">c</span>::<span class="ident">PluginPtr</span> {
@@ -189,85 +208,84 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SysCallReg</span> {
-    <span class="ident">reg</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span>,
-}
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SysCallArgs</span> <span class="op">=</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SysCallReg</span> <span class="op">=</span> <span class="ident">c</span>::<span class="ident">SysCallReg</span>;
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">c</span>::<span class="ident">SysCallReg</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SysCallReg</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReg</span> {
-        <span class="ident">v</span>.<span class="ident">reg</span>
+<span class="kw">impl</span> <span class="ident">SysCallArgs</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SysCallReg</span> {
+        <span class="self">self</span>.<span class="ident">args</span>[<span class="ident">i</span>]
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
+        <span class="self">self</span>.<span class="ident">number</span>
     }
 }
 
+<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">SysCallReg</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">as_u64</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">as_u64</span> }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">SysCallReg</span> {}
+
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SysCallReg</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SysCallReg</span> {
-        <span class="ident">SysCallReg</span> {
-            <span class="ident">reg</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_u64</span>: <span class="ident">v</span> },
-        }
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">as_u64</span>: <span class="ident">v</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u64</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SysCallReg</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">reg</span>.<span class="ident">as_u64</span> }
+        <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">as_u64</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SysCallReg</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SysCallReg</span> {
-        <span class="ident">SysCallReg</span> {
-            <span class="ident">reg</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_u64</span>: <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u64</span> },
-        }
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">as_u64</span>: <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u64</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">usize</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SysCallReg</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">reg</span>.<span class="ident">as_u64</span> <span class="kw">as</span> <span class="ident">usize</span> }
+        <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">as_u64</span> <span class="kw">as</span> <span class="ident">usize</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SysCallReg</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SysCallReg</span> {
-        <span class="ident">SysCallReg</span> {
-            <span class="ident">reg</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_i64</span>: <span class="ident">v</span> },
-        }
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">as_i64</span>: <span class="ident">v</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">i64</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SysCallReg</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
-        <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">reg</span>.<span class="ident">as_i64</span> }
+        <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">as_i64</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SysCallReg</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SysCallReg</span> {
-        <span class="ident">SysCallReg</span> {
-            <span class="ident">reg</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_i64</span>: <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span> },
-        }
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">as_i64</span>: <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span> }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">i32</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SysCallReg</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
-        <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">reg</span>.<span class="ident">as_i64</span> <span class="kw">as</span> <span class="ident">i32</span> }
+        (<span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">as_i64</span> }) <span class="kw">as</span> <span class="ident">i32</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PluginPtr</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SysCallReg</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">PluginPtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SysCallReg</span> {
-        <span class="ident">SysCallReg</span> {
-            <span class="ident">reg</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_ptr</span>: <span class="ident">v</span>.<span class="ident">into</span>() },
-        }
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">PluginPtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">as_ptr</span>: <span class="ident">v</span>.<span class="ident">into</span>() }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PluginPtr</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="ident">SysCallReg</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PluginPtr</span> {
         <span class="ident">PluginPtr</span> {
-            <span class="ident">ptr</span>: <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">reg</span>.<span class="ident">as_ptr</span> },
+            <span class="ident">ptr</span>: <span class="kw">unsafe</span> { <span class="ident">v</span>.<span class="ident">as_ptr</span> },
         }
     }
 }
@@ -275,9 +293,17 @@
 <span class="comment">// Useful for syscalls whose strongly-typed wrappers return some Result&lt;(), ErrType&gt;</span>
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span> <span class="kw">for</span> () {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SysCallReg</span> {
-        <span class="ident">SysCallReg</span> {
-            <span class="ident">reg</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_i64</span>: <span class="number">0</span> },
-        }
+        <span class="ident">SysCallReg</span> { <span class="ident">as_i64</span>: <span class="number">0</span> }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">c</span>::<span class="ident">SysCallReg</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;SysCallReg&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;as_i64&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">as_i64</span> })
+            .<span class="ident">field</span>(<span class="string">&quot;as_u64&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">as_u64</span> })
+            .<span class="ident">field</span>(<span class="string">&quot;as_ptr&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">as_ptr</span> })
+            .<span class="ident">finish</span>()
     }
 }
 </pre></div>

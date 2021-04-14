@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["InterposeMethod",""],["QDiscMode",""]],"fn":[["parse_string_as_args","Parses a string as a list of arguments following the shell's parsing rules. This uses `g_shell_parse_argv()` for parsing."]]});

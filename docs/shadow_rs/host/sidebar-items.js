@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["descriptor",""],["memory_manager",""],["syscall",""],["syscall_types",""],["thread",""]]});
+initSidebarItems({"mod":[["descriptor",""],["memory_manager",""],["process",""],["syscall",""],["syscall_condition",""],["syscall_types",""],["thread",""]]});

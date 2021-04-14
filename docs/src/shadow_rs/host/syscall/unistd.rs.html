@@ -410,68 +410,17 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">worker</span>::<span class="ident">Worker</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">descriptor</span>::<span class="ident">pipe</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">descriptor</span>::{
     <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileFlags</span>, <span class="ident">FileMode</span>, <span class="ident">FileStatus</span>, <span class="ident">PosixFile</span>,
-    <span class="ident">SyscallReturn</span>,
+    <span class="ident">SyscallError</span>, <span class="ident">SyscallResult</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall</span>::{<span class="self">self</span>, <span class="ident">PluginPtrError</span>, <span class="ident">Trigger</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall</span>::{<span class="self">self</span>, <span class="ident">Trigger</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_condition</span>::<span class="ident">SysCallCondition</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallArgs</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">event_queue</span>::<span class="ident">EventQueue</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
@@ -479,18 +428,15 @@
 <span class="kw">use</span> <span class="ident">atomic_refcell</span>::<span class="ident">AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">c_int</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
 
     <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Trying to close fd {}&quot;</span>, <span class="ident">fd</span>);
 
     <span class="comment">// scope used to make sure that desc cannot be used after deregistering it</span>
     {
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">d</span> },
-            <span class="prelude-val">Err</span>(<span class="ident">errno</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">errno</span>).<span class="ident">into</span>(),
-        };
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>)<span class="question-mark">?</span> };
 
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">CompatDescriptor</span>::<span class="ident">Legacy</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">desc</span> {
@@ -499,7 +445,8 @@
                     <span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>,
                     <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
                 )
-            };
+            }
+            .<span class="ident">into</span>();
         }
     }
 
@@ -517,24 +464,22 @@
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">result</span> {
         <span class="ident">result</span>.<span class="ident">into</span>()
     } <span class="kw">else</span> {
-        <span class="ident">SyscallReturn</span>::<span class="ident">Success</span>(<span class="number">0</span>).<span class="ident">into</span>()
+        <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">c_int</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">d</span> },
-        <span class="prelude-val">Err</span>(<span class="ident">errno</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">errno</span>).<span class="ident">into</span>(),
-    };
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>)<span class="question-mark">?</span> };
 
     <span class="kw">match</span> <span class="ident">desc</span> {
         <span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dup_helper</span>(<span class="ident">sys</span>, <span class="ident">fd</span>, <span class="ident">desc</span>),
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
         <span class="ident">CompatDescriptor</span>::<span class="ident">Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
             <span class="ident">c</span>::<span class="ident">syscallhandler_dup</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>)
+                .<span class="ident">into</span>()
         },
     }
 }
@@ -543,7 +488,7 @@
     <span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>,
     <span class="ident">fd</span>: <span class="ident">libc</span>::<span class="ident">c_int</span>,
     <span class="ident">desc</span>: <span class="kw-2">&amp;</span><span class="ident">Descriptor</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
     <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Duping fd {} ({:?})&quot;</span>, <span class="ident">fd</span>, <span class="ident">desc</span>);
 
     <span class="comment">// clone the descriptor (but not the flags)</span>
@@ -560,214 +505,166 @@
     };
 
     <span class="comment">// return the new fd</span>
-    <span class="ident">SyscallReturn</span>::<span class="ident">Success</span>(<span class="ident">new_fd</span>).<span class="ident">into</span>()
+    <span class="prelude-val">Ok</span>(<span class="ident">new_fd</span>.<span class="ident">into</span>())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>;
-    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">1</span>].<span class="ident">as_ptr</span> };
-    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">2</span>].<span class="ident">as_u64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">size_t</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">c_int</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
+    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="ident">PluginPtr</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
+    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">size_t</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>));
     <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">d</span> },
-        <span class="prelude-val">Err</span>(<span class="ident">errno</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">errno</span>).<span class="ident">into</span>(),
-    };
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>)<span class="question-mark">?</span> };
 
     <span class="kw">match</span> <span class="ident">desc</span> {
         <span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">read_helper</span>(<span class="ident">sys</span>, <span class="ident">fd</span>, <span class="ident">desc</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>, <span class="ident">offset</span>),
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
         <span class="ident">CompatDescriptor</span>::<span class="ident">Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
-            <span class="ident">c</span>::<span class="ident">syscallhandler_read</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>)
+            <span class="ident">c</span>::<span class="ident">syscallhandler_read</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SysCallArgs</span>).<span class="ident">into</span>()
         },
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pread64</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>;
-    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">1</span>].<span class="ident">as_ptr</span> };
-    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">2</span>].<span class="ident">as_u64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">size_t</span>;
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">3</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">off_t</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pread64</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">c_int</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
+    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="ident">PluginPtr</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
+    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">size_t</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>));
+    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">off_t</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">3</span>));
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">d</span> },
-        <span class="prelude-val">Err</span>(<span class="ident">errno</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">errno</span>).<span class="ident">into</span>(),
-    };
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>)<span class="question-mark">?</span> };
 
     <span class="kw">match</span> <span class="ident">desc</span> {
         <span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">read_helper</span>(<span class="ident">sys</span>, <span class="ident">fd</span>, <span class="ident">desc</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>, <span class="ident">offset</span>),
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
         <span class="ident">CompatDescriptor</span>::<span class="ident">Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
             <span class="ident">c</span>::<span class="ident">syscallhandler_pread64</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>)
+                .<span class="ident">into</span>()
         },
     }
 }
 
 <span class="kw">fn</span> <span class="ident">read_helper</span>(
-    <span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>,
+    <span class="ident">_sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>,
     <span class="ident">_fd</span>: <span class="ident">libc</span>::<span class="ident">c_int</span>,
     <span class="ident">desc</span>: <span class="kw-2">&amp;</span><span class="ident">Descriptor</span>,
-    <span class="ident">buf_ptr</span>: <span class="ident">c</span>::<span class="ident">PluginPtr</span>,
+    <span class="ident">buf_ptr</span>: <span class="ident">PluginPtr</span>,
     <span class="ident">buf_size</span>: <span class="ident">libc</span>::<span class="ident">size_t</span>,
     <span class="ident">offset</span>: <span class="ident">libc</span>::<span class="ident">off_t</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
     <span class="comment">// TODO: dynamically compute size based on how much data is actually available in the descriptor</span>
     <span class="kw">let</span> <span class="ident">size_needed</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">buf_size</span>, <span class="ident">c</span>::<span class="ident">SYSCALL_IO_BUFSIZE</span> <span class="kw">as</span> <span class="ident">usize</span>);
-
-    <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_writable_ptr</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">sys</span>.<span class="ident">process</span>, <span class="ident">sys</span>.<span class="ident">thread</span>, <span class="ident">buf_ptr</span>, <span class="ident">size_needed</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="ident">size_needed</span>)) },
-        <span class="prelude-val">Err</span>(<span class="ident">PluginPtrError</span>::<span class="ident">Null</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">PluginPtrError</span>::<span class="ident">ZeroLen</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> (<span class="ident">buf_ptr</span>.<span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>, <span class="ident">buf_size</span>) {
-                <span class="comment">// non-null and zero len</span>
-                (<span class="bool-val">false</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [][..]),
-                <span class="comment">// null and zero len</span>
-                (<span class="bool-val">true</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Success</span>(<span class="number">0</span>).<span class="ident">into</span>(),
-                <span class="comment">// null and non-zero len</span>
-                (<span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="comment">// non-null and non-zero len</span>
-                (<span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-            }
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">PluginPtrError</span>::<span class="ident">LenTooSmall</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-    };
-
     <span class="kw">let</span> <span class="ident">posix_file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>();
     <span class="kw">let</span> <span class="ident">file_flags</span> <span class="op">=</span> <span class="ident">posix_file</span>.<span class="ident">borrow</span>().<span class="ident">get_flags</span>();
 
-    <span class="comment">// call the file&#39;s read(), and run any resulting events</span>
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">EventQueue</span>::<span class="ident">queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
-        <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">read</span>(<span class="ident">buf</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>)
+    <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">SyscallResult</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_active_process_mut</span>(<span class="op">|</span><span class="ident">process</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">get_writable_slice</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">buf_ptr</span>, <span class="ident">size_needed</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// call the file&#39;s read(), and run any resulting events</span>
+        <span class="ident">EventQueue</span>::<span class="ident">queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">read</span>(<span class="ident">buf</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>)
+        })
     });
 
     <span class="comment">// if the syscall would block and it&#39;s a blocking descriptor</span>
-    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">EWOULDBLOCK</span>)
-        <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags</span>::<span class="ident">NONBLOCK</span>)
-    {
+    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">EWOULDBLOCK</span>.<span class="ident">into</span>()) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags</span>::<span class="ident">NONBLOCK</span>) {
         <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger</span>::<span class="ident">from_posix_file</span>(<span class="ident">posix_file</span>, <span class="ident">FileStatus</span>::<span class="ident">READABLE</span>);
 
-        <span class="kw">return</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-            <span class="ident">state</span>: <span class="ident">c</span>::<span class="ident">SysCallReturnState_SYSCALL_BLOCK</span>,
-            <span class="ident">retval</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_i64</span>: <span class="number">0i64</span> },
-            <span class="ident">cond</span>: <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">syscallcondition_new</span>(<span class="ident">trigger</span>.<span class="ident">into</span>(), <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>()) },
-        };
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError</span>::<span class="ident">Cond</span>(<span class="ident">SysCallCondition</span>::<span class="ident">new</span>(<span class="ident">trigger</span>)));
     }
 
-    <span class="ident">result</span>.<span class="ident">into</span>()
+    <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>;
-    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">1</span>].<span class="ident">as_ptr</span> };
-    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">2</span>].<span class="ident">as_u64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">size_t</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">c_int</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
+    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="ident">PluginPtr</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
+    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">size_t</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>));
     <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">d</span> },
-        <span class="prelude-val">Err</span>(<span class="ident">errno</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">errno</span>).<span class="ident">into</span>(),
-    };
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>)<span class="question-mark">?</span> };
 
     <span class="kw">match</span> <span class="ident">desc</span> {
         <span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">write_helper</span>(<span class="ident">sys</span>, <span class="ident">fd</span>, <span class="ident">desc</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>, <span class="ident">offset</span>),
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
         <span class="ident">CompatDescriptor</span>::<span class="ident">Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
             <span class="ident">c</span>::<span class="ident">syscallhandler_write</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>)
+                .<span class="ident">into</span>()
         },
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pwrite64</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>;
-    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">1</span>].<span class="ident">as_ptr</span> };
-    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">2</span>].<span class="ident">as_u64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">size_t</span>;
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">3</span>].<span class="ident">as_i64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">off_t</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pwrite64</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">c_int</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
+    <span class="kw">let</span> <span class="ident">buf_ptr</span> <span class="op">=</span> <span class="ident">PluginPtr</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
+    <span class="kw">let</span> <span class="ident">buf_size</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">size_t</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>));
+    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">off_t</span>::<span class="ident">from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">3</span>));
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">d</span> },
-        <span class="prelude-val">Err</span>(<span class="ident">errno</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">errno</span>).<span class="ident">into</span>(),
-    };
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">syscall</span>::<span class="ident">get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">sys</span>.<span class="ident">process</span>)<span class="question-mark">?</span> };
 
     <span class="kw">match</span> <span class="ident">desc</span> {
         <span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">write_helper</span>(<span class="ident">sys</span>, <span class="ident">fd</span>, <span class="ident">desc</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>, <span class="ident">offset</span>),
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
         <span class="ident">CompatDescriptor</span>::<span class="ident">Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
-            <span class="ident">c</span>::<span class="ident">syscallhandler_pwrite64</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>)
+            <span class="ident">c</span>::<span class="ident">syscallhandler_pwrite64</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SysCallArgs</span>)
+                .<span class="ident">into</span>()
         },
     }
 }
 
 <span class="kw">fn</span> <span class="ident">write_helper</span>(
-    <span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>,
+    <span class="ident">_sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>,
     <span class="ident">_fd</span>: <span class="ident">libc</span>::<span class="ident">c_int</span>,
     <span class="ident">desc</span>: <span class="kw-2">&amp;</span><span class="ident">Descriptor</span>,
-    <span class="ident">buf_ptr</span>: <span class="ident">c</span>::<span class="ident">PluginPtr</span>,
+    <span class="ident">buf_ptr</span>: <span class="ident">PluginPtr</span>,
     <span class="ident">buf_size</span>: <span class="ident">libc</span>::<span class="ident">size_t</span>,
     <span class="ident">offset</span>: <span class="ident">libc</span>::<span class="ident">off_t</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
     <span class="comment">// TODO: dynamically compute size based on how much data is actually available in the descriptor</span>
     <span class="kw">let</span> <span class="ident">size_needed</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">buf_size</span>, <span class="ident">c</span>::<span class="ident">SYSCALL_IO_BUFSIZE</span> <span class="kw">as</span> <span class="ident">usize</span>);
-
-    <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_readable_ptr</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">sys</span>.<span class="ident">process</span>, <span class="ident">sys</span>.<span class="ident">thread</span>, <span class="ident">buf_ptr</span>, <span class="ident">size_needed</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">ptr</span>, <span class="ident">size_needed</span>)) },
-        <span class="prelude-val">Err</span>(<span class="ident">PluginPtrError</span>::<span class="ident">Null</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">PluginPtrError</span>::<span class="ident">ZeroLen</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> (<span class="ident">buf_ptr</span>.<span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>, <span class="ident">buf_size</span>) {
-                <span class="comment">// non-null and zero len</span>
-                (<span class="bool-val">false</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>[][..]),
-                <span class="comment">// null and zero len</span>
-                (<span class="bool-val">true</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Success</span>(<span class="number">0</span>).<span class="ident">into</span>(),
-                <span class="comment">// null and non-zero len</span>
-                (<span class="bool-val">true</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="comment">// non-null and non-zero len</span>
-                (<span class="bool-val">false</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-            }
-        }
-        <span class="prelude-val">Err</span>(<span class="ident">PluginPtrError</span>::<span class="ident">LenTooSmall</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-    };
 
     <span class="kw">let</span> <span class="ident">posix_file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>();
     <span class="kw">let</span> <span class="ident">file_flags</span> <span class="op">=</span> <span class="ident">posix_file</span>.<span class="ident">borrow</span>().<span class="ident">get_flags</span>();
 
-    <span class="comment">// call the file&#39;s write(), and run any resulting events</span>
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">EventQueue</span>::<span class="ident">queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
-        <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>)
+    <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">SyscallResult</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_active_process</span>(<span class="op">|</span><span class="ident">process</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">get_slice</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">buf_ptr</span>.<span class="ident">into</span>(), <span class="ident">size_needed</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// call the file&#39;s write(), and run any resulting events</span>
+        <span class="ident">EventQueue</span>::<span class="ident">queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>)
+        })
     });
 
     <span class="comment">// if the syscall would block and it&#39;s a blocking descriptor</span>
-    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">EWOULDBLOCK</span>)
-        <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags</span>::<span class="ident">NONBLOCK</span>)
-    {
+    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">EWOULDBLOCK</span>.<span class="ident">into</span>()) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags</span>::<span class="ident">NONBLOCK</span>) {
         <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger</span>::<span class="ident">from_posix_file</span>(<span class="ident">posix_file</span>, <span class="ident">FileStatus</span>::<span class="ident">WRITABLE</span>);
 
-        <span class="kw">return</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-            <span class="ident">state</span>: <span class="ident">c</span>::<span class="ident">SysCallReturnState_SYSCALL_BLOCK</span>,
-            <span class="ident">retval</span>: <span class="ident">c</span>::<span class="ident">SysCallReg</span> { <span class="ident">as_i64</span>: <span class="number">0i64</span> },
-            <span class="ident">cond</span>: <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">syscallcondition_new</span>(<span class="ident">trigger</span>.<span class="ident">into</span>(), <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>()) },
-        };
-    }
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError</span>::<span class="ident">Cond</span>(<span class="ident">SysCallCondition</span>::<span class="ident">new</span>(<span class="ident">trigger</span>)));
+    };
 
-    <span class="ident">result</span>.<span class="ident">into</span>()
+    <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_ptr</span> };
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">into</span>();
 
     <span class="ident">pipe_helper</span>(<span class="ident">sys</span>, <span class="ident">fd_ptr</span>, <span class="number">0</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe2</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">c</span>::<span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
-    <span class="kw">let</span> <span class="ident">fd_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_ptr</span> };
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe2</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">fd_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">1</span>].<span class="ident">as_u64</span> } <span class="kw">as</span> <span class="ident">libc</span>::<span class="ident">c_int</span>;
 
     <span class="ident">pipe_helper</span>(<span class="ident">sys</span>, <span class="ident">fd_ptr</span>, <span class="ident">flags</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">pipe_helper</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">fd_ptr</span>: <span class="ident">c</span>::<span class="ident">PluginPtr</span>, <span class="ident">flags</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
+<span class="kw">fn</span> <span class="ident">pipe_helper</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">c</span>::<span class="ident">SysCallHandler</span>, <span class="ident">fd_ptr</span>: <span class="ident">PluginPtr</span>, <span class="ident">flags</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
     <span class="comment">// make sure they didn&#39;t pass a NULL pointer</span>
-    <span class="kw">if</span> <span class="ident">fd_ptr</span>.<span class="ident">val</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>).<span class="ident">into</span>();
+    <span class="kw">if</span> <span class="ident">fd_ptr</span>.<span class="ident">is_null</span>() {
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>.<span class="ident">into</span>());
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_flags</span> <span class="op">=</span> <span class="ident">FileFlags</span>::<span class="ident">empty</span>();
@@ -791,7 +688,7 @@
         <span class="comment">// exit early if the O_DIRECT flag was set</span>
         <span class="kw">if</span> <span class="ident">remaining_flags</span> <span class="op">&amp;</span> <span class="ident">libc</span>::<span class="ident">O_DIRECT</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;We don&#39;t currently support pipes in &#39;O_DIRECT&#39; mode&quot;</span>);
-            <span class="kw">return</span> <span class="ident">SyscallReturn</span>::<span class="ident">Error</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EOPNOTSUPP</span>).<span class="ident">into</span>();
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EOPNOTSUPP</span>.<span class="ident">into</span>());
         }
         <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Ignoring pipe flags&quot;</span>);
     }
@@ -821,36 +718,31 @@
     <span class="ident">writer_desc</span>.<span class="ident">set_flags</span>(<span class="ident">descriptor_flags</span>);
 
     <span class="comment">// register the file descriptors and return them to the caller</span>
-    <span class="kw">let</span> <span class="ident">num_items</span> <span class="op">=</span> <span class="number">2</span>;
-    <span class="kw">let</span> <span class="ident">size_needed</span> <span class="op">=</span> <span class="ident">num_items</span> <span class="op">*</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span><span class="op">&gt;</span>();
+    <span class="ident">Worker</span>::<span class="ident">with_active_process_mut</span>(<span class="op">|</span><span class="ident">process</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+        <span class="comment">// Normally for a small pointer it&#39;d be a little cleaner to create the</span>
+        <span class="comment">// slice in Rust and then call process.write_ptr_from_slice, allowing us</span>
+        <span class="comment">// to hold the process for a smaller scope.</span>
+        <span class="comment">//</span>
+        <span class="comment">// In this case it&#39;d be a bit awkward though, since we&#39;d then need to</span>
+        <span class="comment">// unregister the descriptors if the pointer-write failed.</span>
+        <span class="kw">let</span> <span class="ident">fds</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">get_writable_slice</span>::<span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span><span class="op">&gt;</span>(<span class="ident">fd_ptr</span>.<span class="ident">into</span>(), <span class="number">2</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">fds</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall</span>::<span class="ident">get_writable_ptr</span>::<span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span><span class="op">&gt;</span>(
-        <span class="ident">sys</span>.<span class="ident">process</span>,
-        <span class="ident">sys</span>.<span class="ident">thread</span>,
-        <span class="ident">fd_ptr</span>,
-        <span class="ident">size_needed</span>,
-    ) {
-        <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="ident">num_items</span>) },
-        <span class="comment">// we checked for a NULL pointer earlier, and we set the length ourselves</span>
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(),
-    };
+        <span class="ident">fds</span>[<span class="number">0</span>] <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">c</span>::<span class="ident">process_registerCompatDescriptor</span>(
+                <span class="ident">sys</span>.<span class="ident">process</span>,
+                <span class="ident">CompatDescriptor</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">reader_desc</span>))),
+            )
+        };
+        <span class="ident">fds</span>[<span class="number">1</span>] <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">c</span>::<span class="ident">process_registerCompatDescriptor</span>(
+                <span class="ident">sys</span>.<span class="ident">process</span>,
+                <span class="ident">CompatDescriptor</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">writer_desc</span>))),
+            )
+        };
 
-    <span class="ident">fds</span>[<span class="number">0</span>] <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">c</span>::<span class="ident">process_registerCompatDescriptor</span>(
-            <span class="ident">sys</span>.<span class="ident">process</span>,
-            <span class="ident">CompatDescriptor</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">reader_desc</span>))),
-        )
-    };
-    <span class="ident">fds</span>[<span class="number">1</span>] <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">c</span>::<span class="ident">process_registerCompatDescriptor</span>(
-            <span class="ident">sys</span>.<span class="ident">process</span>,
-            <span class="ident">CompatDescriptor</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">CompatDescriptor</span>::<span class="ident">New</span>(<span class="ident">writer_desc</span>))),
-        )
-    };
-
-    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Created pipe reader fd {} and writer fd {}&quot;</span>, <span class="ident">fds</span>[<span class="number">0</span>], <span class="ident">fds</span>[<span class="number">1</span>]);
-
-    <span class="ident">SyscallReturn</span>::<span class="ident">Success</span>(<span class="number">0</span>).<span class="ident">into</span>()
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Created pipe reader fd {} and writer fd {}&quot;</span>, <span class="ident">fds</span>[<span class="number">0</span>], <span class="ident">fds</span>[<span class="number">1</span>]);
+        <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
+    })
 }
 
 <span class="kw">mod</span> <span class="ident">export</span> {
@@ -862,7 +754,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">close</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">close</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -871,7 +763,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">dup</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">dup</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -880,7 +772,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">read</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">read</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -889,7 +781,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">pread64</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">pread64</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -898,7 +790,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">write</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">write</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -907,7 +799,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">pwrite64</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">pwrite64</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -916,7 +808,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">pipe</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">pipe</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -925,7 +817,7 @@
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c</span>::<span class="ident">SysCallArgs</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">SysCallReturn</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">sys</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_null</span>());
-        <span class="ident">pipe2</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> })
+        <span class="ident">pipe2</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">sys</span> }, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span> }).<span class="ident">into</span>()
     }
 }
 </pre></div>
