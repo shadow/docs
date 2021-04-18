@@ -248,33 +248,6 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">/*
  * The Shadow Simulator
@@ -290,6 +263,7 @@ automatically. As data is read, old chunks are freed automatically.
 */</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">LinkedList</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
 
 <span class="kw">struct</span> <span class="ident">ByteChunk</span> {
     <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
@@ -299,7 +273,6 @@ automatically. As data is read, old chunks are freed automatically.
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ByteQueue</span> {
     <span class="ident">chunks</span>: <span class="ident">LinkedList</span><span class="op">&lt;</span><span class="ident">ByteChunk</span><span class="op">&gt;</span>,
     <span class="ident">tail_read_offset</span>: <span class="ident">usize</span>,
-    <span class="ident">head_write_offset</span>: <span class="ident">usize</span>,
     <span class="ident">length</span>: <span class="ident">usize</span>,
     <span class="ident">chunk_capacity</span>: <span class="ident">usize</span>,
 }
@@ -307,7 +280,7 @@ automatically. As data is read, old chunks are freed automatically.
 <span class="kw">impl</span> <span class="ident">ByteChunk</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ByteChunk</span> {
         <span class="ident">ByteChunk</span> {
-            <span class="ident">buf</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">capacity</span>],
+            <span class="ident">buf</span>: <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">capacity</span>),
         }
     }
 }
@@ -317,7 +290,6 @@ automatically. As data is read, old chunks are freed automatically.
         <span class="ident">ByteQueue</span> {
             <span class="ident">chunks</span>: <span class="ident">LinkedList</span>::<span class="ident">new</span>(),
             <span class="ident">tail_read_offset</span>: <span class="number">0</span>,
-            <span class="ident">head_write_offset</span>: <span class="number">0</span>,
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">chunk_capacity</span>,
         }
@@ -333,18 +305,21 @@ automatically. As data is read, old chunks are freed automatically.
     }
 
     <span class="doccomment">/// Push bytes to the head of the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) {
+    <span class="doccomment">/// Returns an error iff `src` returns an error; i.e. this is infallible for</span>
+    <span class="doccomment">/// an infallible `src` such as a slice.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// create new buffer head lazily as opposed to proactively</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">is_empty</span>() {
             <span class="self">self</span>.<span class="ident">create_new_head</span>();
         }
 
-        <span class="kw">let</span> <span class="ident">src_len</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes_copied</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_written</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">src</span>;
 
         <span class="comment">// while there are bytes to copy</span>
-        <span class="kw">while</span> <span class="ident">bytes_copied</span> <span class="op">&lt;</span> <span class="ident">src_len</span> {
-            <span class="kw">let</span> <span class="ident">head_space</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">chunk_capacity</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">head_write_offset</span>;
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">front_mut</span>().<span class="ident">unwrap</span>().<span class="ident">buf</span>;
+            <span class="kw">let</span> <span class="ident">head_space</span> <span class="op">=</span> <span class="ident">head</span>.<span class="ident">capacity</span>() <span class="op">-</span> <span class="ident">head</span>.<span class="ident">len</span>();
 
             <span class="comment">// if we have no space, allocate a new chunk at head</span>
             <span class="kw">if</span> <span class="ident">head_space</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
@@ -352,50 +327,55 @@ automatically. As data is read, old chunks are freed automatically.
                 <span class="kw">continue</span>;
             }
 
-            <span class="comment">// how much we actually write in this iteration</span>
-            <span class="kw">let</span> <span class="ident">src_remaining</span> <span class="op">=</span> <span class="ident">src_len</span> <span class="op">-</span> <span class="ident">bytes_copied</span>;
-            <span class="kw">let</span> <span class="ident">num_write</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">src_remaining</span> <span class="op">&lt;</span> <span class="ident">head_space</span> {
-                <span class="ident">src_remaining</span>
-            } <span class="kw">else</span> {
-                <span class="ident">head_space</span>
-            };
+            <span class="kw">let</span> <span class="ident">written</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">by_ref</span>().<span class="ident">take</span>(<span class="ident">head_space</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">read_to_end</span>(<span class="ident">head</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">length</span> <span class="op">+</span><span class="op">=</span> <span class="ident">written</span>;
+            <span class="ident">total_written</span> <span class="op">+</span><span class="op">=</span> <span class="ident">written</span>;
 
-            <span class="comment">// copy bytes from src</span>
-            <span class="self">self</span>.<span class="ident">copy_to_head</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[<span class="ident">bytes_copied</span>..(<span class="ident">bytes_copied</span> <span class="op">+</span> <span class="ident">num_write</span>)]);
-            <span class="ident">bytes_copied</span> <span class="op">+</span><span class="op">=</span> <span class="ident">num_write</span>;
+            <span class="kw">if</span> <span class="ident">written</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="comment">// End of the reader</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_available_bytes_tail</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="comment">// We created an empty tail but ended up not reading any</span>
+                    <span class="comment">// data into it.</span>
+                    <span class="self">self</span>.<span class="ident">destroy_old_tail</span>();
+                }
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">total_written</span>);
+            }
         }
     }
 
-    <span class="doccomment">/// Pop bytes from the end of the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">dst_len</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes_copied</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="doccomment">/// Dequeues data into `dst` until empty or `dst` returns EOF or error.</span>
+    <span class="doccomment">/// Returns an error iff `dst` returns an error; i.e. this is infallible for</span>
+    <span class="doccomment">/// an infallible `dst` such as a slice.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_copied</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">dst</span>;
 
-        <span class="comment">// while there are bytes to copy</span>
-        <span class="kw">while</span> <span class="ident">bytes_copied</span> <span class="op">&lt;</span> <span class="ident">dst_len</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">tail_avail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_available_bytes_tail</span>();
-            <span class="macro">debug_assert_ne</span><span class="macro">!</span>(<span class="ident">tail_avail</span>, <span class="number">0</span>);
-
-            <span class="comment">// how much we actually read in this iteration</span>
-            <span class="kw">let</span> <span class="ident">dst_remaining</span> <span class="op">=</span> <span class="ident">dst_len</span> <span class="op">-</span> <span class="ident">bytes_copied</span>;
-            <span class="kw">let</span> <span class="ident">num_read</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">dst_remaining</span> <span class="op">&lt;</span> <span class="ident">tail_avail</span> {
-                <span class="ident">dst_remaining</span>
-            } <span class="kw">else</span> {
-                <span class="ident">tail_avail</span>
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">back</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">back</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// No more data to copy</span>
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">total_copied</span>);
+                }
             };
+            <span class="macro">debug_assert_ne</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">get_available_bytes_tail</span>(), <span class="number">0</span>);
 
             <span class="comment">// copy bytes to dst</span>
-            <span class="self">self</span>.<span class="ident">copy_from_tail</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>[<span class="ident">bytes_copied</span>..(<span class="ident">bytes_copied</span> <span class="op">+</span> <span class="ident">num_read</span>)]);
-            <span class="ident">bytes_copied</span> <span class="op">+</span><span class="op">=</span> <span class="ident">num_read</span>;
+            <span class="kw">let</span> <span class="ident">copied</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">back</span>.<span class="ident">buf</span>[<span class="self">self</span>.<span class="ident">tail_read_offset</span>..])<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">tail_read_offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">copied</span>;
+            <span class="self">self</span>.<span class="ident">length</span> <span class="op">-</span><span class="op">=</span> <span class="ident">copied</span>;
+            <span class="ident">total_copied</span> <span class="op">+</span><span class="op">=</span> <span class="ident">copied</span>;
 
             <span class="comment">// proactively destroy old tail</span>
-            <span class="kw">let</span> <span class="ident">tail_avail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_available_bytes_tail</span>();
-            <span class="kw">if</span> <span class="ident">tail_avail</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_available_bytes_tail</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="self">self</span>.<span class="ident">destroy_old_tail</span>();
             }
-        }
 
-        <span class="ident">bytes_copied</span>
+            <span class="kw">if</span> <span class="ident">copied</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="comment">// Writer EOF</span>
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">total_copied</span>);
+            }
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">create_new_head</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
@@ -404,54 +384,20 @@ automatically. As data is read, old chunks are freed automatically.
             <span class="self">self</span>.<span class="ident">tail_read_offset</span> <span class="op">=</span> <span class="number">0</span>;
         }
 
-        <span class="self">self</span>.<span class="ident">head_write_offset</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">push_front</span>(<span class="ident">ByteChunk</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">chunk_capacity</span>));
     }
 
     <span class="kw">fn</span> <span class="ident">destroy_old_tail</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">pop_back</span>();
         <span class="self">self</span>.<span class="ident">tail_read_offset</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// this was also the head</span>
-            <span class="self">self</span>.<span class="ident">head_write_offset</span> <span class="op">=</span> <span class="number">0</span>;
-        }
     }
 
     <span class="kw">fn</span> <span class="ident">get_available_bytes_tail</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">len</span>() {
             <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">head_write_offset</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">tail_read_offset</span>,
+            <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">front</span>().<span class="ident">unwrap</span>().<span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">tail_read_offset</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">chunk_capacity</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">tail_read_offset</span>,
         }
-    }
-
-    <span class="doccomment">/// Copy bytes from a slice. Assumes that the head exists, and that the</span>
-    <span class="doccomment">/// slice will not overflow the head.</span>
-    <span class="kw">fn</span> <span class="ident">copy_to_head</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">head_write_offset</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">chunk_capacity</span>);
-
-        <span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">front_mut</span>().<span class="ident">unwrap</span>().<span class="ident">buf</span>
-            [<span class="self">self</span>.<span class="ident">head_write_offset</span>..(<span class="self">self</span>.<span class="ident">head_write_offset</span> <span class="op">+</span> <span class="ident">len</span>)]
-            .<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>);
-
-        <span class="self">self</span>.<span class="ident">head_write_offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len</span>;
-        <span class="self">self</span>.<span class="ident">length</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len</span>;
-    }
-
-    <span class="doccomment">/// Copy bytes to a slice. Assumes that the tail exists, and that the</span>
-    <span class="doccomment">/// slice does not require more bytes than exist in the tail.</span>
-    <span class="kw">fn</span> <span class="ident">copy_from_tail</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">len</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">tail_read_offset</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">chunk_capacity</span>);
-
-        <span class="ident">dst</span>.<span class="ident">copy_from_slice</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">chunks</span>.<span class="ident">back</span>().<span class="ident">unwrap</span>().<span class="ident">buf</span>[<span class="self">self</span>.<span class="ident">tail_read_offset</span>..(<span class="self">self</span>.<span class="ident">tail_read_offset</span> <span class="op">+</span> <span class="ident">len</span>)],
-        );
-
-        <span class="self">self</span>.<span class="ident">tail_read_offset</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len</span>;
-        <span class="self">self</span>.<span class="ident">length</span> <span class="op">-</span><span class="op">=</span> <span class="ident">len</span>;
     }
 }
 
@@ -498,7 +444,7 @@ automatically. As data is read, old chunks are freed automatically.
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">src</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">src</span>, <span class="ident">len</span>) };
-        <span class="ident">bq</span>.<span class="ident">push</span>(<span class="ident">src</span>)
+        <span class="ident">bq</span>.<span class="ident">push</span>(<span class="ident">src</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -511,7 +457,7 @@ automatically. As data is read, old chunks are freed automatically.
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">dst</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">dst</span>, <span class="ident">len</span>) };
-        <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="ident">dst</span>)
+        <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="ident">dst</span>).<span class="ident">unwrap</span>()
     }
 }
 
@@ -529,8 +475,8 @@ automatically. As data is read, old chunks are freed automatically.
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst1</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">8</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst2</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">10</span>];
 
-        <span class="ident">bq</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">src1</span>);
-        <span class="ident">bq</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">src2</span>);
+        <span class="ident">bq</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">src1</span>[..]).<span class="ident">unwrap</span>();
+        <span class="ident">bq</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">src2</span>[..]).<span class="ident">unwrap</span>();
 
         <span class="comment">// check the number of chunk sizes is correct (ceiling division)</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(
@@ -541,8 +487,8 @@ automatically. As data is read, old chunks are freed automatically.
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">bq</span>.<span class="ident">length</span>, <span class="ident">src1</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">src2</span>.<span class="ident">len</span>());
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst1</span>);
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst2</span>);
+        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst1</span>[..]).<span class="ident">unwrap</span>();
+        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst2</span>[..]).<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">count</span>, <span class="ident">src1</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">src2</span>.<span class="ident">len</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dst1</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>]);

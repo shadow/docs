@@ -420,7 +420,7 @@
 };
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall</span>::{<span class="self">self</span>, <span class="ident">Trigger</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_condition</span>::<span class="ident">SysCallCondition</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallArgs</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallArgs</span>, <span class="ident">TypedPluginPtr</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">event_queue</span>::<span class="ident">EventQueue</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
@@ -553,17 +553,17 @@
     <span class="ident">buf_size</span>: <span class="ident">libc</span>::<span class="ident">size_t</span>,
     <span class="ident">offset</span>: <span class="ident">libc</span>::<span class="ident">off_t</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
-    <span class="comment">// TODO: dynamically compute size based on how much data is actually available in the descriptor</span>
-    <span class="kw">let</span> <span class="ident">size_needed</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">buf_size</span>, <span class="ident">c</span>::<span class="ident">SYSCALL_IO_BUFSIZE</span> <span class="kw">as</span> <span class="ident">usize</span>);
     <span class="kw">let</span> <span class="ident">posix_file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>();
     <span class="kw">let</span> <span class="ident">file_flags</span> <span class="op">=</span> <span class="ident">posix_file</span>.<span class="ident">borrow</span>().<span class="ident">get_flags</span>();
 
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">SyscallResult</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_active_process_mut</span>(<span class="op">|</span><span class="ident">process</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">get_writable_slice</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">buf_ptr</span>, <span class="ident">size_needed</span>)<span class="question-mark">?</span>;
-
         <span class="comment">// call the file&#39;s read(), and run any resulting events</span>
         <span class="ident">EventQueue</span>::<span class="ident">queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
-            <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">read</span>(<span class="ident">buf</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>)
+            <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">read</span>(
+                <span class="ident">process</span>.<span class="ident">writer</span>(<span class="ident">TypedPluginPtr</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>)),
+                <span class="ident">offset</span>,
+                <span class="ident">event_queue</span>,
+            )
         })
     });
 
@@ -623,18 +623,17 @@
     <span class="ident">buf_size</span>: <span class="ident">libc</span>::<span class="ident">size_t</span>,
     <span class="ident">offset</span>: <span class="ident">libc</span>::<span class="ident">off_t</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
-    <span class="comment">// TODO: dynamically compute size based on how much data is actually available in the descriptor</span>
-    <span class="kw">let</span> <span class="ident">size_needed</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">buf_size</span>, <span class="ident">c</span>::<span class="ident">SYSCALL_IO_BUFSIZE</span> <span class="kw">as</span> <span class="ident">usize</span>);
-
     <span class="kw">let</span> <span class="ident">posix_file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>();
     <span class="kw">let</span> <span class="ident">file_flags</span> <span class="op">=</span> <span class="ident">posix_file</span>.<span class="ident">borrow</span>().<span class="ident">get_flags</span>();
 
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">SyscallResult</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_active_process</span>(<span class="op">|</span><span class="ident">process</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">get_slice</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">buf_ptr</span>.<span class="ident">into</span>(), <span class="ident">size_needed</span>)<span class="question-mark">?</span>;
-
         <span class="comment">// call the file&#39;s write(), and run any resulting events</span>
         <span class="ident">EventQueue</span>::<span class="ident">queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
-            <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>)
+            <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">write</span>(
+                <span class="ident">process</span>.<span class="ident">reader</span>(<span class="ident">TypedPluginPtr</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>)),
+                <span class="ident">offset</span>,
+                <span class="ident">event_queue</span>,
+            )
         })
     });
 
@@ -725,7 +724,8 @@
         <span class="comment">//</span>
         <span class="comment">// In this case it&#39;d be a bit awkward though, since we&#39;d then need to</span>
         <span class="comment">// unregister the descriptors if the pointer-write failed.</span>
-        <span class="kw">let</span> <span class="ident">fds</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">get_writable_slice</span>::<span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span><span class="op">&gt;</span>(<span class="ident">fd_ptr</span>.<span class="ident">into</span>(), <span class="number">2</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">writer</span>(<span class="ident">TypedPluginPtr</span>::<span class="op">&lt;</span><span class="ident">libc</span>::<span class="ident">c_int</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">fd_ptr</span>.<span class="ident">into</span>(), <span class="number">2</span>));
+        <span class="kw">let</span> <span class="ident">fds</span> <span class="op">=</span> <span class="ident">writer</span>.<span class="ident">as_mut_uninit</span>()<span class="question-mark">?</span>;
 
         <span class="ident">fds</span>[<span class="number">0</span>] <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">c</span>::<span class="ident">process_registerCompatDescriptor</span>(

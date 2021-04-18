@@ -208,12 +208,90 @@
 <span id="205">205</span>
 <span id="206">206</span>
 <span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cshadow</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_types</span>::<span class="ident">PluginPtr</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_types</span>::<span class="ident">TypedPluginPtr</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">pod</span>::<span class="ident">Pod</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::{<span class="ident">align_of</span>, <span class="ident">size_of</span>, <span class="ident">MaybeUninit</span>};
+<span class="kw">use</span> <span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">Read</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>, <span class="ident">Write</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">align_of</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Process</span> {
     <span class="ident">cprocess</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">Process</span>,
@@ -231,103 +309,132 @@
         <span class="ident">Process</span> { <span class="ident">cprocess</span>: <span class="ident">p</span> }
     }
 
-    <span class="doccomment">/// Read data from `src` into `dst`.</span>
-    <span class="doccomment">/// Always succeeds for zero-size `dst`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use when:</span>
-    <span class="doccomment">/// * We need to copy the data into a Shadow-owned buffer (such as a packet).</span>
-    <span class="doccomment">/// * Or: when the cost of copying the data is small (e.g. &lt; 1kB).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_ptr_into_slice</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">src</span>: <span class="ident">PluginPtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">cshadow</span>::<span class="ident">process_readPtr</span>(
-                <span class="self">self</span>.<span class="ident">cprocess</span>,
-                <span class="ident">dst</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span>,
-                <span class="ident">src</span>.<span class="ident">into</span>(),
-                (<span class="ident">dst</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">u64</span>,
-            )
-        };
-        <span class="kw">if</span> <span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">from_i32</span>(<span class="ident">status</span> <span class="kw">as</span> <span class="ident">i32</span>)))
+    <span class="doccomment">/// Create an object to read `count` elements of type `T` from the specified</span>
+    <span class="doccomment">/// pointer.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ProcessMemoryReader</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">ProcessMemoryReader</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="ident">process</span>: <span class="self">self</span>,
+            <span class="ident">ptr</span>: <span class="ident">dst</span>,
         }
     }
 
-    <span class="doccomment">/// Read data from `src` into `dst`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use when:</span>
-    <span class="doccomment">/// * We need to copy the data into a Shadow-owned buffer (such as a packet).</span>
-    <span class="doccomment">/// * Or: when the cost of copying the data is small (e.g. &lt; 1kB).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_ptr_into_val</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">src</span>: <span class="ident">PluginPtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_mut</span>(<span class="ident">dst</span>);
-        <span class="self">self</span>.<span class="ident">read_ptr_into_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">slice</span>, <span class="ident">src</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Convenience wrapper around `read_ptr_into_val`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_ptr_as_val</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">PluginPtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="comment">// SAFETY: Since `T` is Pod, any bit pattern is a valid `T`.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">T</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">MaybeUninit</span>::<span class="ident">uninit</span>().<span class="ident">assume_init</span>() };
-        <span class="self">self</span>.<span class="ident">read_ptr_into_val</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">val</span>, <span class="ident">src</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
-    }
-
-    <span class="doccomment">/// Write data from `src` into `dst`.</span>
-    <span class="doccomment">/// Always succeeds for zero-size `dst`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_ptr_from_slice</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">PluginPtr</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">cshadow</span>::<span class="ident">process_writePtr</span>(
-                <span class="self">self</span>.<span class="ident">cprocess</span>,
-                <span class="ident">dst</span>.<span class="ident">into</span>(),
-                <span class="ident">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span>,
-                (<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">u64</span>,
-            )
-        };
-        <span class="kw">if</span> <span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">from_i32</span>(<span class="ident">status</span> <span class="kw">as</span> <span class="ident">i32</span>)))
+    <span class="doccomment">/// Create an object to write `count` elements of type `T` to the specified</span>
+    <span class="doccomment">/// pointer.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ProcessMemoryWriter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">ProcessMemoryWriter</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="ident">process</span>: <span class="self">self</span>,
+            <span class="ident">ptr</span>: <span class="ident">src</span>,
         }
     }
+}
 
-    <span class="doccomment">/// Write `src` into `dst` in the current Process.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_ptr_from_val</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">PluginPtr</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_ref</span>(<span class="ident">src</span>);
-        <span class="self">self</span>.<span class="ident">write_ptr_from_slice</span>(<span class="ident">dst</span>, <span class="ident">src</span>)
-    }
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProcessMemoryReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">process</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Process</span>,
+    <span class="ident">ptr</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+}
 
-    <span class="doccomment">/// Get a read-only slice at `src`. If memory can&#39;t be accessed, may return</span>
-    <span class="doccomment">/// an error, or may cause a Shadow error later when flushing.</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ProcessMemoryReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Pod</span>,
+{
+    <span class="doccomment">/// Get a read-only slice.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Prefer the `read_ptr_*` methods unless you specifically need a slice, and</span>
-    <span class="doccomment">/// the data is of non-trivial size.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_slice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">PluginPtr</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="doccomment">/// This *may* have to copy the data. If you need a copy anyway use the</span>
+    <span class="doccomment">/// `std::io::Read` trait implementation avoid an extra copy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Fails if the source pointer is unaligned.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Result&#39;s lifetime is intentionally bound to that of the underlying</span>
+    <span class="doccomment">/// `Process` reference rather than the lifetime of this object. That allows</span>
+    <span class="doccomment">/// this object to be discarded. e.g.:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let tv : &amp;timeval = process.reader(ptr, 1).as_ref().unwrap()[0];</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">T</span>], <span class="ident">Errno</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">items_remaining</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>[][..]);
         }
-
         <span class="comment">// SAFETY: This never returns an invalid pointer. Passing a `p` outside</span>
         <span class="comment">// of the plugin&#39;s addressable memory will return a NULL pointer.</span>
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">cshadow</span>::<span class="ident">process_getReadablePtr</span>(
-                <span class="self">self</span>.<span class="ident">cprocess</span>,
-                <span class="ident">src</span>.<span class="ident">into</span>(),
-                (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">len</span>) <span class="kw">as</span> <span class="ident">u64</span>,
+                <span class="self">self</span>.<span class="ident">process</span>.<span class="ident">cprocess</span>,
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">ptr</span>()<span class="question-mark">?</span>.<span class="ident">into</span>(),
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">bytes_remaining</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>,
             )
         } <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>;
 
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>));
+            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">Errno</span>::<span class="ident">EFAULT</span>;
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Reading {:?}: {}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>, <span class="ident">e</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
         }
-
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">align_offset</span>(<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Unaligned pointer {:?}&quot;</span>, <span class="ident">ptr</span>);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>));
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Unaligned pointer {:?}&quot;</span>, <span class="ident">ptr</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno</span>::<span class="ident">EFAULT</span>);
         }
 
-        <span class="comment">// SAFETY: `process_getReadablePtr` already checked bounds; we&#39;ve</span>
-        <span class="comment">// checked alignment, and since T is Pod, any data is a valid T.</span>
-        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">ptr</span>, <span class="ident">len</span>) })
+        <span class="comment">// SAFETY: Any values are ok because T is Pod. We&#39;ve validated the</span>
+        <span class="comment">// pointer is accessible and aligned.</span>
+        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">ptr</span>, <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">items_remaining</span>()<span class="question-mark">?</span>) })
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">ProcessMemoryReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">seek</span>(<span class="ident">pos</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">ProcessMemoryReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">toread</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">buf</span>.<span class="ident">len</span>(), <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">bytes_remaining</span>()<span class="question-mark">?</span>);
+        <span class="macro">debug</span><span class="macro">!</span>(
+            <span class="string">&quot;Preparing to read {:?} into buffer of size {}&quot;</span>,
+            <span class="self">self</span>.<span class="ident">ptr</span>,
+            <span class="ident">buf</span>.<span class="ident">len</span>()
+        );
+
+        <span class="kw">if</span> <span class="ident">toread</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">cshadow</span>::<span class="ident">process_readPtr</span>(
+                <span class="self">self</span>.<span class="ident">process</span>.<span class="ident">cprocess</span>,
+                <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span>,
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">ptr</span>()<span class="question-mark">?</span>.<span class="ident">into</span>(),
+                <span class="ident">toread</span> <span class="kw">as</span> <span class="ident">u64</span>,
+            )
+        };
+        <span class="kw">if</span> <span class="ident">status</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">from_raw_os_error</span>(<span class="ident">status</span>);
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Reading {} bytes from {:?}: {}&quot;</span>, <span class="ident">toread</span>, <span class="self">self</span>.<span class="ident">ptr</span>, <span class="ident">e</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+        }
+        <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Current</span>(<span class="ident">toread</span> <span class="kw">as</span> <span class="ident">i64</span>)).<span class="ident">unwrap</span>();
+
+        <span class="prelude-val">Ok</span>(<span class="ident">toread</span>)
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProcessMemoryWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">process</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Process</span>,
+    <span class="ident">ptr</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Seek</span> <span class="kw">for</span> <span class="ident">ProcessMemoryWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">seek</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <span class="ident">SeekFrom</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">seek</span>(<span class="ident">pos</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ProcessMemoryWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Errno</span><span class="op">&gt;</span> {
+        <span class="comment">// TODO: Change process_flushPtrs to propagate errors.</span>
+        <span class="kw">unsafe</span> { <span class="ident">cshadow</span>::<span class="ident">process_flushPtrs</span>(<span class="self">self</span>.<span class="ident">process</span>.<span class="ident">cprocess</span>) };
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Get a mutable slice to `src`. May return an error if the memory can&#39;t</span>
@@ -335,85 +442,130 @@
     <span class="doccomment">/// will be flushed later, in which case any errors will be deferred until</span>
     <span class="doccomment">/// then. Returns an empty slice for len == 0.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Prefer the `write_ptr_*` methods unless you need a mutable slice to pass</span>
-    <span class="doccomment">/// to another API, and prefer `get_writable_slice` when you don&#39;t need the</span>
-    <span class="doccomment">/// original value stored at `src`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut_slice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">PluginPtr</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
-                <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">NonNull</span>::<span class="ident">dangling</span>().<span class="ident">as_ptr</span>(), <span class="number">0</span>)
-            });
-        }
-
-        <span class="comment">// SAFETY: This never returns an invalid pointer. Passing a `p` outside</span>
-        <span class="comment">// of the plugin&#39;s addressable memory will either result in returning a</span>
-        <span class="comment">// NULL pointer (if we end up going through the MemoryManager), or</span>
-        <span class="comment">// result in a failure later when the thread attempts to flush the</span>
-        <span class="comment">// write. Such a failure is undesirable, but should at least fail in a</span>
-        <span class="comment">// well-defined way.</span>
-        <span class="comment">//</span>
-        <span class="comment">// TODO: When the MemoryManager is available, use it to validate the</span>
-        <span class="comment">// bounds of the pointer even if it doesn&#39;t have the pointer mmap&#39;d into</span>
-        <span class="comment">// Shadow.</span>
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">cshadow</span>::<span class="ident">process_getMutablePtr</span>(<span class="self">self</span>.<span class="ident">cprocess</span>, <span class="ident">src</span>.<span class="ident">into</span>(), (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">len</span>) <span class="kw">as</span> <span class="ident">u64</span>)
-        } <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
-
-        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>));
-        }
-
-        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">align_offset</span>(<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Unaligned pointer {:?}&quot;</span>, <span class="ident">ptr</span>);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>));
-        }
-
-        <span class="comment">// SAFETY: `process_getMutablePtr` already checked bounds; we&#39;ve checked</span>
-        <span class="comment">// alignment, and since T is Pod, any data is a valid T.</span>
-        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="ident">len</span>) })
-    }
-
-    <span class="doccomment">/// As `get_mut_slice`, but the initial value is unspecified.</span>
+    <span class="doccomment">/// The initial contents of the returned slice is unspecified.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Prefer the `write_ptr_*` methods unless you need a mutable slice to pass</span>
-    <span class="doccomment">/// to another API.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_writable_slice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">PluginPtr</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
-                <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">NonNull</span>::<span class="ident">dangling</span>().<span class="ident">as_ptr</span>(), <span class="number">0</span>)
-            });
+    <span class="doccomment">/// *May* return a temporary buffer that will later be written back into the</span>
+    <span class="doccomment">/// process. Use the `std::io::Write` trait when feasible to avoid this</span>
+    <span class="doccomment">/// potential extra copy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Unlike `ProcessMemoryReader::as_ref`, the result&#39;s lifetime is bound to</span>
+    <span class="doccomment">/// that of *this* object, so that we can ensure writes are flushed.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_uninit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">Errno</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Pod</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">bytes_remaining</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;as_mut_init returning empty slice&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [][..]);
         }
 
         <span class="comment">// SAFETY: This never returns an invalid pointer. Passing a `p` outside</span>
-        <span class="comment">// of the plugin&#39;s addressable memory will either result in returning a</span>
-        <span class="comment">// NULL pointer (if we end up going through the MemoryManager), or</span>
-        <span class="comment">// result in a failure later when the thread attempts to flush the</span>
-        <span class="comment">// write. Such a failure is undesirable, but should at least fail in a</span>
-        <span class="comment">// well-defined way.</span>
-        <span class="comment">//</span>
-        <span class="comment">// TODO: When the MemoryManager is available, use it to validate the</span>
-        <span class="comment">// bounds of the pointer even if it doesn&#39;t have the pointer mmap&#39;d into</span>
-        <span class="comment">// Shadow.</span>
+        <span class="comment">// of the plugin&#39;s addressable memory will return a NULL pointer.</span>
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">cshadow</span>::<span class="ident">process_getWriteablePtr</span>(
-                <span class="self">self</span>.<span class="ident">cprocess</span>,
-                <span class="ident">src</span>.<span class="ident">into</span>(),
-                (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">len</span>) <span class="kw">as</span> <span class="ident">u64</span>,
+                <span class="self">self</span>.<span class="ident">process</span>.<span class="ident">cprocess</span>,
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">ptr</span>()<span class="question-mark">?</span>.<span class="ident">into</span>(),
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">bytes_remaining</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>,
             )
         } <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
 
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>));
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t write {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno</span>::<span class="ident">EFAULT</span>);
         }
-
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">align_offset</span>(<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Unaligned pointer {:?}&quot;</span>, <span class="ident">ptr</span>);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span>));
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Unaligned pointer {:?}&quot;</span>, <span class="ident">ptr</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno</span>::<span class="ident">EFAULT</span>);
         }
 
-        <span class="comment">// SAFETY: `process_getWriteablePtr` already checked bounds; we&#39;ve checked</span>
-        <span class="comment">// alignment, and since T is Pod, any data is a valid T.</span>
-        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="ident">len</span>) })
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;as_mut_uninit got {:?}&quot;</span>, <span class="ident">ptr</span>);
+
+        <span class="comment">// SAFETY: Any values are ok because T is Pod. We&#39;ve validated the</span>
+        <span class="comment">// pointer is accessible and aligned.</span>
+        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">items_remaining</span>()<span class="question-mark">?</span>) })
+    }
+
+    <span class="doccomment">/// Get a mutable slice to `src`. Returns an error if the memory can&#39;t</span>
+    <span class="doccomment">/// be accessed. Returns an empty slice for len == 0.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *May* return a temporary buffer that will later be written back into the</span>
+    <span class="doccomment">/// process. Use the `std::io::Write` trait when feasible to avoid this</span>
+    <span class="doccomment">/// potential extra copy.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When a temporary buffer is needed, also needs to copy the original</span>
+    <span class="doccomment">/// contents of the specified memory. Prefer `as_mut_uninit` if you don&#39;t</span>
+    <span class="doccomment">/// need the initial state.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Unlike `ProcessMemoryReader::as_ref`, the result&#39;s lifetime is bound to</span>
+    <span class="doccomment">/// that of *this* object, so that we can ensure writes are flushed.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">Errno</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Pod</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">items_remaining</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [][..]);
+        }
+
+        <span class="comment">// SAFETY: This never returns an invalid pointer. Passing a `p` outside</span>
+        <span class="comment">// of the plugin&#39;s addressable memory will return a NULL pointer.</span>
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">cshadow</span>::<span class="ident">process_getMutablePtr</span>(
+                <span class="self">self</span>.<span class="ident">process</span>.<span class="ident">cprocess</span>,
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">ptr</span>()<span class="question-mark">?</span>.<span class="ident">into</span>(),
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">bytes_remaining</span>()<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>,
+            )
+        } <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
+
+        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t write {:?}&quot;</span>, <span class="ident">ptr</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno</span>::<span class="ident">EFAULT</span>);
+        }
+        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">align_offset</span>(<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Unaligned pointer {:?}&quot;</span>, <span class="ident">ptr</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno</span>::<span class="ident">EFAULT</span>);
+        }
+
+        <span class="comment">// SAFETY: Any values are ok because T is Pod. We&#39;ve validated the</span>
+        <span class="comment">// pointer is accessible and aligned.</span>
+        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">items_remaining</span>()<span class="question-mark">?</span>) })
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="ident">ProcessMemoryWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="comment">// Don&#39;t write more than we have</span>
+        <span class="kw">let</span> <span class="ident">towrite</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">buf</span>.<span class="ident">len</span>(), <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">bytes_remaining</span>()<span class="question-mark">?</span>);
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Preparing to write {} bytes into {:?}&quot;</span>, <span class="ident">towrite</span>, <span class="self">self</span>.<span class="ident">ptr</span>);
+        <span class="kw">if</span> <span class="ident">towrite</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">cshadow</span>::<span class="ident">process_writePtr</span>(
+                <span class="self">self</span>.<span class="ident">process</span>.<span class="ident">cprocess</span>,
+                <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">ptr</span>()<span class="question-mark">?</span>.<span class="ident">into</span>(),
+                <span class="ident">buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span>,
+                <span class="ident">towrite</span> <span class="kw">as</span> <span class="ident">u64</span>,
+            )
+        };
+        <span class="kw">if</span> <span class="ident">status</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">from_raw_os_error</span>(<span class="ident">status</span>);
+            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Writing {} bytes to {:?}: {}&quot;</span>, <span class="ident">towrite</span>, <span class="self">self</span>.<span class="ident">ptr</span>, <span class="ident">e</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">from_raw_os_error</span>(<span class="ident">status</span>));
+        }
+        <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom</span>::<span class="ident">Current</span>(<span class="ident">towrite</span> <span class="kw">as</span> <span class="ident">i64</span>)).<span class="ident">unwrap</span>();
+        <span class="prelude-val">Ok</span>(<span class="ident">towrite</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="ident">ProcessMemoryWriter</span>::<span class="ident">flush</span>(<span class="self">self</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">from_raw_os_error</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="ident">i32</span>))
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ProcessMemoryWriter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="comment">// Avoid syscall handlers needing to flush explicitly.</span>
+        <span class="self">self</span>.<span class="ident">flush</span>().<span class="ident">unwrap</span>()
     }
 }
 </pre></div>

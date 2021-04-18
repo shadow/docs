@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PluginPtr",""]],"type":[["SysCallArgs",""],["SysCallReg",""]]});
+initSidebarItems({"struct":[["PluginPtr",""],["TypedPluginPtr","Wrapper around a PluginPtr that encapsulates its type, size, and current position."]],"type":[["SysCallArgs",""],["SysCallReg",""]]});
