@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["configuration",""]]});
+initSidebarItems({"mod":[["configuration",""],["units","Types for parsing/deserializing unit values."]]});
