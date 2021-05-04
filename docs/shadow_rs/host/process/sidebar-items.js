@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Process",""],["ProcessMemoryReader",""],["ProcessMemoryWriter",""]]});
+initSidebarItems({"struct":[["Process",""]]});

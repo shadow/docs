@@ -207,119 +207,19 @@
 <span id="204">204</span>
 <span id="205">205</span>
 <span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallReg</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">syscall</span>;
-<span class="kw">use</span> <span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>;
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Thread</span> {
     <span class="doccomment">/// Have the plugin thread natively execute the given syscall.</span>
     <span class="kw">fn</span> <span class="ident">native_syscall</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i64</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">SysCallReg</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span>;
 
-    <span class="doccomment">/// Get a readable pointer to the plugin&#39;s memory. Never returns NULL.</span>
-    <span class="kw">fn</span> <span class="ident">get_readable_ptr</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">plugin_src</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">n</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// Get a writeable pointer to the plugin&#39;s memory. Never returns NULL.</span>
-    <span class="kw">fn</span> <span class="ident">get_writeable_ptr</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">plugin_src</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">n</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// Get a mutable pointer to the plugin&#39;s memory. Never returns NULL.</span>
-    <span class="doccomment">/// SAFETY</span>
-    <span class="doccomment">/// * The specified memory region must be valid and writeable.</span>
-    <span class="doccomment">/// * Returned pointer mustn&#39;t be accessed after Thread runs again or flush is called.</span>
-    <span class="kw">fn</span> <span class="ident">get_mutable_ptr</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">plugin_src</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">n</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span><span class="op">&gt;</span>;
-
     <span class="kw">fn</span> <span class="ident">get_process_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
     <span class="kw">fn</span> <span class="ident">get_host_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
     <span class="kw">fn</span> <span class="ident">get_system_pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">pid_t</span>;
-
-    <span class="doccomment">/// Flush (and invalidate) pointers previously returned by `get_readable_ptr` and</span>
-    <span class="doccomment">/// `get_writeable_ptr`.</span>
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>);
+    <span class="kw">fn</span> <span class="ident">get_system_tid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">pid_t</span>;
 
     <span class="doccomment">/// Natively execute munmap(2) on the given thread.</span>
     <span class="kw">fn</span> <span class="ident">native_munmap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">PluginPtr</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PluginPtr</span><span class="op">&gt;</span> {
@@ -485,55 +385,6 @@
         <span class="ident">syscall</span>::<span class="ident">raw_return_value_to_result</span>(<span class="ident">raw_res</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_readable_ptr</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">plugin_src</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">n</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span><span class="op">&gt;</span> {
-        <span class="comment">// Safety: self.cthread initialized in CThread::new.</span>
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">thread_getReadablePtr</span>(<span class="self">self</span>.<span class="ident">cthread</span>, <span class="ident">plugin_src</span>.<span class="ident">into</span>(), <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) };
-        <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">Errno</span>::<span class="ident">EPERM</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">p</span>)
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_writeable_ptr</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">plugin_src</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">n</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span><span class="op">&gt;</span> {
-        <span class="comment">// Safety: self.cthread initialized in CThread::new.</span>
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">thread_getWriteablePtr</span>(<span class="self">self</span>.<span class="ident">cthread</span>, <span class="ident">plugin_src</span>.<span class="ident">into</span>(), <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) };
-        <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">Errno</span>::<span class="ident">EPERM</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">p</span>)
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_mutable_ptr</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">plugin_src</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">n</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::<span class="ident">c_void</span><span class="op">&gt;</span> {
-        <span class="comment">// Safety: self.cthread initialized in CThread::new.</span>
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">thread_getMutablePtr</span>(<span class="self">self</span>.<span class="ident">cthread</span>, <span class="ident">plugin_src</span>.<span class="ident">into</span>(), <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) };
-        <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">Err</span>(<span class="ident">nix</span>::<span class="ident">Error</span>::<span class="ident">from_errno</span>(<span class="ident">Errno</span>::<span class="ident">EPERM</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">p</span>)
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="comment">// Safety: self.cthread initialized in CThread::new.</span>
-        <span class="kw">unsafe</span> {
-            <span class="ident">c</span>::<span class="ident">thread_flushPtrs</span>(<span class="self">self</span>.<span class="ident">cthread</span>);
-        }
-    }
-
     <span class="kw">fn</span> <span class="ident">get_process_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="comment">// Safety: self.cthread initialized in CThread::new.</span>
         <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">thread_getProcessId</span>(<span class="self">self</span>.<span class="ident">cthread</span>) }
@@ -547,6 +398,11 @@
     <span class="kw">fn</span> <span class="ident">get_system_pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">pid_t</span> {
         <span class="comment">// Safety: self.cthread initialized in CThread::new.</span>
         <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">thread_getNativePid</span>(<span class="self">self</span>.<span class="ident">cthread</span>) }
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_system_tid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">pid_t</span> {
+        <span class="comment">// Safety: self.cthread initialized in CThread::new.</span>
+        <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">thread_getNativeTid</span>(<span class="self">self</span>.<span class="ident">cthread</span>) }
     }
 }
 

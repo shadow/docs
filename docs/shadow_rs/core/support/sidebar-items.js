@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["configuration",""],["units","Types for parsing/deserializing unit values."]]});
+initSidebarItems({"mod":[["configuration",""],["simulation_time","cbindgen:ignore Values for working with time in simulation units."],["units","Types for parsing/deserializing unit values."]]});

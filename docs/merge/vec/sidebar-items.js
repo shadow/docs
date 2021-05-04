@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["append","Append the contents of right to left."],["overwrite_empty","Overwrite left with right if left is empty."],["prepend","Prepend the contents of right to left."]]});

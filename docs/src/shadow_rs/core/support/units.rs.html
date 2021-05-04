@@ -760,13 +760,35 @@
 <span id="757">757</span>
 <span id="758">758</span>
 <span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/*!
 Types for parsing/deserializing unit values.
 
 ```
 let time = Time::from_str(&quot;10 min&quot;).unwrap();
-assert_eq!(time, Time::new(10, TimePrefix::Sec));
+assert_eq!(time, Time::new(10, TimePrefix::Min));
 
 assert_eq!(
     time.convert(TimePrefix::Sec).unwrap(),
@@ -781,6 +803,7 @@ assert_eq!(
 
 <span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">sync</span>::<span class="ident">Lazy</span>;
 <span class="kw">use</span> <span class="ident">regex</span>::<span class="ident">Regex</span>;
+<span class="kw">use</span> <span class="ident">schemars</span>::<span class="ident">JsonSchema</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::{<span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Visitor</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">ser</span>::{<span class="ident">Serialize</span>, <span class="ident">Serializer</span>};
 
@@ -809,7 +832,7 @@ assert_eq!(
 }
 
 <span class="doccomment">/// Common SI prefixes (including base-2 prefixes since they&#39;re similar).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SiPrefix</span> {
     <span class="ident">Nano</span>,
     <span class="ident">Micro</span>,
@@ -899,7 +922,7 @@ assert_eq!(
 
 <span class="doccomment">/// Common SI prefixes larger than the base unit (including base-2 prefixes</span>
 <span class="doccomment">/// since they&#39;re similar).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SiPrefixUpper</span> {
     <span class="ident">Base</span>,
     <span class="ident">Kilo</span>,
@@ -975,7 +998,7 @@ assert_eq!(
 <span class="doccomment">/// Time units, which we pretend are prefixes for implementation simplicity. These</span>
 <span class="doccomment">/// contain both the prefix (&quot;n&quot;, &quot;u&quot;, &quot;m&quot;) and the suffix (&quot;sec&quot;, &quot;min&quot;, &quot;hr&quot;)</span>
 <span class="doccomment">/// and should be used with the [`Time`] unit.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TimePrefix</span> {
     <span class="ident">Nano</span>,
     <span class="ident">Micro</span>,
@@ -1018,7 +1041,7 @@ assert_eq!(
             <span class="self">Self</span>::<span class="ident">Nano</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;ns&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Micro</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;μs&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Milli</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;ms&quot;</span>),
-            <span class="self">Self</span>::<span class="ident">Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;s&quot;</span>),
+            <span class="self">Self</span>::<span class="ident">Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;sec&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Min</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;min&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Hour</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;hour&quot;</span>),
         }
@@ -1043,7 +1066,7 @@ assert_eq!(
 <span class="doccomment">/// Time units larger than the base unit, which we pretend are prefixes for</span>
 <span class="doccomment">/// implementation simplicity. These really contain the unit suffix (&quot;sec&quot;,</span>
 <span class="doccomment">/// &quot;min&quot;, &quot;hr&quot;) and should be used with the [`Time`] unit.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TimePrefixUpper</span> {
     <span class="ident">Sec</span>,
     <span class="ident">Min</span>,
@@ -1074,7 +1097,7 @@ assert_eq!(
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TimePrefixUpper</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;s&quot;</span>),
+            <span class="self">Self</span>::<span class="ident">Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;sec&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Min</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;min&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Hour</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;hour&quot;</span>),
         }
@@ -1281,7 +1304,7 @@ assert_eq!(
 
 <span class="doccomment">/// An amount of time. Should only use the time prefix types ([`TimePrefix`] and</span>
 <span class="doccomment">/// [`TimePrefixUpper`]) with this type.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Time</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> {
     <span class="ident">value</span>: <span class="ident">u64</span>,
     <span class="ident">prefix</span>: <span class="ident">T</span>,
@@ -1291,8 +1314,20 @@ assert_eq!(
 <span class="comment">// really prefixes, time units don&#39;t have a suffix.</span>
 <span class="macro">unit_impl</span><span class="macro">!</span>(<span class="ident">Time</span>, <span class="ident">u64</span>, [<span class="string">&quot;&quot;</span>]);
 
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefix</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">from_nanos</span>(<span class="ident">time</span>.<span class="ident">convert</span>(<span class="ident">TimePrefix</span>::<span class="ident">Nano</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefixUpper</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="ident">time</span>.<span class="ident">convert</span>(<span class="ident">TimePrefixUpper</span>::<span class="ident">Sec</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>())
+    }
+}
+
 <span class="doccomment">/// A number of bytes.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span> <span class="ident">prefix</span>: <span class="ident">T</span>,
@@ -1301,7 +1336,7 @@ assert_eq!(
 <span class="macro">unit_impl</span><span class="macro">!</span>(<span class="ident">Bytes</span>, <span class="ident">u64</span>, [<span class="string">&quot;B&quot;</span>, <span class="string">&quot;byte&quot;</span>, <span class="string">&quot;bytes&quot;</span>]);
 
 <span class="doccomment">/// A throughput in bits-per-second.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BitsPerSec</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span> <span class="ident">prefix</span>: <span class="ident">T</span>,
@@ -1481,6 +1516,15 @@ assert_eq!(
             <span class="ident">bw</span>.<span class="ident">convert_lossy</span>(<span class="ident">SiPrefixUpper</span>::<span class="ident">Kibi</span>),
             <span class="ident">BitsPerSec</span>::<span class="ident">from_str</span>(<span class="string">&quot;1000 Kibit&quot;</span>).<span class="ident">unwrap</span>()
         );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_time_conversion</span>() {
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Time</span>::<span class="op">&lt;</span><span class="ident">TimePrefixUpper</span><span class="op">&gt;</span>::<span class="ident">from_str</span>(<span class="string">&quot;70 min&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">70</span> <span class="op">*</span> <span class="number">60</span>), <span class="ident">time</span>.<span class="ident">into</span>());
+
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Time</span>::<span class="ident">new</span>(<span class="number">1_000_000_123</span>, <span class="ident">TimePrefix</span>::<span class="ident">Nano</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">123</span>), <span class="ident">time</span>.<span class="ident">into</span>());
     }
 }
 

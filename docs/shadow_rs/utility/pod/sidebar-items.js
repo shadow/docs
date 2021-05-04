@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Pod","Marker trait that the given type is Plain Old Data; i.e. that it is safe to interpret any pattern of bits as a value of this type."]]});
+initSidebarItems({"fn":[["to_u8_slice","Convert to a slice of raw bytes."],["to_u8_slice_mut","Convert to a mut slice of raw bytes."],["zeroed","Create a value of type `T`, with contents initialized to 0s."]],"trait":[["Pod","Marker trait that the given type is Plain Old Data; i.e. that it is safe to interpret any pattern of bits as a value of this type."]]});
