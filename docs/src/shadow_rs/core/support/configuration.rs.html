@@ -1569,6 +1569,10 @@
 <span id="1566">1566</span>
 <span id="1567">1567</span>
 <span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -1637,6 +1641,7 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">experimental</span>: <span class="ident">ExperimentalOptions</span>,
 
+    <span class="doccomment">/// The network topology</span>
     <span class="ident">topology</span>: <span class="ident">Topology</span>,
 
     <span class="comment">// we use a BTreeMap so that the hosts are sorted by their hostname (useful for determinism)</span>
@@ -1716,7 +1721,7 @@
     <span class="ident">bootstrap_end_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units</span>::<span class="ident">Time</span><span class="op">&lt;</span><span class="ident">units</span>::<span class="ident">TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Log level of output written on stdout. If Shadow was built in release mode, then log</span>
-    <span class="doccomment">/// messages at a level lower than &#39;info&#39; will always be dropped</span>
+    <span class="doccomment">/// messages at level &#39;trace&#39; will always be dropped</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;l&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_message&quot;</span>)]</span>
@@ -1737,6 +1742,7 @@
     <span class="doccomment">/// Path to recursively copy during startup and use as the data-directory</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;e&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;path&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;template_directory&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">template_directory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
@@ -1907,13 +1913,13 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="ident">log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// Log level at which to print node statistics</span>
+    <span class="doccomment">/// Log level at which to print host statistics</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-level&quot;</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-level&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;heartbeat_log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="ident">heartbeat_log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// List of information to show in the node&#39;s heartbeat message</span>
+    <span class="doccomment">/// List of information to show in the host&#39;s heartbeat message</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-info&quot;</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-info&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">parse</span>(<span class="ident">try_from_str</span> <span class="op">=</span> <span class="ident">parse_set_log_info_flags</span>))]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;options&quot;</span>)]</span>
@@ -1990,7 +1996,7 @@
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">log_level</span>: <span class="prelude-val">None</span>,
-            <span class="ident">heartbeat_log_level</span>: <span class="prelude-val">Some</span>(<span class="ident">LogLevel</span>::<span class="ident">Message</span>),
+            <span class="ident">heartbeat_log_level</span>: <span class="prelude-val">Some</span>(<span class="ident">LogLevel</span>::<span class="ident">Info</span>),
             <span class="ident">heartbeat_log_info</span>: <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">array</span>::<span class="ident">IntoIter</span>::<span class="ident">new</span>([<span class="ident">LogInfoFlag</span>::<span class="ident">Node</span>]).<span class="ident">collect</span>()),
             <span class="ident">heartbeat_interval</span>: <span class="prelude-val">Some</span>(<span class="ident">units</span>::<span class="ident">Time</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="ident">units</span>::<span class="ident">TimePrefixUpper</span>::<span class="ident">Sec</span>)),
             <span class="ident">pcap_directory</span>: <span class="prelude-val">None</span>,
@@ -2009,19 +2015,24 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProcessOptions</span> {
     <span class="ident">path</span>: <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>,
 
+    <span class="doccomment">/// Process arguments</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_args_empty&quot;</span>)]</span>
     <span class="ident">args</span>: <span class="ident">ProcessArgs</span>,
 
-    <span class="doccomment">/// Environment variables passed to the simulated process (ex: &quot;ENV_A=1;ENV_B=2&quot;)</span>
+    <span class="doccomment">/// Environment variables passed when executing this process. Multiple variables can be</span>
+    <span class="doccomment">/// specified by using a semicolon separator (ex: `ENV_A=1;ENV_B=2`)</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">environment</span>: <span class="ident">String</span>,
 
+    <span class="doccomment">/// The number of replicas of this process to execute</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">quantity</span>: <span class="ident">Quantity</span>,
 
+    <span class="doccomment">/// The simulated time at which to execute the process</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">start_time</span>: <span class="ident">units</span>::<span class="ident">Time</span><span class="op">&lt;</span><span class="ident">units</span>::<span class="ident">TimePrefixUpper</span><span class="op">&gt;</span>,
 
+    <span class="doccomment">/// The simulated time at which to send a SIGKILL signal to the process</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">stop_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units</span>::<span class="ident">Time</span><span class="op">&lt;</span><span class="ident">units</span>::<span class="ident">TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -2031,6 +2042,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HostOptions</span> {
     <span class="ident">processes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ProcessOptions</span><span class="op">&gt;</span>,
 
+    <span class="doccomment">/// Number of hosts to start</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="ident">quantity</span>: <span class="ident">Quantity</span>,
 
@@ -2042,9 +2054,7 @@
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;lowercase&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LogLevel</span> {
     <span class="ident">Error</span>,
-    <span class="ident">Critical</span>,
     <span class="ident">Warning</span>,
-    <span class="ident">Message</span>,
     <span class="ident">Info</span>,
     <span class="ident">Debug</span>,
     <span class="ident">Trace</span>,
@@ -2062,9 +2072,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_c_loglevel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">LogLevel</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_ERROR</span>,
-            <span class="self">Self</span>::<span class="ident">Critical</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_CRITICAL</span>,
             <span class="self">Self</span>::<span class="ident">Warning</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_WARNING</span>,
-            <span class="self">Self</span>::<span class="ident">Message</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_MESSAGE</span>,
             <span class="self">Self</span>::<span class="ident">Info</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_INFO</span>,
             <span class="self">Self</span>::<span class="ident">Debug</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_DEBUG</span>,
             <span class="self">Self</span>::<span class="ident">Trace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_TRACE</span>,
@@ -2235,9 +2243,9 @@
     <span class="prelude-val">Some</span>(<span class="ident">units</span>::<span class="ident">Time</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="ident">units</span>::<span class="ident">TimePrefixUpper</span>::<span class="ident">Sec</span>))
 }
 
-<span class="doccomment">/// Helper function for serde default `Some(LogLevel::Message)` values.</span>
+<span class="doccomment">/// Helper function for serde default `Some(LogLevel::Info)` values.</span>
 <span class="kw">fn</span> <span class="ident">default_some_message</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Some</span>(<span class="ident">LogLevel</span>::<span class="ident">Message</span>)
+    <span class="prelude-val">Some</span>(<span class="ident">LogLevel</span>::<span class="ident">Info</span>)
 }
 
 <span class="kw">const</span> <span class="ident">DEFAULT_TOPOLOGY</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;

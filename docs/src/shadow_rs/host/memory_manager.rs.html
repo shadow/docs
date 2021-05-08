@@ -2500,7 +2500,7 @@
 {
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">T</span>], <span class="ident">Errno</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;as_ref returning empty slice&quot;</span>);
+            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;as_ref returning empty slice&quot;</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [][..]);
         }
 
@@ -2562,7 +2562,7 @@
 
     <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">Errno</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;as_mut_init returning empty slice&quot;</span>);
+            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;as_mut_init returning empty slice&quot;</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [][..]);
         }
 
@@ -2581,7 +2581,7 @@
 
     <span class="kw">fn</span> <span class="ident">as_mut_uninit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">Errno</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;as_mut_init returning empty slice&quot;</span>);
+            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;as_mut_init returning empty slice&quot;</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [][..]);
         }
 
@@ -2804,7 +2804,7 @@
 
     <span class="doccomment">/// De-allocate space in the file for the given interval.</span>
     <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>) {
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;dealloc {:?}&quot;</span>, <span class="ident">interval</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;dealloc {:?}&quot;</span>, <span class="ident">interval</span>);
         <span class="ident">fcntl</span>::<span class="ident">fallocate</span>(
             <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">as_raw_fd</span>(),
             <span class="ident">fcntl</span>::<span class="ident">FallocateFlags</span>::<span class="ident">FALLOC_FL_PUNCH_HOLE</span>
@@ -3007,11 +3007,11 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">misses</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">misses_by_path</span>.<span class="ident">borrow</span>();
         <span class="kw">if</span> <span class="ident">misses</span>.<span class="ident">is_empty</span>() {
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;MemoryManager misses: None&quot;</span>);
+            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;MemoryManager misses: None&quot;</span>);
         } <span class="kw">else</span> {
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;MemoryManager misses: (consider extending MemoryManager to remap regions with a high miss count)&quot;</span>);
+            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;MemoryManager misses: (consider extending MemoryManager to remap regions with a high miss count)&quot;</span>);
             <span class="kw">for</span> (<span class="ident">path</span>, <span class="ident">count</span>) <span class="kw">in</span> <span class="ident">misses</span>.<span class="ident">iter</span>() {
-                <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;\t{} in {}&quot;</span>, <span class="ident">count</span>, <span class="ident">path</span>);
+                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;\t{} in {}&quot;</span>, <span class="ident">count</span>, <span class="ident">path</span>);
             }
         }
 
@@ -3269,7 +3269,7 @@
         <span class="ident">addr</span>: <span class="ident">PluginPtr</span>,
         <span class="ident">length</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;handle_munmap({:?}, {})&quot;</span>, <span class="ident">addr</span>, <span class="ident">length</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;handle_munmap({:?}, {})&quot;</span>, <span class="ident">addr</span>, <span class="ident">length</span>);
         <span class="ident">thread</span>.<span class="ident">native_munmap</span>(<span class="ident">addr</span>, <span class="ident">length</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>());
@@ -3541,7 +3541,7 @@
         <span class="ident">size</span>: <span class="ident">usize</span>,
         <span class="ident">prot</span>: <span class="ident">i32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;mprotect({:?}, {}, {:?})&quot;</span>, <span class="ident">addr</span>, <span class="ident">size</span>, <span class="ident">prot</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;mprotect({:?}, {}, {:?})&quot;</span>, <span class="ident">addr</span>, <span class="ident">size</span>, <span class="ident">prot</span>);
         <span class="ident">thread</span>.<span class="ident">native_mprotect</span>(<span class="ident">addr</span>, <span class="ident">size</span>, <span class="ident">prot</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">protflags</span> <span class="op">=</span> <span class="ident">sys</span>::<span class="ident">mman</span>::<span class="ident">ProtFlags</span>::<span class="ident">from_bits</span>(<span class="ident">prot</span>).<span class="ident">unwrap</span>();
 
@@ -3863,7 +3863,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">dst</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">offset</span>);
 
         <span class="kw">let</span> <span class="ident">toread</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">len</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;read_ptr reading {} bytes&quot;</span>, <span class="ident">dst</span>.<span class="ident">len</span>());
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;read_ptr reading {} bytes&quot;</span>, <span class="ident">dst</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> [<span class="ident">nix</span>::<span class="ident">sys</span>::<span class="ident">uio</span>::<span class="ident">IoVec</span>::<span class="ident">from_mut_slice</span>(<span class="ident">dst</span>)];
         <span class="kw">let</span> <span class="ident">remote</span> <span class="op">=</span> [<span class="ident">nix</span>::<span class="ident">sys</span>::<span class="ident">uio</span>::<span class="ident">RemoteIoVec</span> {
             <span class="ident">base</span>: <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>()) <span class="op">+</span> <span class="ident">offset</span>,
@@ -3971,7 +3971,7 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">dst</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">offset</span>);
 
         <span class="kw">let</span> <span class="ident">towrite</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">len</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;write_ptr writing {} bytes&quot;</span>, <span class="ident">towrite</span>);
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;write_ptr writing {} bytes&quot;</span>, <span class="ident">towrite</span>);
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> [<span class="ident">nix</span>::<span class="ident">sys</span>::<span class="ident">uio</span>::<span class="ident">IoVec</span>::<span class="ident">from_slice</span>(<span class="ident">src</span>)];
         <span class="kw">let</span> <span class="ident">remote</span> <span class="op">=</span> [<span class="ident">nix</span>::<span class="ident">sys</span>::<span class="ident">uio</span>::<span class="ident">RemoteIoVec</span> {
             <span class="ident">base</span>: <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">dst</span>.<span class="ident">ptr</span>()) <span class="op">+</span> <span class="ident">offset</span>,
@@ -4201,7 +4201,7 @@
         <span class="kw">match</span> <span class="ident">memory_manager</span>.<span class="ident">reader</span>(<span class="ident">src</span>).<span class="ident">copy</span>(<span class="ident">dst</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t read {:?} into {:?}&quot;</span>, <span class="ident">src</span>, <span class="ident">dst</span>);
+                <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t read {:?} into {:?}&quot;</span>, <span class="ident">src</span>, <span class="ident">dst</span>);
                 <span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span> <span class="kw">as</span> <span class="ident">i32</span>
             }
         }
@@ -4251,7 +4251,7 @@
         <span class="kw">match</span> <span class="ident">memory_manager</span>.<span class="ident">writer</span>(<span class="ident">dst</span>).<span class="ident">copy</span>(<span class="ident">src</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t write {:?} into {:?}&quot;</span>, <span class="ident">dst</span>, <span class="ident">src</span>);
+                <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t write {:?} into {:?}&quot;</span>, <span class="ident">dst</span>, <span class="ident">src</span>);
                 <span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>::<span class="ident">EFAULT</span> <span class="kw">as</span> <span class="ident">i32</span>
             }
         }
