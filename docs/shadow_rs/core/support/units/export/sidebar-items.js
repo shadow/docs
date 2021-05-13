@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["parse_bandwidth","Parses a string as bits-per-second. Returns '-1' on error."]]});
+initSidebarItems({"fn":[["parse_bandwidth","Parses a string as bits-per-second. Returns ‘-1’ on error."]]});

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["init","Initialize a logger which uses Shadow's C logging interface."]],"mod":[["export",""]],"static":[["LOGGER",""]],"struct":[["ShadowLogger",""]]});
+initSidebarItems({"fn":[["init","Initialize a logger which uses Shadow’s C logging interface."]],"mod":[["export",""]],"static":[["LOGGER",""]],"struct":[["ShadowLogger",""]]});
