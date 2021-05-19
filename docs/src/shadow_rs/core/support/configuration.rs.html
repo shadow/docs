@@ -1546,6 +1546,21 @@
 <span id="1543">1543</span>
 <span id="1544">1544</span>
 <span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -1557,10 +1572,13 @@
 <span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">sync</span>::<span class="ident">Lazy</span>;
 <span class="kw">use</span> <span class="ident">schemars</span>::{<span class="ident">schema_for</span>, <span class="ident">JsonSchema</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">NonZeroU32</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">simulation_time</span>::{<span class="ident">SIMTIME_ONE_NANOSECOND</span>, <span class="ident">SIMTIME_ONE_SECOND</span>};
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">units</span>::{<span class="self">self</span>, <span class="ident">Unit</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
+<span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
 
 <span class="kw">const</span> <span class="ident">END_HELP_TEXT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;\
     If units are not specified, all values are assumed to be given in their base \
@@ -1682,11 +1700,13 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_1&quot;</span>)]</span>
     <span class="ident">seed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// Run concurrently with N worker threads</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;w&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;N&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;workers&quot;</span>).<span class="ident">unwrap</span>())]</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_0&quot;</span>)]</span>
-    <span class="ident">workers</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// How many parallel threads to use to run the simulation. Optimal</span>
+    <span class="doccomment">/// performance is usually obtained with `nproc`, or sometimes `nproc/2`</span>
+    <span class="doccomment">/// with hyperthreading.</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;p&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;cores&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;parallelism&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_nz_1&quot;</span>)]</span>
+    <span class="ident">parallelism</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span>,
 
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;bootstrap_end_time&quot;</span>).<span class="ident">unwrap</span>())]</span>
@@ -1770,11 +1790,6 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;preload_spin_max&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="ident">preload_spin_max</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// Maximum number of workers to allow to run at once</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;workers&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;max_concurrency&quot;</span>).<span class="ident">unwrap</span>())]</span>
-    <span class="ident">max_concurrency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
-
     <span class="doccomment">/// Use the MemoryManager. It can be useful to disable for debugging, but will hurt performance in</span>
     <span class="doccomment">/// most cases</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
@@ -1835,6 +1850,16 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;mode&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;interface_qdisc&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="ident">interface_qdisc</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">QDiscMode</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Create N worker threads. Note though, that `--parallelism` of them will</span>
+    <span class="doccomment">/// be allowed to run simultaneously. If unset, will create a thread for</span>
+    <span class="doccomment">/// each simulated Host. This is to work around limitations in ptrace, and</span>
+    <span class="doccomment">/// may change in the future. &quot;0&quot; is a valid value, and will cause the</span>
+    <span class="doccomment">/// simulation to be run directly on the main Shadow thread, but this</span>
+    <span class="doccomment">/// functionality may be removed in the future.</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;N&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;worker_threads&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="ident">worker_threads</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ExperimentalOptions</span> {
@@ -1854,19 +1879,19 @@
             <span class="ident">use_syscall_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">use_object_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">preload_spin_max</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            <span class="ident">max_concurrency</span>: <span class="prelude-val">None</span>,
             <span class="ident">use_memory_manager</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_shim_syscall_handler</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_cpu_pinning</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">interpose_method</span>: <span class="prelude-val">Some</span>(<span class="ident">InterposeMethod</span>::<span class="ident">Ptrace</span>),
             <span class="ident">runahead</span>: <span class="prelude-val">None</span>,
-            <span class="ident">scheduler_policy</span>: <span class="prelude-val">Some</span>(<span class="ident">SchedulerPolicy</span>::<span class="ident">Steal</span>),
+            <span class="ident">scheduler_policy</span>: <span class="prelude-val">Some</span>(<span class="ident">SchedulerPolicy</span>::<span class="ident">Host</span>),
             <span class="ident">socket_send_buffer</span>: <span class="prelude-val">Some</span>(<span class="ident">units</span>::<span class="ident">Bytes</span>::<span class="ident">new</span>(<span class="number">131_072</span>, <span class="ident">units</span>::<span class="ident">SiPrefixUpper</span>::<span class="ident">Base</span>)),
             <span class="ident">socket_send_autotune</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">socket_recv_buffer</span>: <span class="prelude-val">Some</span>(<span class="ident">units</span>::<span class="ident">Bytes</span>::<span class="ident">new</span>(<span class="number">174_760</span>, <span class="ident">units</span>::<span class="ident">SiPrefixUpper</span>::<span class="ident">Base</span>)),
             <span class="ident">socket_recv_autotune</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">interface_buffer</span>: <span class="prelude-val">Some</span>(<span class="ident">units</span>::<span class="ident">Bytes</span>::<span class="ident">new</span>(<span class="number">1_024_000</span>, <span class="ident">units</span>::<span class="ident">SiPrefixUpper</span>::<span class="ident">Base</span>)),
             <span class="ident">interface_qdisc</span>: <span class="prelude-val">Some</span>(<span class="ident">QDiscMode</span>::<span class="ident">Fifo</span>),
+            <span class="ident">worker_threads</span>: <span class="prelude-val">None</span>,
         }
     }
 }
@@ -2029,13 +2054,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LogLevel</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_c_loglevel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">LogLevel</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_c_loglevel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">LogLevel</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_ERROR</span>,
-            <span class="self">Self</span>::<span class="ident">Warning</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_WARNING</span>,
-            <span class="self">Self</span>::<span class="ident">Info</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_INFO</span>,
-            <span class="self">Self</span>::<span class="ident">Debug</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_DEBUG</span>,
-            <span class="self">Self</span>::<span class="ident">Trace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_TRACE</span>,
+            <span class="self">Self</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_ERROR</span>,
+            <span class="self">Self</span>::<span class="ident">Warning</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_WARNING</span>,
+            <span class="self">Self</span>::<span class="ident">Info</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_INFO</span>,
+            <span class="self">Self</span>::<span class="ident">Debug</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_DEBUG</span>,
+            <span class="self">Self</span>::<span class="ident">Trace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_TRACE</span>,
         }
     }
 }
@@ -2189,14 +2214,14 @@
     <span class="prelude-val">Some</span>(<span class="ident">units</span>::<span class="ident">Time</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="ident">units</span>::<span class="ident">TimePrefixUpper</span>::<span class="ident">Sec</span>))
 }
 
-<span class="doccomment">/// Helper function for serde default `Some(0)` values.</span>
-<span class="kw">fn</span> <span class="ident">default_some_0</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-    <span class="prelude-val">Some</span>(<span class="number">0</span>)
-}
-
 <span class="doccomment">/// Helper function for serde default `Some(1)` values.</span>
 <span class="kw">fn</span> <span class="ident">default_some_1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="prelude-val">Some</span>(<span class="number">1</span>)
+}
+
+<span class="doccomment">/// Helper function for serde default `Some(1)` values.</span>
+<span class="kw">fn</span> <span class="ident">default_some_nz_1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Some</span>(<span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">NonZeroU32</span>::<span class="ident">new</span>(<span class="number">1</span>).<span class="ident">unwrap</span>())
 }
 
 <span class="doccomment">/// Helper function for serde default `Some(0)` values.</span>
@@ -2550,7 +2575,7 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getLogLevel</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">LogLevel</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getLogLevel</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">LogLevel</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">log_level</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">to_c_loglevel</span>()
@@ -2655,13 +2680,10 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getMaxConcurrency</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getParallelism</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonZeroU32</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
-        <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">max_concurrency</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">1</span>,
-        }
+        <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">parallelism</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -2698,7 +2720,13 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getWorkers</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc</span>::<span class="ident">c_uint</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
-        <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">workers</span>.<span class="ident">unwrap</span>()
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">worker_threads</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">w</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// By default use 1 worker per host.</span>
+                <span class="ident">config</span>.<span class="ident">hosts</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>()
+            }
+        }
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -2866,24 +2894,26 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getLogLevel</span>(<span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">LogLevel</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getLogLevel</span>(<span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">LogLevel</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">host</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span> };
 
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">host</span>.<span class="ident">options</span>.<span class="ident">log_level</span> {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">to_c_loglevel</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_UNSET</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_UNSET</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getHeartbeatLogLevel</span>(<span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">LogLevel</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getHeartbeatLogLevel</span>(
+        <span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">LogLevel</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">host</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span> };
 
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">host</span>.<span class="ident">options</span>.<span class="ident">heartbeat_log_level</span> {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">to_c_loglevel</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>::<span class="ident">_LogLevel_LOGLEVEL_UNSET</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_UNSET</span>,
         }
     }
 

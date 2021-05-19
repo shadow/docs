@@ -71,76 +71,104 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
+<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">log_enabled</span>;
 <span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">raw</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>, <span class="ident">c_void</span>};
+<span class="kw">use</span> <span class="ident">vsprintf</span>::<span class="ident">vsprintf_raw</span>;
 
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Level</span>, <span class="ident">LevelFilter</span>, <span class="ident">Log</span>, <span class="ident">Metadata</span>, <span class="ident">Record</span>, <span class="ident">SetLoggerError</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ffi</span>, <span class="ident">fmt</span>};
+<span class="doccomment">/// Flush Rust&#39;s log::logger().</span>
+<span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustlogger_flush</span>() {
+    <span class="ident">log</span>::<span class="ident">logger</span>().<span class="ident">flush</span>();
+}
 
-<span class="kw">static</span> <span class="ident">LOGGER</span>: <span class="ident">ShadowLogger</span> <span class="op">=</span> <span class="ident">ShadowLogger</span> {};
-
-<span class="kw">struct</span> <span class="ident">ShadowLogger</span> {}
-
-<span class="kw">impl</span> <span class="ident">Log</span> <span class="kw">for</span> <span class="ident">ShadowLogger</span> {
-    <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="comment">// in the init() function we set the level to LevelFilter::max()</span>
-        <span class="bool-val">true</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">log</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">record</span>: <span class="kw-2">&amp;</span><span class="ident">Record</span>) {
-        <span class="kw">let</span> <span class="ident">log_level</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">record</span>.<span class="ident">level</span>() {
-            <span class="ident">Level</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_ERROR</span>,
-            <span class="ident">Level</span>::<span class="ident">Warn</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_WARNING</span>,
-            <span class="ident">Level</span>::<span class="ident">Info</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_INFO</span>,
-            <span class="ident">Level</span>::<span class="ident">Debug</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_DEBUG</span>,
-            <span class="ident">Level</span>::<span class="ident">Trace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_TRACE</span>,
-        };
-
-        <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">c</span>::<span class="ident">shadow_logger_shouldFilter</span>(<span class="ident">c</span>::<span class="ident">shadow_logger_getDefault</span>(), <span class="ident">log_level</span>) } {
-            <span class="kw">return</span>;
-        }
-
-        <span class="comment">// allocate null-terminated strings</span>
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">record</span>.<span class="ident">file</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&lt;none&gt;&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">module_path</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">record</span>.<span class="ident">module_path</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&lt;none&gt;&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">ffi</span>::<span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">fmt</span>::<span class="ident">format</span>(<span class="kw-2">*</span><span class="ident">record</span>.<span class="ident">args</span>())).<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">record</span>.<span class="ident">line</span>().<span class="ident">unwrap_or</span>(<span class="number">0u32</span>) <span class="kw">as</span> <span class="ident">i32</span>;
-
-        <span class="kw">unsafe</span> {
-            <span class="ident">c_log</span>::<span class="ident">logger_log</span>(
-                <span class="ident">c_log</span>::<span class="ident">logger_getDefault</span>(),
-                <span class="ident">log_level</span>,
-                <span class="ident">file</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">module_path</span>.<span class="ident">as_ptr</span>(),
-                <span class="ident">line</span>,
-                <span class="string">b&quot;%s\0&quot;</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i8</span>,
-                <span class="ident">message</span>.<span class="ident">as_ptr</span>(),
-            );
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">c_log</span>::<span class="ident">logger_flush</span>(<span class="ident">c_log</span>::<span class="ident">logger_getDefault</span>()) };
+<span class="doccomment">/// Returns the `str` pointed to by `ptr` if it&#39;s non-NULL and points</span>
+<span class="doccomment">/// to a UTF-8 null-terminated string.</span>
+<span class="doccomment">/// SAFETY: `ptr` must point a NULL-terminated C String if non-null, and must</span>
+<span class="doccomment">/// be immutable for the lifetime of the returned `str`.</span>
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">optional_str</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
+        <span class="prelude-val">None</span>
+    } <span class="kw">else</span> {
+        <span class="comment">// Safe if caller obeyed doc&#39;d preconditions.</span>
+        <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="ident">ptr</span>).<span class="ident">to_str</span>().<span class="ident">ok</span>() }
     }
 }
 
-<span class="doccomment">/// Initialize a logger which uses Shadow&#39;s C logging interface.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
-    <span class="ident">log</span>::<span class="ident">set_logger</span>(<span class="kw-2">&amp;</span><span class="ident">LOGGER</span>)<span class="question-mark">?</span>;
-    <span class="comment">// log at all levels</span>
-    <span class="ident">log</span>::<span class="ident">set_max_level</span>(<span class="ident">LevelFilter</span>::<span class="ident">max</span>());
-    <span class="prelude-val">Ok</span>(())
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">c_to_rust_log_level</span>(<span class="ident">level</span>: <span class="ident">log_bindings</span>::<span class="ident">LogLevel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">log</span>::<span class="ident">Level</span><span class="op">&gt;</span> {
+    <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">Level</span>::<span class="kw-2">*</span>;
+    <span class="kw">match</span> <span class="ident">level</span> {
+        <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Error</span>),
+        <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_WARNING</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Warn</span>),
+        <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_INFO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Info</span>),
+        <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_DEBUG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Debug</span>),
+        <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_TRACE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Trace</span>),
+        <span class="ident">c_log</span>::<span class="ident">_LogLevel_LOGLEVEL_UNSET</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Unexpected log level {}&quot;</span>, <span class="ident">level</span>),
+    }
 }
 
-<span class="kw">mod</span> <span class="ident">export</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="doccomment">/// Set the max (noisiest) logging level to `level`.</span>
+<span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustlogger_setLevel</span>(<span class="ident">level</span>: <span class="ident">log_bindings</span>::<span class="ident">LogLevel</span>) {
+    <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> <span class="ident">c_to_rust_log_level</span>(<span class="ident">level</span>).<span class="ident">unwrap</span>();
+    <span class="ident">log</span>::<span class="ident">set_max_level</span>(<span class="ident">level</span>.<span class="ident">to_level_filter</span>());
+}
 
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rust_logging_init</span>() {
-        <span class="ident">init</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not initialize logger&quot;</span>);
+<span class="doccomment">/// Whether logging is currently enabled for `level`.</span>
+<span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustlogger_isEnabled</span>(<span class="ident">level</span>: <span class="ident">log_bindings</span>::<span class="ident">LogLevel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+    <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> <span class="ident">c_to_rust_log_level</span>(<span class="ident">level</span>).<span class="ident">unwrap</span>();
+    <span class="macro">log_enabled</span><span class="macro">!</span>(<span class="ident">level</span>).<span class="ident">into</span>()
+}
+
+<span class="doccomment">/// Log to Rust&#39;s log::logger().</span>
+<span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustlogger_log</span>(
+    <span class="ident">level</span>: <span class="ident">log_bindings</span>::<span class="ident">LogLevel</span>,
+    <span class="ident">file_name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+    <span class="ident">fn_name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+    <span class="ident">line</span>: <span class="ident">i32</span>,
+    <span class="ident">format</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+    <span class="ident">va_list</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+) {
+    <span class="kw">let</span> <span class="ident">log_level</span> <span class="op">=</span> <span class="ident">c_to_rust_log_level</span>(<span class="ident">level</span>).<span class="ident">unwrap</span>();
+
+    <span class="kw">if</span> <span class="op">!</span><span class="macro">log_enabled</span><span class="macro">!</span>(<span class="ident">log_level</span>) {
+        <span class="kw">return</span>;
     }
+
+    <span class="comment">// SAFETY: Safe if caller provided valid format and va_list.</span>
+    <span class="kw">let</span> <span class="ident">msg_vec</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">vsprintf_raw</span>(<span class="ident">format</span>, <span class="ident">va_list</span>).<span class="ident">unwrap</span>() };
+    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">msg_vec</span>);
+
+    <span class="ident">log</span>::<span class="ident">logger</span>().<span class="ident">log</span>(
+        <span class="kw-2">&amp;</span><span class="ident">log</span>::<span class="ident">Record</span>::<span class="ident">builder</span>()
+            .<span class="ident">level</span>(<span class="ident">log_level</span>)
+            <span class="comment">// SAFETY: file_name is statically allocated.</span>
+            .<span class="ident">file_static</span>(<span class="kw">unsafe</span> { <span class="ident">optional_str</span>(<span class="ident">file_name</span>) })
+            .<span class="ident">line</span>(<span class="prelude-val">Some</span>(<span class="ident">u32</span>::<span class="ident">try_from</span>(<span class="ident">line</span>).<span class="ident">unwrap</span>()))
+            <span class="comment">// SAFETY: fn_name is statically allocated.</span>
+            .<span class="ident">module_path_static</span>(<span class="kw">unsafe</span> { <span class="ident">optional_str</span>(<span class="ident">fn_name</span>) })
+            .<span class="ident">args</span>(<span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">msg</span>))
+            .<span class="ident">build</span>(),
+    );
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="shadow_rs" data-search-js="../../../../search-index.js"></div>

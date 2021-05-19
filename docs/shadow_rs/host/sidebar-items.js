@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["descriptor",""],["host",""],["memory_manager",""],["process",""],["syscall",""],["syscall_condition",""],["syscall_types",""],["thread",""]]});
+initSidebarItems({"mod":[["descriptor",""],["host",""],["memory_manager","Access and manage memory of a plugin process."],["process",""],["syscall",""],["syscall_condition",""],["syscall_types",""],["thread",""]]});

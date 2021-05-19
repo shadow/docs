@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["log_wrapper",""]]});
+initSidebarItems({"mod":[["log_wrapper",""],["shadow_logger",""]]});
