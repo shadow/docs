@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["export",""]],"struct":[["DescriptorTable","Table of (file) descriptors. Typically owned by a Process."]]});

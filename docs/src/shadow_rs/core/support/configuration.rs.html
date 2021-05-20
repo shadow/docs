@@ -1555,12 +1555,6 @@
 <span id="1552">1552</span>
 <span id="1553">1553</span>
 <span id="1554">1554</span>
-<span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -2175,7 +2169,7 @@
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;lowercase&quot;</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Topology</span> {
     <span class="ident">Path</span>(<span class="ident">String</span>),
-    <span class="ident">GraphMl</span>(<span class="ident">String</span>),
+    <span class="ident">Gml</span>(<span class="ident">String</span>),
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;1_gbit_switch&quot;</span>)]</span>
     <span class="ident">OneGbitSwitch</span>,
 }
@@ -2234,29 +2228,23 @@
     <span class="prelude-val">Some</span>(<span class="ident">LogLevel</span>::<span class="ident">Info</span>)
 }
 
-<span class="kw">const</span> <span class="ident">ONE_GBIT_SWITCH_TOPOLOGY</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;graphml xmlns=&quot;http://graphml.graphdrawing.org/xmlns&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:schemaLocation=&quot;http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd&quot;&gt;
-    &lt;key attr.name=&quot;packet_loss&quot;    attr.type=&quot;double&quot; for=&quot;edge&quot; id=&quot;edge_packet_loss&quot; /&gt;
-    &lt;key attr.name=&quot;jitter&quot;         attr.type=&quot;double&quot; for=&quot;edge&quot; id=&quot;edge_jitter&quot; /&gt;
-    &lt;key attr.name=&quot;latency&quot;        attr.type=&quot;double&quot; for=&quot;edge&quot; id=&quot;edge_latency&quot; /&gt;
-    &lt;key attr.name=&quot;bandwidth_up&quot;   attr.type=&quot;string&quot; for=&quot;node&quot; id=&quot;node_bandwidth_up&quot; /&gt;
-    &lt;key attr.name=&quot;bandwidth_down&quot; attr.type=&quot;string&quot; for=&quot;node&quot; id=&quot;node_bandwidth_down&quot; /&gt;
-    &lt;key attr.name=&quot;country_code&quot;   attr.type=&quot;string&quot; for=&quot;node&quot; id=&quot;node_country_code&quot; /&gt;
-    &lt;key attr.name=&quot;ip_address&quot;     attr.type=&quot;string&quot; for=&quot;node&quot; id=&quot;node_ip_address&quot; /&gt;
-    &lt;graph edgedefault=&quot;undirected&quot;&gt;
-        &lt;node id=&quot;poi-1&quot;&gt;
-            &lt;data key=&quot;node_ip_address&quot;&gt;0.0.0.0&lt;/data&gt;
-            &lt;data key=&quot;node_country_code&quot;&gt;XX&lt;/data&gt;
-            &lt;data key=&quot;node_bandwidth_down&quot;&gt;1 Gbit&lt;/data&gt;
-            &lt;data key=&quot;node_bandwidth_up&quot;&gt;1 Gbit&lt;/data&gt;
-        &lt;/node&gt;
-        &lt;edge source=&quot;poi-1&quot; target=&quot;poi-1&quot;&gt;
-            &lt;data key=&quot;edge_latency&quot;&gt;1.0&lt;/data&gt;
-            &lt;data key=&quot;edge_jitter&quot;&gt;0.0&lt;/data&gt;
-            &lt;data key=&quot;edge_packet_loss&quot;&gt;0.0&lt;/data&gt;
-        &lt;/edge&gt;
-    &lt;/graph&gt;
-&lt;/graphml&gt;&quot;#</span>;
+<span class="kw">const</span> <span class="ident">ONE_GBIT_SWITCH_TOPOLOGY</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;graph [
+  directed 0
+  node [
+    id 0
+    ip_address &quot;0.0.0.0&quot;
+    country_code &quot;XX&quot;
+    bandwidth_up &quot;1 Gbit&quot;
+    bandwidth_down &quot;1 Gbit&quot;
+  ]
+  edge [
+    source 0
+    target 0
+    latency 1.0
+    jitter 0.0
+    packet_loss 0.0
+  ]
+]&quot;#</span>;
 
 <span class="doccomment">/// Generate help strings for objects in a JSON schema, including the Serde defaults if available.</span>
 <span class="kw">fn</span> <span class="ident">generate_help_strs</span>(
@@ -2843,7 +2831,7 @@
 
         <span class="kw">let</span> <span class="ident">topology</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">topology</span> {
             <span class="ident">Topology</span>::<span class="ident">Path</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="ident">f</span>).<span class="ident">unwrap</span>(),
-            <span class="ident">Topology</span>::<span class="ident">GraphMl</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">clone</span>(),
+            <span class="ident">Topology</span>::<span class="ident">Gml</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">clone</span>(),
             <span class="ident">Topology</span>::<span class="ident">OneGbitSwitch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ONE_GBIT_SWITCH_TOPOLOGY</span>.<span class="ident">to_string</span>(),
         };
 
