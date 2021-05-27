@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["WORKER",""]],"struct":[["Worker","Worker context, capturing e.g. the current Process and Thread."]]});
+initSidebarItems({"constant":[["WORKER",""]],"mod":[["export",""]],"struct":[["Worker","Worker context, capturing e.g. the current Process and Thread."],["WorkerThreadID",""]]});
