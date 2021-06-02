@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.20.0/src/sys/socket/addr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>addr.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.21.0/src/sys/socket/addr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>addr.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../nix/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1341,10 +1341,53 @@
 <span id="1338">1338</span>
 <span id="1339">1339</span>
 <span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">sa_family_t</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>, <span class="ident">NixPath</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">errno</span>::<span class="ident">Errno</span>;
+<span class="kw">use</span> <span class="ident">memoffset</span>::<span class="ident">offset_of</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">mem</span>, <span class="ident">net</span>, <span class="ident">ptr</span>, <span class="ident">slice</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
@@ -1364,6 +1407,7 @@
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
@@ -1376,17 +1420,21 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AddressFamily</span> {
-    <span class="doccomment">/// Local communication (see [`unix(7)`](http://man7.org/linux/man-pages/man7/unix.7.html))</span>
+    <span class="doccomment">/// Local communication (see [`unix(7)`](https://man7.org/linux/man-pages/man7/unix.7.html))</span>
     <span class="ident">Unix</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_UNIX</span>,
-    <span class="doccomment">/// IPv4 Internet protocols (see [`ip(7)`](http://man7.org/linux/man-pages/man7/ip.7.html))</span>
+    <span class="doccomment">/// IPv4 Internet protocols (see [`ip(7)`](https://man7.org/linux/man-pages/man7/ip.7.html))</span>
     <span class="ident">Inet</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_INET</span>,
-    <span class="doccomment">/// IPv6 Internet protocols (see [`ipv6(7)`](http://man7.org/linux/man-pages/man7/ipv6.7.html))</span>
+    <span class="doccomment">/// IPv6 Internet protocols (see [`ipv6(7)`](https://man7.org/linux/man-pages/man7/ipv6.7.html))</span>
     <span class="ident">Inet6</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_INET6</span>,
-    <span class="doccomment">/// Kernel user interface device (see [`netlink(7)`](http://man7.org/linux/man-pages/man7/netlink.7.html))</span>
+    <span class="doccomment">/// Kernel user interface device (see [`netlink(7)`](https://man7.org/linux/man-pages/man7/netlink.7.html))</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">Netlink</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_NETLINK</span>,
-    <span class="doccomment">/// Low level packet interface (see [`packet(7)`](http://man7.org/linux/man-pages/man7/packet.7.html))</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
+    <span class="doccomment">/// Low level packet interface (see [`packet(7)`](https://man7.org/linux/man-pages/man7/packet.7.html))</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="ident">Packet</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_PACKET</span>,
     <span class="doccomment">/// KEXT Controls and Notifications</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>))]</span>
@@ -1405,7 +1453,7 @@
     <span class="doccomment">/// Access to raw ATM PVCs</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">AtmPvc</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_ATMPVC</span>,
-    <span class="doccomment">/// ITU-T X.25 / ISO-8208 protocol (see [`x25(7)`](http://man7.org/linux/man-pages/man7/x25.7.html))</span>
+    <span class="doccomment">/// ITU-T X.25 / ISO-8208 protocol (see [`x25(7)`](https://man7.org/linux/man-pages/man7/x25.7.html))</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">X25</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_X25</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
@@ -1442,12 +1490,16 @@
     <span class="ident">Can</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_CAN</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">Tipc</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_TIPC</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
     <span class="ident">Bluetooth</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_BLUETOOTH</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">Iucv</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_IUCV</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">RxRpc</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_RXRPC</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
     <span class="ident">Isdn</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_ISDN</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">Phonet</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_PHONET</span>,
@@ -1534,6 +1586,7 @@
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
     <span class="ident">Link</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_LINK</span>,
@@ -1558,7 +1611,7 @@
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
     <span class="ident">Natm</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_NATM</span>,
-    <span class="doccomment">/// Unspecified address family, (see [`getaddrinfo(3)`](http://man7.org/linux/man-pages/man3/getaddrinfo.3.html))</span>
+    <span class="doccomment">/// Unspecified address family, (see [`getaddrinfo(3)`](https://man7.org/linux/man-pages/man3/getaddrinfo.3.html))</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
     <span class="ident">Unspec</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">AF_UNSPEC</span>,
 }
@@ -1585,6 +1638,7 @@
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
             <span class="ident">libc</span>::<span class="ident">AF_LINK</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AddressFamily</span>::<span class="ident">Link</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
@@ -1989,6 +2043,7 @@
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
     <span class="ident">Link</span>(<span class="ident">LinkAddr</span>),
@@ -2043,6 +2098,7 @@
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
             <span class="ident">SockAddr</span>::<span class="ident">Link</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AddressFamily</span>::<span class="ident">Link</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
@@ -2088,6 +2144,7 @@
                           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
                           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
                 <span class="prelude-val">Some</span>(<span class="ident">AddressFamily</span>::<span class="ident">Link</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">ether_addr</span> <span class="op">=</span> <span class="ident">LinkAddr</span>(<span class="kw-2">*</span>(<span class="ident">addr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc</span>::<span class="ident">sockaddr_dl</span>));
@@ -2174,6 +2231,7 @@
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
             <span class="ident">SockAddr</span>::<span class="ident">Link</span>(<span class="ident">LinkAddr</span>(<span class="kw-2">ref</span> <span class="ident">addr</span>)) <span class="op">=</span><span class="op">&gt;</span> (
@@ -2213,6 +2271,7 @@
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                       <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
             <span class="ident">SockAddr</span>::<span class="ident">Link</span>(<span class="kw-2">ref</span> <span class="ident">ether_addr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ether_addr</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
@@ -2462,6 +2521,7 @@
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">datalink</span> {
@@ -2473,6 +2533,7 @@
 
     <span class="kw">impl</span> <span class="ident">LinkAddr</span> {
         <span class="doccomment">/// Total length of sockaddr</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>))]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
             <span class="self">self</span>.<span class="number">0</span>.<span class="ident">sdl_len</span> <span class="kw">as</span> <span class="ident">usize</span>
         }
@@ -2624,6 +2685,7 @@
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -2650,6 +2712,28 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_macos_tap_datalink_addr</span>() {
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">20i8</span>, <span class="number">18</span>, <span class="number">7</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">101</span>, <span class="number">110</span>, <span class="number">48</span>, <span class="number">24</span>, <span class="number">101</span>, <span class="op">-</span><span class="number">112</span>, <span class="op">-</span><span class="number">35</span>, <span class="number">76</span>, <span class="op">-</span><span class="number">80</span>];
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_ptr</span>();
+        <span class="kw">let</span> <span class="ident">sa</span> <span class="op">=</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc</span>::<span class="ident">sockaddr</span>;
+        <span class="kw">let</span> <span class="ident">_sock_addr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">SockAddr</span>::<span class="ident">from_libc_sockaddr</span>(<span class="ident">sa</span>) };
+
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">_sock_addr</span>.<span class="ident">is_some</span>());
+
+        <span class="kw">let</span> <span class="ident">sock_addr</span> <span class="op">=</span> <span class="ident">_sock_addr</span>.<span class="ident">unwrap</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">sock_addr</span>.<span class="ident">family</span>(), <span class="ident">AddressFamily</span>::<span class="ident">Link</span>);
+
+        <span class="kw">match</span> <span class="ident">sock_addr</span> {
+            <span class="ident">SockAddr</span>::<span class="ident">Link</span>(<span class="ident">ether_addr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ether_addr</span>.<span class="ident">addr</span>(), [<span class="number">24u8</span>, <span class="number">101</span>, <span class="number">144</span>, <span class="number">221</span>, <span class="number">76</span>, <span class="number">176</span>]);
+            },
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">unreachable</span><span class="macro">!</span>() }
+        };
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_illumos_tap_datalink_addr</span>() {
+        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">25u8</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">6</span>, <span class="number">0</span>, <span class="number">24</span>, <span class="number">101</span>, <span class="number">144</span>, <span class="number">221</span>, <span class="number">76</span>, <span class="number">176</span>];
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_ptr</span>();
         <span class="kw">let</span> <span class="ident">sa</span> <span class="op">=</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc</span>::<span class="ident">sockaddr</span>;
         <span class="kw">let</span> <span class="ident">_sock_addr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">SockAddr</span>::<span class="ident">from_libc_sockaddr</span>(<span class="ident">sa</span>) };
