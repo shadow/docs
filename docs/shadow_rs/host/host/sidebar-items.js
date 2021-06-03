@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Host",""]]});
+initSidebarItems({"struct":[["Host","A simulated Host."],["HostId",""],["HostInfo","Immutable information about the Host."]]});
