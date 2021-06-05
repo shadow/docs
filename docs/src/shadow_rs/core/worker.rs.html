@@ -330,6 +330,29 @@
 <span id="327">327</span>
 <span id="328">328</span>
 <span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">nix</span>::<span class="ident">unistd</span>::<span class="ident">Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">unsync</span>::<span class="ident">OnceCell</span>;
@@ -342,6 +365,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">process</span>::<span class="ident">ProcessId</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">thread</span>::<span class="ident">ThreadId</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">thread</span>::{<span class="ident">CThread</span>, <span class="ident">Thread</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">counter</span>::<span class="ident">Counter</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utility</span>::<span class="ident">notnull</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
@@ -350,7 +374,6 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WorkerThreadID</span>(<span class="ident">u32</span>);
 
 <span class="kw">struct</span> <span class="ident">ProcessInfo</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="ident">id</span>: <span class="ident">ProcessId</span>,
     <span class="ident">native_pid</span>: <span class="ident">Pid</span>,
 }
@@ -359,6 +382,12 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="ident">id</span>: <span class="ident">ThreadId</span>,
     <span class="ident">native_tid</span>: <span class="ident">Pid</span>,
+}
+
+<span class="kw">struct</span> <span class="ident">Clock</span> {
+    <span class="ident">now</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
+    <span class="ident">last</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
+    <span class="ident">barrier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Worker context, containing &#39;global&#39; information for the current thread.</span>
@@ -376,8 +405,17 @@
     <span class="ident">active_process_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ProcessInfo</span><span class="op">&gt;</span>,
     <span class="ident">active_thread_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ThreadInfo</span><span class="op">&gt;</span>,
 
-    <span class="comment">// Owned pointer to legacy Worker bits.</span>
-    <span class="ident">cworker</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerC</span>,
+    <span class="ident">clock</span>: <span class="ident">Clock</span>,
+    <span class="ident">bootstrap_end_time</span>: <span class="ident">SimulationTime</span>,
+
+    <span class="comment">// A counter for all syscalls made by processes freed by this worker.</span>
+    <span class="ident">syscall_counter</span>: <span class="ident">Counter</span>,
+    <span class="comment">// A counter for objects allocated by this worker.</span>
+    <span class="ident">object_alloc_counter</span>: <span class="ident">Counter</span>,
+    <span class="comment">// A counter for objects deallocated by this worker.</span>
+    <span class="ident">object_dealloc_counter</span>: <span class="ident">Counter</span>,
+
+    <span class="ident">worker_pool</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerPool</span>,
 }
 
 <span class="ident">std</span>::<span class="macro">thread_local</span><span class="macro">!</span> {
@@ -388,14 +426,27 @@
 
 <span class="kw">impl</span> <span class="ident">Worker</span> {
     <span class="comment">// Create worker for this thread.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_for_this_thread</span>(<span class="ident">cworker</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerC</span>, <span class="ident">worker_id</span>: <span class="ident">WorkerThreadID</span>) {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_for_this_thread</span>(
+        <span class="ident">worker_pool</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerPool</span>,
+        <span class="ident">worker_id</span>: <span class="ident">WorkerThreadID</span>,
+        <span class="ident">bootstrap_end_time</span>: <span class="ident">SimulationTime</span>,
+    ) {
         <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">set</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="self">Self</span> {
                 <span class="ident">worker_id</span>,
                 <span class="ident">active_host_info</span>: <span class="prelude-val">None</span>,
                 <span class="ident">active_process_info</span>: <span class="prelude-val">None</span>,
                 <span class="ident">active_thread_info</span>: <span class="prelude-val">None</span>,
-                <span class="ident">cworker</span>: <span class="ident">notnull_mut</span>(<span class="ident">cworker</span>),
+                <span class="ident">clock</span>: <span class="ident">Clock</span> {
+                    <span class="ident">now</span>: <span class="prelude-val">None</span>,
+                    <span class="ident">last</span>: <span class="prelude-val">None</span>,
+                    <span class="ident">barrier</span>: <span class="prelude-val">None</span>,
+                },
+                <span class="ident">bootstrap_end_time</span>,
+                <span class="ident">object_alloc_counter</span>: <span class="ident">Counter</span>::<span class="ident">new</span>(),
+                <span class="ident">object_dealloc_counter</span>: <span class="ident">Counter</span>::<span class="ident">new</span>(),
+                <span class="ident">syscall_counter</span>: <span class="ident">Counter</span>::<span class="ident">new</span>(),
+                <span class="ident">worker_pool</span>: <span class="ident">notnull_mut</span>(<span class="ident">worker_pool</span>),
             }));
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">is_ok</span>(), <span class="string">&quot;Worker already initialized&quot;</span>);
         });
@@ -406,29 +457,20 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">HostInfo</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
     {
-        <span class="ident">WORKER</span>
-            .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> <span class="ident">worker</span>.<span class="ident">get</span>()<span class="question-mark">?</span>.<span class="ident">borrow</span>().<span class="ident">active_host_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">f</span>))
-            .<span class="ident">ok</span>()
-            .<span class="ident">flatten</span>()
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_host_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">f</span>)).<span class="ident">flatten</span>()
     }
 
     <span class="doccomment">/// Set the currently-active Host.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_active_host</span>(<span class="ident">host</span>: <span class="kw-2">&amp;</span><span class="ident">Host</span>) {
         <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">host</span>.<span class="ident">info</span>().<span class="ident">clone</span>();
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">worker</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">active_host_info</span>.<span class="ident">replace</span>(<span class="ident">info</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_none</span>());
-        });
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_host_info</span>.<span class="ident">replace</span>(<span class="ident">info</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_none</span>());
     }
 
     <span class="doccomment">/// Clear the currently-active Host.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_active_host</span>() {
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">worker</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">active_host_info</span>.<span class="ident">take</span>();
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">old</span>.<span class="ident">is_none</span>());
-        });
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_host_info</span>.<span class="ident">take</span>()).<span class="ident">unwrap</span>();
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_some</span>());
     }
 
     <span class="doccomment">/// Set the currently-active Process.</span>
@@ -441,20 +483,14 @@
             <span class="ident">id</span>: <span class="ident">process</span>.<span class="ident">id</span>(),
             <span class="ident">native_pid</span>: <span class="ident">process</span>.<span class="ident">native_pid</span>(),
         };
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">worker</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">active_process_info</span>.<span class="ident">replace</span>(<span class="ident">info</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_none</span>());
-        });
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_process_info</span>.<span class="ident">replace</span>(<span class="ident">info</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_none</span>());
     }
 
     <span class="doccomment">/// Clear the currently-active Process.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_active_process</span>() {
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">worker</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">active_process_info</span>.<span class="ident">take</span>();
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">old</span>.<span class="ident">is_none</span>());
-        });
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_process_info</span>.<span class="ident">take</span>()).<span class="ident">unwrap</span>();
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_some</span>());
     }
 
     <span class="doccomment">/// Set the currently-active Thread.</span>
@@ -468,77 +504,84 @@
             <span class="ident">id</span>: <span class="ident">thread</span>.<span class="ident">id</span>(),
             <span class="ident">native_tid</span>: <span class="ident">thread</span>.<span class="ident">system_tid</span>(),
         };
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">worker</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">active_thread_info</span>.<span class="ident">replace</span>(<span class="ident">info</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_none</span>());
-        });
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_thread_info</span>.<span class="ident">replace</span>(<span class="ident">info</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">old</span>.<span class="ident">is_none</span>());
     }
 
     <span class="doccomment">/// Clear the currently-active Thread.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_active_thread</span>() {
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">worker</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>();
-            <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">active_thread_info</span>.<span class="ident">take</span>();
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">old</span>.<span class="ident">is_none</span>());
-        });
+        <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_thread_info</span>.<span class="ident">take</span>());
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">old</span>.<span class="ident">is_none</span>());
     }
 
     <span class="doccomment">/// Whether currently running on a live Worker.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_alive</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">cshadow</span>::<span class="ident">worker_isAlive</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
-    }
-
-    <span class="doccomment">/// Current simulation time, or None if not running on a live Worker.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">Worker</span>::<span class="ident">is_alive</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        }
-        <span class="ident">SimulationTime</span>::<span class="ident">from_c_simtime</span>(<span class="kw">unsafe</span> { <span class="ident">cshadow</span>::<span class="ident">worker_getCurrentTime</span>() })
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()).<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// ID of this thread&#39;s Worker, if any.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thread_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WorkerThreadID</span><span class="op">&gt;</span> {
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">borrow</span>().<span class="ident">worker_id</span>))
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">worker_id</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">active_process_native_pid</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix</span>::<span class="ident">unistd</span>::<span class="ident">Pid</span><span class="op">&gt;</span> {
-        <span class="ident">WORKER</span>
-            .<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-                <span class="ident">worker</span>.<span class="ident">get</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
-                    <span class="ident">w</span>.<span class="ident">borrow</span>()
-                        .<span class="ident">active_process_info</span>
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">native_pid</span>)
-                })
-            })
-            .<span class="ident">flatten</span>()
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_process_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">native_pid</span>)).<span class="ident">flatten</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">active_process_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ProcessId</span><span class="op">&gt;</span> {
-        <span class="ident">WORKER</span>
-            .<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-                <span class="ident">worker</span>
-                    .<span class="ident">get</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">borrow</span>().<span class="ident">active_process_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">id</span>))
-            })
-            .<span class="ident">flatten</span>()
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_process_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">id</span>)).<span class="ident">flatten</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">active_thread_native_tid</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix</span>::<span class="ident">unistd</span>::<span class="ident">Pid</span><span class="op">&gt;</span> {
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_thread_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">native_tid</span>)).<span class="ident">flatten</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">set_round_end_time</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">barrier</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
+    }
+
+    <span class="kw">fn</span> <span class="ident">round_end_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> {
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">barrier</span>).<span class="ident">flatten</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">set_current_time</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
+    }
+
+    <span class="kw">fn</span> <span class="ident">clear_current_time</span>() {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>.<span class="ident">take</span>());
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> {
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>).<span class="ident">flatten</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">set_last_event_time</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">last</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
+    }
+
+    <span class="comment">// Runs `f` with a shared reference to the current thread&#39;s Worker. Returns</span>
+    <span class="comment">// None if this thread has no Worker object.</span>
+    <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">O</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Worker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">O</span>,
+    {
         <span class="ident">WORKER</span>
-            .<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-                <span class="ident">worker</span>
-                    .<span class="ident">get</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">borrow</span>().<span class="ident">active_thread_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">native_tid</span>))
-            })
+            .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">get</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">w</span>.<span class="ident">borrow</span>())))
+            .<span class="ident">ok</span>()
             .<span class="ident">flatten</span>()
     }
-}
 
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Worker</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">cshadow</span>::<span class="ident">workerc_free</span>(<span class="self">self</span>.<span class="ident">cworker</span>) }
+    <span class="comment">// Runs `f` with a mutable reference to the current thread&#39;s Worker. Returns</span>
+    <span class="comment">// None if this thread has no Worker object.</span>
+    <span class="kw">fn</span> <span class="ident">with_mut</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">O</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Worker</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">O</span>,
+    {
+        <span class="ident">WORKER</span>
+            .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">get</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">w</span>.<span class="ident">borrow_mut</span>())))
+            .<span class="ident">ok</span>()
+            .<span class="ident">flatten</span>()
     }
 }
 
@@ -549,79 +592,38 @@
     <span class="doccomment">/// Initialize a Worker for this thread.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_newForThisThread</span>(
-        <span class="ident">cworker</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerC</span>,
+        <span class="ident">worker_pool</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerPool</span>,
         <span class="ident">worker_id</span>: <span class="ident">i32</span>,
+        <span class="ident">bootstrap_end_time</span>: <span class="ident">cshadow</span>::<span class="ident">SimulationTime</span>,
     ) {
+        <span class="kw">let</span> <span class="ident">bootstrap_end_time</span> <span class="op">=</span> <span class="ident">SimulationTime</span>::<span class="ident">from_c_simtime</span>(<span class="ident">bootstrap_end_time</span>).<span class="ident">unwrap</span>();
         <span class="kw">unsafe</span> {
             <span class="ident">Worker</span>::<span class="ident">new_for_this_thread</span>(
-                <span class="ident">notnull_mut</span>(<span class="ident">cworker</span>),
+                <span class="ident">notnull_mut</span>(<span class="ident">worker_pool</span>),
                 <span class="ident">WorkerThreadID</span>(<span class="ident">worker_id</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                <span class="ident">bootstrap_end_time</span>,
             )
         }
     }
 
-    <span class="doccomment">/// A borrowed mutable reference to the current thread&#39;s Worker.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WorkerRefMut</span>(<span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">Worker</span><span class="op">&gt;</span>);
-
-    <span class="doccomment">/// A borrowed immutable reference to the current thread&#39;s Worker.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WorkerRef</span>(<span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">Worker</span><span class="op">&gt;</span>);
-
-    <span class="doccomment">/// If worker is alive, returns mutable reference to it. Otherwise returns NULL.</span>
-    <span class="doccomment">/// SAFETY: Returned pointer is invalid after `worker_freeForThisThread` is called</span>
-    <span class="doccomment">/// or when global destructors start running.</span>
+    <span class="doccomment">/// Returns NULL if there is no live Worker.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_borrowMut</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WorkerRefMut</span> {
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="comment">// Cast to &#39;static lifetime.</span>
-            <span class="comment">// SAFETY: Safe by the SAFETY preconditions of this method.</span>
-            <span class="kw">let</span> <span class="ident">worker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">worker</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Worker</span><span class="op">&gt;</span><span class="op">&gt;</span>) };
-            <span class="ident">worker</span>
-                .<span class="ident">get</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">WorkerRefMut</span>(<span class="ident">w</span>.<span class="ident">borrow_mut</span>()))))
-                .<span class="ident">unwrap_or</span>(<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>())
-        })
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_objectAllocCounter</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Counter</span> {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">w</span>.<span class="ident">object_alloc_counter</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Counter</span>)
+            .<span class="ident">unwrap_or</span>(<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>())
     }
 
-    <span class="doccomment">/// Return a borrowed reference.</span>
+    <span class="doccomment">/// Returns NULL if there is no live Worker.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">workerrefmut_free</span>(<span class="ident">worker</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WorkerRefMut</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">notnull_mut</span>(<span class="ident">worker</span>)) };
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_objectDeallocCounter</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Counter</span> {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">w</span>.<span class="ident">object_dealloc_counter</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Counter</span>)
+            .<span class="ident">unwrap_or</span>(<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>())
     }
 
-    <span class="doccomment">/// SAFETY: Returned pointer must not outlive `workerRefMut`.</span>
+    <span class="doccomment">/// Returns NULL if there is no live Worker.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">workerrefmut_raw</span>(
-        <span class="ident">worker_ref</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WorkerRefMut</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerC</span> {
-        <span class="kw">unsafe</span> { <span class="ident">worker_ref</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="number">0</span>.<span class="ident">cworker</span> }
-    }
-
-    <span class="doccomment">/// If worker is alive, returns an immutable reference to it. Otherwise returns NULL.</span>
-    <span class="doccomment">/// SAFETY: Returned pointer is invalid after `worker_freeForThisThread` is called</span>
-    <span class="doccomment">/// or when global destructors start running.</span>
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_borrow</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WorkerRef</span> {
-        <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
-            <span class="comment">// Cast to &#39;static lifetime.</span>
-            <span class="comment">// SAFETY: Safe by the SAFETY preconditions of this method.</span>
-            <span class="kw">let</span> <span class="ident">worker</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">worker</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Worker</span><span class="op">&gt;</span><span class="op">&gt;</span>) };
-            <span class="ident">worker</span>
-                .<span class="ident">get</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">Box</span>::<span class="ident">into_raw</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">WorkerRef</span>(<span class="ident">w</span>.<span class="ident">borrow</span>()))))
-                .<span class="ident">unwrap_or</span>(<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>())
-        })
-    }
-
-    <span class="doccomment">/// Return a borrowed reference.</span>
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">workerref_free</span>(<span class="ident">worker</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WorkerRef</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">Box</span>::<span class="ident">from_raw</span>(<span class="ident">worker</span>) };
-    }
-
-    <span class="doccomment">/// SAFETY: Returned pointer must not outlive `workerRef`.</span>
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">workerref_raw</span>(<span class="ident">worker_ref</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">WorkerRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">cshadow</span>::<span class="ident">WorkerC</span> {
-        <span class="kw">unsafe</span> { <span class="ident">worker_ref</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="number">0</span>.<span class="ident">cworker</span> }
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_syscallCounter</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Counter</span> {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">w</span>.<span class="ident">syscall_counter</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Counter</span>).<span class="ident">unwrap_or</span>(<span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>())
     }
 
     <span class="doccomment">/// ID of the current thread&#39;s Worker. Panics if the thread has no Worker.</span>
@@ -658,6 +660,50 @@
             <span class="kw">let</span> <span class="ident">thread</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">CThread</span>::<span class="ident">new</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">thread</span>)) };
             <span class="ident">Worker</span>::<span class="ident">set_active_thread</span>(<span class="kw-2">&amp;</span><span class="ident">thread</span>);
         }
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setRoundEndTime</span>(<span class="ident">t</span>: <span class="ident">cshadow</span>::<span class="ident">SimulationTime</span>) {
+        <span class="ident">Worker</span>::<span class="ident">set_round_end_time</span>(<span class="ident">SimulationTime</span>::<span class="ident">from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_getRoundEndTime</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cshadow</span>::<span class="ident">SimulationTime</span> {
+        <span class="ident">SimulationTime</span>::<span class="ident">to_c_simtime</span>(<span class="ident">Worker</span>::<span class="ident">round_end_time</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setCurrentTime</span>(<span class="ident">t</span>: <span class="ident">cshadow</span>::<span class="ident">SimulationTime</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">SimulationTime</span>::<span class="ident">from_c_simtime</span>(<span class="ident">t</span>) {
+            <span class="ident">Worker</span>::<span class="ident">set_current_time</span>(<span class="ident">t</span>);
+        } <span class="kw">else</span> {
+            <span class="ident">Worker</span>::<span class="ident">clear_current_time</span>();
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentTime</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cshadow</span>::<span class="ident">SimulationTime</span> {
+        <span class="ident">SimulationTime</span>::<span class="ident">to_c_simtime</span>(<span class="ident">Worker</span>::<span class="ident">current_time</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_setLastEventTime</span>(<span class="ident">t</span>: <span class="ident">cshadow</span>::<span class="ident">SimulationTime</span>) {
+        <span class="ident">Worker</span>::<span class="ident">set_last_event_time</span>(<span class="ident">SimulationTime</span>::<span class="ident">from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_isBootstrapActive</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">Worker</span>::<span class="ident">with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>.<span class="ident">unwrap</span>() <span class="op">&lt;</span> <span class="ident">w</span>.<span class="ident">bootstrap_end_time</span>).<span class="ident">unwrap</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_pool</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow</span>::<span class="ident">WorkerPool</span> {
+        <span class="ident">Worker</span>::<span class="ident">with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">worker_pool</span>).<span class="ident">unwrap</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_isAlive</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">Worker</span>::<span class="ident">is_alive</span>()
     }
 }
 </pre></div>
