@@ -1034,6 +1034,14 @@
 <span id="1031">1031</span>
 <span id="1032">1032</span>
 <span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">memory_manager</span>::{<span class="ident">page_size</span>, <span class="ident">MemoryCopier</span>, <span class="ident">MemoryManager</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallResult</span>, <span class="ident">TypedPluginPtr</span>};
@@ -1189,7 +1197,7 @@
         <span class="ident">memory_manager</span>
             .<span class="ident">copy_from_ptr</span>(
                 <span class="ident">dst</span>,
-                <span class="ident">TypedPluginPtr</span>::<span class="ident">new_u8</span>(<span class="ident">PluginPtr</span>::<span class="ident">from</span>(<span class="ident">interval</span>.<span class="ident">start</span>), <span class="ident">interval</span>.<span class="ident">len</span>()),
+                <span class="ident">TypedPluginPtr</span>::<span class="ident">new</span>(<span class="ident">PluginPtr</span>::<span class="ident">from</span>(<span class="ident">interval</span>.<span class="ident">start</span>), <span class="ident">interval</span>.<span class="ident">len</span>()),
             )
             .<span class="ident">unwrap</span>()
     }
@@ -1397,8 +1405,7 @@
             <span class="kw">let</span> <span class="ident">path_buf_plugin_ptr</span> <span class="op">=</span> <span class="ident">TypedPluginPtr</span>::<span class="ident">new</span>(
                 <span class="ident">thread</span>.<span class="ident">malloc_plugin_ptr</span>(<span class="ident">shm_path</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>(),
                 <span class="ident">shm_path</span>.<span class="ident">len</span>(),
-            )
-            .<span class="ident">unwrap</span>();
+            );
             <span class="ident">memory_manager</span>
                 .<span class="ident">copy_to_ptr</span>(<span class="ident">path_buf_plugin_ptr</span>, <span class="ident">shm_path</span>.<span class="ident">as_bytes</span>())
                 .<span class="ident">unwrap</span>();
@@ -1993,6 +2000,15 @@
     <span class="comment">// Panics if called with zero-length `src`.</span>
     <span class="kw">fn</span> <span class="ident">get_mapped_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>);
+
+        <span class="kw">if</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>()) <span class="op">%</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="comment">// Creating a reference from an unaligned pointer is undefined</span>
+            <span class="comment">// behavior in Rust.  Instead of accessing such pointers directly,</span>
+            <span class="comment">// we fall back the memory *copier*, which will use a safely aligned</span>
+            <span class="comment">// intermediate buffer.</span>
+            <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Can&#39;t map unaligned pointer {:?}&quot;</span>, <span class="ident">src</span>);
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
 
         <span class="kw">let</span> (<span class="ident">interval</span>, <span class="ident">region</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>())) {
             <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">i</span>, <span class="ident">r</span>),
