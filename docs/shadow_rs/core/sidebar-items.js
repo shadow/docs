@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["logger",""],["support",""],["worker",""]]});
+initSidebarItems({"mod":[["logger",""],["logical_processor",""],["support",""],["worker",""]]});
