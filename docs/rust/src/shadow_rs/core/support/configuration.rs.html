@@ -1629,6 +1629,22 @@
 <span id="1626">1626</span>
 <span id="1627">1627</span>
 <span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -1876,6 +1892,11 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_explicit_block_message&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="ident">use_explicit_block_message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
+    <span class="doccomment">/// Use seccomp to trap syscalls. Default is true for preload mode, false otherwise.</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_seccomp&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="ident">use_seccomp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+
     <span class="doccomment">/// Count the number of occurrences for individual syscalls</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_syscall_counters&quot;</span>).<span class="ident">unwrap</span>())]</span>
@@ -1980,6 +2001,7 @@
             <span class="ident">use_sched_fifo</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">use_o_n_waitpid_workarounds</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">use_explicit_block_message</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+            <span class="ident">use_seccomp</span>: <span class="prelude-val">None</span>,
             <span class="ident">use_syscall_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">use_object_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">preload_spin_max</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
@@ -2751,6 +2773,16 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_explicit_block_message</span>.<span class="ident">unwrap</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseSeccomp</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+        <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_seccomp</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">b</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">config_getInterposeMethod</span>(<span class="ident">config</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">InterposeMethod</span>::<span class="ident">Preload</span>,
+        }
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
