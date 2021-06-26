@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/logger/shadow_logger.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>shadow_logger.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../shadow_rs/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../shadow_rs/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -454,19 +454,19 @@
 <span id="451">451</span>
 <span id="452">452</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::core::support::simulation_time::SimulationTime</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::core::worker::Worker</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::host::HostInfo</span>;
-<span class="kw">use</span> <span class="ident">crossbeam::queue::ArrayQueue</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">support</span>::<span class="ident">simulation_time</span>::<span class="ident">SimulationTime</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">core</span>::<span class="ident">worker</span>::<span class="ident">Worker</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">host</span>::<span class="ident">host</span>::<span class="ident">HostInfo</span>;
+<span class="kw">use</span> <span class="ident">crossbeam</span>::<span class="ident">queue</span>::<span class="ident">ArrayQueue</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Level</span>, <span class="ident">Log</span>, <span class="ident">Metadata</span>, <span class="ident">Record</span>, <span class="ident">SetLoggerError</span>};
 <span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
-<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
-<span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
-<span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
-<span class="kw">use</span> <span class="ident">std::sync::mpsc</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-<span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">sync</span>::<span class="ident">Lazy</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::{<span class="ident">Receiver</span>, <span class="ident">Sender</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 
 <span class="doccomment">/// Trigger an asynchronous flush when this many lines are queued.</span>
 <span class="kw">const</span> <span class="ident">ASYNC_FLUSH_QD_LINES_THRESHOLD</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">100_000</span>;
@@ -479,9 +479,9 @@
 <span class="kw">const</span> <span class="ident">SYNC_FLUSH_QD_LINES_THRESHOLD</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">ASYNC_FLUSH_QD_LINES_THRESHOLD</span>;
 
 <span class="doccomment">/// Logging thread flushes at least this often.</span>
-<span class="kw">const</span> <span class="ident">MIN_FLUSH_FREQUENCY</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">10</span>);
+<span class="kw">const</span> <span class="ident">MIN_FLUSH_FREQUENCY</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">10</span>);
 
-<span class="kw">static</span> <span class="ident">SHADOW_LOGGER</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">ShadowLogger</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ShadowLogger::new</span>());
+<span class="kw">static</span> <span class="ident">SHADOW_LOGGER</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">ShadowLogger</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ShadowLogger</span>::<span class="ident">new</span>());
 
 <span class="doccomment">/// Helper for formatting times.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
@@ -495,19 +495,19 @@
 <span class="kw">impl</span> <span class="ident">TimeParts</span> {
     <span class="kw">fn</span> <span class="ident">from_nanos</span>(<span class="ident">total_nanos</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// Total number of integer seconds.</span>
-        <span class="kw">let</span> <span class="ident">whole_secs</span> <span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">total_nanos</span> <span class="op">/</span> <span class="number">1_000_000_000</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">whole_secs</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">try_from</span>(<span class="ident">total_nanos</span> <span class="op">/</span> <span class="number">1_000_000_000</span>).<span class="ident">unwrap</span>();
         <span class="comment">// Total number of integer minutes.</span>
-        <span class="kw">let</span> <span class="ident">whole_mins</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">whole_secs</span> <span class="op">/</span> <span class="number">60</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">whole_mins</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">try_from</span>(<span class="ident">whole_secs</span> <span class="op">/</span> <span class="number">60</span>).<span class="ident">unwrap</span>();
         <span class="comment">// Total number of integer hours, which is also the hours part.</span>
         <span class="kw">let</span> <span class="ident">whole_hours</span> <span class="op">=</span> <span class="ident">whole_mins</span> <span class="op">/</span> <span class="number">60</span>;
 
         <span class="comment">// Integer minutes, after whole hours are subtracted out.</span>
         <span class="kw">let</span> <span class="ident">mins_part</span> <span class="op">=</span> <span class="ident">whole_mins</span> <span class="op">-</span> <span class="ident">whole_hours</span> <span class="op">*</span> <span class="number">60</span>;
         <span class="comment">// Integers secs, after integer minutes are subtracted out.</span>
-        <span class="kw">let</span> <span class="ident">secs_part</span> <span class="op">=</span> <span class="ident">whole_secs</span> <span class="op">-</span> <span class="ident">u64::from</span>(<span class="ident">whole_mins</span>) <span class="op">*</span> <span class="number">60</span>;
+        <span class="kw">let</span> <span class="ident">secs_part</span> <span class="op">=</span> <span class="ident">whole_secs</span> <span class="op">-</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">whole_mins</span>) <span class="op">*</span> <span class="number">60</span>;
         <span class="comment">// Nanos, after integer secs are subtracted out.</span>
         <span class="kw">let</span> <span class="ident">nanos_part</span> <span class="op">=</span>
-            <span class="ident">u64::try_from</span>(<span class="ident">total_nanos</span> <span class="op">-</span> <span class="ident">u128::from</span>(<span class="ident">whole_secs</span>) <span class="op">*</span> <span class="number">1_000_000_000</span>).<span class="ident">unwrap</span>();
+            <span class="ident">u64</span>::<span class="ident">try_from</span>(<span class="ident">total_nanos</span> <span class="op">-</span> <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">whole_secs</span>) <span class="op">*</span> <span class="number">1_000_000_000</span>).<span class="ident">unwrap</span>();
 
         <span class="self">Self</span> {
             <span class="ident">hours</span>: <span class="ident">whole_hours</span>,
@@ -521,9 +521,9 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_time_parts</span>() {
-    <span class="macro">assert_eq!</span>(
-        <span class="ident">TimeParts::from_nanos</span>(
-            (<span class="ident">Duration::from_nanos</span>(<span class="number">1</span>) <span class="op">+</span> <span class="ident">Duration::from_secs</span>(<span class="number">3600</span> <span class="op">+</span> <span class="number">60</span> <span class="op">+</span> <span class="number">1</span>)).<span class="ident">as_nanos</span>()
+    <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="ident">TimeParts</span>::<span class="ident">from_nanos</span>(
+            (<span class="ident">Duration</span>::<span class="ident">from_nanos</span>(<span class="number">1</span>) <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">3600</span> <span class="op">+</span> <span class="number">60</span> <span class="op">+</span> <span class="number">1</span>)).<span class="ident">as_nanos</span>()
         ),
         <span class="ident">TimeParts</span> {
             <span class="ident">hours</span>: <span class="number">1</span>,
@@ -536,17 +536,17 @@
 
 <span class="doccomment">/// Initialize the Shadow logger.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
-    <span class="ident">log::set_logger</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">SHADOW_LOGGER</span>)<span class="question-mark">?</span>;
+    <span class="ident">log</span>::<span class="ident">set_logger</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">SHADOW_LOGGER</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// Start the thread that will receive log records and flush them to output.</span>
-    <span class="ident">std::thread::Builder::new</span>()
+    <span class="ident">std</span>::<span class="ident">thread</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
         .<span class="ident">name</span>(<span class="string">&quot;shadow-logger&quot;</span>.<span class="ident">to_string</span>())
         .<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">SHADOW_LOGGER</span>.<span class="ident">logger_thread_fn</span>())
         .<span class="ident">unwrap</span>();
 
     <span class="comment">// Arrange to flush the logger on panic.</span>
-    <span class="kw">let</span> <span class="ident">default_panic_handler</span> <span class="op">=</span> <span class="ident">std::panic::take_hook</span>();
-    <span class="ident">std::panic::set_hook</span>(<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">panic_info</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="ident">default_panic_handler</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">take_hook</span>();
+    <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">set_hook</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">panic_info</span><span class="op">|</span> {
         <span class="comment">// Attempt to flush the logger. We want to avoid a recursive panic, so</span>
         <span class="comment">// we flush the queue on the current thread instead of trying to send</span>
         <span class="comment">// a command to the logger thread (because our thread-local sender</span>
@@ -591,26 +591,26 @@
     <span class="ident">buffering_enabled</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
-<span class="macro">thread_local!</span>(<span class="kw">static</span> <span class="ident">SENDER</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">LoggerCommand</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="prelude-val">None</span>));
-<span class="macro">thread_local!</span>(<span class="kw">static</span> <span class="ident">THREAD_NAME</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> { <span class="ident">get_thread_name</span>() }));
+<span class="macro">thread_local</span><span class="macro">!</span>(<span class="kw">static</span> <span class="ident">SENDER</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">LoggerCommand</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>));
+<span class="macro">thread_local</span><span class="macro">!</span>(<span class="kw">static</span> <span class="ident">THREAD_NAME</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> { <span class="ident">get_thread_name</span>() }));
 
 <span class="kw">fn</span> <span class="ident">get_thread_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">thread_name</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span><span class="ident">::with_capacity</span>(<span class="number">16</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">thread_name</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span>::<span class="ident">with_capacity</span>(<span class="number">16</span>);
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">thread_name</span>.<span class="ident">set_len</span>(<span class="ident">thread_name</span>.<span class="ident">capacity</span>());
         <span class="comment">// ~infallible when host_name is at least 16 bytes.</span>
-        <span class="ident">libc::pthread_getname_np</span>(
-            <span class="ident">libc::pthread_self</span>(),
+        <span class="ident">libc</span>::<span class="ident">pthread_getname_np</span>(
+            <span class="ident">libc</span>::<span class="ident">pthread_self</span>(),
             <span class="ident">thread_name</span>.<span class="ident">as_mut_ptr</span>(),
             <span class="ident">thread_name</span>.<span class="ident">len</span>(),
         )
     };
     <span class="comment">// The most likely cause of failure is a bug in the caller.</span>
-    <span class="macro">debug_assert_eq!</span>(<span class="ident">res</span>, <span class="number">0</span>, <span class="string">&quot;pthread_getname_np: {}&quot;</span>, <span class="ident">nix::errno::from_i32</span>(<span class="ident">res</span>));
+    <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">res</span>, <span class="number">0</span>, <span class="string">&quot;pthread_getname_np: {}&quot;</span>, <span class="ident">nix</span>::<span class="ident">errno</span>::<span class="ident">from_i32</span>(<span class="ident">res</span>));
     <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
         <span class="comment">// SAFETY: We just initialized the input buffer `thread_name`, and</span>
         <span class="comment">// `thread_name_cstr` won&#39;t outlive it.</span>
-        <span class="kw">let</span> <span class="ident">thread_name_cstr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::ffi::CStr::from_ptr</span>(<span class="ident">thread_name</span>.<span class="ident">as_ptr</span>()) };
+        <span class="kw">let</span> <span class="ident">thread_name_cstr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="ident">thread_name</span>.<span class="ident">as_ptr</span>()) };
         <span class="kw">return</span> <span class="ident">thread_name_cstr</span>.<span class="ident">to_owned</span>().<span class="ident">to_string_lossy</span>().<span class="ident">to_string</span>();
     }
 
@@ -619,18 +619,18 @@
     <span class="comment">// happens, but try to recover anyway.</span>
 
     <span class="comment">// Fall back on raw tid.</span>
-    <span class="kw">let</span> <span class="ident">tid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::syscall</span>(<span class="ident">libc::SYS_gettid</span>) };
-    <span class="macro">format!</span>(<span class="string">&quot;tid={}&quot;</span>, <span class="ident">tid</span>)
+    <span class="kw">let</span> <span class="ident">tid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc</span>::<span class="ident">syscall</span>(<span class="ident">libc</span>::<span class="ident">SYS_gettid</span>) };
+    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;tid={}&quot;</span>, <span class="ident">tid</span>)
 }
 
 <span class="kw">impl</span> <span class="ident">ShadowLogger</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ShadowLogger</span> {
-        <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">std::sync::mpsc::channel</span>();
+        <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">channel</span>();
         <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">ShadowLogger</span> {
-            <span class="ident">records</span>: <span class="ident">ArrayQueue::new</span>(<span class="ident">SYNC_FLUSH_QD_LINES_THRESHOLD</span>),
-            <span class="ident">command_sender</span>: <span class="ident">Mutex::new</span>(<span class="ident">sender</span>),
-            <span class="ident">command_receiver</span>: <span class="ident">Mutex::new</span>(<span class="ident">receiver</span>),
-            <span class="ident">buffering_enabled</span>: <span class="ident">RwLock::new</span>(<span class="bool-val">false</span>),
+            <span class="ident">records</span>: <span class="ident">ArrayQueue</span>::<span class="ident">new</span>(<span class="ident">SYNC_FLUSH_QD_LINES_THRESHOLD</span>),
+            <span class="ident">command_sender</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">sender</span>),
+            <span class="ident">command_receiver</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">receiver</span>),
+            <span class="ident">buffering_enabled</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="bool-val">false</span>),
         };
         <span class="ident">logger</span>
     }
@@ -641,14 +641,14 @@
         <span class="kw">let</span> <span class="ident">command_receiver</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">command_receiver</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">loop</span> {
-            <span class="kw">use</span> <span class="ident">std::sync::mpsc::RecvTimeoutError</span>;
+            <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">RecvTimeoutError</span>;
             <span class="kw">match</span> <span class="ident">command_receiver</span>.<span class="ident">recv_timeout</span>(<span class="ident">MIN_FLUSH_FREQUENCY</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">LoggerCommand::Flush</span>(<span class="ident">done_sender</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flush_records</span>(<span class="ident">done_sender</span>).<span class="ident">unwrap</span>(),
-                <span class="prelude-val">Err</span>(<span class="ident">RecvTimeoutError::Timeout</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">LoggerCommand</span>::<span class="ident">Flush</span>(<span class="ident">done_sender</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">flush_records</span>(<span class="ident">done_sender</span>).<span class="ident">unwrap</span>(),
+                <span class="prelude-val">Err</span>(<span class="ident">RecvTimeoutError</span>::<span class="ident">Timeout</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Flush</span>
                     <span class="self">self</span>.<span class="ident">flush_records</span>(<span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unexpected error {}&quot;</span>, <span class="ident">e</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Unexpected error {}&quot;</span>, <span class="ident">e</span>),
             }
         }
     }
@@ -656,8 +656,8 @@
     <span class="comment">// Function called by the logger&#39;s helper thread to flush the contents of</span>
     <span class="comment">// self.records. If `done_sender` is provided, it&#39;s notified after the flush</span>
     <span class="comment">// has completed.</span>
-    <span class="kw">fn</span> <span class="ident">flush_records</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">done_sender</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">std::io::Write</span>;
+    <span class="kw">fn</span> <span class="ident">flush_records</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">done_sender</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
 
         <span class="comment">// Only flush records that are already in the queue, not ones that</span>
         <span class="comment">// arrive while we&#39;re flushing. Otherwise callers who perform a</span>
@@ -666,9 +666,9 @@
         <span class="comment">// necessary. Also keeps us from holding the stdout lock indefinitely.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">toflush</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">records</span>.<span class="ident">len</span>();
 
-        <span class="kw">let</span> <span class="ident">stdout_unlocked</span> <span class="op">=</span> <span class="ident">std::io::stdout</span>();
+        <span class="kw">let</span> <span class="ident">stdout_unlocked</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">stdout</span>();
         <span class="kw">let</span> <span class="ident">stdout_locked</span> <span class="op">=</span> <span class="ident">stdout_unlocked</span>.<span class="ident">lock</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">std::io::BufWriter::new</span>(<span class="ident">stdout_locked</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">BufWriter</span>::<span class="ident">new</span>(<span class="ident">stdout_locked</span>);
         <span class="kw">while</span> <span class="ident">toflush</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">records</span>.<span class="ident">pop</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
@@ -681,8 +681,8 @@
             };
             <span class="ident">toflush</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
             {
-                <span class="kw">let</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">TimeParts::from_nanos</span>(<span class="ident">record</span>.<span class="ident">wall_time</span>.<span class="ident">as_nanos</span>());
-                <span class="macro">write!</span>(
+                <span class="kw">let</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">TimeParts</span>::<span class="ident">from_nanos</span>(<span class="ident">record</span>.<span class="ident">wall_time</span>.<span class="ident">as_nanos</span>());
+                <span class="macro">write</span><span class="macro">!</span>(
                     <span class="ident">stdout</span>,
                     <span class="string">&quot;{:02}:{:02}:{:02}.{:06}&quot;</span>,
                     <span class="ident">parts</span>.<span class="ident">hours</span>,
@@ -691,29 +691,29 @@
                     <span class="ident">parts</span>.<span class="ident">nanos</span> <span class="op">/</span> <span class="number">1000</span>
                 )<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot; [{}]&quot;</span>, <span class="ident">record</span>.<span class="ident">thread_name</span>)<span class="question-mark">?</span>;
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stdout</span>, <span class="string">&quot; [{}]&quot;</span>, <span class="ident">record</span>.<span class="ident">thread_name</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sim_time</span>) <span class="op">=</span> <span class="ident">record</span>.<span class="ident">sim_time</span> {
-                <span class="kw">let</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">TimeParts::from_nanos</span>(<span class="ident">sim_time</span>.<span class="ident">as_nanos</span>());
-                <span class="macro">write!</span>(
+                <span class="kw">let</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">TimeParts</span>::<span class="ident">from_nanos</span>(<span class="ident">sim_time</span>.<span class="ident">as_nanos</span>());
+                <span class="macro">write</span><span class="macro">!</span>(
                     <span class="ident">stdout</span>,
                     <span class="string">&quot; {:02}:{:02}:{:02}.{:09}&quot;</span>,
                     <span class="ident">parts</span>.<span class="ident">hours</span>, <span class="ident">parts</span>.<span class="ident">mins</span>, <span class="ident">parts</span>.<span class="ident">secs</span>, <span class="ident">parts</span>.<span class="ident">nanos</span>
                 )<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot; n/a&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stdout</span>, <span class="string">&quot; n/a&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot; [{level}]&quot;</span>, <span class="ident">level</span> <span class="op">=</span> <span class="ident">record</span>.<span class="ident">level</span>)<span class="question-mark">?</span>;
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stdout</span>, <span class="string">&quot; [{level}]&quot;</span>, <span class="ident">level</span> <span class="op">=</span> <span class="ident">record</span>.<span class="ident">level</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">host</span>) <span class="op">=</span> <span class="ident">record</span>.<span class="ident">host_info</span> {
-                <span class="macro">write!</span>(
+                <span class="macro">write</span><span class="macro">!</span>(
                     <span class="ident">stdout</span>,
                     <span class="string">&quot; [{hostname}:{ip}]&quot;</span>,
                     <span class="ident">hostname</span> <span class="op">=</span> <span class="ident">host</span>.<span class="ident">name</span>,
                     <span class="ident">ip</span> <span class="op">=</span> <span class="ident">host</span>.<span class="ident">default_ip</span>,
                 )<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot; [n/a]&quot;</span>,)<span class="question-mark">?</span>;
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stdout</span>, <span class="string">&quot; [n/a]&quot;</span>,)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(
+            <span class="macro">write</span><span class="macro">!</span>(
                 <span class="ident">stdout</span>,
                 <span class="string">&quot; [{file}:&quot;</span>,
                 <span class="ident">file</span> <span class="op">=</span> <span class="ident">record</span>
@@ -726,11 +726,11 @@
                     .<span class="ident">unwrap_or</span>(<span class="string">&quot;n/a&quot;</span>),
             )<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">line</span>) <span class="op">=</span> <span class="ident">record</span>.<span class="ident">line</span> {
-                <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot;{line}&quot;</span>, <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>)<span class="question-mark">?</span>;
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stdout</span>, <span class="string">&quot;{line}&quot;</span>, <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>)<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot;n/a&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">stdout</span>, <span class="string">&quot;n/a&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(
+            <span class="macro">write</span><span class="macro">!</span>(
                 <span class="ident">stdout</span>,
                 <span class="string">&quot;] [{module}] {msg}\n&quot;</span>,
                 <span class="ident">module</span> <span class="op">=</span> <span class="ident">record</span>.<span class="ident">module_path</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;n/a&quot;</span>),
@@ -742,7 +742,7 @@
             <span class="comment">// unlikely case that the calling thread has gone away, just print</span>
             <span class="comment">// directly.</span>
             <span class="ident">done_sender</span>.<span class="ident">send</span>(()).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">println!</span>(
+                <span class="macro">println</span><span class="macro">!</span>(
                     <span class="string">&quot;WARNING: Logger couldn&#39;t notify
                 calling thread: {:?}&quot;</span>,
                     <span class="ident">e</span>
@@ -762,12 +762,12 @@
 
     <span class="comment">// Send a flush command to the logger thread.</span>
     <span class="kw">fn</span> <span class="ident">flush_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">notify_done</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">send_command</span>(<span class="ident">LoggerCommand::Flush</span>(<span class="ident">notify_done</span>))
+        <span class="self">self</span>.<span class="ident">send_command</span>(<span class="ident">LoggerCommand</span>::<span class="ident">Flush</span>(<span class="ident">notify_done</span>))
     }
 
     <span class="comment">// Send a flush command to the logger thread and block until it&#39;s completed.</span>
     <span class="kw">fn</span> <span class="ident">flush_sync</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let</span> (<span class="ident">done_sender</span>, <span class="ident">done_receiver</span>) <span class="op">=</span> <span class="ident">std::sync::mpsc::channel</span>();
+        <span class="kw">let</span> (<span class="ident">done_sender</span>, <span class="ident">done_receiver</span>) <span class="op">=</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">channel</span>();
         <span class="self">self</span>.<span class="ident">flush_impl</span>(<span class="prelude-val">Some</span>(<span class="ident">done_sender</span>));
         <span class="ident">done_receiver</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>();
     }
@@ -791,11 +791,11 @@
                     .<span class="ident">unwrap</span>()
                     .<span class="ident">send</span>(<span class="ident">cmd</span>)
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                        <span class="macro">println!</span>(<span class="string">&quot;WARNING: Couldn&#39;t send command to logger thread: {:?}&quot;</span>, <span class="ident">e</span>);
+                        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;WARNING: Couldn&#39;t send command to logger thread: {:?}&quot;</span>, <span class="ident">e</span>);
                     });
             })
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">println!</span>(
+                <span class="macro">println</span><span class="macro">!</span>(
                     <span class="string">&quot;WARNING: Couldn&#39;t get sender channel to logger thread: {:?}&quot;</span>,
                     <span class="ident">e</span>
                 );
@@ -805,9 +805,9 @@
 
 <span class="kw">impl</span> <span class="ident">Log</span> <span class="kw">for</span> <span class="ident">ShadowLogger</span> {
     <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Worker::with_active_host_info</span>(<span class="op">|</span><span class="ident">host</span><span class="op">|</span> <span class="ident">host</span>.<span class="ident">log_level</span>) {
+        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Worker</span>::<span class="ident">with_active_host_info</span>(<span class="op">|</span><span class="ident">host</span><span class="op">|</span> <span class="ident">host</span>.<span class="ident">log_level</span>) {
             <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">level</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">level</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">log::max_level</span>(),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">log</span>::<span class="ident">max_level</span>(),
         };
         <span class="ident">metadata</span>.<span class="ident">level</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">filter</span>
     }
@@ -817,9 +817,9 @@
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">std::fmt::format</span>(<span class="kw-2">*</span><span class="ident">record</span>.<span class="ident">args</span>());
+        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">format</span>(<span class="kw-2">*</span><span class="ident">record</span>.<span class="ident">args</span>());
 
-        <span class="kw">let</span> <span class="ident">host_info</span> <span class="op">=</span> <span class="ident">Worker::with_active_host_info</span>(<span class="op">|</span><span class="ident">host</span><span class="op">|</span> <span class="ident">host</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">host_info</span> <span class="op">=</span> <span class="ident">Worker</span>::<span class="ident">with_active_host_info</span>(<span class="op">|</span><span class="ident">host</span><span class="op">|</span> <span class="ident">host</span>.<span class="ident">clone</span>());
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shadowrecord</span> <span class="op">=</span> <span class="ident">ShadowLogRecord</span> {
             <span class="ident">level</span>: <span class="ident">record</span>.<span class="ident">level</span>(),
@@ -827,11 +827,11 @@
             <span class="ident">module_path</span>: <span class="ident">record</span>.<span class="ident">module_path_static</span>(),
             <span class="ident">line</span>: <span class="ident">record</span>.<span class="ident">line</span>(),
             <span class="ident">message</span>,
-            <span class="ident">wall_time</span>: <span class="ident">Duration::from_micros</span>(<span class="kw">unsafe</span> {
-                <span class="ident">u64::try_from</span>(<span class="ident">c_log::logger_elapsed_micros</span>()).<span class="ident">unwrap</span>()
+            <span class="ident">wall_time</span>: <span class="ident">Duration</span>::<span class="ident">from_micros</span>(<span class="kw">unsafe</span> {
+                <span class="ident">u64</span>::<span class="ident">try_from</span>(<span class="ident">c_log</span>::<span class="ident">logger_elapsed_micros</span>()).<span class="ident">unwrap</span>()
             }),
 
-            <span class="ident">sim_time</span>: <span class="ident">Worker::current_time</span>(),
+            <span class="ident">sim_time</span>: <span class="ident">Worker</span>::<span class="ident">current_time</span>(),
             <span class="ident">thread_name</span>: <span class="ident">THREAD_NAME</span>
                 .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">clone</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">get_thread_name</span>()),
@@ -849,7 +849,7 @@
             }
         }
 
-        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">level</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Level::Error</span> {
+        <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">level</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">Level</span>::<span class="ident">Error</span> {
             <span class="comment">// Unlike in Shadow&#39;s C code, we don&#39;t abort the program on Error</span>
             <span class="comment">// logs. In Rust the same purpose is filled with `panic` and</span>
             <span class="comment">// `unwrap`. C callers will still exit or abort via the lib/logger wrapper.</span>
@@ -907,5 +907,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="shadow_rs" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="shadow_rs" data-search-js="../../../../search-index.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>
