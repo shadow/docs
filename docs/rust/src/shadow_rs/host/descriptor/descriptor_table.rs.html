@@ -236,6 +236,19 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::CompatDescriptor</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span>;
@@ -361,7 +374,7 @@
     <span class="doccomment">/// freed. Otherwise the circular reference will prevent the free operation.</span>
     <span class="doccomment">/// TODO: remove this once the TCP layer is better designed.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown_helper</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">for</span> (<span class="ident">_idx</span>, <span class="ident">descriptor</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">descriptors</span>.<span class="ident">iter</span>() {
+        <span class="kw">for</span> <span class="ident">descriptor</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">descriptors</span>.<span class="ident">values</span>() {
             <span class="kw">match</span> <span class="ident">descriptor</span> {
                 <span class="ident">CompatDescriptor::New</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
                 <span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
@@ -388,6 +401,19 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptortable_free</span>(<span class="ident">table</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DescriptorTable</span>) {
         <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">table</span>)) };
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptortable_iter</span>(
+        <span class="ident">table</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">DescriptorTable</span>,
+        <span class="ident">f</span>: <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc::c_void</span>),
+        <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc::c_void</span>,
+    ) {
+        <span class="kw">let</span> <span class="ident">table</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">table</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>() };
+
+        <span class="kw">for</span> <span class="ident">desc</span> <span class="kw">in</span> <span class="ident">table</span>.<span class="ident">descriptors</span>.<span class="ident">values_mut</span>() {
+            <span class="kw">unsafe</span> { <span class="ident">f</span>(<span class="ident">desc</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>, <span class="ident">data</span>) };
+        }
     }
 
     <span class="doccomment">/// Store a descriptor object for later reference at the next available index</span>
