@@ -25,12 +25,17 @@ jobs:
         repository: shadow/shadow
     - name: Build rustdoc
       run: cd shadow/src/main && cargo doc --document-private-items
-    - name: Copy
+    - name: Copy rustdoc
       run: |
         rm -rf pages/docs
         mkdir pages/docs
         mv shadow/src/main/target/doc pages/docs/rust
         echo '<meta http-equiv="refresh" content="0; url=/docs/rust/shadow_rs/">' > pages/docs/rust/index.html
+    - name: Build guide
+      run: |
+        cargo install --vers "^0.4" mdbook
+        mdbook build --dest-dir ../../pages/docs/guide shadow/mdbook
+        echo '<meta http-equiv="refresh" content="0; url=/docs/guide/">' > pages/docs/index.html
     - name: Commit
       run: |
         COMMIT="$(cd shadow && git rev-parse --short HEAD)"
