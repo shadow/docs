@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Command",""]],"fn":[["is_zombie",""]],"mod":[["export",""]],"struct":[["ChildPidWatcher","Utility for monitoring a set of child pid’s, calling registered callbacks when one exits or is killed. Starts a background thread, which is shut down when the object is dropped."],["Inner",""]],"type":[["WatchHandle",""]]});
