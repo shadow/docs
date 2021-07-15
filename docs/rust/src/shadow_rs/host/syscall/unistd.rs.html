@@ -407,6 +407,7 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
+<span id="407">407</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::context</span>::{<span class="ident">ThreadContext</span>, <span class="ident">ThreadContextObjs</span>};
@@ -424,6 +425,7 @@
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
@@ -557,7 +559,7 @@
         });
 
     <span class="comment">// if the syscall would block and it&#39;s a blocking descriptor</span>
-    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::EWOULDBLOCK</span>.<span class="ident">into</span>()) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags::NONBLOCK</span>) {
+    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>()) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags::NONBLOCK</span>) {
         <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_posix_file</span>(<span class="ident">posix_file</span>, <span class="ident">FileStatus::READABLE</span>);
 
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>)));
@@ -626,7 +628,7 @@
         });
 
     <span class="comment">// if the syscall would block and it&#39;s a blocking descriptor</span>
-    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::EWOULDBLOCK</span>.<span class="ident">into</span>()) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags::NONBLOCK</span>) {
+    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>()) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_flags</span>.<span class="ident">contains</span>(<span class="ident">FileFlags::NONBLOCK</span>) {
         <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_posix_file</span>(<span class="ident">posix_file</span>, <span class="ident">FileStatus::WRITABLE</span>);
 
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>)));

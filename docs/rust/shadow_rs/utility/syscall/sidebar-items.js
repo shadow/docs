@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["MAX_ERRNO",""]],"fn":[["raw_return_value_to_errno",""],["raw_return_value_to_result",""],["result_to_raw_return_value",""]]});
+initSidebarItems({"constant":[["MAX_ERRNO",""]],"fn":[["raw_return_value_to_errno",""],["raw_return_value_to_result",""]]});

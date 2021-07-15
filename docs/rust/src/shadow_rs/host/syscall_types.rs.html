@@ -339,22 +339,12 @@
 <span id="336">336</span>
 <span id="337">337</span>
 <span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::syscall_condition::SysCallCondition</span>;
 <span class="kw">use</span> <span class="ident">log::Level::Debug</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">std::convert::From</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
@@ -670,18 +660,6 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">nix::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SyscallError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">nix::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">errno</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">as_errno</span>();
-        <span class="kw">let</span> <span class="ident">errno</span> <span class="op">=</span> <span class="ident">errno</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="ident">nix::errno::ENOTSUP</span>;
-            <span class="macro">warn!</span>(<span class="string">&quot;Mapping err {} to {}&quot;</span>, <span class="ident">e</span>, <span class="ident">default</span>);
-            <span class="ident">default</span>
-        });
-        <span class="ident">SyscallError::Errno</span>(<span class="ident">errno</span>)
-    }
-}
-
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">nix::errno::Errno</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SyscallError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">nix::errno::Errno</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">SyscallError::Errno</span>(<span class="ident">e</span>)
@@ -693,7 +671,7 @@
         <span class="kw">match</span> <span class="ident">std::io::Error::raw_os_error</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SyscallError::Errno</span>(<span class="ident">nix::errno::from_i32</span>(<span class="ident">e</span>)),
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="ident">nix::errno::ENOTSUP</span>;
+                <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="ident">Errno::ENOTSUP</span>;
                 <span class="macro">warn!</span>(<span class="string">&quot;Mapping error {} to {}&quot;</span>, <span class="ident">e</span>, <span class="ident">default</span>);
                 <span class="ident">SyscallError::Errno</span>(<span class="ident">default</span>)
             }
