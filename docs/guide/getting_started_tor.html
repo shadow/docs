@@ -168,6 +168,23 @@ inspect the individual log files from the Tor relays and TGen clients.</p>
 toolkit</a> to run larger, more
 complex Tor networks that are meant to more accurately resemble the
 characteristics and state of the public Tor network.</p>
+<h2 id="determinism"><a class="header" href="#determinism">Determinism</a></h2>
+<p>Shadow isn't able to natively intercept all sources entropy that tor uses via
+openssl, which results in non-deterministic results. If you'd like better
+determinism for your simulation, you can use the provided auxiliary library,
+libshadow_openssl_rng, whichoverride's some of openssl's RNG routines.</p>
+<p>To do so, add the full path to the library to the <code>LD_PRELOAD</code> in each tor
+process's <code>environment</code>.  If you've installed Shadow to the default location,
+the path should be <code>home/&lt;username&gt;/.local/lib/libshadow_openssl_rng.so</code>.</p>
+<pre><code>...
+hosts:
+  torclient:
+    processes:
+      - path: ~/.local/bin/tor
+        # Must provide absolute path. See #1523.
+        environment: 'LD_PRELOAD=/home/&lt;username&gt;/.local/lib/libshadow_openssl_rng.so'
+...
+</code></pre>
 
                     </main>
 
