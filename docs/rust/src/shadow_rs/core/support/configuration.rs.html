@@ -1645,6 +1645,27 @@
 <span id="1642">1642</span>
 <span id="1643">1643</span>
 <span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -1908,6 +1929,11 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_object_counters&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="ident">use_object_counters</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
+    <span class="doccomment">/// Preload our OpenSSL RNG library for all managed processes to mitigate non-deterministic use of OpenSSL.</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_openssl_rng_preload&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="ident">use_openssl_rng_preload</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+
     <span class="doccomment">/// Max number of iterations to busy-wait on IPC semaphore before blocking</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;iterations&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;preload_spin_max&quot;</span>).<span class="ident">unwrap</span>())]</span>
@@ -2005,6 +2031,7 @@
             <span class="ident">use_seccomp</span>: <span class="prelude-val">None</span>,
             <span class="ident">use_syscall_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">use_object_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+            <span class="ident">use_openssl_rng_preload</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">preload_spin_max</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
             <span class="ident">use_memory_manager</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_shim_syscall_handler</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
@@ -2800,6 +2827,13 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseOpensslRNGPreload</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_openssl_rng_preload</span>.<span class="ident">unwrap</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseMemoryManager</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
@@ -3223,6 +3257,14 @@
             }
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
         }
+    }
+
+    <span class="doccomment">/// Returns the path exactly as specified in the config. Caller must free returned string.</span>
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">processoptions_getRawPath</span>(<span class="ident">proc</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ProcessOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc::c_char</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">proc</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">proc</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() };
+        <span class="ident">CString::into_raw</span>(<span class="ident">CString::new</span>(<span class="ident">proc</span>.<span class="ident">path</span>.<span class="ident">to_string_lossy</span>().<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>())
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
