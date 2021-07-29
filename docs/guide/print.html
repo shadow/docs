@@ -499,6 +499,25 @@ rjansen hard nofile 10485760
 You need to either log out and back in or reboot for the changes to take affect.
 You can watch <code>/proc/sys/fs/file-nr</code> and reduce the limit according to your
 usage, if you'd like.</p>
+<h3 id="systemd-limits"><a class="header" href="#systemd-limits">systemd Limits</a></h3>
+<p>systemd may place a limit on the number of tasks that a user can run in its
+slice. You can check to see if a limit is in place by running</p>
+<pre><code>$ systemctl status user-$UID.slice
+</code></pre>
+<p>Here's a listing of an example response:</p>
+<pre><code>● user-1027.slice - User Slice of &lt;user&gt;
+   Loaded: loaded
+Transient: yes
+  Drop-In: /run/systemd/system/user-1027.slice.d
+           └─50-After-systemd-logind\x2eservice.conf, 50-After-systemd-user-sessions\x2eservice.conf, 50-Description.conf, 50-TasksMax.conf
+   Active: active since Wed 2020-05-06 21:20:08 EDT; 1 years 2 months ago
+    Tasks: 81 (limit: 12288)
+</code></pre>
+<p>The last line of the listing shows that this user has a task limit of 12288
+tasks.</p>
+<p>If this task limit is too small, it can be removed with the following command:</p>
+<pre><code>$ sudo systemctl set-property user-$UID.slice TasksMax=-1
+</code></pre>
 <h2 id="number-of-maps"><a class="header" href="#number-of-maps">Number of Maps</a></h2>
 <p>There is a system limit on the number of <code>mmap()</code> mappings per process. Most
 users will not have to modify these settings. However, if an application running
@@ -516,6 +535,32 @@ this:</p>
 <pre><code class="language-bash">sudo sysctl -w vm.max_map_count=1073741824
 sudo echo &quot;vm.max_map_count = 1073741824&quot; &gt;&gt; /etc/sysctl.conf
 sudo sysctl -p
+</code></pre>
+<h2 id="process--thread-count-limits"><a class="header" href="#process--thread-count-limits">Process / Thread Count Limits</a></h2>
+<h3 id="system-wide-limits-1"><a class="header" href="#system-wide-limits-1">System-Wide Limits</a></h3>
+<p>The kernel may limit the max-pid value to a small value, which will limit the
+total number of possible processes running on the machine. This limit can be
+raised by the command</p>
+<pre><code class="language-bash">sudo sysctl -w kernel.pid_max=4194304
+sudo echo &quot;kernel.pid_max = 4194304&quot; &gt;&gt; /etc/sysctl.conf
+sudo sysctl -p
+</code></pre>
+<p>The kernel may also limit the total number of threads running on the machine.
+This limit can be raised, too.</p>
+<pre><code class="language-bash">sudo sysctl -w kernel.threads-max=4194304
+sudo echo &quot;kernel.threads-max = 4194304&quot; &gt;&gt; /etc/sysctl.conf
+sudo sysctl -p
+</code></pre>
+<p>The kernel may cap the <code>kernel.threads-max</code> value automatically so that, in the
+maximum limit, the memory consumed by kernel thread control structures do not
+consume more than approx. (1/8)th of system memory (see
+<a href="https://stackoverflow.com/a/21926745">https://stackoverflow.com/a/21926745</a>).</p>
+<h3 id="user-limits-1"><a class="header" href="#user-limits-1">User Limits</a></h3>
+<p>You may need to raise the maximum number of user processes allowed in
+<code>/etc/security/limits.conf</code>. For example, user limits can be removed with the
+lines:</p>
+<pre><code>rjansen soft nproc unlimited
+rjansen hard nproc unlimited
 </code></pre>
 <h2 id="for-more-information"><a class="header" href="#for-more-information">For more information</a></h2>
 <p>https://www.kernel.org/doc/Documentation/sysctl/fs.txt<br />
