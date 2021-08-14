@@ -307,17 +307,6 @@
 <span id="305">305</span>
 <span id="306">306</span>
 <span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
@@ -325,7 +314,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::descriptor</span>::{
-    <span class="ident">FileFlags</span>, <span class="ident">FileMode</span>, <span class="ident">FileStatus</span>, <span class="ident">NewStatusListenerFilter</span>, <span class="ident">PosixFile</span>, <span class="ident">StatusEventSource</span>,
+    <span class="ident">FileFlags</span>, <span class="ident">FileMode</span>, <span class="ident">FileStatus</span>, <span class="ident">NewStatusListenerFilter</span>, <span class="ident">StatusEventSource</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::syscall_types::SyscallResult</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::utility::byte_queue::ByteQueue</span>;
@@ -440,37 +429,26 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_notifications</span>(<span class="ident">arc</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-        <span class="comment">// we remove some of these later in this function</span>
-        <span class="kw">let</span> <span class="ident">monitoring</span> <span class="op">=</span> <span class="ident">FileStatus::READABLE</span> <span class="op">|</span> <span class="ident">FileStatus::WRITABLE</span>;
-
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_notifications</span>(<span class="ident">arc</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="ident">arc</span>);
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">arc</span>.<span class="ident">borrow_mut</span>() {
-            <span class="ident">PosixFile::Pipe</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// remove any status flags that aren&#39;t relevant to us</span>
-                <span class="kw">let</span> <span class="ident">monitoring</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">filter_status</span>(<span class="ident">monitoring</span>);
+        <span class="kw">let</span> <span class="ident">pipe</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">arc</span>.<span class="ident">borrow_mut</span>();
 
-                <span class="ident">f</span>.<span class="ident">_buffer_event_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>.<span class="ident">buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
-                    <span class="ident">monitoring</span>,
-                    <span class="ident">NewStatusListenerFilter::Always</span>,
-                    <span class="kw">move</span> <span class="op">|</span><span class="ident">status</span>, <span class="ident">_changed</span>, <span class="ident">event_queue</span><span class="op">|</span> {
-                        <span class="comment">// if the file hasn&#39;t been dropped</span>
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">borrow_mut</span>();
-                            <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">file</span> {
-                                <span class="ident">PosixFile::Pipe</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                    <span class="ident">f</span>.<span class="ident">copy_status</span>(<span class="ident">monitoring</span>, <span class="ident">status</span>, <span class="ident">event_queue</span>)
-                                }
-                                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
-                                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-                            }
-                        }
-                    },
-                ));
-            }
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
-        };
+        <span class="comment">// remove any status flags that aren&#39;t relevant to us</span>
+        <span class="kw">let</span> <span class="ident">monitoring</span> <span class="op">=</span> <span class="ident">pipe</span>.<span class="ident">filter_status</span>(<span class="ident">FileStatus::READABLE</span> <span class="op">|</span> <span class="ident">FileStatus::WRITABLE</span>);
+
+        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">pipe</span>.<span class="ident">buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
+            <span class="ident">monitoring</span>,
+            <span class="ident">NewStatusListenerFilter::Always</span>,
+            <span class="kw">move</span> <span class="op">|</span><span class="ident">status</span>, <span class="ident">_changed</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+                <span class="comment">// if the file hasn&#39;t been dropped</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pipe</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
+                    <span class="ident">pipe</span>.<span class="ident">borrow_mut</span>()
+                        .<span class="ident">copy_status</span>(<span class="ident">monitoring</span>, <span class="ident">status</span>, <span class="ident">event_queue</span>)
+                }
+            },
+        );
+
+        <span class="ident">pipe</span>.<span class="ident">_buffer_event_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_listener</span>(

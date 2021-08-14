@@ -628,6 +628,61 @@
 <span id="626">626</span>
 <span id="627">627</span>
 <span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
@@ -841,8 +896,9 @@
 }
 
 <span class="doccomment">/// Represents a POSIX description, or a Linux &quot;struct file&quot;.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PosixFile</span> {
-    <span class="ident">Pipe</span>(<span class="ident">pipe::PipeFile</span>),
+    <span class="ident">Pipe</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">pipe::PipeFile</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 }
 
 <span class="comment">// will not compile if `PosixFile` is not Send + Sync</span>
@@ -850,67 +906,33 @@
 <span class="kw">impl</span> <span class="ident">IsSync</span> <span class="kw">for</span> <span class="ident">PosixFile</span> {}
 
 <span class="kw">impl</span> <span class="ident">PosixFile</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EventQueue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PosixFileRef</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>),
+            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PosixFileRef::Pipe</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">bytes</span>: <span class="ident">W</span>,
-        <span class="ident">offset</span>: <span class="ident">libc::off_t</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EventQueue</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span>
-    <span class="kw">where</span>
-        <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
-    {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PosixFileRef</span>, <span class="ident">atomic_refcell::BorrowError</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PosixFileRef::Pipe</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
+        })
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PosixFileRefMut</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">read</span>(<span class="ident">bytes</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>),
+            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PosixFileRefMut::Pipe</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">source</span>: <span class="ident">R</span>,
-        <span class="ident">offset</span>: <span class="ident">libc::off_t</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EventQueue</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
-    {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">write</span>(<span class="ident">source</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>),
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PosixFileRefMut</span>, <span class="ident">atomic_refcell::BorrowMutError</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PosixFileRefMut::Pipe</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
+        })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FileStatus</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonical_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">status</span>(),
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FileFlags</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">get_flags</span>(),
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">FileFlags</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">set_flags</span>(<span class="ident">flags</span>),
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_legacy_listener</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::StatusListener</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">add_legacy_listener</span>(<span class="ident">ptr</span>),
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_legacy_listener</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::StatusListener</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">remove_legacy_listener</span>(<span class="ident">ptr</span>),
+            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Arc::as_ptr</span>(<span class="ident">f</span>) <span class="kw">as</span> <span class="ident">usize</span>,
         }
     }
 }
@@ -920,6 +942,89 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Pipe&quot;</span>)<span class="question-mark">?</span>,
         }
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_borrow</span>() {
+            <span class="macro">write!</span>(
+                <span class="ident">f</span>,
+                <span class="string">&quot;(status: {:?}, flags: {:?})&quot;</span>,
+                <span class="ident">file</span>.<span class="ident">status</span>(),
+                <span class="ident">file</span>.<span class="ident">get_flags</span>()
+            )
+        } <span class="kw">else</span> {
+            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;(already borrowed)&quot;</span>)
+        }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PosixFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Pipe</span>(<span class="ident">atomic_refcell::AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">pipe::PipeFile</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PosixFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Pipe</span>(<span class="ident">atomic_refcell::AtomicRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">pipe::PipeFile</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">PosixFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FileStatus</span>
+    );
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FileFlags</span>
+    );
+}
+
+<span class="kw">impl</span> <span class="ident">PosixFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">status</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FileStatus</span>
+    );
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FileFlags</span>
+    );
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">event_queue</span>), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EventQueue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span>
+    );
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">flags</span>), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">flags</span>: <span class="ident">FileFlags</span>)
+    );
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">ptr</span>), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_legacy_listener</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::StatusListener</span>)
+    );
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">ptr</span>), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_legacy_listener</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::StatusListener</span>)
+    );
+
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">bytes</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">W</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EventQueue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span>
+        <span class="kw">where</span> <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
+    );
+
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">source</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>), <span class="ident">Pipe</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EventQueue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span>
+        <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
+    );
+}
+
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">PosixFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Pipe&quot;</span>)<span class="question-mark">?</span>,
+        }
+
+        <span class="macro">write!</span>(
+            <span class="ident">f</span>,
+            <span class="string">&quot;(status: {:?}, flags: {:?})&quot;</span>,
+            <span class="self">self</span>.<span class="ident">status</span>(),
+            <span class="self">self</span>.<span class="ident">get_flags</span>()
+        )
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">PosixFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="self">Self</span><span class="ident">::Pipe</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Pipe&quot;</span>)<span class="question-mark">?</span>,
+        }
+
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;(status: {:?}, flags: {:?})&quot;</span>,
@@ -940,7 +1045,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Descriptor</span> {
     <span class="doccomment">/// The PosixFile that this descriptor points to.</span>
-    <span class="ident">file</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">file</span>: <span class="ident">PosixFile</span>,
     <span class="doccomment">/// Descriptor flags.</span>
     <span class="ident">flags</span>: <span class="ident">DescriptorFlags</span>,
     <span class="doccomment">/// A count of how many open descriptors there are with reference to this file. Since a</span>
@@ -950,7 +1055,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Descriptor</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file</span>: <span class="ident">PosixFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">file</span>,
             <span class="ident">flags</span>: <span class="ident">DescriptorFlags::empty</span>(),
@@ -958,7 +1063,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">PosixFile</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">file</span>
     }
 
@@ -1044,9 +1149,6 @@
 <span class="kw">mod</span> <span class="ident">export</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="doccomment">/// An opaque type used when passing `*const AtomicRefCell&lt;File&gt;` to C.</span>
-    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PosixFileArc</span> {}
-
     <span class="doccomment">/// The new compat descriptor takes ownership of the reference to the legacy descriptor and</span>
     <span class="doccomment">/// does not increment its ref count, but will decrement the ref count when this compat</span>
     <span class="doccomment">/// descriptor is freed/dropped.</span>
@@ -1091,15 +1193,15 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_borrowPosixFile</span>(
         <span class="ident">descriptor</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CompatDescriptor</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFile</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
 
-        (<span class="kw">match</span> <span class="ident">descriptor</span> {
+        <span class="kw">match</span> <span class="ident">descriptor</span> {
             <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::ptr::null_mut</span>(),
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Arc::as_ptr</span>(<span class="ident">d</span>.<span class="ident">get_file</span>()),
-        }) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span>
+            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>.<span class="ident">get_file</span>(),
+        }
     }
 
     <span class="doccomment">/// If the compat descriptor is a new descriptor, returns a pointer to the reference-counted</span>
@@ -1109,33 +1211,32 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_newRefPosixFile</span>(
         <span class="ident">descriptor</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CompatDescriptor</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFile</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
 
-        (<span class="kw">match</span> <span class="ident">descriptor</span> {
+        <span class="kw">match</span> <span class="ident">descriptor</span> {
             <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::ptr::null_mut</span>(),
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Arc::into_raw</span>(<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>.<span class="ident">get_file</span>())),
-        }) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span>
+            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">d</span>.<span class="ident">get_file</span>().<span class="ident">clone</span>())),
+        }
     }
 
     <span class="doccomment">/// Decrement the ref count of the posix file object. The pointer must not be used after</span>
     <span class="doccomment">/// calling this function.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">posixfile_drop</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span>) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">posixfile_drop</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFile</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
 
-        <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<span class="ident">file</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span>) };
+        <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">file</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">PosixFile</span>) };
     }
 
     <span class="doccomment">/// Get the status of the posix file object.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">posixfile_getStatus</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::Status</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">posixfile_getStatus</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::Status</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span>;
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };
 
         <span class="ident">file</span>.<span class="ident">borrow</span>().<span class="ident">status</span>().<span class="ident">into</span>()
@@ -1146,13 +1247,12 @@
     <span class="doccomment">/// removed or when the posix file is freed/dropped.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">posixfile_addListener</span>(
-        <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span>,
+        <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFile</span>,
         <span class="ident">listener</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::StatusListener</span>,
     ) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">listener</span>.<span class="ident">is_null</span>());
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span>;
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };
 
         <span class="ident">file</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_legacy_listener</span>(<span class="ident">listener</span>);
@@ -1161,16 +1261,26 @@
     <span class="doccomment">/// Remove a listener from the posix file object.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">posixfile_removeListener</span>(
-        <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFileArc</span>,
+        <span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFile</span>,
         <span class="ident">listener</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::StatusListener</span>,
     ) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">listener</span>.<span class="ident">is_null</span>());
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">PosixFile</span><span class="op">&gt;</span>;
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };
 
         <span class="ident">file</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove_legacy_listener</span>(<span class="ident">listener</span>);
+    }
+
+    <span class="doccomment">/// Get the canonical handle for a posix file object. Two posix file objects refer to the same</span>
+    <span class="doccomment">/// underlying data if their handles are equal.</span>
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">posixfile_getCanonicalHandle</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PosixFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::uintptr_t</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
+
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };
+
+        <span class="ident">file</span>.<span class="ident">canonical_handle</span>()
     }
 }
 
