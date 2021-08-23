@@ -291,7 +291,6 @@ of thread-local-storage.</li>
 <li>gcc, gcc-c++ (or clang, clang++)</li>
 <li>python (version &gt;= 3.6)</li>
 <li>glib (version &gt;= 2.32.0)</li>
-<li>igraph (version &gt;= 0.5.4)</li>
 <li>cmake (version &gt;= 3.2)</li>
 <li>make</li>
 <li>xz-utils</li>
@@ -314,8 +313,6 @@ sudo apt-get install -y \
     libc-dbg \
     libglib2.0-0 \
     libglib2.0-dev \
-    libigraph0-dev \
-    libigraph0v5 \
     libprocps-dev \
     make \
     python3 \
@@ -355,8 +352,6 @@ sudo dnf install -y \
     findutils \
     glib2 \
     glib2-devel \
-    igraph \
-    igraph-devel \
     make \
     procps-devel \
     python3 \
@@ -388,13 +383,10 @@ sudo dnf install -y \
     tmux
 </code></pre>
 <h3 id="centos-stream-8"><a class="header" href="#centos-stream-8">CentOS Stream 8</a></h3>
-<p>As procps-ng-devel, igraph, and igraph-devel are not available on CentOS Stream 8, you
-must install them manually.</p>
+<p>As procps-ng-devel is not available on CentOS Stream 8, you must install it manually.</p>
 <pre><code class="language-bash">dnf remove -y procps-ng procps-ng-devel
 dnf install -y http://vault.centos.org/centos/7.7.1908/os/x86_64/Packages/procps-ng-3.3.10-26.el7.x86_64.rpm
 dnf install -y http://vault.centos.org/centos/7.7.1908/os/x86_64/Packages/procps-ng-devel-3.3.10-26.el7.x86_64.rpm
-dnf install -y https://dl.fedoraproject.org/pub/archive/epel/7.7/x86_64/Packages/i/igraph-0.7.1-12.el7.x86_64.rpm
-dnf install -y https://dl.fedoraproject.org/pub/archive/epel/7.7/x86_64/Packages/i/igraph-devel-0.7.1-12.el7.x86_64.rpm
 </code></pre>
 <p>Due to <a href="https://bugs.centos.org/view.php?id=18212">a bug</a> in the CentOS 8 CMake
 package, you must also install libarchive manually.</p>
@@ -717,8 +709,8 @@ network:
       graph [
         node [
           id 0
-          bandwidth_down &quot;140 Mbit&quot;
-          bandwidth_up &quot;18 Mbit&quot;
+          host_bandwidth_down &quot;140 Mbit&quot;
+          host_bandwidth_up &quot;18 Mbit&quot;
         ]
         edge [
           source 0
@@ -1094,11 +1086,13 @@ network:
     type: 1_gbit_switch
 hosts:
   server:
+    network_node_id: 0
     processes:
     - path: /usr/sbin/nginx
       args: -c ../../../nginx.conf -p .
       start_time: 1
   client:
+    network_node_id: 0
     quantity: 20
     processes:
     - path: /usr/bin/curl
@@ -1145,17 +1139,16 @@ hosts:
 <li><a href="shadow_config_spec.html#experimentaluse_syscall_counters"><code>experimental.use_syscall_counters</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalworker_threads"><code>experimental.worker_threads</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaults"><code>host_defaults</code></a></li>
-<li><a href="shadow_config_spec.html#host_defaultscity_code_hint"><code>host_defaults.city_code_hint</code></a></li>
-<li><a href="shadow_config_spec.html#host_defaultscountry_code_hint"><code>host_defaults.country_code_hint</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaultsheartbeat_interval"><code>host_defaults.heartbeat_interval</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaultsheartbeat_log_info"><code>host_defaults.heartbeat_log_info</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaultsheartbeat_log_level"><code>host_defaults.heartbeat_log_level</code></a></li>
-<li><a href="shadow_config_spec.html#host_defaultsip_address_hint"><code>host_defaults.ip_address_hint</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaultslog_level"><code>host_defaults.log_level</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaultspcap_directory"><code>host_defaults.pcap_directory</code></a></li>
 <li><a href="shadow_config_spec.html#hosts"><code>hosts</code></a></li>
 <li><a href="shadow_config_spec.html#hostshostnamebandwidth_down"><code>hosts.&lt;hostname&gt;.bandwidth_down</code></a></li>
 <li><a href="shadow_config_spec.html#hostshostnamebandwidth_up"><code>hosts.&lt;hostname&gt;.bandwidth_up</code></a></li>
+<li><a href="shadow_config_spec.html#hostshostnameip_addr"><code>hosts.&lt;hostname&gt;.ip_addr</code></a></li>
+<li><a href="shadow_config_spec.html#hostshostnamenetwork_node_id"><code>hosts.&lt;hostname&gt;.network_node_id</code></a></li>
 <li><a href="shadow_config_spec.html#hostshostnameoptions"><code>hosts.&lt;hostname&gt;.options</code></a></li>
 <li><a href="shadow_config_spec.html#hostshostnamequantity"><code>hosts.&lt;hostname&gt;.quantity</code></a></li>
 <li><a href="shadow_config_spec.html#hostshostnameprocesses"><code>hosts.&lt;hostname&gt;.processes</code></a></li>
@@ -1232,7 +1225,7 @@ structure this data, see the <a href="network_graph_overview.html">Network Graph
 </code></pre>
 <h4 id="networkgraphtype"><a class="header" href="#networkgraphtype"><code>network.graph.type</code></a></h4>
 <p><em>Required</em><br />
-Type: &quot;gml&quot; OR &quot;1_gbit_switch&quot;</p>
+Type: &quot;gml&quot; OR &quot;gml_lzma&quot; OR &quot;1_gbit_switch&quot;</p>
 <p>The network graph can be specified in the GML format, or a built-in
 &quot;1_gbit_switch&quot; graph with a single network node can be used instead.</p>
 <p>The built-in &quot;1_gbit_switch&quot; graph contains the following:</p>
@@ -1240,9 +1233,8 @@ Type: &quot;gml&quot; OR &quot;1_gbit_switch&quot;</p>
   directed 0
   node [
     id 0
-    ip_address &quot;0.0.0.0&quot;
-    bandwidth_up &quot;1 Gbit&quot;
-    bandwidth_down &quot;1 Gbit&quot;
+    host_bandwidth_up &quot;1 Gbit&quot;
+    host_bandwidth_down &quot;1 Gbit&quot;
   ]
   edge [
     source 0
@@ -1260,11 +1252,12 @@ specified as a path to an external file, or as an inline string.</p>
 <p>If a path is given and begins with <code>~/</code>, it will be considered relative to the
 current user's home directory.</p>
 <h4 id="networkuse_shortest_path"><a class="header" href="#networkuse_shortest_path"><code>network.use_shortest_path</code></a></h4>
-<p><em>Required</em><br />
+<p>Default: true<br />
 Type: Bool</p>
 <p>When routing packets, follow the shortest path rather than following a direct
 edge between network nodes. If false, the network graph is required to be
-complete.</p>
+complete (including self-loops) and to have exactly one edge between any two
+nodes.</p>
 <h4 id="experimental"><a class="header" href="#experimental"><code>experimental</code></a></h4>
 <p>Experimental experiment settings. Unstable and may change or be removed at any
 time, regardless of Shadow version.</p>
@@ -1355,7 +1348,7 @@ Type: Bool</p>
 <p>Use shim-side syscall handler to force hot-path syscalls to be handled via an
 inter-process syscall with Shadow.</p>
 <h4 id="experimentaluse_seccomp"><a class="header" href="#experimentaluse_seccomp"><code>experimental.use_seccomp</code></a></h4>
-<p>Default: true iff experimental.interpose_method == preload.
+<p>Default: true iff <code>experimental.interpose_method == preload</code>.
 Type: Bool</p>
 <p>Use seccomp to trap syscalls.</p>
 <h4 id="experimentaluse_syscall_counters"><a class="header" href="#experimentaluse_syscall_counters"><code>experimental.use_syscall_counters</code></a></h4>
@@ -1372,18 +1365,6 @@ future.</p>
 <h4 id="host_defaults"><a class="header" href="#host_defaults"><code>host_defaults</code></a></h4>
 <p>Default options for all hosts. These options can also be overridden for each
 host individually.</p>
-<h4 id="host_defaultscity_code_hint"><a class="header" href="#host_defaultscity_code_hint"><code>host_defaults.city_code_hint</code></a></h4>
-<p>Default: null<br />
-Type: String OR null</p>
-<p>City code hint for Shadow's name and routing system.</p>
-<p>This hint will be used to assign the host to a network node based on the city
-codes of nodes in the network graph.</p>
-<h4 id="host_defaultscountry_code_hint"><a class="header" href="#host_defaultscountry_code_hint"><code>host_defaults.country_code_hint</code></a></h4>
-<p>Default: null<br />
-Type: String OR null</p>
-<p>Country code hint for Shadow's name and routing system (ex: &quot;US&quot;).</p>
-<p>This hint will be used to assign the host to a network node based on the country
-codes of nodes in the network graph.</p>
 <h4 id="host_defaultsheartbeat_interval"><a class="header" href="#host_defaultsheartbeat_interval"><code>host_defaults.heartbeat_interval</code></a></h4>
 <p>Default: &quot;1 sec&quot;<br />
 Type: String OR Integer</p>
@@ -1396,12 +1377,6 @@ Type: Array of (&quot;node&quot; OR &quot;socket&quot; OR &quot;ram&quot;)</p>
 <p>Default: &quot;info&quot;<br />
 Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot;</p>
 <p>Log level at which to print host statistics.</p>
-<h4 id="host_defaultsip_address_hint"><a class="header" href="#host_defaultsip_address_hint"><code>host_defaults.ip_address_hint</code></a></h4>
-<p>Default: null<br />
-Type: String OR null</p>
-<p>IPv4 address hint for Shadow's name and routing system (ex: &quot;100.0.0.1&quot;).</p>
-<p>This hint will be used to assign the host to a network node based on the IP
-values of nodes in the network graph.</p>
 <h4 id="host_defaultslog_level"><a class="header" href="#host_defaultslog_level"><code>host_defaults.log_level</code></a></h4>
 <p>Default: null<br />
 Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot; OR null</p>
@@ -1430,6 +1405,17 @@ Type: String OR Integer OR null</p>
 <p>Upstream bandwidth capacity of the host.</p>
 <p>Overrides any default bandwidth values set in the assigned network graph
 node.</p>
+<h4 id="hostshostnameip_addr"><a class="header" href="#hostshostnameip_addr"><code>hosts.&lt;hostname&gt;.ip_addr</code></a></h4>
+<p>Default: null<br />
+Type: String OR null</p>
+<p>IP address to assign to the host.</p>
+<p>This IP address must not conflict with the address of any other host (two hosts
+must not have the same IP address). If this option is set,
+<a href="shadow_config_spec.html#hostshostnamequantity"><code>hosts.&lt;hostname&gt;.quantity</code></a> must be set to 1.</p>
+<h4 id="hostshostnamenetwork_node_id"><a class="header" href="#hostshostnamenetwork_node_id"><code>hosts.&lt;hostname&gt;.network_node_id</code></a></h4>
+<p><em>Required</em><br />
+Type: Integer</p>
+<p>Network graph node ID to assign the host to.</p>
 <h4 id="hostshostnameoptions"><a class="header" href="#hostshostnameoptions"><code>hosts.&lt;hostname&gt;.options</code></a></h4>
 <p>See <a href="shadow_config_spec.html#host_defaults"><code>host_defaults</code></a>.</p>
 <h4 id="hostshostnamequantity"><a class="header" href="#hostshostnamequantity"><code>hosts.&lt;hostname&gt;.quantity</code></a></h4>
@@ -1561,11 +1547,8 @@ interchangeable).</p>
   node [
     id 0
     label &quot;node at 1.2.3.4&quot;
-    country_code &quot;US&quot;
-    city_code &quot;Portland&quot;
-    ip_address &quot;1.2.3.4&quot;
-    bandwidth_down &quot;100 Mbit&quot;
-    bandwidth_up &quot;100 Mbit&quot;
+    host_bandwidth_down &quot;100 Mbit&quot;
+    host_bandwidth_up &quot;100 Mbit&quot;
   ]
   edge [
     source 0
@@ -1582,11 +1565,8 @@ interchangeable).</p>
 <li><a href="network_graph_spec.html#graphdirected"><code>graph.directed</code></a></li>
 <li><a href="network_graph_spec.html#nodeid"><code>node.id</code></a></li>
 <li><a href="network_graph_spec.html#nodelabel"><code>node.label</code></a></li>
-<li><a href="network_graph_spec.html#nodecountry_code"><code>node.country_code</code></a></li>
-<li><a href="network_graph_spec.html#nodecity_code"><code>node.city_code</code></a></li>
-<li><a href="network_graph_spec.html#nodeip_address"><code>node.ip_address</code></a></li>
-<li><a href="network_graph_spec.html#nodebandwidth_down"><code>node.bandwidth_down</code></a></li>
-<li><a href="network_graph_spec.html#nodebandwidth_up"><code>node.bandwidth_up</code></a></li>
+<li><a href="network_graph_spec.html#nodehost_bandwidth_down"><code>node.host_bandwidth_down</code></a></li>
+<li><a href="network_graph_spec.html#nodehost_bandwidth_up"><code>node.host_bandwidth_up</code></a></li>
 <li><a href="network_graph_spec.html#edgesource"><code>edge.source</code></a></li>
 <li><a href="network_graph_spec.html#edgetarget"><code>edge.target</code></a></li>
 <li><a href="network_graph_spec.html#edgelabel"><code>edge.label</code></a></li>
@@ -1617,42 +1597,7 @@ Default: n/a<br />
 Type: String</p>
 <p>An optional, human-meaningful string description of the node. The string may
 be used in log messages printed by Shadow.</p>
-<h4 id="nodecountry_code"><a class="header" href="#nodecountry_code"><code>node.country_code</code></a></h4>
-<p>Required: False<br />
-Default: n/a<br />
-Type: String</p>
-<p>A code for the country in which the node represented by this node is located.
-This code can be used to control the placement of hosts in the network: when
-attaching a specific host into the network, we ignore any node whose
-<code>country_code</code> does not match the host's <a href="shadow_config_spec.html#host_defaultscountry_code_hint"><code>country_code_hint</code> host configuration
-value</a> (if one is
-configured).</p>
-<h4 id="nodecity_code"><a class="header" href="#nodecity_code"><code>node.city_code</code></a></h4>
-<p>Required: False<br />
-Default: n/a<br />
-Type: String</p>
-<p>A code for the city in which the node represented by this node is located.
-This code can be used to control the placement of hosts in the network: when
-attaching a specific host into the network, we ignore any node whose
-<code>city_code</code> does not match the host's <a href="shadow_config_spec.html#host_defaultscity_code_hint"><code>city_code_hint</code> host configuration
-value</a> (if one is
-configured).</p>
-<h4 id="nodeip_address"><a class="header" href="#nodeip_address"><code>node.ip_address</code></a></h4>
-<p>Required: False<br />
-Default: n/a
-Type: String</p>
-<p>An IP address at which the node represented by this node is located. This
-address can be used to control the placement of hosts in the network: after
-filtering nodes based on the city and country codes (as described above), we
-perform a <a href="https://en.wikipedia.org/wiki/Longest_prefix_match">longest prefix
-match</a> on the remaining
-nodes by comparing the node <code>ip_address</code> with the host's <a href="shadow_config_spec.html#host_defaultsip_address_hint"><code>ip_address_hint</code>
-host configuration value</a>
-(if one is configured) and attach the host to the node with the closest match.
-We assign the host the address specified in <code>ip_address_hint</code> as long as that
-address has not yet been assigned to another host, otherwise we choose a unique
-address nearby to the requested address.</p>
-<h4 id="nodebandwidth_down"><a class="header" href="#nodebandwidth_down"><code>node.bandwidth_down</code></a></h4>
+<h4 id="nodehost_bandwidth_down"><a class="header" href="#nodehost_bandwidth_down"><code>node.host_bandwidth_down</code></a></h4>
 <p>Required: True<br />
 Type: String</p>
 <p>A string defining the downstream (receive) bandwidth that will be allowed for
@@ -1663,7 +1608,7 @@ the <a href="shadow_config_spec.html">config documentation</a>, e.g., <code>10 M
 this bandwidth is allowed for every host that is attached to this node; it is
 <strong>not</strong> the total bandwidth logically available at the node (which is not
 defined).</p>
-<h4 id="nodebandwidth_up"><a class="header" href="#nodebandwidth_up"><code>node.bandwidth_up</code></a></h4>
+<h4 id="nodehost_bandwidth_up"><a class="header" href="#nodehost_bandwidth_up"><code>node.host_bandwidth_up</code></a></h4>
 <p>Required: True<br />
 Type: String</p>
 <p>A string defining the upstream (send) bandwidth that will be allowed for any
@@ -1714,10 +1659,12 @@ traversing this edge will get dropped.</p>
 <p>Shadow 2.0 has changed the formatting of its configuration and network graph files.
 The configuration format has changed from XML to YAML, and the network graph format
 has changed from GraphML to GML. Various options have been added, renamed, and
-removed. Shadow includes convenience scripts to convert these files to their new
-formats. These scripts are intended to aid in converting to the new formats, and
-you should manually compare the original file to the new converted file to make
-sure it includes all of the options you expect.</p>
+removed. Shadow includes convenience scripts to aid in converting these files to their
+new formats, but the generated output of these scripts requires manual user
+intervention. For example, you will need to assign hosts to graph nodes manually by
+setting the <code>network_node_id</code> field for each host in the generated config. You should
+also manually compare the original file to the new converted file to make sure it
+includes all of the options you expect.</p>
 <p>When encountering a tag/attribute that is not supported by the new format, these
 scripts will either:</p>
 <ol>

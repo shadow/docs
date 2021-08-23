@@ -1,1 +1,1 @@
-initSidebarItems({});
+initSidebarItems({"mod":[["network_graph",""],["petgraph_wrapper",""]]});

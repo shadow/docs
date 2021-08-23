@@ -150,11 +150,13 @@ network:
     type: 1_gbit_switch
 hosts:
   server:
+    network_node_id: 0
     processes:
     - path: /usr/sbin/nginx
       args: -c ../../../nginx.conf -p .
       start_time: 1
   client:
+    network_node_id: 0
     quantity: 20
     processes:
     - path: /usr/bin/curl
@@ -201,17 +203,16 @@ hosts:
 <li><a href="#experimentaluse_syscall_counters"><code>experimental.use_syscall_counters</code></a></li>
 <li><a href="#experimentalworker_threads"><code>experimental.worker_threads</code></a></li>
 <li><a href="#host_defaults"><code>host_defaults</code></a></li>
-<li><a href="#host_defaultscity_code_hint"><code>host_defaults.city_code_hint</code></a></li>
-<li><a href="#host_defaultscountry_code_hint"><code>host_defaults.country_code_hint</code></a></li>
 <li><a href="#host_defaultsheartbeat_interval"><code>host_defaults.heartbeat_interval</code></a></li>
 <li><a href="#host_defaultsheartbeat_log_info"><code>host_defaults.heartbeat_log_info</code></a></li>
 <li><a href="#host_defaultsheartbeat_log_level"><code>host_defaults.heartbeat_log_level</code></a></li>
-<li><a href="#host_defaultsip_address_hint"><code>host_defaults.ip_address_hint</code></a></li>
 <li><a href="#host_defaultslog_level"><code>host_defaults.log_level</code></a></li>
 <li><a href="#host_defaultspcap_directory"><code>host_defaults.pcap_directory</code></a></li>
 <li><a href="#hosts"><code>hosts</code></a></li>
 <li><a href="#hostshostnamebandwidth_down"><code>hosts.&lt;hostname&gt;.bandwidth_down</code></a></li>
 <li><a href="#hostshostnamebandwidth_up"><code>hosts.&lt;hostname&gt;.bandwidth_up</code></a></li>
+<li><a href="#hostshostnameip_addr"><code>hosts.&lt;hostname&gt;.ip_addr</code></a></li>
+<li><a href="#hostshostnamenetwork_node_id"><code>hosts.&lt;hostname&gt;.network_node_id</code></a></li>
 <li><a href="#hostshostnameoptions"><code>hosts.&lt;hostname&gt;.options</code></a></li>
 <li><a href="#hostshostnamequantity"><code>hosts.&lt;hostname&gt;.quantity</code></a></li>
 <li><a href="#hostshostnameprocesses"><code>hosts.&lt;hostname&gt;.processes</code></a></li>
@@ -288,7 +289,7 @@ structure this data, see the <a href="network_graph_overview.html">Network Graph
 </code></pre>
 <h4 id="networkgraphtype"><a class="header" href="#networkgraphtype"><code>network.graph.type</code></a></h4>
 <p><em>Required</em><br />
-Type: &quot;gml&quot; OR &quot;1_gbit_switch&quot;</p>
+Type: &quot;gml&quot; OR &quot;gml_lzma&quot; OR &quot;1_gbit_switch&quot;</p>
 <p>The network graph can be specified in the GML format, or a built-in
 &quot;1_gbit_switch&quot; graph with a single network node can be used instead.</p>
 <p>The built-in &quot;1_gbit_switch&quot; graph contains the following:</p>
@@ -296,9 +297,8 @@ Type: &quot;gml&quot; OR &quot;1_gbit_switch&quot;</p>
   directed 0
   node [
     id 0
-    ip_address &quot;0.0.0.0&quot;
-    bandwidth_up &quot;1 Gbit&quot;
-    bandwidth_down &quot;1 Gbit&quot;
+    host_bandwidth_up &quot;1 Gbit&quot;
+    host_bandwidth_down &quot;1 Gbit&quot;
   ]
   edge [
     source 0
@@ -316,11 +316,12 @@ specified as a path to an external file, or as an inline string.</p>
 <p>If a path is given and begins with <code>~/</code>, it will be considered relative to the
 current user's home directory.</p>
 <h4 id="networkuse_shortest_path"><a class="header" href="#networkuse_shortest_path"><code>network.use_shortest_path</code></a></h4>
-<p><em>Required</em><br />
+<p>Default: true<br />
 Type: Bool</p>
 <p>When routing packets, follow the shortest path rather than following a direct
 edge between network nodes. If false, the network graph is required to be
-complete.</p>
+complete (including self-loops) and to have exactly one edge between any two
+nodes.</p>
 <h4 id="experimental"><a class="header" href="#experimental"><code>experimental</code></a></h4>
 <p>Experimental experiment settings. Unstable and may change or be removed at any
 time, regardless of Shadow version.</p>
@@ -411,7 +412,7 @@ Type: Bool</p>
 <p>Use shim-side syscall handler to force hot-path syscalls to be handled via an
 inter-process syscall with Shadow.</p>
 <h4 id="experimentaluse_seccomp"><a class="header" href="#experimentaluse_seccomp"><code>experimental.use_seccomp</code></a></h4>
-<p>Default: true iff experimental.interpose_method == preload.
+<p>Default: true iff <code>experimental.interpose_method == preload</code>.
 Type: Bool</p>
 <p>Use seccomp to trap syscalls.</p>
 <h4 id="experimentaluse_syscall_counters"><a class="header" href="#experimentaluse_syscall_counters"><code>experimental.use_syscall_counters</code></a></h4>
@@ -428,18 +429,6 @@ future.</p>
 <h4 id="host_defaults"><a class="header" href="#host_defaults"><code>host_defaults</code></a></h4>
 <p>Default options for all hosts. These options can also be overridden for each
 host individually.</p>
-<h4 id="host_defaultscity_code_hint"><a class="header" href="#host_defaultscity_code_hint"><code>host_defaults.city_code_hint</code></a></h4>
-<p>Default: null<br />
-Type: String OR null</p>
-<p>City code hint for Shadow's name and routing system.</p>
-<p>This hint will be used to assign the host to a network node based on the city
-codes of nodes in the network graph.</p>
-<h4 id="host_defaultscountry_code_hint"><a class="header" href="#host_defaultscountry_code_hint"><code>host_defaults.country_code_hint</code></a></h4>
-<p>Default: null<br />
-Type: String OR null</p>
-<p>Country code hint for Shadow's name and routing system (ex: &quot;US&quot;).</p>
-<p>This hint will be used to assign the host to a network node based on the country
-codes of nodes in the network graph.</p>
 <h4 id="host_defaultsheartbeat_interval"><a class="header" href="#host_defaultsheartbeat_interval"><code>host_defaults.heartbeat_interval</code></a></h4>
 <p>Default: &quot;1 sec&quot;<br />
 Type: String OR Integer</p>
@@ -452,12 +441,6 @@ Type: Array of (&quot;node&quot; OR &quot;socket&quot; OR &quot;ram&quot;)</p>
 <p>Default: &quot;info&quot;<br />
 Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot;</p>
 <p>Log level at which to print host statistics.</p>
-<h4 id="host_defaultsip_address_hint"><a class="header" href="#host_defaultsip_address_hint"><code>host_defaults.ip_address_hint</code></a></h4>
-<p>Default: null<br />
-Type: String OR null</p>
-<p>IPv4 address hint for Shadow's name and routing system (ex: &quot;100.0.0.1&quot;).</p>
-<p>This hint will be used to assign the host to a network node based on the IP
-values of nodes in the network graph.</p>
 <h4 id="host_defaultslog_level"><a class="header" href="#host_defaultslog_level"><code>host_defaults.log_level</code></a></h4>
 <p>Default: null<br />
 Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot; OR null</p>
@@ -486,6 +469,17 @@ Type: String OR Integer OR null</p>
 <p>Upstream bandwidth capacity of the host.</p>
 <p>Overrides any default bandwidth values set in the assigned network graph
 node.</p>
+<h4 id="hostshostnameip_addr"><a class="header" href="#hostshostnameip_addr"><code>hosts.&lt;hostname&gt;.ip_addr</code></a></h4>
+<p>Default: null<br />
+Type: String OR null</p>
+<p>IP address to assign to the host.</p>
+<p>This IP address must not conflict with the address of any other host (two hosts
+must not have the same IP address). If this option is set,
+<a href="#hostshostnamequantity"><code>hosts.&lt;hostname&gt;.quantity</code></a> must be set to 1.</p>
+<h4 id="hostshostnamenetwork_node_id"><a class="header" href="#hostshostnamenetwork_node_id"><code>hosts.&lt;hostname&gt;.network_node_id</code></a></h4>
+<p><em>Required</em><br />
+Type: Integer</p>
+<p>Network graph node ID to assign the host to.</p>
 <h4 id="hostshostnameoptions"><a class="header" href="#hostshostnameoptions"><code>hosts.&lt;hostname&gt;.options</code></a></h4>
 <p>See <a href="#host_defaults"><code>host_defaults</code></a>.</p>
 <h4 id="hostshostnamequantity"><a class="header" href="#hostshostnamequantity"><code>hosts.&lt;hostname&gt;.quantity</code></a></h4>
