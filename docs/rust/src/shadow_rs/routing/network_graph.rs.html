@@ -871,6 +871,15 @@
 <span id="869">869</span>
 <span id="870">870</span>
 <span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">core::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std::collections::hash_map::Entry</span>;
@@ -937,6 +946,7 @@
     <span class="kw">pub</span> <span class="ident">source</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">latency</span>: <span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">jitter</span>: <span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">packet_loss</span>: <span class="ident">f32</span>,
 }
 
@@ -955,6 +965,14 @@
                 .<span class="ident">ok_or</span>(<span class="string">&quot;Edge &#39;latency&#39; is not a string&quot;</span>)<span class="question-mark">?</span>
                 .<span class="ident">parse</span>()
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Edge &#39;latency&#39; is not a valid unit: {}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>,
+            <span class="ident">jitter</span>: <span class="kw">match</span> <span class="ident">gml_edge</span>.<span class="ident">other</span>.<span class="ident">remove</span>(<span class="string">&quot;jitter&quot;</span>) {
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>
+                    .<span class="ident">as_str</span>()
+                    .<span class="ident">ok_or</span>(<span class="string">&quot;Edge &#39;jitter&#39; is not a string&quot;</span>)<span class="question-mark">?</span>
+                    .<span class="ident">parse</span>()
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Edge &#39;jitter&#39; is not a valid unit: {}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">units::Time::new</span>(<span class="number">0</span>, <span class="ident">units::TimePrefix::Milli</span>),
+            },
             <span class="ident">packet_loss</span>: <span class="kw">match</span> <span class="ident">gml_edge</span>.<span class="ident">other</span>.<span class="ident">remove</span>(<span class="string">&quot;packet_loss&quot;</span>) {
                 <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">as_float</span>().<span class="ident">ok_or</span>(<span class="string">&quot;Edge &#39;packet_loss&#39; is not a float&quot;</span>)<span class="question-mark">?</span>,
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0.0</span>,

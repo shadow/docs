@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["SIMULATION_START","The start time of the simulation - 00:00:00 UTC on 1 January, 2000."],["SIMULATION_START_SEC",""],["UNIX_EPOCH","The  Unix epoch (00:00:00 UTC on 1 January 1970)"]],"struct":[["EmulatedTime","An instant in time (analagous to std::time::Instant) in the Shadow simulation."]]});

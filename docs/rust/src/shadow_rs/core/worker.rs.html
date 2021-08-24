@@ -352,10 +352,16 @@
 <span id="350">350</span>
 <span id="351">351</span>
 <span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
 
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::core::support::emulated_time::EmulatedTime</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::core::support::simulation_time::SimulationTime</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::host::Host</span>;
@@ -384,9 +390,9 @@
 }
 
 <span class="kw">struct</span> <span class="ident">Clock</span> {
-    <span class="ident">now</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
-    <span class="ident">last</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
-    <span class="ident">barrier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
+    <span class="ident">now</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span>,
+    <span class="ident">last</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span>,
+    <span class="ident">barrier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Worker context, containing &#39;global&#39; information for the current thread.</span>
@@ -405,7 +411,7 @@
     <span class="ident">active_thread_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ThreadInfo</span><span class="op">&gt;</span>,
 
     <span class="ident">clock</span>: <span class="ident">Clock</span>,
-    <span class="ident">bootstrap_end_time</span>: <span class="ident">SimulationTime</span>,
+    <span class="ident">bootstrap_end_time</span>: <span class="ident">EmulatedTime</span>,
 
     <span class="comment">// A counter for all syscalls made by processes freed by this worker.</span>
     <span class="ident">syscall_counter</span>: <span class="ident">Counter</span>,
@@ -428,7 +434,7 @@
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_for_this_thread</span>(
         <span class="ident">worker_pool</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::WorkerPool</span>,
         <span class="ident">worker_id</span>: <span class="ident">WorkerThreadID</span>,
-        <span class="ident">bootstrap_end_time</span>: <span class="ident">SimulationTime</span>,
+        <span class="ident">bootstrap_end_time</span>: <span class="ident">EmulatedTime</span>,
     ) {
         <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">set</span>(<span class="ident">RefCell::new</span>(<span class="self">Self</span> {
@@ -535,15 +541,15 @@
         <span class="ident">Worker::with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">active_thread_info</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">native_tid</span>)).<span class="ident">flatten</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">set_round_end_time</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
+    <span class="kw">fn</span> <span class="ident">set_round_end_time</span>(<span class="ident">t</span>: <span class="ident">EmulatedTime</span>) {
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">barrier</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
     }
 
-    <span class="kw">fn</span> <span class="ident">round_end_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">round_end_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span> {
         <span class="ident">Worker::with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">barrier</span>).<span class="ident">flatten</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">set_current_time</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
+    <span class="kw">fn</span> <span class="ident">set_current_time</span>(<span class="ident">t</span>: <span class="ident">EmulatedTime</span>) {
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
     }
 
@@ -551,11 +557,11 @@
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>.<span class="ident">take</span>());
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span> {
         <span class="ident">Worker::with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>).<span class="ident">flatten</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">set_last_event_time</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
+    <span class="kw">fn</span> <span class="ident">set_last_event_time</span>(<span class="ident">t</span>: <span class="ident">EmulatedTime</span>) {
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">last</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
     }
 
@@ -600,7 +606,7 @@
             <span class="ident">Worker::new_for_this_thread</span>(
                 <span class="ident">notnull_mut</span>(<span class="ident">worker_pool</span>),
                 <span class="ident">WorkerThreadID</span>(<span class="ident">worker_id</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                <span class="ident">bootstrap_end_time</span>,
+                <span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">bootstrap_end_time</span>),
             )
         }
     }
@@ -663,18 +669,20 @@
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setRoundEndTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
-        <span class="ident">Worker::set_round_end_time</span>(<span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
+        <span class="ident">Worker::set_round_end_time</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(
+            <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>(),
+        ));
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_getRoundEndTime</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cshadow::SimulationTime</span> {
-        <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">Worker::round_end_time</span>())
+        <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">Worker::round_end_time</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">to_abs_simtime</span>()))
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setCurrentTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>) {
-            <span class="ident">Worker::set_current_time</span>(<span class="ident">t</span>);
+            <span class="ident">Worker::set_current_time</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">t</span>));
         } <span class="kw">else</span> {
             <span class="ident">Worker::clear_current_time</span>();
         }
@@ -682,12 +690,14 @@
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentTime</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cshadow::SimulationTime</span> {
-        <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">Worker::current_time</span>())
+        <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">Worker::current_time</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">to_abs_simtime</span>()))
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_setLastEventTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
-        <span class="ident">Worker::set_last_event_time</span>(<span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
+        <span class="ident">Worker::set_last_event_time</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(
+            <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>(),
+        ));
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
