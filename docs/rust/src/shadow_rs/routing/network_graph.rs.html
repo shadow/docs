@@ -1356,8 +1356,8 @@
 }
 
 <span class="doccomment">/// Read and decompress a file.</span>
-<span class="kw">fn</span> <span class="ident">read_xz</span>(<span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">std::io::BufReader::new</span>(<span class="ident">std::fs::File::open</span>(<span class="ident">filename</span>)<span class="question-mark">?</span>);
+<span class="kw">fn</span> <span class="ident">read_xz</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">std::path::Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">std::io::BufReader::new</span>(<span class="ident">std::fs::File::open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decomp</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="ident">lzma_rs::xz_decompress</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">decomp</span>)<span class="question-mark">?</span>;
@@ -1372,11 +1372,11 @@
         <span class="ident">GraphOptions::Gml</span>(<span class="ident">GraphSource::File</span>(<span class="ident">FileSource</span> {
             <span class="ident">compression</span>: <span class="prelude-val">None</span>,
             <span class="ident">path</span>: <span class="ident">f</span>,
-        })) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::fs::read_to_string</span>(<span class="ident">f</span>)<span class="question-mark">?</span>,
+        })) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::fs::read_to_string</span>(<span class="ident">configuration::tilde_expansion</span>(<span class="ident">f</span>))<span class="question-mark">?</span>,
         <span class="ident">GraphOptions::Gml</span>(<span class="ident">GraphSource::File</span>(<span class="ident">FileSource</span> {
             <span class="ident">compression</span>: <span class="prelude-val">Some</span>(<span class="ident">Compression::Xz</span>),
             <span class="ident">path</span>: <span class="ident">f</span>,
-        })) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">read_xz</span>(<span class="ident">f</span>)<span class="question-mark">?</span>,
+        })) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">read_xz</span>(<span class="ident">configuration::tilde_expansion</span>(<span class="ident">f</span>))<span class="question-mark">?</span>,
         <span class="ident">GraphOptions::Gml</span>(<span class="ident">GraphSource::Inline</span>(<span class="ident">s</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>.<span class="ident">clone</span>(),
         <span class="ident">GraphOptions::OneGbitSwitch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">configuration::ONE_GBIT_SWITCH_GRAPH</span>.<span class="ident">to_string</span>(),
     })
