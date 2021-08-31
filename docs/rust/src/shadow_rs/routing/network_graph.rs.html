@@ -886,6 +886,16 @@
 <span id="884">884</span>
 <span id="885">885</span>
 <span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">core::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std::collections::hash_map::Entry</span>;
@@ -1359,6 +1369,10 @@
             );
         }
     }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_smallest_latency_ns</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        <span class="self">self</span>.<span class="ident">paths</span>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">latency_ns</span>).<span class="ident">min</span>().<span class="ident">unwrap</span>()
+    }
 }
 
 <span class="doccomment">/// Read and decompress a file.</span>
@@ -1771,6 +1785,12 @@
             .<span class="ident">unwrap</span>();
 
         <span class="ident">routing_info</span>.<span class="ident">increment_packet_count</span>(<span class="ident">src</span>, <span class="ident">dst</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">routinginfo_smallestLatencyNs</span>(<span class="ident">routing_info</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RoutingInfo</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        <span class="kw">let</span> <span class="ident">routing_info</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">routing_info</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
+        <span class="ident">routing_info</span>.<span class="ident">get_smallest_latency_ns</span>()
     }
 }
 </pre></div>
