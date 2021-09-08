@@ -1679,6 +1679,8 @@
 <span id="1677">1677</span>
 <span id="1678">1678</span>
 <span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -1742,7 +1744,7 @@
 }
 
 <span class="doccomment">/// Options contained in a configuration file.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">deny_unknown_fields</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConfigFileOptions</span> {
     <span class="kw">pub</span> <span class="ident">general</span>: <span class="ident">GeneralOptions</span>,
@@ -1756,6 +1758,8 @@
     <span class="kw">pub</span> <span class="ident">experimental</span>: <span class="ident">ExperimentalOptions</span>,
 
     <span class="comment">// we use a BTreeMap so that the hosts are sorted by their hostname (useful for determinism)</span>
+    <span class="comment">// note: serde &#39;with&#39; is incompatible with &#39;derive(JsonSchema)&#39;: https://github.com/GREsau/schemars/issues/89</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;serde_with::rust::maps_duplicate_key_is_error&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">hosts</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">HostOptions</span><span class="op">&gt;</span>,
 }
 
