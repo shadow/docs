@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_descriptor","Returns a pointer to the `CompatDescriptor` for the fd. The pointer will never be NULL."]],"mod":[["unistd",""]],"struct":[["Trigger",""]]});
+initSidebarItems({"fn":[["get_descriptor","Returns a pointer to the `CompatDescriptor` for the fd. The pointer will never be NULL."]],"mod":[["fcntl",""],["unistd",""]],"struct":[["Trigger",""]]});
