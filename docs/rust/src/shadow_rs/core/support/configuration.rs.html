@@ -1681,6 +1681,19 @@
 <span id="1679">1679</span>
 <span id="1680">1680</span>
 <span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -2030,6 +2043,11 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_legacy_working_dir&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_legacy_working_dir</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Show the simulation progress at the bottom of the terminal</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;progress&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ExperimentalOptions</span> {
@@ -2065,6 +2083,7 @@
             <span class="ident">interface_qdisc</span>: <span class="prelude-val">Some</span>(<span class="ident">QDiscMode::Fifo</span>),
             <span class="ident">worker_threads</span>: <span class="prelude-val">None</span>,
             <span class="ident">use_legacy_working_dir</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+            <span class="ident">progress</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
         }
     }
 }
@@ -3035,6 +3054,13 @@
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_legacy_working_dir</span>.<span class="ident">unwrap</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getProgress</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">progress</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
