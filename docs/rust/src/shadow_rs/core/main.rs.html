@@ -250,6 +250,15 @@
 <span id="250">250</span>
 <span id="251">251</span>
 <span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">OsStr</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -278,19 +287,28 @@
     )<span class="question-mark">?</span>;
 
     <span class="comment">// parse the options from the command line</span>
-    <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">CliOptions::try_parse_from</span>(<span class="ident">args</span>.<span class="ident">clone</span>())
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">anyhow::Error::msg</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))
-        .<span class="ident">context</span>(<span class="string">&quot;Could not parse command-line options&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">CliOptions::try_parse_from</span>(<span class="ident">args</span>.<span class="ident">clone</span>()) {
+        <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">use_stderr</span>() {
+                <span class="macro">eprint!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>);
+                <span class="ident">std::process::exit</span>(<span class="number">1</span>);
+            } <span class="kw">else</span> {
+                <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>);
+                <span class="ident">std::process::exit</span>(<span class="number">0</span>);
+            }
+        }
+    };
 
     <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">show_build_info</span> {
         <span class="kw">unsafe</span> { <span class="ident">c::main_printBuildInfo</span>() };
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+        <span class="ident">std::process::exit</span>(<span class="number">0</span>);
     }
 
     <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">shm_cleanup</span> {
         <span class="comment">// clean up any orphaned shared memory</span>
         <span class="kw">unsafe</span> { <span class="ident">c::shmemcleanup_tryCleanup</span>() };
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+        <span class="ident">std::process::exit</span>(<span class="number">0</span>);
     }
 
     <span class="comment">// read from stdin if the config filename is given as &#39;-&#39;</span>
