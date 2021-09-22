@@ -65,8 +65,6 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::context</span>::{<span class="ident">ThreadContext</span>, <span class="ident">ThreadContextObjs</span>};
@@ -83,11 +81,9 @@
     <span class="kw">let</span> <span class="ident">cmd</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">1</span>].<span class="ident">into</span>();
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">syscall::get_descriptor</span>(<span class="ident">fd</span>, <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">raw_mut</span>())<span class="question-mark">?</span> };
-
-    <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span> {
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
         <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>,
+        <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
         <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">return</span> <span class="kw">unsafe</span> {
                 <span class="ident">cshadow::syscallhandler_fcntl</span>(
