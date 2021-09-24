@@ -392,6 +392,99 @@
 <span id="392">392</span>
 <span id="393">393</span>
 <span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::context</span>::{<span class="ident">ThreadContext</span>, <span class="ident">ThreadContextObjs</span>};
@@ -450,23 +543,98 @@
     };
 
     <span class="comment">// duplicate the descriptor</span>
-    <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">dup_helper</span>(<span class="ident">desc</span>, <span class="prelude-val">None</span>));
+    <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>()));
     <span class="kw">let</span> <span class="ident">new_fd</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor</span>(<span class="ident">new_desc</span>);
 
     <span class="comment">// return the new fd</span>
     <span class="prelude-val">Ok</span>(<span class="ident">libc::c_int::try_from</span>(<span class="ident">new_fd</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup_helper</span>(<span class="ident">desc</span>: <span class="kw-2">&amp;</span><span class="ident">Descriptor</span>, <span class="ident">flags</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DescriptorFlags</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Descriptor</span> {
-    <span class="comment">// clone the descriptor (but not the flags)</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">clone</span>();
-    <span class="ident">new_desc</span>.<span class="ident">set_flags</span>(<span class="ident">DescriptorFlags::empty</span>());
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup2</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">old_fd</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
+    <span class="kw">let</span> <span class="ident">new_fd</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">flags</span>) <span class="op">=</span> <span class="ident">flags</span> {
-        <span class="ident">new_desc</span>.<span class="ident">set_flags</span>(<span class="ident">flags</span>);
+    <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">old_fd</span>)<span class="question-mark">?</span> {
+        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>,
+        <span class="comment">// we don&#39;t support dup2 for legacy descriptors</span>
+        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">warn!</span>(
+                <span class="string">&quot;dup2() is not supported for legacy descriptors (fd={})&quot;</span>,
+                <span class="ident">old_fd</span>
+            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::ENOSYS</span>.<span class="ident">into</span>());
+        }
+    };
+
+    <span class="comment">// from &#39;man 2 dup2&#39;: &quot;If oldfd is a valid file descriptor, and newfd has the same</span>
+    <span class="comment">// value as oldfd, then dup2() does nothing, and returns newfd&quot;</span>
+    <span class="kw">if</span> <span class="ident">old_fd</span> <span class="op">=</span><span class="op">=</span> <span class="ident">new_fd</span> {
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">new_fd</span>.<span class="ident">into</span>());
     }
 
-    <span class="ident">new_desc</span>
+    <span class="kw">let</span> <span class="ident">new_fd</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">new_fd</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">nix::errno::Errno::EBADF</span>)<span class="question-mark">?</span>;
+
+    <span class="comment">// duplicate the descriptor</span>
+    <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>()));
+    <span class="kw">let</span> <span class="ident">replaced_desc</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor_with_fd</span>(<span class="ident">new_desc</span>, <span class="ident">new_fd</span>);
+
+    <span class="comment">// close the replaced descriptor</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replaced_desc</span>) <span class="op">=</span> <span class="ident">replaced_desc</span> {
+        <span class="comment">// from &#39;man 2 dup2&#39;: &quot;If newfd was open, any errors that would have been reported at</span>
+        <span class="comment">// close(2) time are lost&quot;</span>
+        <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> <span class="ident">replaced_desc</span>.<span class="ident">close</span>(<span class="ident">ctx</span>.<span class="ident">host</span>.<span class="ident">chost</span>(), <span class="ident">event_queue</span>));
+    }
+
+    <span class="comment">// return the new fd</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">libc::c_int::try_from</span>(<span class="ident">new_fd</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>())
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup3</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">let</span> <span class="ident">old_fd</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
+    <span class="kw">let</span> <span class="ident">new_fd</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
+    <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>));
+
+    <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
+    <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">old_fd</span>)<span class="question-mark">?</span> {
+        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>,
+        <span class="comment">// we don&#39;t support dup3 for legacy descriptors</span>
+        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">warn!</span>(
+                <span class="string">&quot;dup3() is not supported for legacy descriptors (fd={})&quot;</span>,
+                <span class="ident">old_fd</span>
+            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::ENOSYS</span>.<span class="ident">into</span>());
+        }
+    };
+
+    <span class="comment">// from &#39;man 2 dup3&#39;: &quot;If oldfd equals newfd, then dup3() fails with the error EINVAL&quot;</span>
+    <span class="kw">if</span> <span class="ident">old_fd</span> <span class="op">=</span><span class="op">=</span> <span class="ident">new_fd</span> {
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::EINVAL</span>.<span class="ident">into</span>());
+    }
+
+    <span class="kw">let</span> <span class="ident">new_fd</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">new_fd</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">nix::errno::Errno::EBADF</span>)<span class="question-mark">?</span>;
+
+    <span class="comment">// dup3 only supports the O_CLOEXEC flag</span>
+    <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">flags</span> {
+        <span class="ident">libc::O_CLOEXEC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DescriptorFlags::CLOEXEC</span>,
+        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DescriptorFlags::empty</span>(),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::EINVAL</span>.<span class="ident">into</span>()),
+    };
+
+    <span class="comment">// duplicate the descriptor</span>
+    <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">flags</span>));
+    <span class="kw">let</span> <span class="ident">replaced_desc</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor_with_fd</span>(<span class="ident">new_desc</span>, <span class="ident">new_fd</span>);
+
+    <span class="comment">// close the replaced descriptor</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replaced_desc</span>) <span class="op">=</span> <span class="ident">replaced_desc</span> {
+        <span class="comment">// from &#39;man 2 dup3&#39;: &quot;If newfd was open, any errors that would have been reported at</span>
+        <span class="comment">// close(2) time are lost&quot;</span>
+        <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> <span class="ident">replaced_desc</span>.<span class="ident">close</span>(<span class="ident">ctx</span>.<span class="ident">host</span>.<span class="ident">chost</span>(), <span class="ident">event_queue</span>));
+    }
+
+    <span class="comment">// return the new fd</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">libc::c_int::try_from</span>(<span class="ident">new_fd</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>())
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
@@ -731,6 +899,24 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">dup</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_dup2</span>(
+        <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
+        <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
+        <span class="ident">dup2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_dup3</span>(
+        <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
+        <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
+        <span class="ident">dup3</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
