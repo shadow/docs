@@ -276,6 +276,20 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 
@@ -347,7 +361,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_descriptor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">desc</span>: <span class="ident">CompatDescriptor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
-        <span class="ident">desc_table</span>.<span class="ident">add</span>(<span class="ident">desc</span>)
+        <span class="ident">desc_table</span>.<span class="ident">add</span>(<span class="ident">desc</span>, <span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Register a descriptor and return its fd handle.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_descriptor_with_min_fd</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">desc</span>: <span class="ident">CompatDescriptor</span>, <span class="ident">min_fd</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+        <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
+            <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
+        <span class="ident">desc_table</span>.<span class="ident">add</span>(<span class="ident">desc</span>, <span class="ident">min_fd</span>)
     }
 
     <span class="doccomment">/// Register a descriptor with a given fd handle and return the descriptor that it replaced.</span>
@@ -389,6 +410,13 @@
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="ident">desc_table</span>.<span class="ident">get</span>(<span class="ident">fd</span>)
+    }
+
+    <span class="doccomment">/// Get a mutable reference to the descriptor with the given fd handle.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_descriptor_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fd</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
+            <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
+        <span class="ident">desc_table</span>.<span class="ident">get_mut</span>(<span class="ident">fd</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pid</span> {

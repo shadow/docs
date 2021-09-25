@@ -66,6 +66,20 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::descriptor</span>::{<span class="ident">CompatDescriptor</span>, <span class="ident">FileState</span>, <span class="ident">PosixFile</span>};
@@ -131,6 +145,20 @@
     <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">fd</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">nix::errno::Errno::EBADF</span>)<span class="question-mark">?</span>;
 
     <span class="kw">match</span> <span class="ident">process</span>.<span class="ident">get_descriptor</span>(<span class="ident">fd</span>) {
+        <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">desc</span>),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::EBADF</span>),
+    }
+}
+
+<span class="doccomment">/// Returns the `CompatDescriptor` for the fd if it exists, otherwise returns EBADF.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_descriptor_mut</span>(
+    <span class="ident">process</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Process</span>,
+    <span class="ident">fd</span>: <span class="kw">impl</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span>, <span class="ident">nix::errno::Errno</span><span class="op">&gt;</span> {
+    <span class="comment">// check that fd is within bounds</span>
+    <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">fd</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">nix::errno::Errno::EBADF</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">match</span> <span class="ident">process</span>.<span class="ident">get_descriptor_mut</span>(<span class="ident">fd</span>) {
         <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">desc</span>),
         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::EBADF</span>),
     }

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_descriptor","Returns the `CompatDescriptor` for the fd if it exists, otherwise returns EBADF."]],"mod":[["fcntl",""],["unistd",""]],"struct":[["Trigger",""]]});
+initSidebarItems({"fn":[["get_descriptor","Returns the `CompatDescriptor` for the fd if it exists, otherwise returns EBADF."],["get_descriptor_mut","Returns the `CompatDescriptor` for the fd if it exists, otherwise returns EBADF."]],"mod":[["fcntl",""],["unistd",""]],"struct":[["Trigger",""]]});
