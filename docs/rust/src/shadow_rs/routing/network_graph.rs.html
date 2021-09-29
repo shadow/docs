@@ -889,6 +889,18 @@
 <span id="889">889</span>
 <span id="890">890</span>
 <span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">core::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 <span class="kw">use</span> <span class="ident">std::collections::hash_map::Entry</span>;
@@ -989,6 +1001,10 @@
 
         <span class="kw">if</span> <span class="ident">rv</span>.<span class="ident">packet_loss</span> <span class="op">&lt;</span> <span class="number">0f32</span> <span class="op">|</span><span class="op">|</span> <span class="ident">rv</span>.<span class="ident">packet_loss</span> <span class="op">&gt;</span> <span class="number">1f32</span> {
             <span class="prelude-val">Err</span>(<span class="string">&quot;Edge &#39;packet_loss&#39; is not in the range [0,1]&quot;</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">if</span> <span class="ident">rv</span>.<span class="ident">latency</span>.<span class="ident">value</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="prelude-val">Err</span>(<span class="string">&quot;Edge &#39;latency&#39; must not be 0&quot;</span>)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">rv</span>)
@@ -1339,8 +1355,8 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_smallest_latency_ns</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">paths</span>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">latency_ns</span>).<span class="ident">min</span>().<span class="ident">unwrap</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_smallest_latency_ns</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">paths</span>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">latency_ns</span>).<span class="ident">min</span>()
     }
 }
 
@@ -1536,6 +1552,14 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">networkgraph_free</span>(<span class="ident">graph</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NetworkGraph</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">graph</span>.<span class="ident">is_null</span>());
         <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">graph</span>) };
+    }
+
+    <span class="doccomment">/// Check if the node exists in the graph.</span>
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">networkgraph_nodeExists</span>(<span class="ident">graph</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">NetworkGraph</span>, <span class="ident">node_id</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">graph</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">graph</span>.<span class="ident">as_ref</span>() }.<span class="ident">unwrap</span>();
+        <span class="ident">graph</span>.<span class="ident">node_id_to_index</span>(<span class="ident">node_id</span>).<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// Get the downstream bandwidth of the graph node if it exists. A non-zero return value means</span>
@@ -1778,7 +1802,7 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">routinginfo_smallestLatencyNs</span>(<span class="ident">routing_info</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">RoutingInfo</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">routing_info</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">routing_info</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
-        <span class="ident">routing_info</span>.<span class="ident">get_smallest_latency_ns</span>()
+        <span class="ident">routing_info</span>.<span class="ident">get_smallest_latency_ns</span>().<span class="ident">unwrap</span>()
     }
 }
 </pre></div>

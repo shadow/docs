@@ -130,6 +130,34 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::context</span>::{<span class="ident">ThreadContext</span>, <span class="ident">ThreadContextObjs</span>};
@@ -184,14 +212,42 @@
                     <span class="op">|</span> <span class="ident">OFlag::O_TMPFILE</span>
                     <span class="op">|</span> <span class="ident">OFlag::O_TRUNC</span>,
             );
+
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>().<span class="ident">borrow_mut</span>();
+            <span class="kw">let</span> <span class="ident">old_flags</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">get_status</span>().<span class="ident">as_o_flags</span>();
+
+            <span class="comment">// fcntl(2): &quot;On Linux, this command can change only the O_APPEND, O_ASYNC, O_DIRECT,</span>
+            <span class="comment">// O_NOATIME, and O_NONBLOCK flags&quot;</span>
+            <span class="kw">let</span> <span class="ident">update_mask</span> <span class="op">=</span> <span class="ident">OFlag::O_APPEND</span>
+                <span class="op">|</span> <span class="ident">OFlag::O_ASYNC</span>
+                <span class="op">|</span> <span class="ident">OFlag::O_DIRECT</span>
+                <span class="op">|</span> <span class="ident">OFlag::O_NOATIME</span>
+                <span class="op">|</span> <span class="ident">OFlag::O_NONBLOCK</span>;
+
+            <span class="comment">// The proper way for the process to update its flags is to:</span>
+            <span class="comment">//   int flags = fcntl(fd, F_GETFL);</span>
+            <span class="comment">//   flags = flags | O_NONBLOCK; // add O_NONBLOCK</span>
+            <span class="comment">//   fcntl(fd, F_SETFL, flags);</span>
+            <span class="comment">// So if there are flags that we can&#39;t update, we should assume they are leftover</span>
+            <span class="comment">// from the F_GETFL and we shouldn&#39;t return an error. This includes `O_DSYNC` and</span>
+            <span class="comment">// `O_SYNC`, which fcntl(2) says:</span>
+            <span class="comment">//   &quot;It is not possible to use F_SETFL to change the state of the O_DSYNC and O_SYNC</span>
+            <span class="comment">//   flags. Attempts to change the state of these flags are silently ignored.&quot;</span>
+            <span class="comment">// In other words, the following code should always be valid:</span>
+            <span class="comment">//   int flags = fcntl(fd, F_GETFL);</span>
+            <span class="comment">//   fcntl(fd, F_SETFL, flags); // set to the current existing flags</span>
+
+            <span class="comment">// keep the old flags that we can&#39;t change, and use the new flags that we can change</span>
+            <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> (<span class="ident">old_flags</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">update_mask</span>) <span class="op">|</span> (<span class="ident">status</span> <span class="op">&amp;</span> <span class="ident">update_mask</span>);
+
             <span class="kw">let</span> (<span class="ident">status</span>, <span class="ident">remaining</span>) <span class="op">=</span> <span class="ident">FileStatus::from_o_flags</span>(<span class="ident">status</span>);
 
-            <span class="comment">// check if there are flags that we don&#39;t support</span>
+            <span class="comment">// check if there are flags that we don&#39;t support but Linux does</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">remaining</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>());
             }
 
-            <span class="ident">desc</span>.<span class="ident">get_file</span>().<span class="ident">borrow_mut</span>().<span class="ident">set_status</span>(<span class="ident">status</span>);
+            <span class="ident">file</span>.<span class="ident">set_status</span>(<span class="ident">status</span>);
             <span class="ident">SysCallReg::from</span>(<span class="number">0</span>)
         }
         <span class="ident">libc::F_GETFD</span> <span class="op">=</span><span class="op">&gt;</span> {
