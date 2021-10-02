@@ -252,18 +252,6 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std::borrow::Borrow</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">OsStr</span>};
@@ -271,7 +259,7 @@
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="self">self</span>, <span class="ident">Context</span>};
 <span class="kw">use</span> <span class="ident">clap::Clap</span>;
-<span class="kw">use</span> <span class="ident">nix::sys</span>::{<span class="ident">personality</span>, <span class="ident">signal</span>};
+<span class="kw">use</span> <span class="ident">nix::sys</span>::{<span class="ident">personality</span>, <span class="ident">resource</span>, <span class="ident">signal</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::core::logger::log_wrapper::c_to_rust_log_level</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::core::logger::shadow_logger</span>;
@@ -373,10 +361,10 @@
     }
 
     <span class="comment">// raise fd soft limit to hard limit</span>
-    <span class="ident">raise_rlimit</span>(<span class="ident">libc::RLIMIT_NOFILE</span>).<span class="ident">context</span>(<span class="string">&quot;Could not raise fd limit&quot;</span>)<span class="question-mark">?</span>;
+    <span class="ident">raise_rlimit</span>(<span class="ident">resource::Resource::RLIMIT_NOFILE</span>).<span class="ident">context</span>(<span class="string">&quot;Could not raise fd limit&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// raise number of processes/threads soft limit to hard limit</span>
-    <span class="ident">raise_rlimit</span>(<span class="ident">libc::RLIMIT_NPROC</span>).<span class="ident">context</span>(<span class="string">&quot;Could not raise proc limit&quot;</span>)<span class="question-mark">?</span>;
+    <span class="ident">raise_rlimit</span>(<span class="ident">resource::Resource::RLIMIT_NPROC</span>).<span class="ident">context</span>(<span class="string">&quot;Could not raise proc limit&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_sched_fifo</span>.<span class="ident">unwrap</span>() {
         <span class="ident">set_sched_fifo</span>().<span class="ident">context</span>(<span class="string">&quot;Could not set real-time scheduler mode to SCHED_FIFO&quot;</span>)<span class="question-mark">?</span>;
@@ -455,21 +443,9 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">raise_rlimit</span>(<span class="ident">resource</span>: <span class="ident">libc::__rlimit_resource_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="comment">// TODO: replace the libc code with the nix code once the following PR is in a released version:</span>
-    <span class="comment">// https://github.com/nix-rust/nix/pull/1302</span>
-    <span class="comment">/*
-    fn raise_rlimit(resource: resource::Resource) -&gt; anyhow::Result&lt;()&gt; {
-    let (_soft_limit, hard_limit) = resource::getrlimit(resource)?;
-    resource::setrlimit(resource, hard_limit, hard_limit)?;
-    */</span>
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">limit</span>: <span class="ident">libc::rlimit</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
-    <span class="ident">nix::errno::Errno::result</span>(<span class="kw">unsafe</span> { <span class="ident">libc::getrlimit</span>(<span class="ident">resource</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">limit</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>) })<span class="question-mark">?</span>;
-
-    <span class="ident">limit</span>.<span class="ident">rlim_cur</span> <span class="op">=</span> <span class="ident">limit</span>.<span class="ident">rlim_max</span>;
-    <span class="ident">nix::errno::Errno::result</span>(<span class="kw">unsafe</span> { <span class="ident">libc::setrlimit</span>(<span class="ident">resource</span>, <span class="kw-2">&amp;</span><span class="ident">limit</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) })<span class="question-mark">?</span>;
-
+<span class="kw">fn</span> <span class="ident">raise_rlimit</span>(<span class="ident">resource</span>: <span class="ident">resource::Resource</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">let</span> (<span class="ident">_soft_limit</span>, <span class="ident">hard_limit</span>) <span class="op">=</span> <span class="ident">resource::getrlimit</span>(<span class="ident">resource</span>)<span class="question-mark">?</span>;
+    <span class="ident">resource::setrlimit</span>(<span class="ident">resource</span>, <span class="ident">hard_limit</span>, <span class="ident">hard_limit</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
