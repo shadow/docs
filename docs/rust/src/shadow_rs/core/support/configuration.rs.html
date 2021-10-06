@@ -1631,12 +1631,6 @@
 <span id="1631">1631</span>
 <span id="1632">1632</span>
 <span id="1633">1633</span>
-<span id="1634">1634</span>
-<span id="1635">1635</span>
-<span id="1636">1636</span>
-<span id="1637">1637</span>
-<span id="1638">1638</span>
-<span id="1639">1639</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
@@ -1651,7 +1645,7 @@
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
 
-<span class="kw">use</span> <span class="kw">super</span><span class="ident">::simulation_time</span>::{<span class="ident">SIMTIME_ONE_NANOSECOND</span>, <span class="ident">SIMTIME_ONE_SECOND</span>};
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::simulation_time</span>::{<span class="ident">SIMTIME_INVALID</span>, <span class="ident">SIMTIME_ONE_NANOSECOND</span>, <span class="ident">SIMTIME_ONE_SECOND</span>};
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::units</span>::{<span class="self">self</span>, <span class="ident">Unit</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
@@ -1744,7 +1738,7 @@
         <span class="ident">config_file</span>.<span class="ident">experimental</span> <span class="op">=</span> <span class="ident">options</span>.<span class="ident">experimental</span>.<span class="ident">with_defaults</span>(<span class="ident">config_file</span>.<span class="ident">experimental</span>);
 
         <span class="comment">// copy the host defaults to all of the hosts</span>
-        <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">host</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">config_file</span>.<span class="ident">hosts</span> {
+        <span class="kw">for</span> <span class="ident">host</span> <span class="kw">in</span> <span class="ident">config_file</span>.<span class="ident">hosts</span>.<span class="ident">values_mut</span>() {
             <span class="ident">host</span>.<span class="ident">options</span> <span class="op">=</span> <span class="ident">host</span>
                 .<span class="ident">options</span>
                 .<span class="ident">clone</span>()
@@ -1997,6 +1991,22 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;progress&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="kw">pub</span> <span class="ident">progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Log level at which to print host statistics</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">host_heartbeat_log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// List of information to show in the host&#39;s heartbeat message</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">parse</span>(<span class="ident">try_from_str</span> <span class="op">=</span> <span class="ident">parse_set_log_info_flags</span>))]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;options&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_log_info&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">host_heartbeat_log_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::collections::HashSet</span><span class="op">&lt;</span><span class="ident">LogInfoFlag</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Amount of time between heartbeat messages for this host</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_interval&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">host_heartbeat_interval</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ExperimentalOptions</span> {
@@ -2034,6 +2044,9 @@
             <span class="ident">worker_threads</span>: <span class="prelude-val">None</span>,
             <span class="ident">use_legacy_working_dir</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">progress</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+            <span class="ident">host_heartbeat_log_level</span>: <span class="prelude-val">Some</span>(<span class="ident">LogLevel::Info</span>),
+            <span class="ident">host_heartbeat_log_info</span>: <span class="prelude-val">Some</span>(<span class="ident">std::array::IntoIter::new</span>([<span class="ident">LogInfoFlag::Node</span>]).<span class="ident">collect</span>()),
+            <span class="ident">host_heartbeat_interval</span>: <span class="prelude-val">None</span>,
         }
     }
 }
@@ -2053,25 +2066,6 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
     <span class="kw">pub</span> <span class="ident">log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// Log level at which to print host statistics</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-level&quot;</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-level&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;heartbeat_log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
-    <span class="kw">pub</span> <span class="ident">heartbeat_log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
-
-    <span class="doccomment">/// List of information to show in the host&#39;s heartbeat message</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-info&quot;</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-log-info&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">parse</span>(<span class="ident">try_from_str</span> <span class="op">=</span> <span class="ident">parse_set_log_info_flags</span>))]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;options&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;heartbeat_log_info&quot;</span>).<span class="ident">unwrap</span>())]</span>
-    <span class="kw">pub</span> <span class="ident">heartbeat_log_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::collections::HashSet</span><span class="op">&lt;</span><span class="ident">LogInfoFlag</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-
-    <span class="doccomment">/// Amount of time between heartbeat messages for this host</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-interval&quot;</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;host-heartbeat-interval&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;heartbeat_interval&quot;</span>).<span class="ident">unwrap</span>())]</span>
-    <span class="kw">pub</span> <span class="ident">heartbeat_interval</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-
     <span class="doccomment">/// Where to save the pcap files (relative to the host directory)</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;path&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">about</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;pcap_directory&quot;</span>).<span class="ident">unwrap</span>())]</span>
@@ -2082,9 +2076,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">log_level</span>: <span class="prelude-val">None</span>,
-            <span class="ident">heartbeat_log_level</span>: <span class="prelude-val">None</span>,
-            <span class="ident">heartbeat_log_info</span>: <span class="prelude-val">None</span>,
-            <span class="ident">heartbeat_interval</span>: <span class="prelude-val">None</span>,
             <span class="ident">pcap_directory</span>: <span class="prelude-val">None</span>,
         }
     }
@@ -2100,9 +2091,6 @@
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">log_level</span>: <span class="prelude-val">None</span>,
-            <span class="ident">heartbeat_log_level</span>: <span class="prelude-val">Some</span>(<span class="ident">LogLevel::Info</span>),
-            <span class="ident">heartbeat_log_info</span>: <span class="prelude-val">Some</span>(<span class="ident">std::array::IntoIter::new</span>([<span class="ident">LogInfoFlag::Node</span>]).<span class="ident">collect</span>()),
-            <span class="ident">heartbeat_interval</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">1</span>, <span class="ident">units::TimePrefixUpper::Sec</span>)),
             <span class="ident">pcap_directory</span>: <span class="prelude-val">None</span>,
         }
     }
@@ -2277,8 +2265,8 @@
     <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">std::collections::HashSet</span><span class="op">&lt;</span><span class="ident">LogInfoFlag</span><span class="op">&gt;</span>, <span class="ident">serde_yaml::Error</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">flags</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">std::collections::HashSet</span><span class="op">&lt;</span><span class="ident">LogInfoFlag</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-        <span class="ident">s</span>.<span class="ident">split</span>(<span class="string">&quot;,&quot;</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">trim</span>().<span class="ident">parse</span>()).<span class="ident">collect</span>();
-    <span class="prelude-val">Ok</span>(<span class="ident">flags</span><span class="question-mark">?</span>)
+        <span class="ident">s</span>.<span class="ident">split</span>(<span class="string">&#39;,&#39;</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">trim</span>().<span class="ident">parse</span>()).<span class="ident">collect</span>();
+    <span class="ident">flags</span>
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">ArgEnum</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">JsonSchema</span>)]</span>
@@ -2376,7 +2364,7 @@
     <span class="prelude-val">Some</span>(<span class="ident">std::num::NonZeroU32::new</span>(<span class="number">1</span>).<span class="ident">unwrap</span>())
 }
 
-<span class="doccomment">/// Helper function for serde default `Some(0)` values.</span>
+<span class="doccomment">/// Helper function for serde default `Some(1 sec)` values.</span>
 <span class="kw">fn</span> <span class="ident">default_some_time_1</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">1</span>, <span class="ident">units::TimePrefixUpper::Sec</span>))
 }
@@ -2410,7 +2398,7 @@
     <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">obj</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">schema</span>.<span class="ident">schema</span>.<span class="ident">object</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">properties</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">meta</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into_object</span>().<span class="ident">metadata</span> {
             <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="ident">meta</span>.<span class="ident">description</span>.<span class="ident">or</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>())).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">space</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">description</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&quot; &quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> };
+            <span class="kw">let</span> <span class="ident">space</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">description</span>.<span class="ident">is_empty</span>() { <span class="string">&quot; &quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> };
             <span class="kw">match</span> <span class="ident">meta</span>.<span class="ident">default</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">default</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">defaults</span>.<span class="ident">insert</span>(
                     <span class="ident">name</span>.<span class="ident">clone</span>(),
@@ -2425,16 +2413,16 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tilde_expansion</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::path::PathBuf</span> {
     <span class="comment">// if the path begins with a &quot;~&quot;</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">path</span>.<span class="ident">strip_prefix</span>(<span class="string">&quot;~&quot;</span>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">path</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;~&#39;</span>) {
         <span class="comment">// get the tilde-prefix (everything before the first separator)</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="string">&quot;/&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="string">&#39;/&#39;</span>);
         <span class="kw">let</span> (<span class="ident">tilde_prefix</span>, <span class="ident">remainder</span>) <span class="op">=</span> (<span class="ident">parts</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(), <span class="ident">parts</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>));
         <span class="macro">assert!</span>(<span class="ident">parts</span>.<span class="ident">next</span>().<span class="ident">is_none</span>());
         <span class="comment">// we only support expansion for our own home directory</span>
         <span class="comment">// (nothing between the &quot;~&quot; and the separator)</span>
         <span class="kw">if</span> <span class="ident">tilde_prefix</span>.<span class="ident">is_empty</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">home</span>) <span class="op">=</span> <span class="ident">std::env::var</span>(<span class="string">&quot;HOME&quot;</span>) {
-                <span class="kw">return</span> [<span class="kw-2">&amp;</span><span class="ident">home</span>, <span class="ident">remainder</span>].<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">std::path::PathBuf</span><span class="op">&gt;</span>();
+                <span class="kw">return</span> [<span class="ident">home</span>, <span class="ident">remainder</span>].<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">std::path::PathBuf</span><span class="op">&gt;</span>();
             }
         }
     }
@@ -2446,7 +2434,7 @@
 <span class="doccomment">/// Parses a string as a list of arguments following the shell&#39;s parsing rules. This</span>
 <span class="doccomment">/// uses `g_shell_parse_argv()` for parsing.</span>
 <span class="kw">fn</span> <span class="ident">parse_string_as_args</span>(<span class="ident">args_str</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">args_str</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">args_str</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>());
     }
 
@@ -2526,7 +2514,7 @@
         <span class="kw">let</span> <span class="ident">arg_str</span>: <span class="ident">OsString</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">err_str</span> <span class="op">=</span> <span class="ident">parse_string_as_args</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>).<span class="ident">unwrap_err</span>();
 
-        <span class="macro">assert!</span>(<span class="ident">err_str</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">err_str</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2649,14 +2637,10 @@
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
 
-        <span class="ident">config</span>
-            .<span class="ident">general</span>
-            .<span class="ident">heartbeat_interval</span>
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">convert</span>(<span class="ident">units::TimePrefixUpper::Sec</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">value</span>()
-            <span class="op">*</span> <span class="ident">SIMTIME_ONE_SECOND</span>
+        <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">heartbeat_interval</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::TimePrefixUpper::Sec</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>() <span class="op">*</span> <span class="ident">SIMTIME_ONE_SECOND</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SIMTIME_INVALID</span>,
+        }
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -2936,6 +2920,53 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getHostHeartbeatLogLevel</span>(
+        <span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_log::LogLevel</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">host_heartbeat_log_level</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">to_c_loglevel</span>(),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log::_LogLevel_LOGLEVEL_UNSET</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getHostHeartbeatLogInfo</span>(
+        <span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::LogInfoFlags</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="number">0</span>;
+
+        <span class="kw">for</span> <span class="ident">f</span> <span class="kw">in</span> <span class="ident">config</span>
+            .<span class="ident">experimental</span>
+            .<span class="ident">host_heartbeat_log_info</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">unwrap</span>()
+        {
+            <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">f</span>.<span class="ident">to_c_loginfoflag</span>();
+        }
+
+        <span class="ident">flags</span>
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getHostHeartbeatInterval</span>(
+        <span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SimulationTime</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+
+        <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">host_heartbeat_interval</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::TimePrefixUpper::Sec</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>() <span class="op">*</span> <span class="ident">SIMTIME_ONE_SECOND</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SIMTIME_INVALID</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseShortestPath</span>(<span class="ident">config</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ConfigOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
@@ -2974,7 +3005,7 @@
             }
         }
 
-        <span class="kw">return</span> <span class="number">0</span>;
+        <span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -3043,49 +3074,6 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getHeartbeatLogLevel</span>(
-        <span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_log::LogLevel</span> {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">host</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span> };
-
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">host</span>.<span class="ident">options</span>.<span class="ident">heartbeat_log_level</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">to_c_loglevel</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c_log::_LogLevel_LOGLEVEL_UNSET</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getHeartbeatLogInfo</span>(<span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::LogInfoFlags</span> {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">host</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span> };
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="kw">for</span> <span class="ident">f</span> <span class="kw">in</span> <span class="ident">host</span>.<span class="ident">options</span>.<span class="ident">heartbeat_log_info</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() {
-            <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">f</span>.<span class="ident">to_c_loginfoflag</span>();
-        }
-
-        <span class="ident">flags</span>
-    }
-
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getHeartbeatInterval</span>(
-        <span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SimulationTime</span> {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">host</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span> };
-
-        <span class="ident">host</span>.<span class="ident">options</span>
-            .<span class="ident">heartbeat_interval</span>
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">convert</span>(<span class="ident">units::TimePrefixUpper::Sec</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">value</span>()
-            <span class="op">*</span> <span class="ident">SIMTIME_ONE_SECOND</span>
-    }
-
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getPcapDirectory</span>(<span class="ident">host</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">HostOptions</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc::c_char</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">host</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span> };
@@ -3114,9 +3102,9 @@
         <span class="kw">match</span> <span class="ident">host</span>.<span class="ident">bandwidth_down</span> {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw-2">*</span><span class="ident">bandwidth_down</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::SiPrefixUpper::Base</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>();
-                <span class="kw">return</span> <span class="number">0</span>;
+                <span class="number">0</span>
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">1</span>,
         }
     }
 
@@ -3135,9 +3123,9 @@
         <span class="kw">match</span> <span class="ident">host</span>.<span class="ident">bandwidth_up</span> {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw-2">*</span><span class="ident">bandwidth_up</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::SiPrefixUpper::Base</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>();
-                <span class="kw">return</span> <span class="number">0</span>;
+                <span class="number">0</span>
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">1</span>,
         }
     }
 
@@ -3159,7 +3147,7 @@
             }
         }
 
-        <span class="kw">return</span> <span class="number">0</span>;
+        <span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -3175,7 +3163,7 @@
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">proc</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">proc</span> };
 
-        <span class="kw">let</span> <span class="ident">expanded</span> <span class="op">=</span> <span class="ident">tilde_expansion</span>(<span class="kw-2">&amp;</span><span class="ident">proc</span>.<span class="ident">path</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>());
+        <span class="kw">let</span> <span class="ident">expanded</span> <span class="op">=</span> <span class="ident">tilde_expansion</span>(<span class="ident">proc</span>.<span class="ident">path</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>());
 
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">expanded</span>.<span class="ident">canonicalize</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">path</span>,

@@ -425,7 +425,7 @@
 <span class="doccomment">/// Logging thread flushes at least this often.</span>
 <span class="kw">const</span> <span class="ident">MIN_FLUSH_FREQUENCY</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">10</span>);
 
-<span class="kw">static</span> <span class="ident">SHADOW_LOGGER</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">ShadowLogger</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ShadowLogger::new</span>());
+<span class="kw">static</span> <span class="ident">SHADOW_LOGGER</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">ShadowLogger</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="ident">ShadowLogger::new</span>);
 
 <span class="doccomment">/// Initialize the Shadow logger.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SetLoggerError</span><span class="op">&gt;</span> {
@@ -519,13 +519,13 @@
 <span class="kw">impl</span> <span class="ident">ShadowLogger</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ShadowLogger</span> {
         <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">std::sync::mpsc::channel</span>();
-        <span class="kw">let</span> <span class="ident">logger</span> <span class="op">=</span> <span class="ident">ShadowLogger</span> {
+
+        <span class="ident">ShadowLogger</span> {
             <span class="ident">records</span>: <span class="ident">ArrayQueue::new</span>(<span class="ident">SYNC_FLUSH_QD_LINES_THRESHOLD</span>),
             <span class="ident">command_sender</span>: <span class="ident">Mutex::new</span>(<span class="ident">sender</span>),
             <span class="ident">command_receiver</span>: <span class="ident">Mutex::new</span>(<span class="ident">receiver</span>),
             <span class="ident">buffering_enabled</span>: <span class="ident">RwLock::new</span>(<span class="bool-val">false</span>),
-        };
-        <span class="ident">logger</span>
+        }
     }
 
     <span class="comment">// Function executed by the logger&#39;s helper thread, onto which we offload as</span>
@@ -624,9 +624,9 @@
             } <span class="kw">else</span> {
                 <span class="macro">write!</span>(<span class="ident">stdout</span>, <span class="string">&quot;n/a&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(
+            <span class="macro">writeln!</span>(
                 <span class="ident">stdout</span>,
-                <span class="string">&quot;] [{module}] {msg}\n&quot;</span>,
+                <span class="string">&quot;] [{module}] {msg}&quot;</span>,
                 <span class="ident">module</span> <span class="op">=</span> <span class="ident">record</span>.<span class="ident">module_path</span>.<span class="ident">unwrap_or</span>(<span class="string">&quot;n/a&quot;</span>),
                 <span class="ident">msg</span> <span class="op">=</span> <span class="ident">record</span>.<span class="ident">message</span>
             )<span class="question-mark">?</span>;

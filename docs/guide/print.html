@@ -859,6 +859,10 @@ experimental
 <a href="shadow_config_spec.html#experimentaluse_openssl_rng_preload">use_openssl_rng_preload</a>
 option.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="format-of-shadow-log-messages"><a class="header" href="#format-of-shadow-log-messages">Format of Shadow Log Messages</a></h1>
+<table><thead><tr><th>❗ Warning</th></tr></thead><tbody>
+<tr><td>The format of the log messages is not<br>stable and may change at any time.</td></tr>
+</tbody></table>
+<br>
 <h2 id="log-line-prefix"><a class="header" href="#log-line-prefix">Log Line Prefix</a></h2>
 <p>Shadow produces simulator log messages in the following format:</p>
 <pre><code class="language-text">real-time [thread-name] virtual-time [loglevel] [hostname:ip] [src-file:line-number] [function-name] MESSAGE
@@ -903,7 +907,7 @@ for each virtual node in the experiment, in messages containing the string
 <code>shadow-heartbeat</code>. By default, these heartbeats are logged once per second, but
 the frequency can be changed using the <code>--heartbeat-frequency</code> option to Shadow
 (see <code>shadow --help</code>).</p>
-<p>There are currently three <a href="shadow_config_spec.html#host_defaultsheartbeat_log_info">heartbeat statistic
+<p>There are currently three <a href="shadow_config_spec.html#experimentalhost_heartbeat_log_info">heartbeat statistic
 subsystems</a>: <code>node</code>,
 <code>socket</code>, and <code>ram</code>. For each subsystem that is enabled, Shadow will print a
 'header' message followed by regular message every frequency interval. The
@@ -921,12 +925,19 @@ subsystem:</p>
 <pre><code>[ram-header] interval-seconds,alloc-bytes,dealloc-bytes,total-bytes,pointers-count,failfree-count
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="parsing-shadow-log-messages"><a class="header" href="#parsing-shadow-log-messages">Parsing Shadow Log Messages</a></h1>
+<table><thead><tr><th>❗ Warning</th></tr></thead><tbody>
+<tr><td>The heartbeat/tracker log messages are considered experimental<br>and may change or be removed at any time.</td></tr>
+</tbody></table>
+<br>
 <p>Shadow logs simulator heartbeat messages that contain useful system information
 for each virtual host in the experiment. For example, Shadow logs the number of
 bytes sent/received, number of bytes allocated/deallocated, CPU usage, etc. You
 can parse these heartbeat log messages to get insight into the simulation.
 Details of these heartbeat messages can be found
-<a href="log_format.html#heartbeat-messages">here</a>.</p>
+<a href="log_format.html#heartbeat-messages">here</a>, and they can be enabled by setting the
+experimental
+<a href="shadow_config_spec.html#experimentalhost_heartbeat_interval"><code>experimental.host_heartbeat_interval</code></a>
+configuration option.</p>
 <h2 id="example-simulation-data"><a class="header" href="#example-simulation-data">Example Simulation Data</a></h2>
 <p>The methods we describe below can be used on the output from and Shadow
 simulation. Here, we use the output from the <a href="getting_started_tgen.html">Traffic
@@ -1128,6 +1139,9 @@ hosts:
 <li><a href="shadow_config_spec.html#networkgraphfilecompression"><code>network.graph.file.compression</code></a></li>
 <li><a href="shadow_config_spec.html#networkuse_shortest_path"><code>network.use_shortest_path</code></a></li>
 <li><a href="shadow_config_spec.html#experimental"><code>experimental</code></a></li>
+<li><a href="shadow_config_spec.html#experimentalhost_heartbeat_interval"><code>experimental.host_heartbeat_interval</code></a></li>
+<li><a href="shadow_config_spec.html#experimentalhost_heartbeat_log_info"><code>experimental.host_heartbeat_log_info</code></a></li>
+<li><a href="shadow_config_spec.html#experimentalhost_heartbeat_log_level"><code>experimental.host_heartbeat_log_level</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalinterface_buffer"><code>experimental.interface_buffer</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalinterface_qdisc"><code>experimental.interface_qdisc</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalinterpose_method"><code>experimental.interpose_method</code></a></li>
@@ -1153,9 +1167,6 @@ hosts:
 <li><a href="shadow_config_spec.html#experimentaluse_syscall_counters"><code>experimental.use_syscall_counters</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalworker_threads"><code>experimental.worker_threads</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaults"><code>host_defaults</code></a></li>
-<li><a href="shadow_config_spec.html#host_defaultsheartbeat_interval"><code>host_defaults.heartbeat_interval</code></a></li>
-<li><a href="shadow_config_spec.html#host_defaultsheartbeat_log_info"><code>host_defaults.heartbeat_log_info</code></a></li>
-<li><a href="shadow_config_spec.html#host_defaultsheartbeat_log_level"><code>host_defaults.heartbeat_log_level</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaultslog_level"><code>host_defaults.log_level</code></a></li>
 <li><a href="shadow_config_spec.html#host_defaultspcap_directory"><code>host_defaults.pcap_directory</code></a></li>
 <li><a href="shadow_config_spec.html#hosts"><code>hosts</code></a></li>
@@ -1191,7 +1202,7 @@ Type: String</p>
 <p>Path to store simulation output.</p>
 <h4 id="generalheartbeat_interval"><a class="header" href="#generalheartbeat_interval"><code>general.heartbeat_interval</code></a></h4>
 <p>Default: &quot;1 sec&quot;<br />
-Type: String OR Integer</p>
+Type: String OR Integer OR null</p>
 <p>Interval at which to print heartbeat messages.</p>
 <h4 id="generallog_level"><a class="header" href="#generallog_level"><code>general.log_level</code></a></h4>
 <p>Default: &quot;info&quot;<br />
@@ -1283,6 +1294,18 @@ nodes.</p>
 <h4 id="experimental"><a class="header" href="#experimental"><code>experimental</code></a></h4>
 <p>Experimental experiment settings. Unstable and may change or be removed at any
 time, regardless of Shadow version.</p>
+<h4 id="experimentalhost_heartbeat_interval"><a class="header" href="#experimentalhost_heartbeat_interval"><code>experimental.host_heartbeat_interval</code></a></h4>
+<p>Default: null<br />
+Type: String OR Integer OR null</p>
+<p>Amount of time between heartbeat messages for this host.</p>
+<h4 id="experimentalhost_heartbeat_log_info"><a class="header" href="#experimentalhost_heartbeat_log_info"><code>experimental.host_heartbeat_log_info</code></a></h4>
+<p>Default: [&quot;node&quot;]<br />
+Type: Array of (&quot;node&quot; OR &quot;socket&quot; OR &quot;ram&quot;)</p>
+<p>List of information to show in the host's heartbeat message.</p>
+<h4 id="experimentalhost_heartbeat_log_level"><a class="header" href="#experimentalhost_heartbeat_log_level"><code>experimental.host_heartbeat_log_level</code></a></h4>
+<p>Default: &quot;info&quot;<br />
+Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot;</p>
+<p>Log level at which to print host statistics.</p>
 <h4 id="experimentalinterface_buffer"><a class="header" href="#experimentalinterface_buffer"><code>experimental.interface_buffer</code></a></h4>
 <p>Default: &quot;1024000 B&quot;<br />
 Type: String OR Integer</p>
@@ -1397,18 +1420,6 @@ future.</p>
 <p>Default options for all hosts. These options can also be overridden for each
 host individually in the host's <a href="shadow_config_spec.html#hostshostnameoptions"><code>hosts.&lt;hostname&gt;.options</code></a>
 section.</p>
-<h4 id="host_defaultsheartbeat_interval"><a class="header" href="#host_defaultsheartbeat_interval"><code>host_defaults.heartbeat_interval</code></a></h4>
-<p>Default: &quot;1 sec&quot;<br />
-Type: String OR Integer</p>
-<p>Amount of time between heartbeat messages for this host.</p>
-<h4 id="host_defaultsheartbeat_log_info"><a class="header" href="#host_defaultsheartbeat_log_info"><code>host_defaults.heartbeat_log_info</code></a></h4>
-<p>Default: [&quot;node&quot;]<br />
-Type: Array of (&quot;node&quot; OR &quot;socket&quot; OR &quot;ram&quot;)</p>
-<p>List of information to show in the host's heartbeat message.</p>
-<h4 id="host_defaultsheartbeat_log_level"><a class="header" href="#host_defaultsheartbeat_log_level"><code>host_defaults.heartbeat_log_level</code></a></h4>
-<p>Default: &quot;info&quot;<br />
-Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot;</p>
-<p>Log level at which to print host statistics.</p>
 <h4 id="host_defaultslog_level"><a class="header" href="#host_defaultslog_level"><code>host_defaults.log_level</code></a></h4>
 <p>Default: null<br />
 Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot; OR null</p>
