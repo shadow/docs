@@ -255,6 +255,8 @@
 <span id="255">255</span>
 <span id="256">256</span>
 <span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std::borrow::Borrow</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">OsStr</span>};
@@ -377,8 +379,10 @@
     <span class="comment">// Disable address space layout randomization of processes forked from this</span>
     <span class="comment">// one to improve determinism in cases when an executable under simulation</span>
     <span class="comment">// branch on memory addresses.</span>
-    <span class="ident">disable_aslr</span>().<span class="ident">context</span>(<span class="string">&quot;Could not disable plugin address space layout randomization&quot;</span>)<span class="question-mark">?</span>;
-    <span class="macro">log::debug!</span>(<span class="string">&quot;ASLR disabled for processes forked from this parent process&quot;</span>);
+    <span class="kw">match</span> <span class="ident">disable_aslr</span>() {
+        <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">log::debug!</span>(<span class="string">&quot;ASLR disabled for processes forked from this parent process&quot;</span>),
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">log::warn!</span>(<span class="string">&quot;Could not disable address space layout randomization. This may affect determinism: {:?}&quot;</span>, <span class="ident">e</span>),
+    };
 
     <span class="comment">// check sidechannel mitigations</span>
     <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">c::main_sidechannelMitigationsEnabled</span>() } {
