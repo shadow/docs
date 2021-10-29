@@ -487,6 +487,11 @@
 <span id="487">487</span>
 <span id="488">488</span>
 <span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::host::context</span>::{<span class="ident">ThreadContext</span>, <span class="ident">ThreadContextObjs</span>};
@@ -692,7 +697,7 @@
         <span class="comment">// call the file&#39;s read(), and run any resulting events</span>
         <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
             <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">read</span>(
-                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory_mut</span>().<span class="ident">writer</span>(<span class="ident">TypedPluginPtr::new</span>(<span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>)),
+                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory_mut</span>().<span class="ident">writer</span>(<span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>)),
                 <span class="ident">offset</span>,
                 <span class="ident">event_queue</span>,
             )
@@ -762,7 +767,7 @@
         <span class="comment">// call the file&#39;s write(), and run any resulting events</span>
         <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
             <span class="ident">posix_file</span>.<span class="ident">borrow_mut</span>().<span class="ident">write</span>(
-                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory</span>().<span class="ident">reader</span>(<span class="ident">TypedPluginPtr</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>)),
+                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory</span>().<span class="ident">reader</span>(<span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">buf_ptr</span>, <span class="ident">buf_size</span>)),
                 <span class="ident">offset</span>,
                 <span class="ident">event_queue</span>,
             )
@@ -808,6 +813,11 @@
         <span class="ident">remaining_flags</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">libc::O_NONBLOCK</span>;
     }
 
+    <span class="kw">if</span> <span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">libc::O_DIRECT</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="ident">file_flags</span>.<span class="ident">insert</span>(<span class="ident">FileStatus::DIRECT</span>);
+        <span class="ident">remaining_flags</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">libc::O_DIRECT</span>;
+    }
+
     <span class="kw">if</span> <span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">libc::O_CLOEXEC</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <span class="ident">descriptor_flags</span>.<span class="ident">insert</span>(<span class="ident">DescriptorFlags::CLOEXEC</span>);
         <span class="ident">remaining_flags</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">libc::O_CLOEXEC</span>;
@@ -815,11 +825,6 @@
 
     <span class="comment">// the user requested flags that we don&#39;t support</span>
     <span class="kw">if</span> <span class="ident">remaining_flags</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="comment">// exit early if the O_DIRECT flag was set</span>
-        <span class="kw">if</span> <span class="ident">remaining_flags</span> <span class="op">&amp;</span> <span class="ident">libc::O_DIRECT</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">warn!</span>(<span class="string">&quot;We don&#39;t currently support pipes in &#39;O_DIRECT&#39; mode&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::EOPNOTSUPP</span>.<span class="ident">into</span>());
-        }
         <span class="macro">warn!</span>(<span class="string">&quot;Ignoring pipe flags&quot;</span>);
     }
 
@@ -850,33 +855,38 @@
     <span class="ident">writer_desc</span>.<span class="ident">set_flags</span>(<span class="ident">descriptor_flags</span>);
 
     <span class="comment">// register the file descriptors</span>
-    <span class="kw">let</span> <span class="ident">fds</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-        [
-            <span class="ident">c::process_registerCompatDescriptor</span>(
-                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">raw_mut</span>(),
-                <span class="ident">CompatDescriptor::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">CompatDescriptor::New</span>(<span class="ident">reader_desc</span>))),
-            ),
-            <span class="ident">c::process_registerCompatDescriptor</span>(
-                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">raw_mut</span>(),
-                <span class="ident">CompatDescriptor::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">CompatDescriptor::New</span>(<span class="ident">writer_desc</span>))),
-            ),
-        ]
-    };
+    <span class="kw">let</span> <span class="ident">read_fd</span> <span class="op">=</span> <span class="ident">ctx</span>
+        .<span class="ident">process</span>
+        .<span class="ident">register_descriptor</span>(<span class="ident">CompatDescriptor::New</span>(<span class="ident">reader_desc</span>));
+    <span class="kw">let</span> <span class="ident">write_fd</span> <span class="op">=</span> <span class="ident">ctx</span>
+        .<span class="ident">process</span>
+        .<span class="ident">register_descriptor</span>(<span class="ident">CompatDescriptor::New</span>(<span class="ident">writer_desc</span>));
 
-    <span class="comment">// Try to write them to the caller</span>
+    <span class="comment">// try to write them to the caller</span>
+    <span class="kw">let</span> <span class="ident">fds</span> <span class="op">=</span> [
+        <span class="ident">i32::try_from</span>(<span class="ident">read_fd</span>).<span class="ident">unwrap</span>(),
+        <span class="ident">i32::try_from</span>(<span class="ident">write_fd</span>).<span class="ident">unwrap</span>(),
+    ];
     <span class="kw">let</span> <span class="ident">write_res</span> <span class="op">=</span> <span class="ident">ctx</span>
         .<span class="ident">process</span>
         .<span class="ident">memory_mut</span>()
-        .<span class="ident">copy_to_ptr</span>(<span class="ident">TypedPluginPtr::new</span>(<span class="ident">fd_ptr</span>.<span class="ident">into</span>(), <span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">fds</span>);
+        .<span class="ident">copy_to_ptr</span>(<span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">libc::c_int</span><span class="op">&gt;</span>(<span class="ident">fd_ptr</span>.<span class="ident">into</span>(), <span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">fds</span>);
 
-    <span class="comment">// Clean up in case of error</span>
+    <span class="comment">// clean up in case of error</span>
     <span class="kw">match</span> <span class="ident">write_res</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>()),
         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">unsafe</span> {
-                <span class="ident">c::process_deregisterCompatDescriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">raw_mut</span>(), <span class="ident">fds</span>[<span class="number">0</span>]);
-                <span class="ident">c::process_deregisterCompatDescriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">raw_mut</span>(), <span class="ident">fds</span>[<span class="number">1</span>]);
-            };
+            <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+                <span class="comment">// ignore any errors when closing</span>
+                <span class="ident">ctx</span>.<span class="ident">process</span>
+                    .<span class="ident">deregister_descriptor</span>(<span class="ident">read_fd</span>)
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">close</span>(<span class="ident">ctx</span>.<span class="ident">host</span>.<span class="ident">chost</span>(), <span class="ident">event_queue</span>);
+                <span class="ident">ctx</span>.<span class="ident">process</span>
+                    .<span class="ident">deregister_descriptor</span>(<span class="ident">write_fd</span>)
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">close</span>(<span class="ident">ctx</span>.<span class="ident">host</span>.<span class="ident">chost</span>(), <span class="ident">event_queue</span>);
+            });
             <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>())
         }
     }
