@@ -1,1 +1,1 @@
-initSidebarItems({});
+initSidebarItems({"macro":[["enum_passthrough","A macro that defines a function for an enum, calling the same function on all enum variants."],["enum_passthrough_generic","Like [`enum_passthrough!`], but allows generics. For example:"],["enum_passthrough_into","Like [`enum_passthrough!`], but calls `into()` on the return value. For example:"]]});
