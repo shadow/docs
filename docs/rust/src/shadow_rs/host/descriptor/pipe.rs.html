@@ -417,6 +417,17 @@
 <span id="417">417</span>
 <span id="418">418</span>
 <span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">std::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
@@ -426,7 +437,8 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
     <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types::SyscallResult</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::byte_queue::ByteQueue</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::stream_len::StreamLen</span>;
@@ -585,6 +597,16 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">num_written</span>.<span class="ident">into</span>())
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ioctl</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">request</span>: <span class="ident">u64</span>,
+        <span class="ident">_arg_ptr</span>: <span class="ident">PluginPtr</span>,
+        <span class="ident">_memory_manager</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+        <span class="macro">log::warn!</span>(<span class="string">&quot;We do not yet handle ioctl request {} on pipes&quot;</span>, <span class="ident">request</span>);
+        <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect_to_buffer</span>(
