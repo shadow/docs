@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["bytequeue_free",""],["bytequeue_isEmpty",""],["bytequeue_len",""],["bytequeue_new",""],["bytequeue_pop",""],["bytequeue_pushPacket",""],["bytequeue_pushStream",""]]});
+initSidebarItems({"fn":[["bytequeue_free",""],["bytequeue_hasBytes",""],["bytequeue_new",""],["bytequeue_numBytes",""],["bytequeue_pop",""],["bytequeue_pushPacket",""],["bytequeue_pushStream",""]]});
