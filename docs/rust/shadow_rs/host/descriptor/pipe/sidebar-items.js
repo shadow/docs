@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["WriteMode",""]],"struct":[["PipeFile",""],["SharedBuf",""]]});
+initSidebarItems({"enum":[["WriteMode",""]],"struct":[["PipeFile",""]]});
