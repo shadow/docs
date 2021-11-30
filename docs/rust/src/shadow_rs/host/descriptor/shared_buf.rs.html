@@ -145,6 +145,11 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
@@ -239,6 +244,11 @@
         <span class="ident">len</span>: <span class="ident">usize</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">EventQueue</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">max_len</span>() {
+            <span class="comment">// the socket could never send this packet, even if the buffer was empty</span>
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EMSGSIZE</span>.<span class="ident">into</span>());
+        }
+
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">space_available</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EAGAIN</span>.<span class="ident">into</span>());
         }
