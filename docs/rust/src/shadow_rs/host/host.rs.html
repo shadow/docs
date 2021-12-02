@@ -101,6 +101,12 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
 <span class="kw">use</span> <span class="ident">std::net::IpAddr</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
@@ -198,6 +204,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">log::LevelFilter</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cshadow::host_getLogLevel</span>(<span class="self">self</span>.<span class="ident">chost</span>) };
         <span class="ident"><span class="kw">crate</span>::core::logger::log_wrapper::c_to_rust_log_level</span>(<span class="ident">level</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">to_level_filter</span>())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">random</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">rand::Rng</span> {
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cshadow::host_getRandom</span>(<span class="self">self</span>.<span class="ident">chost</span>) };
+        <span class="kw">let</span> <span class="ident">random</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ptr</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">random</span>.<span class="number">0</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chost</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Host</span> {
