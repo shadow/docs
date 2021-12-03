@@ -107,11 +107,23 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
 <span class="kw">use</span> <span class="ident">std::net::IpAddr</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::abstract_unix_ns::AbstractUnixNamespace</span>;
+
+<span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HostId</span>(<span class="ident">u32</span>);
@@ -199,6 +211,12 @@
         <span class="kw">use</span> <span class="ident">std::net</span>;
         <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cshadow::host_getDefaultIP</span>(<span class="self">self</span>.<span class="ident">chost</span>) };
         <span class="ident">net::IpAddr::V4</span>(<span class="ident">net::Ipv4Addr::from</span>(<span class="ident">addr</span>.<span class="ident">to_le_bytes</span>()))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abstract_unix_namespace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">AbstractUnixNamespace</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cshadow::host_getAbstractUnixNamespace</span>(<span class="self">self</span>.<span class="ident">chost</span>) };
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">ptr</span>.<span class="ident">is_null</span>());
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">ptr</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_level</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">log::LevelFilter</span><span class="op">&gt;</span> {
