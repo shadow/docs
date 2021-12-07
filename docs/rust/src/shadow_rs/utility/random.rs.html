@@ -54,18 +54,6 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rand_xoshiro::Xoshiro256PlusPlus</span>;
 
 <span class="comment">// we need this newtype for cbindgen</span>
@@ -81,21 +69,9 @@
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">random_new</span>(<span class="ident">seed</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Random</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Xoshiro256PlusPlus::seed_from_u64</span>(<span class="ident">seed</span>);
-
-        <span class="comment">// From https://docs.rs/rand/0.8.4/rand/rngs/struct.SmallRng.html:</span>
-        <span class="comment">//</span>
-        <span class="comment">// &gt; SmallRng is not a good choice when: [...] Seeds with many zeros are provided. In such</span>
-        <span class="comment">// &gt; cases, it takes SmallRng about 10 samples to produce 0 and 1 bits with equal</span>
-        <span class="comment">// &gt; probability.</span>
-        <span class="comment">//</span>
-        <span class="comment">// SmallRng on x86_64 uses Xoshiro256PlusPlus as of version 0.8, so this should apply to us.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Since shadow usually uses small seeds, we should throw away 10 samples.</span>
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10</span> {
-            <span class="ident">rng</span>.<span class="ident">next_u64</span>();
-        }
-
+        <span class="comment">// Xoshiro256PlusPlus is not ideal when a seed with many zeros is used, but</span>
+        <span class="comment">// &#39;seed_from_u64()&#39; uses SplitMix64 to derive the actual seed, so we are okay here.</span>
+        <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">Xoshiro256PlusPlus::seed_from_u64</span>(<span class="ident">seed</span>);
         <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">Random</span>(<span class="ident">rng</span>)))
     }
 
