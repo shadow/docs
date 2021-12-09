@@ -1035,11 +1035,7 @@
 <span id="1035">1035</span>
 <span id="1036">1036</span>
 <span id="1037">1037</span>
-<span id="1038">1038</span>
-<span id="1039">1039</span>
-<span id="1040">1040</span>
-<span id="1041">1041</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager</span>::{<span class="ident">page_size</span>, <span class="ident">MemoryCopier</span>, <span class="ident">MemoryManager</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager</span>::{<span class="ident">page_size</span>, <span class="ident">MemoryManager</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallResult</span>, <span class="ident">TypedPluginPtr</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::thread::Thread</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::interval_map</span>::{<span class="ident">Interval</span>, <span class="ident">IntervalMap</span>, <span class="ident">Mutation</span>};
@@ -1105,7 +1101,6 @@
 <span class="doccomment">/// MemoryMapper via its `handle_*` methods.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemoryMapper</span> {
-    <span class="ident">memory_copier</span>: <span class="ident">MemoryCopier</span>,
     <span class="ident">shm_file</span>: <span class="ident">ShmFile</span>,
     <span class="ident">regions</span>: <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
 
@@ -1370,8 +1365,6 @@
 
 <span class="kw">impl</span> <span class="ident">MemoryMapper</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">memory_manager</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryMapper</span> {
-        <span class="kw">let</span> <span class="ident">memory_copier</span> <span class="op">=</span> <span class="ident">MemoryCopier::new</span>(<span class="ident">thread</span>.<span class="ident">system_pid</span>());
-
         <span class="kw">let</span> <span class="ident">shm_path</span> <span class="op">=</span> <span class="macro">format!</span>(
             <span class="string">&quot;/dev/shm/shadow_memory_manager_{}_{}_{}&quot;</span>,
             <span class="ident">process::id</span>(),
@@ -1424,7 +1417,6 @@
         <span class="ident">map_stack</span>(<span class="ident">memory_manager</span>, <span class="ident">thread</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">shm_file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">regions</span>);
 
         <span class="ident">MemoryMapper</span> {
-            <span class="ident">memory_copier</span>,
             <span class="ident">shm_file</span>,
             <span class="ident">regions</span>,
             <span class="ident">misses_by_path</span>: <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>()),
