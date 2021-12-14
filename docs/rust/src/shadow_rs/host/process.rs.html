@@ -301,13 +301,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProcessId</span>(<span class="ident">u32</span>);
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProcessId</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ProcessId</span>(<span class="ident">val</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ProcessId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">ProcessId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">ProcessId</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">val</span>.<span class="number">0</span>
     }
 }
@@ -324,47 +324,47 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// SAFETY: `p` must point to a valid c::Process, to which this Process will</span>
     <span class="doccomment">/// have exclusive access over its lifetime. `p` must outlive the returned object.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">borrow_from_c</span>(<span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">borrow_from_c</span>(<span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">p</span>.<span class="ident">is_null</span>());
         <span class="ident">Process</span> { <span class="ident">cprocess</span>: <span class="ident">p</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cprocess</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cprocess</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span> {
         <span class="self">self</span>.<span class="ident">cprocess</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ProcessId</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ProcessId</span> {
         <span class="ident">ProcessId</span>(<span class="kw">unsafe</span> { <span class="ident">cshadow::process_getProcessID</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HostId</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">HostId</span> {
         <span class="ident">HostId::from</span>(<span class="kw">unsafe</span> { <span class="ident">cshadow::process_getHostId</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) })
     }
 
-    <span class="kw">fn</span> <span class="ident">memory_manager_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span> {
+    <span class="kw">fn</span> <span class="ident">memory_manager_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span> {
         <span class="kw">let</span> <span class="ident">mm_ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::MemoryManager</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getMemoryManager</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) };
         <span class="comment">// MemoryManager and cshadow::MemoryManager are the same type.</span>
         <span class="kw">unsafe</span> { <span class="ident">std::mem::transmute</span>(<span class="ident">mm_ptr</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">memory_manager_ptr</span>() }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memory</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">memory_manager_ptr</span>() }
     }
 
     <span class="doccomment">/// Register a descriptor and return its fd handle.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_descriptor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">desc</span>: <span class="ident">CompatDescriptor</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_descriptor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">desc</span>: <span class="ident">CompatDescriptor</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="ident">desc_table</span>.<span class="ident">add</span>(<span class="ident">desc</span>, <span class="number">0</span>)
     }
 
     <span class="doccomment">/// Register a descriptor and return its fd handle.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_descriptor_with_min_fd</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">desc</span>: <span class="ident">CompatDescriptor</span>, <span class="ident">min_fd</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_descriptor_with_min_fd</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">desc</span>: <span class="ident">CompatDescriptor</span>, <span class="ident">min_fd</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="ident">desc_table</span>.<span class="ident">add</span>(<span class="ident">desc</span>, <span class="ident">min_fd</span>)
@@ -375,7 +375,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">desc</span>: <span class="ident">CompatDescriptor</span>,
         <span class="ident">new_fd</span>: <span class="ident">u32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">replaced_desc</span> <span class="op">=</span> <span class="ident">desc_table</span>.<span class="ident">set</span>(<span class="ident">new_fd</span>, <span class="ident">desc</span>);
@@ -390,7 +390,7 @@
     }
 
     <span class="doccomment">/// Deregister the descriptor with the given fd handle and return it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deregister_descriptor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fd</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deregister_descriptor</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fd</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">removed_desc</span> <span class="op">=</span> <span class="ident">desc_table</span>.<span class="ident">remove</span>(<span class="ident">fd</span>);
@@ -405,25 +405,25 @@
     }
 
     <span class="doccomment">/// Get a reference to the descriptor with the given fd handle.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fd</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fd</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="ident">desc_table</span>.<span class="ident">get</span>(<span class="ident">fd</span>)
     }
 
     <span class="doccomment">/// Get a mutable reference to the descriptor with the given fd handle.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_descriptor_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fd</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_descriptor_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">fd</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">desc_table</span> <span class="op">=</span>
             <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getDescriptorTable</span>(<span class="self">self</span>.<span class="ident">cprocess</span>).<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="ident">desc_table</span>.<span class="ident">get_mut</span>(<span class="ident">fd</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pid</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">native_pid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Pid</span> {
         <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getNativePid</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) };
         <span class="ident">Pid::from_raw</span>(<span class="ident">pid</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span> {
         <span class="self">self</span>.<span class="ident">cprocess</span>
     }
 }
@@ -439,7 +439,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">process_registerCompatDescriptor</span>(
         <span class="ident">proc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span>,
         <span class="ident">desc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> {
+    ) -&gt; <span class="ident">libc::c_int</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Process::borrow_from_c</span>(<span class="ident">proc</span>) };
         <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::from_raw</span>(<span class="ident">desc</span>).<span class="ident">unwrap</span>();
 
@@ -453,12 +453,12 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">process_deregisterCompatDescriptor</span>(
         <span class="ident">proc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span>,
         <span class="ident">handle</span>: <span class="ident">libc::c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span> {
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">CompatDescriptor</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Process::borrow_from_c</span>(<span class="ident">proc</span>) };
 
         <span class="kw">let</span> <span class="ident">handle</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">try_into</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::debug!</span>(
                     <span class="string">&quot;Attempted to deregister a descriptor with handle {}&quot;</span>,
                     <span class="ident">handle</span>
@@ -468,8 +468,8 @@
         };
 
         <span class="kw">match</span> <span class="ident">proc</span>.<span class="ident">deregister_descriptor</span>(<span class="ident">handle</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CompatDescriptor::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">d</span>)),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::ptr::null_mut</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">d</span>) =&gt; <span class="ident">CompatDescriptor::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">d</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">std::ptr::null_mut</span>(),
         }
     }
 
@@ -478,20 +478,20 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">process_getRegisteredCompatDescriptor</span>(
         <span class="ident">proc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span>,
         <span class="ident">handle</span>: <span class="ident">libc::c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CompatDescriptor</span> {
+    ) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CompatDescriptor</span> {
         <span class="kw">let</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Process::borrow_from_c</span>(<span class="ident">proc</span>) };
 
         <span class="kw">let</span> <span class="ident">handle</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">try_into</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::debug!</span>(<span class="string">&quot;Attempted to get a descriptor with handle {}&quot;</span>, <span class="ident">handle</span>);
                 <span class="kw">return</span> <span class="ident">std::ptr::null</span>();
             }
         };
 
         <span class="kw">match</span> <span class="ident">proc</span>.<span class="ident">get_descriptor</span>(<span class="ident">handle</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CompatDescriptor</span>,
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::ptr::null</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CompatDescriptor</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="ident">std::ptr::null</span>(),
         }
     }
 
@@ -501,7 +501,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">process_registerLegacyDescriptor</span>(
         <span class="ident">proc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span>,
         <span class="ident">desc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::LegacyDescriptor</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> {
+    ) -&gt; <span class="ident">libc::c_int</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Process::borrow_from_c</span>(<span class="ident">proc</span>) };
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">desc</span>.<span class="ident">is_null</span>());
 
@@ -527,8 +527,8 @@
 
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cshadow::descriptor_getHandle</span>(<span class="ident">desc</span>) };
         <span class="kw">let</span> <span class="ident">handle</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">try_into</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::warn!</span>(
                     <span class="string">&quot;Attempted to deregister a descriptor with handle {}&quot;</span>,
                     <span class="ident">handle</span>
@@ -538,18 +538,18 @@
         };
 
         <span class="kw">match</span> <span class="ident">proc</span>.<span class="ident">deregister_descriptor</span>(<span class="ident">handle</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()) {
-            <span class="prelude-val">Some</span>(<span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">removed_desc</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">removed_desc</span>)) =&gt; {
                 <span class="kw">if</span> <span class="ident">removed_desc</span>.<span class="ident">ptr</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">desc</span> {
                     <span class="macro">panic!</span>(<span class="string">&quot;Deregistered the wrong descriptor with handle {}&quot;</span>, <span class="ident">handle</span>);
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;We were given a pointer to a &#39;LegacyDescriptor&#39;, but when we removed it, \
                      we didn&#39;t get a legacy descriptor back&quot;</span>
                 );
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">log::error!</span>(<span class="string">&quot;Could not deregister a descriptor with handle {}&quot;</span>, <span class="ident">handle</span>);
             }
         }
@@ -560,25 +560,25 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">process_getRegisteredLegacyDescriptor</span>(
         <span class="ident">proc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::Process</span>,
         <span class="ident">handle</span>: <span class="ident">libc::c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::LegacyDescriptor</span> {
+    ) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::LegacyDescriptor</span> {
         <span class="kw">let</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Process::borrow_from_c</span>(<span class="ident">proc</span>) };
 
         <span class="kw">let</span> <span class="ident">handle</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">try_into</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::debug!</span>(<span class="string">&quot;Attempted to get a descriptor with handle {}&quot;</span>, <span class="ident">handle</span>);
                 <span class="kw">return</span> <span class="ident">std::ptr::null_mut</span>();
             }
         };
 
         <span class="kw">match</span> <span class="ident">proc</span>.<span class="ident">get_descriptor</span>(<span class="ident">handle</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">desc</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>.<span class="ident">ptr</span>(),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">desc</span>)) =&gt; <span class="ident">desc</span>.<span class="ident">ptr</span>(),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::warn!</span>(<span class="string">&quot;A descriptor exists for fd={}, but it is not a legacy descriptor. Returning NULL.&quot;</span>,
                            <span class="ident">handle</span>);
                 <span class="ident">std::ptr::null_mut</span>()
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">std::ptr::null_mut</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">std::ptr::null_mut</span>(),
         }
     }
 }

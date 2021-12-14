@@ -406,7 +406,7 @@
         <span class="kw">let</span> <span class="ident">has_mutated_version</span> <span class="op">=</span> <span class="ident">app</span>
             .<span class="ident">args</span>
             .<span class="ident">args</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Id::version_hash</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">provider</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ArgProvider::GeneratedMutated</span>);
+            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">Id::version_hash</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">provider</span> <span class="op">==</span> <span class="ident">ArgProvider::GeneratedMutated</span>);
 
         <span class="kw">if</span> <span class="ident">has_mutated_version</span> {
             <span class="macro">assert!</span>(<span class="ident">app</span>.<span class="ident">settings</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::NoAutoVersion</span>),
@@ -453,14 +453,14 @@
 
         <span class="comment">// Name conflicts</span>
         <span class="macro">assert!</span>(
-            <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">arg</span>.<span class="ident">id</span>).<span class="ident">is_none</span>(),
+            <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">arg</span>.<span class="ident">id</span>).<span class="ident">is_none</span>(),
             <span class="string">&quot;Argument names must be unique, but &#39;{}&#39; is in use by more than one argument or group&quot;</span>,
             <span class="ident">arg</span>.<span class="ident">name</span>,
         );
 
         <span class="comment">// Long conflicts</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">long</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">long</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>)) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">long</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>)) {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;Long option names must be unique for each argument, \
                         but &#39;--{}&#39; is in use by both &#39;{}&#39; and &#39;{}&#39;&quot;</span>,
@@ -471,7 +471,7 @@
 
         <span class="comment">// Short conflicts</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">short</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">short</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>)) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">short</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>)) {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;Short option names must be unique for each argument, \
                         but &#39;-{}&#39; is in use by both &#39;{}&#39; and &#39;{}&#39;&quot;</span>,
@@ -483,7 +483,7 @@
         <span class="comment">// Index conflicts</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">index</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span>
-                <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">is_positional</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">index</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>))
+                <span class="ident">app</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">is_positional</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">index</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>))
             {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;Argument &#39;{}&#39; has the same index as &#39;{}&#39; \
@@ -568,7 +568,7 @@
             <span class="ident">arg</span>.<span class="ident">name</span>
         );
 
-        <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">value_hint</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ValueHint::CommandWithArguments</span> {
+        <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">value_hint</span> <span class="op">==</span> <span class="ident">ValueHint::CommandWithArguments</span> {
             <span class="macro">assert!</span>(
                 <span class="ident">arg</span>.<span class="ident">is_positional</span>(),
                 <span class="string">&quot;Argument &#39;{}&#39; has hint CommandWithArguments and must be positional.&quot;</span>,
@@ -586,14 +586,14 @@
     <span class="kw">for</span> <span class="ident">group</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">app</span>.<span class="ident">groups</span> {
         <span class="comment">// Name conflicts</span>
         <span class="macro">assert!</span>(
-            <span class="ident">app</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">group</span>.<span class="ident">id</span>).<span class="ident">count</span>() <span class="op">&lt;</span> <span class="number">2</span>,
+            <span class="ident">app</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">group</span>.<span class="ident">id</span>).<span class="ident">count</span>() <span class="op">&lt;</span> <span class="number">2</span>,
             <span class="string">&quot;Argument group name must be unique\n\n\t&#39;{}&#39; is already in use&quot;</span>,
             <span class="ident">group</span>.<span class="ident">name</span>,
         );
 
         <span class="comment">// Groups should not have naming conflicts with Args</span>
         <span class="macro">assert!</span>(
-            <span class="op">!</span><span class="ident">app</span>.<span class="ident">args</span>.<span class="ident">args</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">group</span>.<span class="ident">id</span>),
+            <span class="op">!</span><span class="ident">app</span>.<span class="ident">args</span>.<span class="ident">args</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">group</span>.<span class="ident">id</span>),
             <span class="string">&quot;Argument group name &#39;{}&#39; must not conflict with argument name&quot;</span>,
             <span class="ident">group</span>.<span class="ident">name</span>,
         );
@@ -604,7 +604,7 @@
                 <span class="ident">group</span>.<span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
                     <span class="ident">app</span>.<span class="ident">args</span>
                         .<span class="ident">args</span>()
-                        .<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">arg</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">default_vals</span>.<span class="ident">is_empty</span>())
+                        .<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">arg</span> <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">default_vals</span>.<span class="ident">is_empty</span>())
                 }),
                 <span class="string">&quot;Argument group &#39;{}&#39; is required but all of it&#39;s arguments have a default value.&quot;</span>,
                 <span class="ident">group</span>.<span class="ident">name</span>
@@ -614,7 +614,7 @@
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">args</span> {
             <span class="comment">// Args listed inside groups should exist</span>
             <span class="macro">assert!</span>(
-                <span class="ident">app</span>.<span class="ident">args</span>.<span class="ident">args</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">arg</span>),
+                <span class="ident">app</span>.<span class="ident">args</span>.<span class="ident">args</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">arg</span>),
                 <span class="string">&quot;Argument group &#39;{}&#39; contains non-existent argument &#39;{:?}&#39;&quot;</span>,
                 <span class="ident">group</span>.<span class="ident">name</span>,
                 <span class="ident">arg</span>
@@ -654,21 +654,21 @@
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Flag</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Flag</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">cmp</span>(<span class="ident">other</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">Ordering::Equal</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Flag</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">cmp</span>(<span class="ident">other</span>) <span class="op">==</span> <span class="ident">Ordering::Equal</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">Flag</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Flag</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Flag</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">Flag</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             (<span class="ident">App</span>(<span class="ident">s1</span>, <span class="kw">_</span>), <span class="ident">App</span>(<span class="ident">s2</span>, <span class="kw">_</span>))
             <span class="op">|</span> (<span class="ident">Arg</span>(<span class="ident">s1</span>, <span class="kw">_</span>), <span class="ident">Arg</span>(<span class="ident">s2</span>, <span class="kw">_</span>))
             <span class="op">|</span> (<span class="ident">App</span>(<span class="ident">s1</span>, <span class="kw">_</span>), <span class="ident">Arg</span>(<span class="ident">s2</span>, <span class="kw">_</span>))
-            <span class="op">|</span> (<span class="ident">Arg</span>(<span class="ident">s1</span>, <span class="kw">_</span>), <span class="ident">App</span>(<span class="ident">s2</span>, <span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">s1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">s2</span> {
+            <span class="op">|</span> (<span class="ident">Arg</span>(<span class="ident">s1</span>, <span class="kw">_</span>), <span class="ident">App</span>(<span class="ident">s2</span>, <span class="kw">_</span>)) =&gt; {
+                <span class="kw">if</span> <span class="ident">s1</span> <span class="op">==</span> <span class="ident">s2</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">Ordering::Equal</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">s1</span>.<span class="ident">partial_cmp</span>(<span class="ident">s2</span>)
@@ -679,7 +679,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">Flag</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
         <span class="self">self</span>.<span class="ident">partial_cmp</span>(<span class="ident">other</span>).<span class="ident">unwrap</span>()
     }
 }
@@ -689,23 +689,23 @@
 
     <span class="kw">for</span> (<span class="ident">one</span>, <span class="ident">two</span>) <span class="kw">in</span> <span class="ident">find_duplicates</span>(<span class="ident">flags</span>) {
         <span class="kw">match</span> (<span class="ident">one</span>, <span class="ident">two</span>) {
-            (<span class="ident">App</span>(<span class="ident">flag</span>, <span class="ident">one</span>), <span class="ident">App</span>(<span class="kw">_</span>, <span class="ident">another</span>)) <span class="kw">if</span> <span class="ident">one</span> <span class="op">!</span><span class="op">=</span> <span class="ident">another</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+            (<span class="ident">App</span>(<span class="ident">flag</span>, <span class="ident">one</span>), <span class="ident">App</span>(<span class="kw">_</span>, <span class="ident">another</span>)) <span class="kw">if</span> <span class="ident">one</span> <span class="op">!</span><span class="op">=</span> <span class="ident">another</span> =&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;the &#39;{}&#39; {} flag is specified for both &#39;{}&#39; and &#39;{}&#39; subcommands&quot;</span>,
                 <span class="ident">flag</span>, <span class="ident">short_or_long</span>, <span class="ident">one</span>, <span class="ident">another</span>
             ),
 
-            (<span class="ident">Arg</span>(<span class="ident">flag</span>, <span class="ident">one</span>), <span class="ident">Arg</span>(<span class="kw">_</span>, <span class="ident">another</span>)) <span class="kw">if</span> <span class="ident">one</span> <span class="op">!</span><span class="op">=</span> <span class="ident">another</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+            (<span class="ident">Arg</span>(<span class="ident">flag</span>, <span class="ident">one</span>), <span class="ident">Arg</span>(<span class="kw">_</span>, <span class="ident">another</span>)) <span class="kw">if</span> <span class="ident">one</span> <span class="op">!</span><span class="op">=</span> <span class="ident">another</span> =&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;{} option names must be unique, but &#39;{}&#39; is in use by both &#39;{}&#39; and &#39;{}&#39;&quot;</span>,
                 <span class="ident">short_or_long</span>, <span class="ident">flag</span>, <span class="ident">one</span>, <span class="ident">another</span>
             ),
 
-            (<span class="ident">Arg</span>(<span class="ident">flag</span>, <span class="ident">arg</span>), <span class="ident">App</span>(<span class="kw">_</span>, <span class="ident">sub</span>)) <span class="op">|</span> (<span class="ident">App</span>(<span class="ident">flag</span>, <span class="ident">sub</span>), <span class="ident">Arg</span>(<span class="kw">_</span>, <span class="ident">arg</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
+            (<span class="ident">Arg</span>(<span class="ident">flag</span>, <span class="ident">arg</span>), <span class="ident">App</span>(<span class="kw">_</span>, <span class="ident">sub</span>)) <span class="op">|</span> (<span class="ident">App</span>(<span class="ident">flag</span>, <span class="ident">sub</span>), <span class="ident">Arg</span>(<span class="kw">_</span>, <span class="ident">arg</span>)) =&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;the &#39;{}&#39; {} flag for the &#39;{}&#39; argument conflicts with the short flag \
                      for &#39;{}&#39; subcommand&quot;</span>,
                 <span class="ident">flag</span>, <span class="ident">short_or_long</span>, <span class="ident">arg</span>, <span class="ident">sub</span>
             ),
 
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> =&gt; {}
         }
     }
 }
@@ -714,9 +714,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The algorithm is simple: the array is sorted, duplicates</span>
 <span class="doccomment">/// must be placed next to each other, we can check only adjacent elements.</span>
-<span class="kw">fn</span> <span class="ident">find_duplicates</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialEq</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">find_duplicates</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PartialEq</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>)<span class="op">&gt;</span> {
     <span class="ident">slice</span>.<span class="ident">windows</span>(<span class="number">2</span>).<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
-        <span class="kw">if</span> <span class="ident">w</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">w</span>[<span class="number">1</span>] {
+        <span class="kw">if</span> <span class="ident">w</span>[<span class="number">0</span>] <span class="op">==</span> <span class="ident">w</span>[<span class="number">1</span>] {
             <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span><span class="ident">w</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span><span class="ident">w</span>[<span class="number">1</span>]))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -728,7 +728,7 @@
     <span class="kw">use</span> <span class="ident">AppSettings</span>::<span class="kw-2">*</span>;
 
     <span class="macro">macro_rules!</span> <span class="ident">checker</span> {
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span> <span class="ident">requires</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">ident</span>)<span class="op">|</span><span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span> <span class="ident">requires</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">ident</span>)<span class="op">|</span><span class="op">+</span>) =&gt; {
             <span class="kw">if</span> <span class="ident">app</span>.<span class="ident">is_set</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>) {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
 
@@ -743,7 +743,7 @@
                 }
             }
         };
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span> <span class="ident">conflicts</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">ident</span>)<span class="op">|</span><span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span> <span class="ident">conflicts</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>:<span class="ident">ident</span>)<span class="op">|</span><span class="op">+</span>) =&gt; {
             <span class="kw">if</span> <span class="ident">app</span>.<span class="ident">is_set</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>) {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
 

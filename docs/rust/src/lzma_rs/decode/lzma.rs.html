@@ -648,7 +648,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LzmaParams</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_header</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">Options</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">LzmaParams</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_header</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">Options</span>) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">LzmaParams</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">io::BufRead</span>,
     {
@@ -684,24 +684,24 @@
 
         <span class="comment">// Unpacked size</span>
         <span class="kw">let</span> <span class="ident">unpacked_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">options</span>.<span class="ident">unpacked_size</span> {
-            <span class="ident">UnpackedSize::ReadFromHeader</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnpackedSize::ReadFromHeader</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">unpacked_size_provided</span> <span class="op">=</span> <span class="ident">input</span>
                     .<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
                     .<span class="ident">map_err</span>(<span class="ident">error::Error::HeaderTooShort</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">marker_mandatory</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="ident">unpacked_size_provided</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFF_FFFF_FFFF_FFFF</span>;
+                <span class="kw">let</span> <span class="ident">marker_mandatory</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="ident">unpacked_size_provided</span> <span class="op">==</span> <span class="number">0xFFFF_FFFF_FFFF_FFFF</span>;
                 <span class="kw">if</span> <span class="ident">marker_mandatory</span> {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">unpacked_size_provided</span>)
                 }
             }
-            <span class="ident">UnpackedSize::ReadHeaderButUseProvided</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnpackedSize::ReadHeaderButUseProvided</span>(<span class="ident">x</span>) =&gt; {
                 <span class="ident">input</span>
                     .<span class="ident">read_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
                     .<span class="ident">map_err</span>(<span class="ident">error::Error::HeaderTooShort</span>)<span class="question-mark">?</span>;
                 <span class="ident">x</span>
             }
-            <span class="ident">UnpackedSize::UseProvided</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+            <span class="ident">UnpackedSize::UseProvided</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
         };
 
         <span class="macro">lzma_info!</span>(<span class="string">&quot;Unpacked size: {:?}&quot;</span>, <span class="ident">unpacked_size</span>);
@@ -757,7 +757,7 @@
     <span class="ident">lp</span>: <span class="ident">u32</span>,
     <span class="ident">pb</span>: <span class="ident">u32</span>,
     <span class="ident">unpacked_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzAccumBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span>
+) -&gt; <span class="ident">DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzAccumBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">W</span>: <span class="ident">io::Write</span>,
 {
@@ -790,7 +790,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_circular</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(
     <span class="ident">output</span>: <span class="ident">W</span>,
     <span class="ident">params</span>: <span class="ident">LzmaParams</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzCircularBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzCircularBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">W</span>: <span class="ident">io::Write</span>,
 {
@@ -802,7 +802,7 @@
     <span class="ident">output</span>: <span class="ident">W</span>,
     <span class="ident">params</span>: <span class="ident">LzmaParams</span>,
     <span class="ident">memlimit</span>: <span class="ident">usize</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzCircularBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
+) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzCircularBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">W</span>: <span class="ident">io::Write</span>,
 {
@@ -870,7 +870,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::BufRead</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">process_mode</span>(<span class="ident">rangecoder</span>, <span class="ident">ProcessingMode::Finish</span>)
     }
 
@@ -878,7 +878,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process_stream</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::BufRead</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">process_mode</span>(<span class="ident">rangecoder</span>, <span class="ident">ProcessingMode::Partial</span>)
     }
 
@@ -892,7 +892,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
         <span class="ident">update</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">ProcessingStatus</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">ProcessingStatus</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pos_state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output</span>.<span class="ident">len</span>() <span class="op">&amp;</span> ((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">pb</span>) <span class="op">-</span> <span class="number">1</span>);
 
         <span class="comment">// Literal</span>
@@ -983,7 +983,7 @@
 
             <span class="kw">if</span> <span class="ident">update</span> {
                 <span class="self">self</span>.<span class="ident">rep</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">rep_0</span>;
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rep</span>[<span class="number">0</span>] <span class="op">=</span><span class="op">=</span> <span class="number">0xFFFF_FFFF</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rep</span>[<span class="number">0</span>] <span class="op">==</span> <span class="number">0xFFFF_FFFF</span> {
                     <span class="kw">if</span> <span class="ident">rangecoder</span>.<span class="ident">is_finished_ok</span>()<span class="question-mark">?</span> {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ProcessingStatus::Finished</span>);
                     }
@@ -1007,7 +1007,7 @@
     <span class="kw">fn</span> <span class="ident">process_next</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::BufRead</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">ProcessingStatus</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">ProcessingStatus</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">process_next_inner</span>(<span class="ident">rangecoder</span>, <span class="bool-val">true</span>)
     }
 
@@ -1016,7 +1016,7 @@
     <span class="doccomment">/// This will check to see if there is enough data to consume and advance the</span>
     <span class="doccomment">/// decompressor. Needed in streaming mode to avoid corrupting the state while</span>
     <span class="doccomment">/// processing incomplete chunks of data.</span>
-    <span class="kw">fn</span> <span class="ident">try_process_next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">range</span>: <span class="ident">u32</span>, <span class="ident">code</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_process_next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">range</span>: <span class="ident">u32</span>, <span class="ident">code</span>: <span class="ident">u32</span>) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">std::io::Cursor::new</span>(<span class="ident">buf</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rangecoder</span> <span class="op">=</span> <span class="ident">rangecoder::RangeDecoder::from_parts</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">temp</span>, <span class="ident">range</span>, <span class="ident">code</span>);
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">process_next_inner</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
@@ -1027,7 +1027,7 @@
     <span class="kw">fn</span> <span class="ident">read_partial_input_buf</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">io::BufRead</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Fill as much of the tmp buffer as possible</span>
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">let</span> <span class="ident">bytes_read</span> <span class="op">=</span>
@@ -1041,18 +1041,18 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
         <span class="ident">mode</span>: <span class="ident">ProcessingMode</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">unpacked_size</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">unpacked_size</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">output</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">unpacked_size</span> {
                     <span class="kw">break</span>;
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">match</span> <span class="ident">mode</span> {
-                <span class="ident">ProcessingMode::Partial</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">rangecoder</span>.<span class="ident">is_eof</span>()<span class="question-mark">?</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+                <span class="ident">ProcessingMode::Partial</span> =&gt; {
+                    <span class="ident">rangecoder</span>.<span class="ident">is_eof</span>()<span class="question-mark">?</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="number">0</span>
                 }
-                <span class="ident">ProcessingMode::Finish</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">rangecoder</span>.<span class="ident">is_finished_ok</span>()<span class="question-mark">?</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+                <span class="ident">ProcessingMode::Finish</span> =&gt; {
+                    <span class="ident">rangecoder</span>.<span class="ident">is_finished_ok</span>()<span class="question-mark">?</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">==</span> <span class="number">0</span>
                 }
             } {
                 <span class="kw">break</span>;
@@ -1063,7 +1063,7 @@
                 <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">get_ref</span>();
 
                 <span class="comment">// Check if we need more data to advance the decompressor</span>
-                <span class="kw">if</span> <span class="ident">mode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ProcessingMode::Partial</span>
+                <span class="kw">if</span> <span class="ident">mode</span> <span class="op">==</span> <span class="ident">ProcessingMode::Partial</span>
                     <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">MAX_REQUIRED_INPUT</span>
                     <span class="op">&amp;&amp;</span> <span class="self">self</span>
                         .<span class="ident">try_process_next</span>(
@@ -1096,12 +1096,12 @@
                     .<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[<span class="ident">tmp_reader</span>.<span class="ident">position</span>() <span class="kw">as</span> <span class="ident">usize</span>..<span class="ident">end</span> <span class="kw">as</span> <span class="ident">usize</span>]);
                 <span class="self">self</span>.<span class="ident">partial_input_buf</span>.<span class="ident">set_position</span>(<span class="ident">new_len</span>);
 
-                <span class="kw">if</span> <span class="ident">res</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ProcessingStatus::Finished</span> {
+                <span class="kw">if</span> <span class="ident">res</span> <span class="op">==</span> <span class="ident">ProcessingStatus::Finished</span> {
                     <span class="kw">break</span>;
                 };
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="ident">rangecoder</span>.<span class="ident">stream</span>.<span class="ident">fill_buf</span>()<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">mode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ProcessingMode::Partial</span>
+                <span class="kw">if</span> <span class="ident">mode</span> <span class="op">==</span> <span class="ident">ProcessingMode::Partial</span>
                     <span class="op">&amp;&amp;</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">MAX_REQUIRED_INPUT</span>
                     <span class="op">&amp;&amp;</span> <span class="self">self</span>
                         .<span class="ident">try_process_next</span>(<span class="ident">buf</span>, <span class="ident">rangecoder</span>.<span class="ident">range</span>, <span class="ident">rangecoder</span>.<span class="ident">code</span>)
@@ -1110,14 +1110,14 @@
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">read_partial_input_buf</span>(<span class="ident">rangecoder</span>);
                 }
 
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">process_next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder</span>)<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ProcessingStatus::Finished</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">process_next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="ident">ProcessingStatus::Finished</span> {
                     <span class="kw">break</span>;
                 };
             }
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">len</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">unpacked_size</span> {
-            <span class="kw">if</span> <span class="ident">mode</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ProcessingMode::Finish</span> <span class="op">&amp;&amp;</span> <span class="ident">len</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">output</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> {
+            <span class="kw">if</span> <span class="ident">mode</span> <span class="op">==</span> <span class="ident">ProcessingMode::Finish</span> <span class="op">&amp;&amp;</span> <span class="ident">len</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">output</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error::Error::LzmaError</span>(<span class="macro">format!</span>(
                     <span class="string">&quot;Expected unpacked size of {} but decompressed to {}&quot;</span>,
                     <span class="ident">len</span>,
@@ -1133,7 +1133,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
         <span class="ident">update</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">def_prev_byte</span> <span class="op">=</span> <span class="number">0u8</span>;
         <span class="kw">let</span> <span class="ident">prev_byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">output</span>.<span class="ident">last_or</span>(<span class="ident">def_prev_byte</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
@@ -1170,7 +1170,7 @@
         <span class="ident">rangecoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rangecoder::RangeDecoder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>,
         <span class="ident">length</span>: <span class="ident">usize</span>,
         <span class="ident">update</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len_state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="number">3</span> { <span class="number">3</span> } <span class="kw">else</span> { <span class="ident">length</span> };
 
         <span class="kw">let</span> <span class="ident">pos_slot</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pos_slot_decoder</span>[<span class="ident">len_state</span>].<span class="ident">parse</span>(<span class="ident">rangecoder</span>, <span class="ident">update</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;

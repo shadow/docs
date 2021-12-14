@@ -220,24 +220,24 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">JsonSchema</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="macro">no_ref_schema!</span>();
 
-    <span class="kw">fn</span> <span class="ident">schema_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">schema_name</span>() -&gt; <span class="ident">String</span> {
         <span class="macro">format!</span>(<span class="string">&quot;Nullable_{}&quot;</span>, <span class="ident">T::schema_name</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Schema</span> {
+    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) -&gt; <span class="ident">Schema</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">gen</span>.<span class="ident">subschema_for</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
         <span class="kw">if</span> <span class="ident">gen</span>.<span class="ident">settings</span>().<span class="ident">option_add_null_type</span> {
             <span class="ident">schema</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">schema</span> {
-                <span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>),
-                <span class="ident">Schema::Bool</span>(<span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::json_schema</span>(<span class="ident">gen</span>),
+                <span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>) =&gt; <span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>),
+                <span class="ident">Schema::Bool</span>(<span class="bool-val">false</span>) =&gt; <span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::json_schema</span>(<span class="ident">gen</span>),
                 <span class="ident">Schema::Object</span>(<span class="ident">SchemaObject</span> {
                     <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">instance_type</span>),
                     ..
-                }) <span class="op">=</span><span class="op">&gt;</span> {
+                }) =&gt; {
                     <span class="ident">add_null_type</span>(<span class="ident">instance_type</span>);
                     <span class="ident">schema</span>
                 }
-                <span class="ident">schema</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SchemaObject</span> {
+                <span class="ident">schema</span> =&gt; <span class="ident">SchemaObject</span> {
                     <span class="comment">// TODO technically the schema already accepts null, so this may be unnecessary</span>
                     <span class="ident">subschemas</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">SubschemaValidation</span> {
                         <span class="ident">any_of</span>: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="ident">schema</span>, <span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::json_schema</span>(<span class="ident">gen</span>)]),
@@ -258,31 +258,31 @@
         <span class="ident">schema</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">_schemars_private_non_optional_json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Schema</span> {
+    <span class="kw">fn</span> <span class="ident">_schemars_private_non_optional_json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) -&gt; <span class="ident">Schema</span> {
         <span class="ident">T::_schemars_private_non_optional_json_schema</span>(<span class="ident">gen</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">_schemars_private_is_option</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">_schemars_private_is_option</span>() -&gt; <span class="ident">bool</span> {
         <span class="bool-val">true</span>
     }
 }
 
 <span class="kw">fn</span> <span class="ident">add_null_type</span>(<span class="ident">instance_type</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SingleOrVec</span><span class="op">&lt;</span><span class="ident">InstanceType</span><span class="op">&gt;</span>) {
     <span class="kw">match</span> <span class="ident">instance_type</span> {
-        <span class="ident">SingleOrVec::Single</span>(<span class="ident">ty</span>) <span class="kw">if</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">ty</span> <span class="op">!</span><span class="op">=</span> <span class="ident">InstanceType::Null</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">SingleOrVec::Single</span>(<span class="ident">ty</span>) <span class="kw">if</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">ty</span> <span class="op">!</span><span class="op">=</span> <span class="ident">InstanceType::Null</span> =&gt; {
             <span class="kw-2">*</span><span class="ident">instance_type</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">ty</span>, <span class="ident">InstanceType::Null</span>].<span class="ident">into</span>()
         }
-        <span class="ident">SingleOrVec::Vec</span>(<span class="ident">ty</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">ty</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">InstanceType::Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ty</span>.<span class="ident">push</span>(<span class="ident">InstanceType::Null</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+        <span class="ident">SingleOrVec::Vec</span>(<span class="ident">ty</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">ty</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">InstanceType::Null</span>) =&gt; <span class="ident">ty</span>.<span class="ident">push</span>(<span class="ident">InstanceType::Null</span>),
+        <span class="kw">_</span> =&gt; {}
     };
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">JsonSchema</span>, <span class="ident">E</span>: <span class="ident">JsonSchema</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">schema_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">schema_name</span>() -&gt; <span class="ident">String</span> {
         <span class="macro">format!</span>(<span class="string">&quot;Result_of_{}_or_{}&quot;</span>, <span class="ident">T::schema_name</span>(), <span class="ident">E::schema_name</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Schema</span> {
+    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) -&gt; <span class="ident">Schema</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ok_schema</span> <span class="op">=</span> <span class="ident">SchemaObject</span> {
             <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType::Object</span>.<span class="ident">into</span>()),
             ..<span class="ident">Default::default</span>()
@@ -308,11 +308,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">JsonSchema</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">Bound</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">schema_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">schema_name</span>() -&gt; <span class="ident">String</span> {
         <span class="macro">format!</span>(<span class="string">&quot;Bound_of_{}&quot;</span>, <span class="ident">T::schema_name</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Schema</span> {
+    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) -&gt; <span class="ident">Schema</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">included_schema</span> <span class="op">=</span> <span class="ident">SchemaObject</span> {
             <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType::Object</span>.<span class="ident">into</span>()),
             ..<span class="ident">Default::default</span>()
@@ -348,11 +348,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">JsonSchema</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">schema_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">fn</span> <span class="ident">schema_name</span>() -&gt; <span class="ident">String</span> {
         <span class="macro">format!</span>(<span class="string">&quot;Range_of_{}&quot;</span>, <span class="ident">T::schema_name</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Schema</span> {
+    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>) -&gt; <span class="ident">Schema</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">SchemaObject</span> {
             <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType::Object</span>.<span class="ident">into</span>()),
             ..<span class="ident">Default::default</span>()
@@ -368,11 +368,11 @@
     }
 }
 
-<span class="macro">forward_impl!</span>((<span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">JsonSchema</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="macro">forward_impl!</span>((<span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">JsonSchema</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) =&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
-<span class="macro">forward_impl!</span>((<span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">std::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">=</span><span class="op">&gt;</span> ());
+<span class="macro">forward_impl!</span>((<span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">std::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) =&gt; ());
 
-<span class="macro">forward_impl!</span>((<span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">std::fmt::Arguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">String</span>);
+<span class="macro">forward_impl!</span>((<span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="ident">std::fmt::Arguments</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) =&gt; <span class="ident">String</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {

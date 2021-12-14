@@ -864,10 +864,10 @@ assert_eq!(
 <span class="doccomment">/// SI prefixes (nano, micro, milli, etc).</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Prefix</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Default</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">FromStr</span> <span class="op">+</span> <span class="ident">Display</span> <span class="op">+</span> <span class="ident">Debug</span> {
     <span class="doccomment">/// The magnitude of this prefix relative to other prefixes of this type.</span>
-    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span>;
+    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u128</span>;
 
     <span class="doccomment">/// An integer conversion factor.</span>
-    <span class="kw">fn</span> <span class="ident">conversion_factor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">to</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u128</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">conversion_factor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">to</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u128</span>, <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">from_mag</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">relative_magnitude</span>();
         <span class="kw">let</span> <span class="ident">to_mag</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">relative_magnitude</span>();
         <span class="kw">if</span> <span class="ident">from_mag</span> <span class="op">%</span> <span class="ident">to_mag</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
@@ -877,7 +877,7 @@ assert_eq!(
     }
 
     <span class="doccomment">/// A floating point conversion factor.</span>
-    <span class="kw">fn</span> <span class="ident">conversion_factor_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">to</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span> {
+    <span class="kw">fn</span> <span class="ident">conversion_factor_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">to</span>: <span class="self">Self</span>) -&gt; <span class="ident">f64</span> {
         <span class="kw">let</span> <span class="ident">from_mag</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">relative_magnitude</span>();
         <span class="kw">let</span> <span class="ident">to_mag</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">relative_magnitude</span>();
         <span class="ident">from_mag</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> <span class="ident">to_mag</span> <span class="kw">as</span> <span class="ident">f64</span>
@@ -902,7 +902,7 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">SiPrefix</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Base</span>
     }
 }
@@ -910,20 +910,20 @@ assert_eq!(
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">SiPrefix</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;n&quot;</span> <span class="op">|</span> <span class="string">&quot;nano&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Nano</span>),
-            <span class="string">&quot;u&quot;</span> <span class="op">|</span> <span class="string">&quot;μ&quot;</span> <span class="op">|</span> <span class="string">&quot;micro&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Micro</span>),
-            <span class="string">&quot;m&quot;</span> <span class="op">|</span> <span class="string">&quot;milli&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Milli</span>),
-            <span class="string">&quot;K&quot;</span> <span class="op">|</span> <span class="string">&quot;kilo&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kilo</span>),
-            <span class="string">&quot;Ki&quot;</span> <span class="op">|</span> <span class="string">&quot;kibi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kibi</span>),
-            <span class="string">&quot;M&quot;</span> <span class="op">|</span> <span class="string">&quot;mega&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mega</span>),
-            <span class="string">&quot;Mi&quot;</span> <span class="op">|</span> <span class="string">&quot;mebi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mebi</span>),
-            <span class="string">&quot;G&quot;</span> <span class="op">|</span> <span class="string">&quot;giga&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Giga</span>),
-            <span class="string">&quot;Gi&quot;</span> <span class="op">|</span> <span class="string">&quot;gibi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Gibi</span>),
-            <span class="string">&quot;T&quot;</span> <span class="op">|</span> <span class="string">&quot;tera&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tera</span>),
-            <span class="string">&quot;Ti&quot;</span> <span class="op">|</span> <span class="string">&quot;tebi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tebi</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(
+            <span class="string">&quot;n&quot;</span> <span class="op">|</span> <span class="string">&quot;nano&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Nano</span>),
+            <span class="string">&quot;u&quot;</span> <span class="op">|</span> <span class="string">&quot;μ&quot;</span> <span class="op">|</span> <span class="string">&quot;micro&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Micro</span>),
+            <span class="string">&quot;m&quot;</span> <span class="op">|</span> <span class="string">&quot;milli&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Milli</span>),
+            <span class="string">&quot;K&quot;</span> <span class="op">|</span> <span class="string">&quot;kilo&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kilo</span>),
+            <span class="string">&quot;Ki&quot;</span> <span class="op">|</span> <span class="string">&quot;kibi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kibi</span>),
+            <span class="string">&quot;M&quot;</span> <span class="op">|</span> <span class="string">&quot;mega&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mega</span>),
+            <span class="string">&quot;Mi&quot;</span> <span class="op">|</span> <span class="string">&quot;mebi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mebi</span>),
+            <span class="string">&quot;G&quot;</span> <span class="op">|</span> <span class="string">&quot;giga&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Giga</span>),
+            <span class="string">&quot;Gi&quot;</span> <span class="op">|</span> <span class="string">&quot;gibi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Gibi</span>),
+            <span class="string">&quot;T&quot;</span> <span class="op">|</span> <span class="string">&quot;tera&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tera</span>),
+            <span class="string">&quot;Ti&quot;</span> <span class="op">|</span> <span class="string">&quot;tebi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tebi</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(
                 <span class="string">&quot;Unit prefix was not one of (n|nano|u|μ|micro|m|milli|K|kilo\
                 |Ki|kibi|M|mega|Mi|mebi|G|giga|Gi|gibi|T|tera|Ti|tebi)&quot;</span>
                     .<span class="ident">to_string</span>(),
@@ -933,42 +933,42 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">SiPrefix</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Nano</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;n&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Micro</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;μ&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Milli</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;m&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Kilo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;K&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Kibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ki&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Mega</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;M&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Mebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Mi&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Giga</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;G&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Gibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Gi&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Tera</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;T&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Tebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ti&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Base</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+            <span class="ident"><span class="self">Self</span>::Nano</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;n&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Micro</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;μ&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Milli</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;m&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Kilo</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;K&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Kibi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ki&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Mega</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;M&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Mebi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Mi&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Giga</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;G&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Gibi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Gi&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Tera</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;T&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Tebi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ti&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Base</span> =&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Prefix</span> <span class="kw">for</span> <span class="ident">SiPrefix</span> {
-    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
+    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u128</span> {
         <span class="kw">const</span> <span class="ident">TEN</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">10</span>;
         <span class="kw">const</span> <span class="ident">TWO</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">2</span>;
         <span class="kw">const</span> <span class="ident">BASE</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>);
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Nano</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
-            <span class="ident"><span class="self">Self</span>::Micro</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
-            <span class="ident"><span class="self">Self</span>::Milli</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
-            <span class="ident"><span class="self">Self</span>::Base</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span>,
-            <span class="ident"><span class="self">Self</span>::Kilo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
-            <span class="ident"><span class="self">Self</span>::Kibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">10</span>),
-            <span class="ident"><span class="self">Self</span>::Mega</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
-            <span class="ident"><span class="self">Self</span>::Mebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">20</span>),
-            <span class="ident"><span class="self">Self</span>::Giga</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
-            <span class="ident"><span class="self">Self</span>::Gibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">30</span>),
-            <span class="ident"><span class="self">Self</span>::Tera</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">12</span>),
-            <span class="ident"><span class="self">Self</span>::Tebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">40</span>),
+            <span class="ident"><span class="self">Self</span>::Nano</span> =&gt; <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
+            <span class="ident"><span class="self">Self</span>::Micro</span> =&gt; <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
+            <span class="ident"><span class="self">Self</span>::Milli</span> =&gt; <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
+            <span class="ident"><span class="self">Self</span>::Base</span> =&gt; <span class="ident">BASE</span>,
+            <span class="ident"><span class="self">Self</span>::Kilo</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
+            <span class="ident"><span class="self">Self</span>::Kibi</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">10</span>),
+            <span class="ident"><span class="self">Self</span>::Mega</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
+            <span class="ident"><span class="self">Self</span>::Mebi</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">20</span>),
+            <span class="ident"><span class="self">Self</span>::Giga</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
+            <span class="ident"><span class="self">Self</span>::Gibi</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">30</span>),
+            <span class="ident"><span class="self">Self</span>::Tera</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">12</span>),
+            <span class="ident"><span class="self">Self</span>::Tebi</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">40</span>),
         }
     }
 }
@@ -989,7 +989,7 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">SiPrefixUpper</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Base</span>
     }
 }
@@ -997,17 +997,17 @@ assert_eq!(
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">SiPrefixUpper</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;K&quot;</span> <span class="op">|</span> <span class="string">&quot;kilo&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kilo</span>),
-            <span class="string">&quot;Ki&quot;</span> <span class="op">|</span> <span class="string">&quot;kibi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kibi</span>),
-            <span class="string">&quot;M&quot;</span> <span class="op">|</span> <span class="string">&quot;mega&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mega</span>),
-            <span class="string">&quot;Mi&quot;</span> <span class="op">|</span> <span class="string">&quot;mebi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mebi</span>),
-            <span class="string">&quot;G&quot;</span> <span class="op">|</span> <span class="string">&quot;giga&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Giga</span>),
-            <span class="string">&quot;Gi&quot;</span> <span class="op">|</span> <span class="string">&quot;gibi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Gibi</span>),
-            <span class="string">&quot;T&quot;</span> <span class="op">|</span> <span class="string">&quot;tera&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tera</span>),
-            <span class="string">&quot;Ti&quot;</span> <span class="op">|</span> <span class="string">&quot;tebi&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tebi</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Unit prefix was not one of (K|kilo|Ki|kibi|M|mega|Mi|mebi\
+            <span class="string">&quot;K&quot;</span> <span class="op">|</span> <span class="string">&quot;kilo&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kilo</span>),
+            <span class="string">&quot;Ki&quot;</span> <span class="op">|</span> <span class="string">&quot;kibi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Kibi</span>),
+            <span class="string">&quot;M&quot;</span> <span class="op">|</span> <span class="string">&quot;mega&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mega</span>),
+            <span class="string">&quot;Mi&quot;</span> <span class="op">|</span> <span class="string">&quot;mebi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Mebi</span>),
+            <span class="string">&quot;G&quot;</span> <span class="op">|</span> <span class="string">&quot;giga&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Giga</span>),
+            <span class="string">&quot;Gi&quot;</span> <span class="op">|</span> <span class="string">&quot;gibi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Gibi</span>),
+            <span class="string">&quot;T&quot;</span> <span class="op">|</span> <span class="string">&quot;tera&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tera</span>),
+            <span class="string">&quot;Ti&quot;</span> <span class="op">|</span> <span class="string">&quot;tebi&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Tebi</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Unit prefix was not one of (K|kilo|Ki|kibi|M|mega|Mi|mebi\
                 |G|giga|Gi|gibi|T|tera|Ti|tebi)&quot;</span>
                 .<span class="ident">to_string</span>()),
         }
@@ -1015,35 +1015,35 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">SiPrefixUpper</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Kilo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;K&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Kibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ki&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Mega</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;M&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Mebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Mi&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Giga</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;G&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Gibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Gi&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Tera</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;T&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Tebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ti&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Base</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+            <span class="ident"><span class="self">Self</span>::Kilo</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;K&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Kibi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ki&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Mega</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;M&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Mebi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Mi&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Giga</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;G&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Gibi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Gi&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Tera</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;T&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Tebi</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Ti&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Base</span> =&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Prefix</span> <span class="kw">for</span> <span class="ident">SiPrefixUpper</span> {
-    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
+    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u128</span> {
         <span class="kw">const</span> <span class="ident">TEN</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">10</span>;
         <span class="kw">const</span> <span class="ident">TWO</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">2</span>;
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Base</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident"><span class="self">Self</span>::Kilo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
-            <span class="ident"><span class="self">Self</span>::Kibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">10</span>),
-            <span class="ident"><span class="self">Self</span>::Mega</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
-            <span class="ident"><span class="self">Self</span>::Mebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">20</span>),
-            <span class="ident"><span class="self">Self</span>::Giga</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
-            <span class="ident"><span class="self">Self</span>::Gibi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">30</span>),
-            <span class="ident"><span class="self">Self</span>::Tera</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">12</span>),
-            <span class="ident"><span class="self">Self</span>::Tebi</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">40</span>),
+            <span class="ident"><span class="self">Self</span>::Base</span> =&gt; <span class="number">1</span>,
+            <span class="ident"><span class="self">Self</span>::Kilo</span> =&gt; <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
+            <span class="ident"><span class="self">Self</span>::Kibi</span> =&gt; <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">10</span>),
+            <span class="ident"><span class="self">Self</span>::Mega</span> =&gt; <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
+            <span class="ident"><span class="self">Self</span>::Mebi</span> =&gt; <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">20</span>),
+            <span class="ident"><span class="self">Self</span>::Giga</span> =&gt; <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
+            <span class="ident"><span class="self">Self</span>::Gibi</span> =&gt; <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">30</span>),
+            <span class="ident"><span class="self">Self</span>::Tera</span> =&gt; <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">12</span>),
+            <span class="ident"><span class="self">Self</span>::Tebi</span> =&gt; <span class="ident">TWO</span>.<span class="ident">pow</span>(<span class="number">40</span>),
         }
     }
 }
@@ -1062,7 +1062,7 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TimePrefix</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Sec</span>
     }
 }
@@ -1070,15 +1070,15 @@ assert_eq!(
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">TimePrefix</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;ns&quot;</span> <span class="op">|</span> <span class="string">&quot;nanosecond&quot;</span> <span class="op">|</span> <span class="string">&quot;nanoseconds&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Nano</span>),
-            <span class="string">&quot;us&quot;</span> <span class="op">|</span> <span class="string">&quot;μs&quot;</span> <span class="op">|</span> <span class="string">&quot;microsecond&quot;</span> <span class="op">|</span> <span class="string">&quot;microseconds&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Micro</span>),
-            <span class="string">&quot;ms&quot;</span> <span class="op">|</span> <span class="string">&quot;millisecond&quot;</span> <span class="op">|</span> <span class="string">&quot;milliseconds&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Milli</span>),
-            <span class="string">&quot;s&quot;</span> <span class="op">|</span> <span class="string">&quot;sec&quot;</span> <span class="op">|</span> <span class="string">&quot;secs&quot;</span> <span class="op">|</span> <span class="string">&quot;second&quot;</span> <span class="op">|</span> <span class="string">&quot;seconds&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Sec</span>),
-            <span class="string">&quot;m&quot;</span> <span class="op">|</span> <span class="string">&quot;min&quot;</span> <span class="op">|</span> <span class="string">&quot;mins&quot;</span> <span class="op">|</span> <span class="string">&quot;minute&quot;</span> <span class="op">|</span> <span class="string">&quot;minutes&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Min</span>),
-            <span class="string">&quot;h&quot;</span> <span class="op">|</span> <span class="string">&quot;hr&quot;</span> <span class="op">|</span> <span class="string">&quot;hrs&quot;</span> <span class="op">|</span> <span class="string">&quot;hour&quot;</span> <span class="op">|</span> <span class="string">&quot;hours&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Hour</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(
+            <span class="string">&quot;ns&quot;</span> <span class="op">|</span> <span class="string">&quot;nanosecond&quot;</span> <span class="op">|</span> <span class="string">&quot;nanoseconds&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Nano</span>),
+            <span class="string">&quot;us&quot;</span> <span class="op">|</span> <span class="string">&quot;μs&quot;</span> <span class="op">|</span> <span class="string">&quot;microsecond&quot;</span> <span class="op">|</span> <span class="string">&quot;microseconds&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Micro</span>),
+            <span class="string">&quot;ms&quot;</span> <span class="op">|</span> <span class="string">&quot;millisecond&quot;</span> <span class="op">|</span> <span class="string">&quot;milliseconds&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Milli</span>),
+            <span class="string">&quot;s&quot;</span> <span class="op">|</span> <span class="string">&quot;sec&quot;</span> <span class="op">|</span> <span class="string">&quot;secs&quot;</span> <span class="op">|</span> <span class="string">&quot;second&quot;</span> <span class="op">|</span> <span class="string">&quot;seconds&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Sec</span>),
+            <span class="string">&quot;m&quot;</span> <span class="op">|</span> <span class="string">&quot;min&quot;</span> <span class="op">|</span> <span class="string">&quot;mins&quot;</span> <span class="op">|</span> <span class="string">&quot;minute&quot;</span> <span class="op">|</span> <span class="string">&quot;minutes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Min</span>),
+            <span class="string">&quot;h&quot;</span> <span class="op">|</span> <span class="string">&quot;hr&quot;</span> <span class="op">|</span> <span class="string">&quot;hrs&quot;</span> <span class="op">|</span> <span class="string">&quot;hour&quot;</span> <span class="op">|</span> <span class="string">&quot;hours&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Hour</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(
                 <span class="string">&quot;Unit was not one of (ns|nanosecond|nanoseconds|us|μs|microsecond|microseconds\
                 |ms|millisecond|milliseconds|s|sec|secs|second|seconds|m|min|mins|minute|minutes\
                 |h|hr|hrs|hour|hours)&quot;</span>
@@ -1089,29 +1089,29 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">TimePrefix</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Nano</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ns&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Micro</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;μs&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Milli</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ms&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;sec&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Min</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;min&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Hour</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;hour&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Nano</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ns&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Micro</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;μs&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Milli</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ms&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Sec</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;sec&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Min</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;min&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Hour</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;hour&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Prefix</span> <span class="kw">for</span> <span class="ident">TimePrefix</span> {
-    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
+    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u128</span> {
         <span class="kw">const</span> <span class="ident">TEN</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">10</span>;
         <span class="kw">const</span> <span class="ident">BASE</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>);
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Nano</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
-            <span class="ident"><span class="self">Self</span>::Micro</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
-            <span class="ident"><span class="self">Self</span>::Milli</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
-            <span class="ident"><span class="self">Self</span>::Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span>,
-            <span class="ident"><span class="self">Self</span>::Min</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="number">60</span>,
-            <span class="ident"><span class="self">Self</span>::Hour</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BASE</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>,
+            <span class="ident"><span class="self">Self</span>::Nano</span> =&gt; <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">9</span>),
+            <span class="ident"><span class="self">Self</span>::Micro</span> =&gt; <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">6</span>),
+            <span class="ident"><span class="self">Self</span>::Milli</span> =&gt; <span class="ident">BASE</span> <span class="op">/</span> <span class="ident">TEN</span>.<span class="ident">pow</span>(<span class="number">3</span>),
+            <span class="ident"><span class="self">Self</span>::Sec</span> =&gt; <span class="ident">BASE</span>,
+            <span class="ident"><span class="self">Self</span>::Min</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="number">60</span>,
+            <span class="ident"><span class="self">Self</span>::Hour</span> =&gt; <span class="ident">BASE</span> <span class="op">*</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>,
         }
     }
 }
@@ -1127,7 +1127,7 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TimePrefixUpper</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Sec</span>
     }
 }
@@ -1135,12 +1135,12 @@ assert_eq!(
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">TimePrefixUpper</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
 
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="string">&quot;s&quot;</span> <span class="op">|</span> <span class="string">&quot;sec&quot;</span> <span class="op">|</span> <span class="string">&quot;secs&quot;</span> <span class="op">|</span> <span class="string">&quot;second&quot;</span> <span class="op">|</span> <span class="string">&quot;seconds&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Sec</span>),
-            <span class="string">&quot;m&quot;</span> <span class="op">|</span> <span class="string">&quot;min&quot;</span> <span class="op">|</span> <span class="string">&quot;mins&quot;</span> <span class="op">|</span> <span class="string">&quot;minute&quot;</span> <span class="op">|</span> <span class="string">&quot;minutes&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Min</span>),
-            <span class="string">&quot;h&quot;</span> <span class="op">|</span> <span class="string">&quot;hr&quot;</span> <span class="op">|</span> <span class="string">&quot;hrs&quot;</span> <span class="op">|</span> <span class="string">&quot;hour&quot;</span> <span class="op">|</span> <span class="string">&quot;hours&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Hour</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Unit prefix was not one of (s|sec|secs|second|seconds\
+            <span class="string">&quot;s&quot;</span> <span class="op">|</span> <span class="string">&quot;sec&quot;</span> <span class="op">|</span> <span class="string">&quot;secs&quot;</span> <span class="op">|</span> <span class="string">&quot;second&quot;</span> <span class="op">|</span> <span class="string">&quot;seconds&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Sec</span>),
+            <span class="string">&quot;m&quot;</span> <span class="op">|</span> <span class="string">&quot;min&quot;</span> <span class="op">|</span> <span class="string">&quot;mins&quot;</span> <span class="op">|</span> <span class="string">&quot;minute&quot;</span> <span class="op">|</span> <span class="string">&quot;minutes&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Min</span>),
+            <span class="string">&quot;h&quot;</span> <span class="op">|</span> <span class="string">&quot;hr&quot;</span> <span class="op">|</span> <span class="string">&quot;hrs&quot;</span> <span class="op">|</span> <span class="string">&quot;hour&quot;</span> <span class="op">|</span> <span class="string">&quot;hours&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Hour</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Unit prefix was not one of (s|sec|secs|second|seconds\
                 |m|min|mins|minute|minutes|h|hr|hrs|hour|hours)&quot;</span>
                 .<span class="ident">to_string</span>()),
         }
@@ -1148,28 +1148,28 @@ assert_eq!(
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">TimePrefixUpper</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;sec&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Min</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;min&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Hour</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;hour&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Sec</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;sec&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Min</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;min&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Hour</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;hour&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Prefix</span> <span class="kw">for</span> <span class="ident">TimePrefixUpper</span> {
-    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
+    <span class="kw">fn</span> <span class="ident">relative_magnitude</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u128</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Sec</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident"><span class="self">Self</span>::Min</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">60</span>,
-            <span class="ident"><span class="self">Self</span>::Hour</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>,
+            <span class="ident"><span class="self">Self</span>::Sec</span> =&gt; <span class="number">1</span>,
+            <span class="ident"><span class="self">Self</span>::Min</span> =&gt; <span class="number">60</span>,
+            <span class="ident"><span class="self">Self</span>::Hour</span> =&gt; <span class="number">60</span> <span class="op">*</span> <span class="number">60</span>,
         }
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">visit_fn</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">Self::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">x</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="macro-nonterminal">Self::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">E</span>: <span class="ident">serde::de::Error</span>,
         {
@@ -1182,15 +1182,15 @@ assert_eq!(
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">unit_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">suffixes</span>:<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">suffixes</span>:<span class="ident">tt</span>) =&gt; {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>, <span class="macro-nonterminal">prefix</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>, <span class="macro-nonterminal">prefix</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
                 <span class="self">Self</span> { <span class="ident">value</span>, <span class="ident">prefix</span> }
             }
         }
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="number">0</span>, <span class="ident">T::default</span>())
             }
         }
@@ -1199,19 +1199,19 @@ assert_eq!(
             <span class="kw">type</span> <span class="ident">U</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">type</span>;
             <span class="kw">type</span> <span class="macro-nonterminal">T</span> <span class="op">=</span> <span class="ident">T</span>;
 
-            <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::U</span> {
+            <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::U</span> {
                 <span class="self">self</span>.<span class="ident">value</span>
             }
 
-            <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::T</span> {
+            <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::T</span> {
                 <span class="self">self</span>.<span class="ident">prefix</span>
             }
 
-            <span class="kw">fn</span> <span class="ident">suffixes</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>] {
+            <span class="kw">fn</span> <span class="ident">suffixes</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>] {
                 <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">suffixes</span>
             }
 
-            <span class="kw">fn</span> <span class="ident">convert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">convert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">factor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefix</span>.<span class="ident">conversion_factor</span>(<span class="ident">prefix</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">factor</span> <span class="op">=</span> <span class="ident">factor</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(
@@ -1224,7 +1224,7 @@ assert_eq!(
                 ))
             }
 
-            <span class="kw">fn</span> <span class="ident">convert_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">convert_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) -&gt; <span class="self">Self</span> {
                 <span class="kw">let</span> <span class="ident">factor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefix</span>.<span class="ident">conversion_factor_lossy</span>(<span class="ident">prefix</span>);
                 <span class="ident"><span class="self">Self</span>::new</span>(
                     (<span class="self">self</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> <span class="ident">factor</span>).<span class="ident">round</span>() <span class="kw">as</span> <span class="ident"><span class="self">Self</span>::U</span>,
@@ -1234,7 +1234,7 @@ assert_eq!(
         }
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {}{}&quot;</span>, <span class="self">self</span>.<span class="ident">value</span>(), <span class="self">self</span>.<span class="ident">prefix</span>(), <span class="ident"><span class="self">Self</span>::suffixes</span>()[<span class="number">0</span>])
             }
         }
@@ -1245,7 +1245,7 @@ assert_eq!(
         {
             <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>;
 
-            <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
                 <span class="kw">static</span> <span class="ident">RE</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Regex</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Regex::new</span>(<span class="string">r&quot;^([+-]?[0-9\.]*)\s*(.*)$&quot;</span>).<span class="ident">unwrap</span>());
 
                 <span class="kw">let</span> <span class="ident">captures</span> <span class="op">=</span> <span class="ident">RE</span>.<span class="ident">captures</span>(<span class="ident">s</span>).<span class="ident">ok_or</span>(<span class="string">&quot;Unable to identify value and unit&quot;</span>)<span class="question-mark">?</span>;
@@ -1264,8 +1264,8 @@ assert_eq!(
                     .<span class="ident">unwrap</span>();
 
                 <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">prefix</span> {
-                    <span class="string">&quot;&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">T::default</span>(),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">T::from_str</span>(<span class="ident">prefix</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>,
+                    <span class="string">&quot;&quot;</span> =&gt; <span class="ident">T::default</span>(),
+                    <span class="kw">_</span> =&gt; <span class="ident">T::from_str</span>(<span class="ident">prefix</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>,
                 };
 
                 <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name::new</span>(
@@ -1279,7 +1279,7 @@ assert_eq!(
         <span class="kw">where</span>
             <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span>: <span class="ident">std::fmt::Debug</span> <span class="op">+</span> <span class="ident">std::fmt::Display</span>,
         {
-            <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
             {
@@ -1293,11 +1293,11 @@ assert_eq!(
                 {
                     <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
-                    <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+                    <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
                         <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="macro">stringify!</span>(<span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>))
                     }
 
-                    <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+                    <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
                     <span class="kw">where</span>
                         <span class="ident">E</span>: <span class="ident">serde::de::Error</span>,
                     {
@@ -1319,7 +1319,7 @@ assert_eq!(
         }
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
             <span class="kw">where</span>
                 <span class="ident">S</span>: <span class="ident">Serializer</span>,
             {
@@ -1328,13 +1328,13 @@ assert_eq!(
         }
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Prefix</span><span class="op">&gt;</span> <span class="ident">JsonSchema</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">is_referenceable</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { <span class="bool-val">false</span> }
+            <span class="kw">fn</span> <span class="ident">is_referenceable</span>() -&gt; <span class="ident">bool</span> { <span class="bool-val">false</span> }
 
-            <span class="kw">fn</span> <span class="ident">schema_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+            <span class="kw">fn</span> <span class="ident">schema_name</span>() -&gt; <span class="ident">String</span> {
                 <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>).<span class="ident">to_owned</span>()
             }
 
-            <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">schemars::schema::Schema</span> {
+            <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) -&gt; <span class="ident">schemars::schema::Schema</span> {
                 <span class="ident">schemars::schema::SchemaObject</span> {
                     <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">schemars::schema::InstanceType::String</span>.<span class="ident">into</span>()),
                     <span class="ident">format</span>: <span class="prelude-val">Some</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>).<span class="ident">to_owned</span>()),
@@ -1353,21 +1353,21 @@ assert_eq!(
     <span class="kw">type</span> <span class="ident">T</span>: <span class="ident">Prefix</span>;
 
     <span class="doccomment">/// The value of the unit in the size of its current prefix.</span>
-    <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::U</span>;
+    <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::U</span>;
 
     <span class="doccomment">/// The current prefix.</span>
-    <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::T</span>;
+    <span class="kw">fn</span> <span class="ident">prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::T</span>;
 
-    <span class="kw">fn</span> <span class="ident">suffixes</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>];
+    <span class="kw">fn</span> <span class="ident">suffixes</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>];
 
     <span class="doccomment">/// Convert value to a different prefix, but return an error if the conversion</span>
     <span class="doccomment">/// cannot be done without possibly losing precision.</span>
-    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">convert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>;
 
     <span class="doccomment">/// Convert value to a different prefix, even if it loses precision.</span>
-    <span class="kw">fn</span> <span class="ident">convert_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">convert_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prefix</span>: <span class="ident"><span class="self">Self</span>::T</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>;
 }
@@ -1385,13 +1385,13 @@ assert_eq!(
 <span class="macro">unit_impl!</span>(<span class="ident">Time</span>, <span class="ident">u64</span>, [<span class="string">&quot;&quot;</span>]);
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">std::time::Duration</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefix</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefix</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">std::time::Duration::from_nanos</span>(<span class="ident">time</span>.<span class="ident">convert</span>(<span class="ident">TimePrefix::Nano</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">std::time::Duration</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefixUpper</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">time</span>: <span class="ident">Time</span><span class="op">&lt;</span><span class="ident">TimePrefixUpper</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">std::time::Duration::from_secs</span>(<span class="ident">time</span>.<span class="ident">convert</span>(<span class="ident">TimePrefixUpper::Sec</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>())
     }
 }
@@ -1612,28 +1612,28 @@ assert_eq!(
 
     <span class="doccomment">/// Parses a string as bits-per-second. Returns &#39;-1&#39; on error.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">parse_bandwidth</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">parse_bandwidth</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::c_char</span>) -&gt; <span class="ident">i64</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">s</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">std::ffi::CStr::from_ptr</span>(<span class="ident">s</span>) }.<span class="ident">to_str</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_string</span>());
                 <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>;
             }
         };
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">BitsPerSec::from_str</span>(<span class="ident">s</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">SiPrefixUpper::Base</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">SiPrefixUpper::Base</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_string</span>());
                 <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>;
             }
         };
 
         <span class="kw">let</span> <span class="ident">rv</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">try_into</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_string</span>());
                 <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>;
             }
@@ -1644,28 +1644,28 @@ assert_eq!(
 
     <span class="doccomment">/// Parses a string as a time in nanoseconds. Returns &#39;-1&#39; on error.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">parse_time_nanosec</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">parse_time_nanosec</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::c_char</span>) -&gt; <span class="ident">i64</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">s</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">std::ffi::CStr::from_ptr</span>(<span class="ident">s</span>) }.<span class="ident">to_str</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_string</span>());
                 <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>;
             }
         };
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Time::from_str</span>(<span class="ident">s</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">TimePrefix::Nano</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>(),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">TimePrefix::Nano</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_string</span>());
                 <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>;
             }
         };
 
         <span class="kw">let</span> <span class="ident">rv</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">try_into</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_string</span>());
                 <span class="kw">return</span> <span class="op">-</span><span class="number">1</span>;
             }

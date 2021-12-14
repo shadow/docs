@@ -271,7 +271,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 
 <span class="doccomment">/// Main entry point for the simulator.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_shadow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_shadow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span><span class="op">&gt;</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">c::main_checkGlibVersion</span>() } <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Unsupported GLib version&quot;</span>));
     }
@@ -286,8 +286,8 @@
 
     <span class="comment">// parse the options from the command line</span>
     <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">CliOptions::try_parse_from</span>(<span class="ident">args</span>.<span class="ident">clone</span>()) {
-        <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
             <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">use_stderr</span>() {
                 <span class="macro">eprint!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>);
                 <span class="ident">std::process::exit</span>(<span class="number">1</span>);
@@ -311,8 +311,8 @@
 
     <span class="comment">// read from stdin if the config filename is given as &#39;-&#39;</span>
     <span class="kw">let</span> <span class="ident">config_filename</span>: <span class="ident">String</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">options</span>.<span class="ident">config</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">as_str</span>() {
-        <span class="string">&quot;-&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;/dev/stdin&quot;</span>,
-        <span class="ident">x</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+        <span class="string">&quot;-&quot;</span> =&gt; <span class="string">&quot;/dev/stdin&quot;</span>,
+        <span class="ident">x</span> =&gt; <span class="ident">x</span>,
     }
     .<span class="ident">into</span>();
 
@@ -379,8 +379,8 @@
     <span class="comment">// one to improve determinism in cases when an executable under simulation</span>
     <span class="comment">// branch on memory addresses.</span>
     <span class="kw">match</span> <span class="ident">disable_aslr</span>() {
-        <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">log::debug!</span>(<span class="string">&quot;ASLR disabled for processes forked from this parent process&quot;</span>),
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">log::warn!</span>(<span class="string">&quot;Could not disable address space layout randomization. This may affect determinism: {:?}&quot;</span>, <span class="ident">e</span>),
+        <span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">log::debug!</span>(<span class="string">&quot;ASLR disabled for processes forked from this parent process&quot;</span>),
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">log::warn!</span>(<span class="string">&quot;Could not disable address space layout randomization. This may affect determinism: {:?}&quot;</span>, <span class="ident">e</span>),
     };
 
     <span class="comment">// check sidechannel mitigations</span>
@@ -421,7 +421,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">pause_for_gdb_attach</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">pause_for_gdb_attach</span>() -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="ident">nix::unistd::getpid</span>();
     <span class="macro">log::info!</span>(
         <span class="string">&quot;Pausing with SIGTSTP to enable debugger attachment (pid {})&quot;</span>,
@@ -438,7 +438,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">set_sched_fifo</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">set_sched_fifo</span>() -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">param</span>: <span class="ident">libc::sched_param</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
     <span class="ident">param</span>.<span class="ident">sched_priority</span> <span class="op">=</span> <span class="number">1</span>;
 
@@ -452,13 +452,13 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">raise_rlimit</span>(<span class="ident">resource</span>: <span class="ident">resource::Resource</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">raise_rlimit</span>(<span class="ident">resource</span>: <span class="ident">resource::Resource</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> (<span class="ident">_soft_limit</span>, <span class="ident">hard_limit</span>) <span class="op">=</span> <span class="ident">resource::getrlimit</span>(<span class="ident">resource</span>)<span class="question-mark">?</span>;
     <span class="ident">resource::setrlimit</span>(<span class="ident">resource</span>, <span class="ident">hard_limit</span>, <span class="ident">hard_limit</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">disable_aslr</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">disable_aslr</span>() -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">pers</span> <span class="op">=</span> <span class="ident">personality::get</span>()<span class="question-mark">?</span>;
     <span class="ident">personality::set</span>(<span class="ident">pers</span> <span class="op">|</span> <span class="ident">personality::Persona::ADDR_NO_RANDOMIZE</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
@@ -471,10 +471,10 @@
 
     <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">std::env::vars_os</span>() {
         <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span>.<span class="ident">to_string_lossy</span>().<span class="ident">borrow</span>() {
-            <span class="string">&quot;LD_PRELOAD&quot;</span> <span class="op">|</span> <span class="string">&quot;SHADOW_SPAWNED&quot;</span> <span class="op">|</span> <span class="string">&quot;LD_STATIC_TLS_EXTRA&quot;</span> <span class="op">|</span> <span class="string">&quot;G_DEBUG&quot;</span> <span class="op">|</span> <span class="string">&quot;G_SLICE&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="string">&quot;LD_PRELOAD&quot;</span> <span class="op">|</span> <span class="string">&quot;SHADOW_SPAWNED&quot;</span> <span class="op">|</span> <span class="string">&quot;LD_STATIC_TLS_EXTRA&quot;</span> <span class="op">|</span> <span class="string">&quot;G_DEBUG&quot;</span> <span class="op">|</span> <span class="string">&quot;G_SLICE&quot;</span> =&gt; {
                 <span class="ident">log::Level::Info</span>
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">log::Level::Trace</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">log::Level::Trace</span>,
         };
         <span class="macro">log::log!</span>(<span class="ident">level</span>, <span class="string">&quot;env: {:?}={:?}&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>);
     }
@@ -487,7 +487,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">main_runShadow</span>(
         <span class="ident">argc</span>: <span class="ident">libc::c_int</span>,
         <span class="ident">argv</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::c_char</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> {
+    ) -&gt; <span class="ident">libc::c_int</span> {
         <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">argc</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="kw-2">*</span><span class="ident">argv</span>.<span class="ident">add</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span>)) });
         <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">OsStr::from_bytes</span>(<span class="ident">x</span>.<span class="ident">to_bytes</span>()));
 

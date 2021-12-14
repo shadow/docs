@@ -543,13 +543,13 @@
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Parser</span>: <span class="ident">FromArgMatches</span> <span class="op">+</span> <span class="ident">IntoApp</span> <span class="op">+</span> <span class="ident">Sized</span> {
     <span class="doccomment">/// Parse from `std::env::args_os()`, exit on error</span>
-    <span class="kw">fn</span> <span class="ident">parse</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoApp</span><span class="op">&gt;</span><span class="ident">::into_app</span>().<span class="ident">get_matches</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span>
             <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>).<span class="ident">map_err</span>(<span class="ident">format_error</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
         <span class="kw">match</span> <span class="ident">res</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="comment">// Since this is more of a development-time error, we aren&#39;t doing as fancy of a quit</span>
                 <span class="comment">// as `get_matches`</span>
                 <span class="ident">e</span>.<span class="ident">exit</span>()
@@ -558,13 +558,13 @@
     }
 
     <span class="doccomment">/// Parse from `std::env::args_os()`, return Err on error.</span>
-    <span class="kw">fn</span> <span class="ident">try_parse</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_parse</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoApp</span><span class="op">&gt;</span><span class="ident">::into_app</span>().<span class="ident">try_get_matches</span>()<span class="question-mark">?</span>;
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>).<span class="ident">map_err</span>(<span class="ident">format_error</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)
     }
 
     <span class="doccomment">/// Parse from iterator, exit on error</span>
-    <span class="kw">fn</span> <span class="ident">parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="comment">// TODO (@CreepySkeleton): discover a way to avoid cloning here</span>
@@ -574,8 +574,8 @@
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span>
             <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches</span>(<span class="kw-2">&amp;</span><span class="ident">matches</span>).<span class="ident">map_err</span>(<span class="ident">format_error</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>);
         <span class="kw">match</span> <span class="ident">res</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="comment">// Since this is more of a development-time error, we aren&#39;t doing as fancy of a quit</span>
                 <span class="comment">// as `get_matches_from`</span>
                 <span class="ident">e</span>.<span class="ident">exit</span>()
@@ -584,7 +584,7 @@
     }
 
     <span class="doccomment">/// Parse from iterator, return Err on error.</span>
-    <span class="kw">fn</span> <span class="ident">try_parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="comment">// TODO (@CreepySkeleton): discover a way to avoid cloning here</span>
@@ -613,7 +613,7 @@
     }
 
     <span class="doccomment">/// Update from iterator, return Err on error.</span>
-    <span class="kw">fn</span> <span class="ident">try_update_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">itr</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_update_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="comment">// TODO (@CreepySkeleton): discover a way to avoid cloning here</span>
@@ -630,7 +630,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::clap` is replaced with `IntoApp::into_app` (derived as part of `Parser`)&quot;</span>
     )]</span>
-    <span class="kw">fn</span> <span class="ident">clap</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">clap</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">IntoApp</span><span class="op">&gt;</span><span class="ident">::into_app</span>()
     }
 
@@ -640,7 +640,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::clap` is replaced with `IntoApp::into_app` (derived as part of `Parser`)&quot;</span>
     )]</span>
-    <span class="kw">fn</span> <span class="ident">from_clap</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_clap</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) -&gt; <span class="self">Self</span> {
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches</span>(<span class="ident">matches</span>).<span class="ident">unwrap</span>()
     }
 
@@ -649,7 +649,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_args` is replaced with `Parser::parse` (note the change in derives)&quot;</span>
     )]</span>
-    <span class="kw">fn</span> <span class="ident">from_args</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_args</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::parse</span>()
     }
 
@@ -658,7 +658,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_args_safe` is replaced with `Parser::try_parse` (note the change in derives)&quot;</span>
     )]</span>
-    <span class="kw">fn</span> <span class="ident">from_args_safe</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_args_safe</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::try_parse</span>()
     }
 
@@ -667,7 +667,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_iter` is replaced with `Parser::parse_from` (note the change in derives)&quot;</span>
     )]</span>
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="comment">// TODO (@CreepySkeleton): discover a way to avoid cloning here</span>
@@ -682,7 +682,7 @@
         <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_iter_safe` is replaced with `Parser::try_parse_from` (note the change in derives)&quot;</span>
     )]</span>
-    <span class="kw">fn</span> <span class="ident">from_iter_safe</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">from_iter_safe</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="comment">// TODO (@CreepySkeleton): discover a way to avoid cloning here</span>
@@ -697,11 +697,11 @@
     <span class="doccomment">/// Build an [`App`] that can instantiate `Self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [`FromArgMatches::from_arg_matches`] for instantiating `Self`.</span>
-    <span class="kw">fn</span> <span class="ident">into_app</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">into_app</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>;
     <span class="doccomment">/// Build an [`App`] that can update `self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [`FromArgMatches::update_from_arg_matches`] for updating `self`.</span>
-    <span class="kw">fn</span> <span class="ident">into_app_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">into_app_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Converts an instance of [`ArgMatches`] to a user-defined container.</span>
@@ -738,10 +738,10 @@
     <span class="doccomment">///    }</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">from_arg_matches</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">from_arg_matches</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Assign values from `ArgMatches` to `self`.</span>
-    <span class="kw">fn</span> <span class="ident">update_from_arg_matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">update_from_arg_matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Parse arguments into a user-defined container.</span>
@@ -773,13 +773,13 @@
     <span class="doccomment">/// Append to [`App`] so it can instantiate `Self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`IntoApp`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
     <span class="doccomment">/// Append to [`App`] so it can update `self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is used to implement `#[clap(flatten)]`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`IntoApp`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Parse a sub-command into a user-defined enum.</span>
@@ -811,15 +811,15 @@
     <span class="doccomment">/// Append to [`App`] so it can instantiate `Self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`IntoApp`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
     <span class="doccomment">/// Append to [`App`] so it can update `self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is used to implement `#[clap(flatten)]`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`IntoApp`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
     <span class="doccomment">/// Test whether `Self` can parse a specific subcommand</span>
-    <span class="kw">fn</span> <span class="ident">has_subcommand</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">has_subcommand</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span>;
 }
 
 <span class="doccomment">/// Parse arguments into enums.</span>
@@ -848,10 +848,10 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ArgEnum</span>: <span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Clone</span> {
     <span class="doccomment">/// All possible argument values, in display order.</span>
-    <span class="kw">fn</span> <span class="ident">value_variants</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="self">Self</span>];
+    <span class="kw">fn</span> <span class="ident">value_variants</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="self">Self</span>];
 
     <span class="doccomment">/// Parse an argument into `Self`.</span>
-    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ignore_case</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">ignore_case</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::value_variants</span>()
             .<span class="ident">iter</span>()
             .<span class="ident">find</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
@@ -866,19 +866,19 @@
     <span class="doccomment">/// The canonical argument value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The value is `None` for skipped variants.</span>
-    <span class="kw">fn</span> <span class="ident">to_possible_value</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">to_possible_value</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Parser</span><span class="op">&gt;</span> <span class="ident">Parser</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">parse</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">Box::new</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Parser</span><span class="op">&gt;</span><span class="ident">::parse</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">try_parse</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_parse</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Parser</span><span class="op">&gt;</span><span class="ident">::try_parse</span>().<span class="ident">map</span>(<span class="ident">Box::new</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">It</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">fn</span> <span class="ident">parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">It</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">It</span><span class="op">&gt;</span>,
         <span class="comment">// TODO (@CreepySkeleton): discover a way to avoid cloning here</span>
@@ -887,7 +887,7 @@
         <span class="ident">Box::new</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Parser</span><span class="op">&gt;</span><span class="ident">::parse_from</span>(<span class="ident">itr</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">try_parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">It</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">try_parse_from</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">It</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">It</span><span class="op">&gt;</span>,
         <span class="comment">// TODO (@CreepySkeleton): discover a way to avoid cloning here</span>
@@ -898,45 +898,45 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoApp</span><span class="op">&gt;</span> <span class="ident">IntoApp</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_app</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_app</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">IntoApp</span><span class="op">&gt;</span><span class="ident">::into_app</span>()
     }
-    <span class="kw">fn</span> <span class="ident">into_app_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_app_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">IntoApp</span><span class="op">&gt;</span><span class="ident">::into_app_for_update</span>()
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FromArgMatches</span><span class="op">&gt;</span> <span class="ident">FromArgMatches</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_arg_matches</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_arg_matches</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches</span>(<span class="ident">matches</span>).<span class="ident">map</span>(<span class="ident">Box::new</span>)
     }
-    <span class="kw">fn</span> <span class="ident">update_from_arg_matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">update_from_arg_matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::update_from_arg_matches</span>(<span class="self">self</span>, <span class="ident">matches</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Args</span><span class="op">&gt;</span> <span class="ident">Args</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Args</span><span class="op">&gt;</span><span class="ident">::augment_args</span>(<span class="ident">app</span>)
     }
-    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Args</span><span class="op">&gt;</span><span class="ident">::augment_args_for_update</span>(<span class="ident">app</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Subcommand</span><span class="op">&gt;</span> <span class="ident">Subcommand</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Subcommand</span><span class="op">&gt;</span><span class="ident">::augment_subcommands</span>(<span class="ident">app</span>)
     }
-    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">app</span>: <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Subcommand</span><span class="op">&gt;</span><span class="ident">::augment_subcommands_for_update</span>(<span class="ident">app</span>)
     }
-    <span class="kw">fn</span> <span class="ident">has_subcommand</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">has_subcommand</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Subcommand</span><span class="op">&gt;</span><span class="ident">::has_subcommand</span>(<span class="ident">name</span>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">format_error</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoApp</span><span class="op">&gt;</span>(<span class="ident">err</span>: <span class="ident"><span class="kw">crate</span>::Error</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident"><span class="kw">crate</span>::Error</span> {
+<span class="kw">fn</span> <span class="ident">format_error</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoApp</span><span class="op">&gt;</span>(<span class="ident">err</span>: <span class="ident"><span class="kw">crate</span>::Error</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Error</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">I::into_app</span>();
     <span class="ident">err</span>.<span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">app</span>)
 }

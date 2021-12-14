@@ -1147,7 +1147,7 @@
     }
 
     <span class="doccomment">/// Map the given interval of the file into shadow&#39;s address space.</span>
-    <span class="kw">fn</span> <span class="ident">mmap_into_shadow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>, <span class="ident">prot</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
+    <span class="kw">fn</span> <span class="ident">mmap_into_shadow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>, <span class="ident">prot</span>: <span class="ident">i32</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">sys::mman::mmap</span>(
                 <span class="ident">std::ptr::null_mut</span>(),
@@ -1209,7 +1209,7 @@
 }
 
 <span class="doccomment">/// Get the current mapped regions of the process.</span>
-<span class="kw">fn</span> <span class="ident">get_regions</span>(<span class="ident">pid</span>: <span class="ident">Pid</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_regions</span>(<span class="ident">pid</span>: <span class="ident">Pid</span>) -&gt; <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regions</span> <span class="op">=</span> <span class="ident">IntervalMap::new</span>();
     <span class="kw">for</span> <span class="ident">mapping</span> <span class="kw">in</span> <span class="ident">proc_maps::mappings_for_pid</span>(<span class="ident">pid</span>.<span class="ident">as_raw</span>()).<span class="ident">unwrap</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prot</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1243,7 +1243,7 @@
     <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>,
     <span class="ident">memory_manager</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
     <span class="ident">regions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interval</span> {
+) -&gt; <span class="ident">Interval</span> {
     <span class="comment">// If there&#39;s already a region labeled heap, we use those bounds.</span>
     <span class="kw">let</span> <span class="ident">heap_mapping</span> <span class="op">=</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">regions</span>
@@ -1253,9 +1253,9 @@
         <span class="kw">let</span> <span class="ident">heap_mapping</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>();
         <span class="comment">// There should only be one heap region.</span>
         <span class="macro">debug_assert!</span>(
-            <span class="ident">it</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="number">1</span>.<span class="ident">original_path</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">proc_maps::MappingPath::Heap</span>))
+            <span class="ident">it</span>.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="number">1</span>.<span class="ident">original_path</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">proc_maps::MappingPath::Heap</span>))
                 .<span class="ident">count</span>()
-                <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
+                <span class="op">==</span> <span class="number">0</span>
         );
         <span class="ident">heap_mapping</span>
     };
@@ -1275,7 +1275,7 @@
     {
         <span class="kw">let</span> <span class="ident">mutations</span> <span class="op">=</span> <span class="ident">regions</span>.<span class="ident">insert</span>(<span class="ident">heap_interval</span>.<span class="ident">clone</span>(), <span class="ident">heap_region</span>);
         <span class="comment">// Should have overwritten the old heap region and not affected any others.</span>
-        <span class="macro">assert!</span>(<span class="ident">mutations</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span>);
+        <span class="macro">assert!</span>(<span class="ident">mutations</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span>);
     }
 
     <span class="ident">heap_interval</span>
@@ -1292,7 +1292,7 @@
     <span class="comment">// Find the current stack region. There should be exactly one.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">regions</span>
         .<span class="ident">iter</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span>(<span class="ident">_i</span>, <span class="ident">r</span>)<span class="op">|</span> <span class="ident">r</span>.<span class="ident">original_path</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">MappingPath::InitialStack</span>));
+        .<span class="ident">filter</span>(<span class="op">|</span>(<span class="ident">_i</span>, <span class="ident">r</span>)<span class="op">|</span> <span class="ident">r</span>.<span class="ident">original_path</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">MappingPath::InitialStack</span>));
     <span class="comment">// Get the stack region, panicking if none.</span>
     <span class="kw">let</span> (<span class="ident">current_stack_bounds</span>, <span class="ident">region</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
     <span class="comment">// Panic if there&#39;s more than one.</span>
@@ -1364,7 +1364,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MemoryMapper</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">memory_manager</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MemoryMapper</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">memory_manager</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>) -&gt; <span class="ident">MemoryMapper</span> {
         <span class="kw">let</span> <span class="ident">shm_path</span> <span class="op">=</span> <span class="macro">format!</span>(
             <span class="string">&quot;/dev/shm/shadow_memory_manager_{}_{}_{}&quot;</span>,
             <span class="ident">process::id</span>(),
@@ -1382,8 +1382,8 @@
         <span class="comment">// ensures that it will be removed when there are no more open file</span>
         <span class="comment">// descriptors to it.</span>
         <span class="kw">match</span> <span class="ident">std::fs::remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">shm_path</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">warn!</span>(<span class="string">&quot;removing &#39;{}&#39;: {}&quot;</span>, <span class="ident">shm_path</span>, <span class="ident">e</span>),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">warn!</span>(<span class="string">&quot;removing &#39;{}&#39;: {}&quot;</span>, <span class="ident">shm_path</span>, <span class="ident">e</span>),
         }
 
         <span class="comment">// The file can no longer be accessed by its original path, but *can*</span>
@@ -1439,7 +1439,7 @@
     <span class="kw">fn</span> <span class="ident">unmap_mutations</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mutations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Mutation</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
         <span class="kw">for</span> <span class="ident">mutation</span> <span class="kw">in</span> <span class="ident">mutations</span> {
             <span class="kw">match</span> <span class="ident">mutation</span> {
-                <span class="ident">Mutation::ModifiedBegin</span>(<span class="ident">interval</span>, <span class="ident">new_start</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::ModifiedBegin</span>(<span class="ident">interval</span>, <span class="ident">new_start</span>) =&gt; {
                     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">region</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get_mut</span>(<span class="ident">new_start</span>).<span class="ident">unwrap</span>();
                     <span class="kw">if</span> <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">is_null</span>() {
                         <span class="kw">continue</span>;
@@ -1456,7 +1456,7 @@
                     <span class="comment">// Adjust base</span>
                     <span class="ident">region</span>.<span class="ident">shadow_base</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">removed_range</span>.<span class="ident">len</span>()) };
                 }
-                <span class="ident">Mutation::ModifiedEnd</span>(<span class="ident">interval</span>, <span class="ident">new_end</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::ModifiedEnd</span>(<span class="ident">interval</span>, <span class="ident">new_end</span>) =&gt; {
                     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">region</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">interval</span>.<span class="ident">start</span>).<span class="ident">unwrap</span>();
                     <span class="kw">if</span> <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">is_null</span>() {
                         <span class="kw">continue</span>;
@@ -1475,7 +1475,7 @@
                     }
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">warn!</span>(<span class="string">&quot;munmap: {}&quot;</span>, <span class="ident">e</span>));
                 }
-                <span class="ident">Mutation::Split</span>(<span class="ident">_original</span>, <span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::Split</span>(<span class="ident">_original</span>, <span class="ident">left</span>, <span class="ident">right</span>) =&gt; {
                     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">left_region</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">left</span>.<span class="ident">start</span>).<span class="ident">unwrap</span>();
                     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">right_region</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">right</span>.<span class="ident">start</span>).<span class="ident">unwrap</span>();
                     <span class="macro">debug_assert_eq!</span>(<span class="ident">left_region</span>.<span class="ident">shadow_base</span>, <span class="ident">right_region</span>.<span class="ident">shadow_base</span>);
@@ -1501,7 +1501,7 @@
                     <span class="ident">right_region</span>.<span class="ident">shadow_base</span> <span class="op">=</span>
                         <span class="kw">unsafe</span> { <span class="ident">right_region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">right</span>.<span class="ident">start</span> <span class="op">-</span> <span class="ident">left</span>.<span class="ident">start</span>) };
                 }
-                <span class="ident">Mutation::Removed</span>(<span class="ident">interval</span>, <span class="ident">region</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::Removed</span>(<span class="ident">interval</span>, <span class="ident">region</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">is_null</span>() {
                         <span class="kw">continue</span>;
                     }
@@ -1538,7 +1538,7 @@
             <span class="ident">usize::from</span>(<span class="ident">ptr</span>.<span class="ident">ptr</span>()),
             <span class="ident">ptr</span>.<span class="ident">len</span>()
         );
-        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span>;
         }
         <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">usize::from</span>(<span class="ident">ptr</span>.<span class="ident">ptr</span>());
@@ -1571,7 +1571,7 @@
         <span class="kw">let</span> <span class="ident">mutations</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">clear</span>(<span class="ident">interval</span>.<span class="ident">clone</span>());
         <span class="self">self</span>.<span class="ident">unmap_mutations</span>(<span class="ident">mutations</span>);
 
-        <span class="kw">if</span> <span class="ident">is_anonymous</span> <span class="op">&amp;&amp;</span> <span class="ident">sharing</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Sharing::Private</span> {
+        <span class="kw">if</span> <span class="ident">is_anonymous</span> <span class="op">&amp;&amp;</span> <span class="ident">sharing</span> <span class="op">==</span> <span class="ident">Sharing::Private</span> {
             <span class="comment">// Overwrite the freshly mapped region with a region from the shared mem file and map</span>
             <span class="comment">// it. In principle we might be able to avoid doing the first mmap above in this case,</span>
             <span class="comment">// but doing so lets the OS decide if it&#39;s a legal mapping, and where to put it.</span>
@@ -1597,7 +1597,7 @@
     <span class="doccomment">/// the plugin&#39;s address space, and unmaps the affected memory from Shadow if it was mapped in.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_munmap_result</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">addr</span>: <span class="ident">PluginPtr</span>, <span class="ident">length</span>: <span class="ident">usize</span>) {
         <span class="macro">trace!</span>(<span class="string">&quot;handle_munmap_result({:?}, {})&quot;</span>, <span class="ident">addr</span>, <span class="ident">length</span>);
-        <span class="kw">if</span> <span class="ident">length</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">length</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span>;
         }
 
@@ -1621,7 +1621,7 @@
         <span class="ident">new_size</span>: <span class="ident">usize</span>,
         <span class="ident">flags</span>: <span class="ident">i32</span>,
         <span class="ident">new_address</span>: <span class="ident">PluginPtr</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    ) -&gt; <span class="ident">SyscallResult</span> {
         <span class="kw">let</span> <span class="ident">new_address</span> <span class="op">=</span>
             <span class="ident">thread</span>.<span class="ident">native_mremap</span>(<span class="ident">old_address</span>, <span class="ident">old_size</span>, <span class="ident">new_size</span>, <span class="ident">flags</span>, <span class="ident">new_address</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">old_interval</span> <span class="op">=</span> <span class="ident">usize::from</span>(<span class="ident">old_address</span>)..(<span class="ident">usize::from</span>(<span class="ident">old_address</span>) <span class="op">+</span> <span class="ident">old_size</span>);
@@ -1633,7 +1633,7 @@
         <span class="comment">// will be the size of the new mapping and the location of the new  mapping  may  be</span>
         <span class="comment">// specified with new_address; see the description of MREMAP_FIXED below.  If a new mapping</span>
         <span class="comment">// is requested via this method, then the MREMAP_MAYMOVE flag must also be specified.</span>
-        <span class="kw">if</span> (<span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">libc::MREMAP_MAYMOVE</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">old_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> (<span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">libc::MREMAP_MAYMOVE</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">old_size</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">region</span> <span class="op">=</span> {
                 <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">region</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">usize::from</span>(<span class="ident">old_address</span>)).<span class="ident">unwrap</span>();
                 <span class="ident">region</span>.<span class="ident">clone</span>()
@@ -1741,7 +1741,7 @@
     <span class="doccomment">/// Execute the requested `brk` and update our mappings accordingly. May invalidate outstanding</span>
     <span class="doccomment">/// pointers. (Rust won&#39;t allow mutable methods such as this one to be called with outstanding</span>
     <span class="doccomment">/// borrowed references).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_brk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>, <span class="ident">ptr</span>: <span class="ident">PluginPtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_brk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>, <span class="ident">ptr</span>: <span class="ident">PluginPtr</span>) -&gt; <span class="ident">SyscallResult</span> {
         <span class="kw">let</span> <span class="ident">requested_brk</span> <span class="op">=</span> <span class="ident">usize::from</span>(<span class="ident">ptr</span>);
 
         <span class="comment">// On error, brk syscall returns current brk (end of heap). The only errors we specifically</span>
@@ -1752,11 +1752,11 @@
         }
 
         <span class="comment">// Unclear how to handle a non-page-size increment. panic for now.</span>
-        <span class="macro">assert!</span>(<span class="ident">requested_brk</span> <span class="op">%</span> <span class="ident">page_size</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+        <span class="macro">assert!</span>(<span class="ident">requested_brk</span> <span class="op">%</span> <span class="ident">page_size</span>() <span class="op">==</span> <span class="number">0</span>);
 
         <span class="comment">// Not aware of this happening in practice, but handle this case specifically so we can</span>
         <span class="comment">// assume it&#39;s not the case below.</span>
-        <span class="kw">if</span> <span class="ident">requested_brk</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">end</span> {
+        <span class="kw">if</span> <span class="ident">requested_brk</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">end</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>.<span class="ident">into</span>());
         }
 
@@ -1766,7 +1766,7 @@
         <span class="kw">if</span> <span class="ident">requested_brk</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">end</span> {
             <span class="comment">// Grow the heap.</span>
             <span class="kw">let</span> <span class="ident">shadow_base</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">opt_heap_interval_and_region</span> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">None</span> =&gt; {
                     <span class="comment">// Initialize heap region.</span>
                     <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">heap</span>.<span class="ident">end</span>);
                     <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="ident">new_heap</span>);
@@ -1774,7 +1774,7 @@
                     <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">mmap_into_plugin</span>(<span class="ident">thread</span>, <span class="kw-2">&amp;</span><span class="ident">new_heap</span>, <span class="ident">HEAP_PROT</span>);
                     <span class="ident">shadow_base</span>
                 }
-                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">heap_region</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">heap_region</span>)) =&gt; {
                     <span class="comment">// Grow heap region.</span>
                     <span class="self">self</span>.<span class="ident">shm_file</span>.<span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">heap</span>);
                     <span class="comment">// mremap in plugin, enforcing that base stays the same.</span>
@@ -1812,7 +1812,7 @@
             );
         } <span class="kw">else</span> {
             <span class="comment">// Shrink the heap</span>
-            <span class="kw">if</span> <span class="ident">new_heap</span>.<span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="ident">new_heap</span>.<span class="ident">end</span> {
+            <span class="kw">if</span> <span class="ident">new_heap</span>.<span class="ident">start</span> <span class="op">==</span> <span class="ident">new_heap</span>.<span class="ident">end</span> {
                 <span class="comment">// Reducing heap to size zero unhandled.</span>
                 <span class="macro">unimplemented!</span>();
             }
@@ -1865,7 +1865,7 @@
         <span class="ident">addr</span>: <span class="ident">PluginPtr</span>,
         <span class="ident">size</span>: <span class="ident">usize</span>,
         <span class="ident">prot</span>: <span class="ident">i32</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+    ) -&gt; <span class="ident">SyscallResult</span> {
         <span class="macro">trace!</span>(<span class="string">&quot;mprotect({:?}, {}, {:?})&quot;</span>, <span class="ident">addr</span>, <span class="ident">size</span>, <span class="ident">prot</span>);
         <span class="ident">thread</span>.<span class="ident">native_mprotect</span>(<span class="ident">addr</span>, <span class="ident">size</span>, <span class="ident">prot</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">protflags</span> <span class="op">=</span> <span class="ident">sys::mman::ProtFlags::from_bits</span>(<span class="ident">prot</span>).<span class="ident">unwrap</span>();
@@ -1877,7 +1877,7 @@
             .<span class="ident">clear</span>(<span class="ident">usize::from</span>(<span class="ident">addr</span>)..(<span class="ident">usize::from</span>(<span class="ident">addr</span>) <span class="op">+</span> <span class="ident">size</span>));
         <span class="kw">for</span> <span class="ident">mutation</span> <span class="kw">in</span> <span class="ident">mutations</span> {
             <span class="kw">match</span> <span class="ident">mutation</span> {
-                <span class="ident">Mutation::ModifiedBegin</span>(<span class="ident">interval</span>, <span class="ident">new_start</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::ModifiedBegin</span>(<span class="ident">interval</span>, <span class="ident">new_start</span>) =&gt; {
                     <span class="comment">// Modified prot of beginning of region.</span>
                     <span class="kw">let</span> (<span class="ident">_extant_interval</span>, <span class="ident">extant_region</span>) <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get_mut</span>(<span class="ident">new_start</span>).<span class="ident">unwrap</span>();
@@ -1911,7 +1911,7 @@
                         .<span class="ident">insert</span>(<span class="ident">modified_interval</span>, <span class="ident">modified_region</span>)
                         .<span class="ident">is_empty</span>());
                 }
-                <span class="ident">Mutation::ModifiedEnd</span>(<span class="ident">interval</span>, <span class="ident">new_end</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::ModifiedEnd</span>(<span class="ident">interval</span>, <span class="ident">new_end</span>) =&gt; {
                     <span class="comment">// Modified prot of end of region.</span>
                     <span class="kw">let</span> (<span class="ident">extant_interval</span>, <span class="ident">extant_region</span>) <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get_mut</span>(<span class="ident">new_end</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>();
@@ -1935,7 +1935,7 @@
                         .<span class="ident">insert</span>(<span class="ident">modified_interval</span>, <span class="ident">modified_region</span>)
                         .<span class="ident">is_empty</span>());
                 }
-                <span class="ident">Mutation::Split</span>(<span class="ident">_original</span>, <span class="ident">left_interval</span>, <span class="ident">right_interval</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::Split</span>(<span class="ident">_original</span>, <span class="ident">left_interval</span>, <span class="ident">right_interval</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">right_region</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get_mut</span>(<span class="ident">right_interval</span>.<span class="ident">start</span>).<span class="ident">unwrap</span>().<span class="number">1</span>;
                     <span class="kw">let</span> <span class="ident">modified_interval</span> <span class="op">=</span> <span class="ident">left_interval</span>.<span class="ident">end</span>..<span class="ident">right_interval</span>.<span class="ident">start</span>;
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modified_region</span> <span class="op">=</span> <span class="ident">right_region</span>.<span class="ident">clone</span>();
@@ -1962,7 +1962,7 @@
                         .<span class="ident">insert</span>(<span class="ident">modified_interval</span>, <span class="ident">modified_region</span>)
                         .<span class="ident">is_empty</span>());
                 }
-                <span class="ident">Mutation::Removed</span>(<span class="ident">modified_interval</span>, <span class="kw-2">mut</span> <span class="ident">modified_region</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Mutation::Removed</span>(<span class="ident">modified_interval</span>, <span class="kw-2">mut</span> <span class="ident">modified_region</span>) =&gt; {
                     <span class="ident">modified_region</span>.<span class="ident">prot</span> <span class="op">=</span> <span class="ident">prot</span>;
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">modified_region</span>.<span class="ident">shadow_base</span>.<span class="ident">is_null</span>() {
                         <span class="kw">unsafe</span> {
@@ -1986,7 +1986,7 @@
 
     <span class="comment">// Get a raw pointer to the plugin&#39;s memory, if it&#39;s been remapped into Shadow.</span>
     <span class="comment">// Panics if called with zero-length `src`.</span>
-    <span class="kw">fn</span> <span class="ident">get_mapped_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_mapped_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="macro">assert!</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>);
 
         <span class="kw">if</span> <span class="ident">usize::from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>()) <span class="op">%</span> <span class="ident">std::mem::align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
@@ -1999,8 +1999,8 @@
         }
 
         <span class="kw">let</span> (<span class="ident">interval</span>, <span class="ident">region</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">usize::from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>())) {
-            <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">r</span>)) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">i</span>, <span class="ident">r</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">r</span>)) =&gt; (<span class="ident">i</span>, <span class="ident">r</span>),
+            <span class="prelude-val">None</span> =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;src {:?} isn&#39;t in any mapped region&quot;</span>, <span class="ident">src</span>);
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
@@ -2028,7 +2028,7 @@
         <span class="prelude-val">Some</span>(<span class="ident">ptr</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_mapped_ptr_and_count</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_mapped_ptr_and_count</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_mapped_ptr</span>(<span class="ident">src</span>);
         <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_none</span>() {
             <span class="self">self</span>.<span class="ident">inc_misses</span>(<span class="ident">src</span>);
@@ -2036,16 +2036,16 @@
         <span class="ident">res</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">T</span>]<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>[]);
         }
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_mapped_ptr_and_count</span>(<span class="ident">src</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">std::slice::from_raw_parts</span>(<span class="ident">notnull_debug</span>(<span class="ident">ptr</span>), <span class="ident">src</span>.<span class="ident">len</span>()) })
     }
 
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> []);
         }
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_mapped_ptr_and_count</span>(<span class="ident">src</span>)<span class="question-mark">?</span>;
@@ -2055,8 +2055,8 @@
     <span class="doccomment">/// Counts accesses where we had to fall back to the thread&#39;s (slow) apis.</span>
     <span class="kw">fn</span> <span class="ident">inc_misses</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">regions</span>.<span class="ident">get</span>(<span class="ident">usize::from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>())) {
-            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">original_path</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">original_path</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;not found&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">original_path</span>)) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">original_path</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="string">&quot;not found&quot;</span>.<span class="ident">to_string</span>(),
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">misses</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">misses_by_path</span>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">counter</span> <span class="op">=</span> <span class="ident">misses</span>.<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_insert</span>(<span class="number">0</span>);

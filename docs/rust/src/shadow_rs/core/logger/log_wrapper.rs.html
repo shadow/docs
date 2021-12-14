@@ -98,7 +98,7 @@
 <span class="doccomment">/// to a UTF-8 null-terminated string.</span>
 <span class="doccomment">/// SAFETY: `ptr` must point a NULL-terminated C String if non-null, and must</span>
 <span class="doccomment">/// be immutable for the lifetime of the returned `str`.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">optional_str</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">optional_str</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
         <span class="prelude-val">None</span>
     } <span class="kw">else</span> {
@@ -107,16 +107,16 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">c_to_rust_log_level</span>(<span class="ident">level</span>: <span class="ident">log_bindings::LogLevel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">log::Level</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">c_to_rust_log_level</span>(<span class="ident">level</span>: <span class="ident">log_bindings::LogLevel</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">log::Level</span><span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident">log::Level</span>::<span class="kw-2">*</span>;
     <span class="kw">match</span> <span class="ident">level</span> {
-        <span class="ident">c_log::_LogLevel_LOGLEVEL_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Error</span>),
-        <span class="ident">c_log::_LogLevel_LOGLEVEL_WARNING</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Warn</span>),
-        <span class="ident">c_log::_LogLevel_LOGLEVEL_INFO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Info</span>),
-        <span class="ident">c_log::_LogLevel_LOGLEVEL_DEBUG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Debug</span>),
-        <span class="ident">c_log::_LogLevel_LOGLEVEL_TRACE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Trace</span>),
-        <span class="ident">c_log::_LogLevel_LOGLEVEL_UNSET</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unexpected log level {}&quot;</span>, <span class="ident">level</span>),
+        <span class="ident">c_log::_LogLevel_LOGLEVEL_ERROR</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Error</span>),
+        <span class="ident">c_log::_LogLevel_LOGLEVEL_WARNING</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Warn</span>),
+        <span class="ident">c_log::_LogLevel_LOGLEVEL_INFO</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Info</span>),
+        <span class="ident">c_log::_LogLevel_LOGLEVEL_DEBUG</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Debug</span>),
+        <span class="ident">c_log::_LogLevel_LOGLEVEL_TRACE</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Trace</span>),
+        <span class="ident">c_log::_LogLevel_LOGLEVEL_UNSET</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected log level {}&quot;</span>, <span class="ident">level</span>),
     }
 }
 
@@ -129,7 +129,7 @@
 
 <span class="doccomment">/// Whether logging is currently enabled for `level`.</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustlogger_isEnabled</span>(<span class="ident">level</span>: <span class="ident">log_bindings::LogLevel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span> {
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustlogger_isEnabled</span>(<span class="ident">level</span>: <span class="ident">log_bindings::LogLevel</span>) -&gt; <span class="ident">c_int</span> {
     <span class="kw">let</span> <span class="ident">level</span> <span class="op">=</span> <span class="ident">c_to_rust_log_level</span>(<span class="ident">level</span>).<span class="ident">unwrap</span>();
     <span class="macro">log_enabled!</span>(<span class="ident">level</span>).<span class="ident">into</span>()
 }

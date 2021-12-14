@@ -216,7 +216,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LogicalProcessors</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lps</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
             <span class="ident">lps</span>.<span class="ident">push</span>(<span class="ident">LogicalProcessor</span> {
@@ -237,7 +237,7 @@
 
     <span class="doccomment">/// Get a worker ID to run on `lpi`. Returns None if there are no more</span>
     <span class="doccomment">/// workers to run.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_worker_to_run_on</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lpi</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_worker_to_run_on</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lpi</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">lps</span>.<span class="ident">len</span>() {
             <span class="comment">// Start with workers that last ran on `lpi`; if none are available</span>
             <span class="comment">// steal from another in round-robin order.</span>
@@ -266,7 +266,7 @@
 
     <span class="doccomment">/// Returns the cpu id that should be used with the `affinity_*` module to</span>
     <span class="doccomment">/// run a thread on `lpi`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cpu_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lpi</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cpu_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lpi</span>: <span class="ident">usize</span>) -&gt; <span class="ident">libc::c_int</span> {
         <span class="self">self</span>.<span class="ident">lps</span>[<span class="ident">lpi</span>].<span class="ident">cpu_id</span>
     }
 
@@ -285,11 +285,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">idle_timer_stop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_lpi</span>: <span class="ident">usize</span>) {}
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf_timers&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">idle_timer_elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lpi</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">idle_timer_elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lpi</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Duration</span> {
         <span class="self">self</span>.<span class="ident">lps</span>[<span class="ident">lpi</span>].<span class="ident">idle_timer</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">elapsed</span>()
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf_timers&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">idle_timer_elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_lpi</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">idle_timer_elapsed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_lpi</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Duration</span> {
         <span class="ident">Duration::new</span>(<span class="number">0</span>, <span class="number">0</span>)
     }
 }
@@ -308,7 +308,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">lps_new</span>(<span class="ident">n</span>: <span class="ident">libc::c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LogicalProcessors</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">lps_new</span>(<span class="ident">n</span>: <span class="ident">libc::c_int</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LogicalProcessors</span> {
         <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">LogicalProcessors::new</span>(<span class="ident">n</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())))
     }
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -316,7 +316,7 @@
         <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">lps</span>)) };
     }
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">lps_n</span>(<span class="ident">lps</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">LogicalProcessors</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">lps_n</span>(<span class="ident">lps</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">LogicalProcessors</span>) -&gt; <span class="ident">libc::c_int</span> {
         <span class="kw">return</span> <span class="kw">unsafe</span> { <span class="ident">lps</span>.<span class="ident">as_ref</span>() }.<span class="ident">unwrap</span>().<span class="ident">lps</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">libc::c_int</span>;
     }
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -334,13 +334,13 @@
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">lps_popWorkerToRunOn</span>(
         <span class="ident">lps</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">LogicalProcessors</span>,
         <span class="ident">lpi</span>: <span class="ident">libc::c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> {
+    ) -&gt; <span class="ident">libc::c_int</span> {
         <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">lps</span>.<span class="ident">as_ref</span>() }
             .<span class="ident">unwrap</span>()
             .<span class="ident">pop_worker_to_run_on</span>(<span class="ident">lpi</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())
         {
-            <span class="prelude-val">Some</span>(<span class="ident">w</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">w</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">-</span><span class="number">1</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">w</span>) =&gt; <span class="ident">w</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="op">-</span><span class="number">1</span>,
         }
     }
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -361,7 +361,7 @@
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">lps_cpuId</span>(
         <span class="ident">lps</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">LogicalProcessors</span>,
         <span class="ident">lpi</span>: <span class="ident">libc::c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::c_int</span> {
+    ) -&gt; <span class="ident">libc::c_int</span> {
         <span class="kw">unsafe</span> { <span class="ident">lps</span>.<span class="ident">as_ref</span>() }
             .<span class="ident">unwrap</span>()
             .<span class="ident">cpu_id</span>(<span class="ident">lpi</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())
@@ -370,7 +370,7 @@
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">lps_idleTimerElapsed</span>(
         <span class="ident">lps</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">LogicalProcessors</span>,
         <span class="ident">lpi</span>: <span class="ident">libc::c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_double</span> {
+    ) -&gt; <span class="ident">c_double</span> {
         <span class="kw">unsafe</span> { <span class="ident">lps</span>.<span class="ident">as_ref</span>() }
             .<span class="ident">unwrap</span>()
             .<span class="ident">idle_timer_elapsed</span>(<span class="ident">lpi</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>())

@@ -663,7 +663,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ByteQueue</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">default_chunk_capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">default_chunk_capacity</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">bytes</span>: <span class="ident">LinkedList::new</span>(),
             <span class="ident">unused_buffer</span>: <span class="prelude-val">None</span>,
@@ -676,22 +676,22 @@
 
     <span class="doccomment">/// The number of bytes in the queue. If the queue has 0 bytes, it does not mean that the queue</span>
     <span class="doccomment">/// is empty since there may be 0-length packets in the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">num_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">length</span>
     }
 
     <span class="doccomment">/// Returns true if the queue has bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">num_bytes</span>() <span class="op">&gt;</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Returns true if the queue has data/chunks, which may include packets with 0 bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_chunks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_chunks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>
     }
 
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">alloc_zeroed_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BytesMut</span> {
+    <span class="kw">fn</span> <span class="ident">alloc_zeroed_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">BytesMut</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
         {
             <span class="self">self</span>.<span class="ident">total_allocations</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -701,15 +701,15 @@
     }
 
     <span class="doccomment">/// Push stream data onto the queue. The data may be merged into the previous stream chunk.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_stream</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_stream</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_copied</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unused</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">unused_buffer</span>.<span class="ident">take</span>() {
                 <span class="comment">// we already have an allocated buffer</span>
-                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
                 <span class="comment">// we need to allocate a new buffer</span>
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">alloc_zeroed_buffer</span>(<span class="self">self</span>.<span class="ident">default_chunk_capacity</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">alloc_zeroed_buffer</span>(<span class="self">self</span>.<span class="ident">default_chunk_capacity</span>),
             };
             <span class="macro">assert_eq!</span>(<span class="ident">unused</span>.<span class="ident">len</span>(), <span class="ident">unused</span>.<span class="ident">capacity</span>());
 
@@ -723,7 +723,7 @@
                 <span class="self">self</span>.<span class="ident">unused_buffer</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">unused</span>);
             }
 
-            <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
 
@@ -732,7 +732,7 @@
             <span class="comment">// if there is some data chunk in the queue</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last_chunk</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">back_mut</span>() {
                 <span class="comment">// if the last chunk was a stream chunk</span>
-                <span class="kw">if</span> <span class="ident">last_chunk</span>.<span class="ident">chunk_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ChunkType::Stream</span> {
+                <span class="kw">if</span> <span class="ident">last_chunk</span>.<span class="ident">chunk_type</span> <span class="op">==</span> <span class="ident">ChunkType::Stream</span> {
                     <span class="comment">// if the last stream chunk is mutable</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">last_chunk</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">last_chunk</span>.<span class="ident">data</span> {
                         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">len</span>();
@@ -759,15 +759,15 @@
 
     <span class="doccomment">/// Push packet data onto the queue in a single chunk. Exactly `size` bytes will be read into</span>
     <span class="doccomment">/// the packet.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_packet</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_packet</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// we may need somewhere to store a new buffer</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_buf</span>;
 
         <span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">unused_buffer</span> {
             <span class="comment">// if the existing &#39;unused_buffer&#39; has enough space</span>
-            <span class="prelude-val">Some</span>(<span class="ident">buf</span>) <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">buf</span>) <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size</span> =&gt; <span class="ident">buf</span>,
             <span class="comment">// otherwise allocate a new buffer</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">_</span> =&gt; {
                 <span class="ident">new_buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_zeroed_buffer</span>(<span class="ident">size</span>);
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_buf</span>
             }
@@ -779,7 +779,7 @@
 
         <span class="comment">// we may have used up all of the space in &#39;unused_buffer&#39;</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">unused_buffer</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">unused_buffer</span> {
-            <span class="kw">if</span> <span class="ident">unused_buffer</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">unused_buffer</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
                 <span class="self">self</span>.<span class="ident">unused_buffer</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             }
         }
@@ -790,7 +790,7 @@
     }
 
     <span class="doccomment">/// Push a chunk of stream or packet data onto the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_chunk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">BytesWrapper</span><span class="op">&gt;</span>, <span class="ident">chunk_type</span>: <span class="ident">ChunkType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_chunk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">BytesWrapper</span><span class="op">&gt;</span>, <span class="ident">chunk_type</span>: <span class="ident">ChunkType</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">data</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
         <span class="self">self</span>.<span class="ident">length</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len</span>;
@@ -802,18 +802,18 @@
     <span class="doccomment">/// all data from the queue, you must call this method until the returned chunk type is `None`.</span>
     <span class="doccomment">/// Zero-length packets may be returned. If packet data is returned but `dst` did not have</span>
     <span class="doccomment">/// enough space, the remaining bytes in the packet will be dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChunkType</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChunkType</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="comment">// peek the front to see what kind of data is next</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">front</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">chunk_type</span> {
-                <span class="ident">ChunkType::Stream</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="self">self</span>.<span class="ident">pop_stream</span>(<span class="ident">dst</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>))),
-                <span class="ident">ChunkType::Packet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="self">self</span>.<span class="ident">pop_packet</span>(<span class="ident">dst</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>))),
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">chunk_type</span> {
+                <span class="ident">ChunkType::Stream</span> =&gt; <span class="prelude-val">Ok</span>((<span class="self">self</span>.<span class="ident">pop_stream</span>(<span class="ident">dst</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>))),
+                <span class="ident">ChunkType::Packet</span> =&gt; <span class="prelude-val">Ok</span>((<span class="self">self</span>.<span class="ident">pop_packet</span>(<span class="ident">dst</span>)<span class="question-mark">?</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>))),
             },
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="number">0</span>, <span class="prelude-val">None</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>((<span class="number">0</span>, <span class="prelude-val">None</span>)),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">pop_stream</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop_stream</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_copied</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="macro">assert_ne!</span>(
             <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">len</span>(),
@@ -823,30 +823,30 @@
 
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">front_mut</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">chunk_type</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ChunkType::Stream</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>.<span class="ident">data</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">chunk_type</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ChunkType::Stream</span> =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>.<span class="ident">data</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
             };
 
             <span class="kw">let</span> <span class="ident">copied</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dst</span>.<span class="ident">write</span>(<span class="ident">bytes</span>.<span class="ident">as_ref</span>()) {
-                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
                 <span class="comment">// may have been interrupted due to a signal, so try again</span>
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ErrorKind::Interrupted</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ErrorKind::WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">ErrorKind::Interrupted</span> =&gt; <span class="kw">continue</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">ErrorKind::WouldBlock</span> =&gt; {
                     <span class="comment">// only return an error if no bytes have been copied yet</span>
-                    <span class="kw">if</span> <span class="ident">total_copied</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="ident">total_copied</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
                     }
                     <span class="comment">// no bytes could be written this iteration</span>
                     <span class="number">0</span>
                 }
                 <span class="comment">// a partial write may have occurred in previous iterations</span>
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
             };
 
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">split_to</span>(<span class="ident">copied</span>);
 
-            <span class="kw">if</span> <span class="ident">copied</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">copied</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
 
@@ -854,7 +854,7 @@
             <span class="self">self</span>.<span class="ident">length</span> <span class="op">-</span><span class="op">=</span> <span class="ident">copied</span>;
             <span class="ident">total_copied</span> <span class="op">+</span><span class="op">=</span> <span class="ident">copied</span>;
 
-            <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
                 <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">pop_front</span>();
             }
         }
@@ -862,7 +862,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">total_copied</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">pop_packet</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop_packet</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">bytes</span>
             .<span class="ident">pop_front</span>()
@@ -877,22 +877,22 @@
 
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">copied</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dst</span>.<span class="ident">write</span>(<span class="ident">bytes</span>.<span class="ident">as_ref</span>()) {
-                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
                 <span class="comment">// may have been interrupted due to a signal, so try again</span>
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ErrorKind::Interrupted</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">ErrorKind::Interrupted</span> =&gt; <span class="kw">continue</span>,
                 <span class="comment">// `WouldBlock` typically means &quot;try again later&quot;, but we don&#39;t support that</span>
                 <span class="comment">// behaviour since a packet may have been partially copied already</span>
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ErrorKind::WouldBlock</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">ErrorKind::WouldBlock</span> =&gt; {
                     <span class="macro">panic!</span>(<span class="string">&quot;Non-blocking writers aren&#39;t supported for packets&quot;</span>)
                 }
                 <span class="comment">// a partial write may have occurred in previous iterations, and the remainder of</span>
                 <span class="comment">// the packet will be dropped</span>
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
             };
 
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">split_to</span>(<span class="ident">copied</span>);
 
-            <span class="kw">if</span> <span class="ident">copied</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">copied</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">break</span>;
             }
 
@@ -905,21 +905,21 @@
     <span class="doccomment">/// Pop a single chunk of data from the queue. The `size_hint` argument is used to limit the</span>
     <span class="doccomment">/// number of bytes in the returned chunk iff the next chunk has stream data. If the returned</span>
     <span class="doccomment">/// chunk has packet data, the `size_hint` is ignored and the entire packet is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_chunk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size_hint</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Bytes</span>, <span class="ident">ChunkType</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_chunk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size_hint</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Bytes</span>, <span class="ident">ChunkType</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">front_mut</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">chunk_type</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">chunk_type</span>;
 
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">chunk_type</span> {
-            <span class="ident">ChunkType::Stream</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ChunkType::Stream</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">chunk</span>
                     .<span class="ident">data</span>
                     .<span class="ident">split_to</span>(<span class="ident">std::cmp::min</span>(<span class="ident">chunk</span>.<span class="ident">data</span>.<span class="ident">len</span>(), <span class="ident">size_hint</span>));
-                <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
                     <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">pop_front</span>();
                 }
                 <span class="ident">temp</span>
             }
-            <span class="ident">ChunkType::Packet</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>().<span class="ident">data</span>,
+            <span class="ident">ChunkType::Packet</span> =&gt; <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>().<span class="ident">data</span>,
         };
 
         <span class="self">self</span>.<span class="ident">length</span> <span class="op">-</span><span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">bytes</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
@@ -957,50 +957,50 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BytesMut</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BytesWrapper</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">BytesMut</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">BytesMut</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">x</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BytesWrapper</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">Bytes</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">Bytes</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">BytesWrapper::Immutable</span>(<span class="ident">x</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BytesWrapper</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Bytes</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">BytesWrapper</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">BytesWrapper</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">x</span> {
-            <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">freeze</span>(),
-            <span class="ident">BytesWrapper::Immutable</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
+            <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">freeze</span>(),
+            <span class="ident">BytesWrapper::Immutable</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">std::convert::AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BytesWrapper</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">x</span>,
-            <span class="ident">BytesWrapper::Immutable</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">x</span>,
+            <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">x</span>,
+            <span class="ident">BytesWrapper::Immutable</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">&amp;</span><span class="ident">x</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">std::borrow::Borrow</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BytesWrapper</span> {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="ident">as_ref</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">BytesWrapper</span> {
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Mutable</span>, <span class="ident">Immutable</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span>
     );
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Mutable</span>, <span class="ident">Immutable</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
     );
     <span class="macro">enum_passthrough_into!</span>(<span class="self">self</span>, (<span class="ident">at</span>), <span class="ident">Mutable</span>, <span class="ident">Immutable</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BytesWrapper</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">BytesWrapper</span>
     );
 }
 
@@ -1011,7 +1011,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ByteChunk</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="ident">BytesWrapper</span>, <span class="ident">chunk_type</span>: <span class="ident">ChunkType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">data</span>: <span class="ident">BytesWrapper</span>, <span class="ident">chunk_type</span>: <span class="ident">ChunkType</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">data</span>, <span class="ident">chunk_type</span> }
     }
 }
@@ -1021,7 +1021,7 @@
     <span class="kw">use</span> <span class="ident">std::slice</span>;
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_new</span>(<span class="ident">default_chunk_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_new</span>(<span class="ident">default_chunk_size</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span> {
         <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">ByteQueue::new</span>(<span class="ident">default_chunk_size</span>)))
     }
 
@@ -1036,14 +1036,14 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_numBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_numBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>) -&gt; <span class="ident">u64</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="ident">bq</span>.<span class="ident">num_bytes</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_hasBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_hasBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="ident">bq</span>.<span class="ident">has_bytes</span>()
@@ -1080,7 +1080,7 @@
         <span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>,
         <span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">std::os::raw::c_uchar</span>,
         <span class="ident">len</span>: <span class="ident">libc::size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">libc::size_t</span> {
+    ) -&gt; <span class="ident">libc::size_t</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">dst</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
@@ -1231,10 +1231,10 @@
         <span class="kw">struct</span> <span class="ident">TestWriter</span>;
 
         <span class="kw">impl</span> <span class="ident">std::io::Write</span> <span class="kw">for</span> <span class="ident">TestWriter</span> {
-            <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">std::io::ErrorKind::BrokenPipe</span>.<span class="ident">into</span>())
             }
-            <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(())
             }
         }

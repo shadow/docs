@@ -174,7 +174,7 @@
 <span class="kw">use</span> <span class="ident">syn::spanned::Spanned</span>;
 
 <span class="attribute">#[<span class="ident">proc_macro_derive</span>(<span class="ident">JsonSchema</span>, <span class="ident">attributes</span>(<span class="ident">schemars</span>, <span class="ident">serde</span>, <span class="ident">validate</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_json_schema_wrapper</span>(<span class="ident">input</span>: <span class="ident">proc_macro::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_json_schema_wrapper</span>(<span class="ident">input</span>: <span class="ident">proc_macro::TokenStream</span>) -&gt; <span class="ident">proc_macro::TokenStream</span> {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="macro">parse_macro_input!</span>(<span class="ident">input</span> <span class="kw">as</span> <span class="ident">syn::DeriveInput</span>);
     <span class="ident">derive_json_schema</span>(<span class="ident">input</span>, <span class="bool-val">false</span>)
         .<span class="ident">unwrap_or_else</span>(<span class="ident">compile_error</span>)
@@ -182,7 +182,7 @@
 }
 
 <span class="attribute">#[<span class="ident">proc_macro_derive</span>(<span class="ident">JsonSchema_repr</span>, <span class="ident">attributes</span>(<span class="ident">schemars</span>, <span class="ident">serde</span>))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_json_schema_repr_wrapper</span>(<span class="ident">input</span>: <span class="ident">proc_macro::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_json_schema_repr_wrapper</span>(<span class="ident">input</span>: <span class="ident">proc_macro::TokenStream</span>) -&gt; <span class="ident">proc_macro::TokenStream</span> {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="macro">parse_macro_input!</span>(<span class="ident">input</span> <span class="kw">as</span> <span class="ident">syn::DeriveInput</span>);
     <span class="ident">derive_json_schema</span>(<span class="ident">input</span>, <span class="bool-val">true</span>)
         .<span class="ident">unwrap_or_else</span>(<span class="ident">compile_error</span>)
@@ -192,14 +192,14 @@
 <span class="kw">fn</span> <span class="ident">derive_json_schema</span>(
     <span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">syn::DeriveInput</span>,
     <span class="ident">repr</span>: <span class="ident">bool</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="ident">add_trait_bounds</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">input</span>.<span class="ident">generics</span>);
 
     <span class="ident">attr::process_serde_attrs</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">input</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">cont</span> <span class="op">=</span> <span class="ident">Container::from_ast</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">crate_alias</span> <span class="op">=</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">crate_name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">path</span><span class="op">|</span> {
-        <span class="macro">quote_spanned!</span> {<span class="ident">path</span>.<span class="ident">span</span>()<span class="op">=</span><span class="op">&gt;</span>
+        <span class="macro">quote_spanned!</span> {<span class="ident">path</span>.<span class="ident">span</span>()=&gt;
             <span class="kw">use</span> #<span class="ident">path</span> <span class="kw">as</span> <span class="ident">schemars</span>;
         }
     });
@@ -216,23 +216,23 @@
 
                 <span class="attribute">#[<span class="ident">automatically_derived</span>]</span>
                 <span class="kw">impl</span> #<span class="ident">impl_generics</span> <span class="ident">schemars::JsonSchema</span> <span class="kw">for</span> #<span class="ident">type_name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
-                    <span class="kw">fn</span> <span class="ident">is_referenceable</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                    <span class="kw">fn</span> <span class="ident">is_referenceable</span>() -&gt; <span class="ident">bool</span> {
                         <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">schemars::JsonSchema</span><span class="op">&gt;</span><span class="ident">::is_referenceable</span>()
                     }
 
-                    <span class="kw">fn</span> <span class="ident">schema_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::string::String</span> {
+                    <span class="kw">fn</span> <span class="ident">schema_name</span>() -&gt; <span class="ident">std::string::String</span> {
                         <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">schemars::JsonSchema</span><span class="op">&gt;</span><span class="ident">::schema_name</span>()
                     }
 
-                    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">schemars::schema::Schema</span> {
+                    <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) -&gt; <span class="ident">schemars::schema::Schema</span> {
                         <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">schemars::JsonSchema</span><span class="op">&gt;</span><span class="ident">::json_schema</span>(<span class="ident">gen</span>)
                     }
 
-                    <span class="kw">fn</span> <span class="ident">_schemars_private_non_optional_json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">schemars::schema::Schema</span> {
+                    <span class="kw">fn</span> <span class="ident">_schemars_private_non_optional_json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) -&gt; <span class="ident">schemars::schema::Schema</span> {
                         <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">schemars::JsonSchema</span><span class="op">&gt;</span><span class="ident">::_schemars_private_non_optional_json_schema</span>(<span class="ident">gen</span>)
                     }
 
-                    <span class="kw">fn</span> <span class="ident">_schemars_private_is_option</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+                    <span class="kw">fn</span> <span class="ident">_schemars_private_is_option</span>() -&gt; <span class="ident">bool</span> {
                         <span class="op">&lt;</span>#<span class="ident">ty</span> <span class="kw">as</span> <span class="ident">schemars::JsonSchema</span><span class="op">&gt;</span><span class="ident">::_schemars_private_is_option</span>()
                     }
                 };
@@ -286,11 +286,11 @@
             <span class="attribute">#[<span class="ident">automatically_derived</span>]</span>
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_braces</span>)]</span>
             <span class="kw">impl</span> #<span class="ident">impl_generics</span> <span class="ident">schemars::JsonSchema</span> <span class="kw">for</span> #<span class="ident">type_name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
-                <span class="kw">fn</span> <span class="ident">schema_name</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::string::String</span> {
+                <span class="kw">fn</span> <span class="ident">schema_name</span>() -&gt; <span class="ident">std::string::String</span> {
                     #<span class="ident">schema_name</span>
                 }
 
-                <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">schemars::schema::Schema</span> {
+                <span class="kw">fn</span> <span class="ident">json_schema</span>(<span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">schemars::gen::SchemaGenerator</span>) -&gt; <span class="ident">schemars::schema::Schema</span> {
                     #<span class="ident">schema_expr</span>
                 }
             };
@@ -306,7 +306,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">compile_error</span>(<span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+<span class="kw">fn</span> <span class="ident">compile_error</span>(<span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Error</span><span class="op">&gt;</span>) -&gt; <span class="ident">TokenStream</span> {
     <span class="kw">let</span> <span class="ident">compile_errors</span> <span class="op">=</span> <span class="ident">errors</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">syn::Error::to_compile_error</span>);
     <span class="macro">quote!</span> {
         #(#<span class="ident">compile_errors</span>)<span class="op">*</span>

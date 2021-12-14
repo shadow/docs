@@ -231,7 +231,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">StatusBarState</span><span class="op">&gt;</span> <span class="ident">StatusBar</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create and start drawing the status bar.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">state</span>: <span class="ident">T</span>, <span class="ident">redraw_interval</span>: <span class="ident">std::time::Duration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">state</span>: <span class="ident">T</span>, <span class="ident">redraw_interval</span>: <span class="ident">std::time::Duration</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">RwLock::new</span>(<span class="ident">state</span>));
         <span class="kw">let</span> <span class="ident">stop_flag</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>));
 
@@ -254,8 +254,8 @@
         <span class="kw">while</span> <span class="op">!</span><span class="ident">stop_flag</span>.<span class="ident">load</span>(<span class="ident">std::sync::atomic::Ordering::Acquire</span>) {
             <span class="comment">// the window size might change during the simulation, so we re-check it each time</span>
             <span class="kw">let</span> <span class="ident">rows</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tiocgwinsz</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ws_row</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">ws_row</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                     <span class="macro">log::error!</span>(<span class="string">&quot;Status bar ioctl failed ({}). Stopping the status bar.&quot;</span>, <span class="ident">e</span>);
                     <span class="kw">break</span>;
                 }
@@ -330,7 +330,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">ShadowStatusBarState</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">sim_current</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">current</span>
             .<span class="ident">duration_since</span>(<span class="kw-2">&amp;</span><span class="ident">emulated_time::SIMULATION_START</span>);
@@ -353,7 +353,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ShadowStatusBarState</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">end</span>: <span class="ident">EmulatedTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">end</span>: <span class="ident">EmulatedTime</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">start</span>: <span class="ident">std::time::Instant::now</span>(),
             <span class="ident">current</span>: <span class="ident">emulated_time::SIMULATION_START</span>,
@@ -368,7 +368,7 @@
 
 <span class="macro">nix::ioctl_read_bad!</span>(<span class="ident">_tiocgwinsz</span>, <span class="ident">libc::TIOCGWINSZ</span>, <span class="ident">libc::winsize</span>);
 
-<span class="kw">fn</span> <span class="ident">tiocgwinsz</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix::Result</span><span class="op">&lt;</span><span class="ident">libc::winsize</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">tiocgwinsz</span>() -&gt; <span class="ident">nix::Result</span><span class="op">&lt;</span><span class="ident">libc::winsize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">win_size</span>: <span class="ident">libc::winsize</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
     <span class="kw">unsafe</span> { <span class="ident">_tiocgwinsz</span>(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">win_size</span>)<span class="question-mark">?</span> };
     <span class="prelude-val">Ok</span>(<span class="ident">win_size</span>)
@@ -378,7 +378,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">statusBar_new</span>(<span class="ident">end</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">StatusBar</span><span class="op">&lt;</span><span class="ident">ShadowStatusBarState</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">statusBar_new</span>(<span class="ident">end</span>: <span class="ident">u64</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">StatusBar</span><span class="op">&lt;</span><span class="ident">ShadowStatusBarState</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">end</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">end</span>);
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">ShadowStatusBarState::new</span>(<span class="ident">end</span>);

@@ -198,7 +198,7 @@
 <span class="kw">use</span> <span class="ident">std::io</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_stream</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decode_stream</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">W</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">io::BufRead</span>,
     <span class="ident">W</span>: <span class="ident">io::Write</span>,
@@ -213,13 +213,13 @@
 
         <span class="macro">lzma_info!</span>(<span class="string">&quot;LZMA2 status: {}&quot;</span>, <span class="ident">status</span>);
 
-        <span class="kw">if</span> <span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="macro">lzma_info!</span>(<span class="string">&quot;LZMA2 end of input&quot;</span>);
             <span class="kw">break</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="number">1</span> {
             <span class="comment">// uncompressed reset dict</span>
             <span class="ident">parse_uncompressed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">decoder</span>, <span class="ident">input</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">status</span> <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="number">2</span> {
             <span class="comment">// uncompressed no reset</span>
             <span class="ident">parse_uncompressed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">decoder</span>, <span class="ident">input</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
@@ -235,12 +235,12 @@
     <span class="ident">decoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lzma::DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzAccumBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
     <span class="ident">status</span>: <span class="ident">u8</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">io::BufRead</span>,
     <span class="ident">W</span>: <span class="ident">io::Write</span>,
 {
-    <span class="kw">if</span> <span class="ident">status</span> <span class="op">&amp;</span> <span class="number">0x80</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">status</span> <span class="op">&amp;</span> <span class="number">0x80</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error::Error::LzmaError</span>(<span class="macro">format!</span>(
             <span class="string">&quot;LZMA2 invalid status {}, must be 0, 1, 2 or &gt;= 128&quot;</span>,
             <span class="ident">status</span>
@@ -251,27 +251,27 @@
     <span class="kw">let</span> <span class="ident">reset_state</span>: <span class="ident">bool</span>;
     <span class="kw">let</span> <span class="ident">reset_props</span>: <span class="ident">bool</span>;
     <span class="kw">match</span> (<span class="ident">status</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">5</span>) <span class="op">&amp;</span> <span class="number">0x3</span> {
-        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="number">0</span> =&gt; {
             <span class="ident">reset_dict</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">reset_state</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">reset_props</span> <span class="op">=</span> <span class="bool-val">false</span>;
         }
-        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="number">1</span> =&gt; {
             <span class="ident">reset_dict</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">reset_state</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="ident">reset_props</span> <span class="op">=</span> <span class="bool-val">false</span>;
         }
-        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="number">2</span> =&gt; {
             <span class="ident">reset_dict</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">reset_state</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="ident">reset_props</span> <span class="op">=</span> <span class="bool-val">true</span>;
         }
-        <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="number">3</span> =&gt; {
             <span class="ident">reset_dict</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="ident">reset_state</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="ident">reset_props</span> <span class="op">=</span> <span class="bool-val">true</span>;
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
+        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
 
     <span class="kw">let</span> <span class="ident">unpacked_size</span> <span class="op">=</span> <span class="ident">input</span>
@@ -349,7 +349,7 @@
     <span class="ident">decoder</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lzma::DecoderState</span><span class="op">&lt;</span><span class="ident">W</span>, <span class="ident">lzbuffer::LzAccumBuffer</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>,
     <span class="ident">reset_dict</span>: <span class="ident">bool</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+) -&gt; <span class="ident">error::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">io::BufRead</span>,
     <span class="ident">W</span>: <span class="ident">io::Write</span>,

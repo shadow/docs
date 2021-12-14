@@ -723,7 +723,7 @@
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">nix::sys::socket::MsgFlags</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">socket</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">socket</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
     <span class="kw">let</span> <span class="ident">socket_type</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
     <span class="kw">let</span> <span class="ident">protocol</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>));
@@ -752,10 +752,10 @@
     }
 
     <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">domain</span> {
-        <span class="ident">libc::AF_UNIX</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">libc::AF_UNIX</span> =&gt; {
             <span class="kw">let</span> <span class="ident">socket_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">UnixSocketType::try_from</span>(<span class="ident">socket_type</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                     <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EPROTONOSUPPORT</span>.<span class="ident">into</span>());
                 }
@@ -777,7 +777,7 @@
                 <span class="ident">ctx</span>.<span class="ident">host</span>.<span class="ident">abstract_unix_namespace</span>(),
             ))
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EAFNOSUPPORT</span>.<span class="ident">into</span>()),
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EAFNOSUPPORT</span>.<span class="ident">into</span>()),
     };
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">PosixFile::Socket</span>(<span class="ident">socket</span>));
@@ -790,16 +790,16 @@
     <span class="prelude-val">Ok</span>(<span class="ident">fd</span>.<span class="ident">into</span>())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">into</span>();
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
     <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>,
+        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">return</span> <span class="kw">unsafe</span> {
                 <span class="ident">c::syscallhandler_bind</span>(<span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(), <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>)
                     .<span class="ident">into</span>()
@@ -811,8 +811,8 @@
 
     <span class="comment">// get the socket for the descriptor</span>
     <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">posix_file</span> {
-        <span class="ident">PosixFile::Socket</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
+        <span class="ident">PosixFile::Socket</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
     };
 
     <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">read_sockaddr</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)<span class="question-mark">?</span>;
@@ -822,7 +822,7 @@
     <span class="ident">SocketFile::bind</span>(<span class="ident">socket</span>, <span class="ident">addr</span>.<span class="ident">as_ref</span>(), <span class="ident">ctx</span>.<span class="ident">host</span>.<span class="ident">random</span>())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sendto</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sendto</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">buf_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">buf_len</span>: <span class="ident">libc::size_t</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">into</span>();
@@ -832,9 +832,9 @@
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
     <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>,
+        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">return</span> <span class="kw">unsafe</span> {
                 <span class="ident">c::syscallhandler_sendto</span>(
                     <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -849,8 +849,8 @@
 
     <span class="comment">// get the socket for the descriptor</span>
     <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">posix_file</span> {
-        <span class="ident">PosixFile::Socket</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
+        <span class="ident">PosixFile::Socket</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
     };
 
     <span class="ident">sendto_helper</span>(<span class="ident">ctx</span>, <span class="ident">socket</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_len</span>, <span class="ident">flags</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)
@@ -864,11 +864,11 @@
     <span class="ident">flags</span>: <span class="ident">libc::c_int</span>,
     <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span>,
     <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+) -&gt; <span class="ident">SyscallResult</span> {
     <span class="comment">// get the send flags</span>
     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">MsgFlags::from_bits</span>(<span class="ident">flags</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="prelude-val">None</span> =&gt; {
             <span class="comment">// linux doesn&#39;t return an error if there are unexpected flags</span>
             <span class="macro">warn!</span>(<span class="string">&quot;Invalid sendto flags: {}&quot;</span>, <span class="ident">flags</span>);
             <span class="ident">MsgFlags::from_bits_truncate</span>(<span class="ident">flags</span>)
@@ -899,7 +899,7 @@
     });
 
     <span class="comment">// if the syscall would block, it&#39;s a blocking descriptor, and the `MSG_DONTWAIT` flag is not set</span>
-    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>())
+    <span class="kw">if</span> <span class="ident">result</span> <span class="op">==</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>())
         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_status</span>.<span class="ident">contains</span>(<span class="ident">FileStatus::NONBLOCK</span>)
         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">MsgFlags::MSG_DONTWAIT</span>)
     {
@@ -912,7 +912,7 @@
     <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recvfrom</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recvfrom</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">buf_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">buf_len</span>: <span class="ident">libc::size_t</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">into</span>();
@@ -922,9 +922,9 @@
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
     <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>,
+        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">return</span> <span class="kw">unsafe</span> {
                 <span class="ident">c::syscallhandler_recvfrom</span>(
                     <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -939,8 +939,8 @@
 
     <span class="comment">// get the socket for the descriptor</span>
     <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">posix_file</span> {
-        <span class="ident">PosixFile::Socket</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
+        <span class="ident">PosixFile::Socket</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
     };
 
     <span class="ident">recvfrom_helper</span>(<span class="ident">ctx</span>, <span class="ident">socket</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_len</span>, <span class="ident">flags</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len_ptr</span>)
@@ -954,11 +954,11 @@
     <span class="ident">flags</span>: <span class="ident">libc::c_int</span>,
     <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span>,
     <span class="ident">addr_len_ptr</span>: <span class="ident">PluginPtr</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+) -&gt; <span class="ident">SyscallResult</span> {
     <span class="comment">// get the recv flags</span>
     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">MsgFlags::from_bits</span>(<span class="ident">flags</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="prelude-val">None</span> =&gt; {
             <span class="comment">// linux doesn&#39;t return an error if there are unexpected flags</span>
             <span class="macro">warn!</span>(<span class="string">&quot;Invalid recvfrom flags: {}&quot;</span>, <span class="ident">flags</span>);
             <span class="ident">MsgFlags::from_bits_truncate</span>(<span class="ident">flags</span>)
@@ -986,7 +986,7 @@
     });
 
     <span class="comment">// if the syscall would block, it&#39;s a blocking descriptor, and the `MSG_DONTWAIT` flag is not set</span>
-    <span class="kw">if</span> <span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>())
+    <span class="kw">if</span> <span class="ident">result</span> <span class="op">==</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>())
         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_status</span>.<span class="ident">contains</span>(<span class="ident">FileStatus::NONBLOCK</span>)
         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">MsgFlags::MSG_DONTWAIT</span>)
     {
@@ -1010,7 +1010,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getsockname</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getsockname</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">addr_len_ptr</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span> <span class="op">=</span>
@@ -1018,9 +1018,9 @@
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
     <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>,
+        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">return</span> <span class="kw">unsafe</span> {
                 <span class="ident">c::syscallhandler_getsockname</span>(
                     <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -1033,13 +1033,13 @@
 
     <span class="comment">// get the socket for the descriptor</span>
     <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">get_file</span>() {
-        <span class="ident">PosixFile::Socket</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
+        <span class="ident">PosixFile::Socket</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
     };
 
     <span class="kw">let</span> <span class="ident">addr_to_write</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">get_bound_address</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empty_sockaddr</span>(<span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">address_family</span>()),
+        <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="prelude-val">None</span> =&gt; <span class="ident">empty_sockaddr</span>(<span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">address_family</span>()),
     };
 
     <span class="macro">debug!</span>(<span class="string">&quot;Returning socket address of {}&quot;</span>, <span class="ident">addr_to_write</span>);
@@ -1048,7 +1048,7 @@
     <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getpeername</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getpeername</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">addr_len_ptr</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span> <span class="op">=</span>
@@ -1056,9 +1056,9 @@
 
     <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
     <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">syscall::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">desc</span>,
+        <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
         <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
             <span class="kw">return</span> <span class="kw">unsafe</span> {
                 <span class="ident">c::syscallhandler_getpeername</span>(
                     <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -1071,8 +1071,8 @@
 
     <span class="comment">// get the socket for the descriptor</span>
     <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">get_file</span>() {
-        <span class="ident">PosixFile::Socket</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
+        <span class="ident">PosixFile::Socket</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
     };
 
     <span class="kw">let</span> <span class="ident">peer_addr</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">get_peer_address</span>();
@@ -1086,7 +1086,7 @@
     <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">socketpair</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyscallResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">socketpair</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
     <span class="kw">let</span> <span class="ident">domain</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">socket_type</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
     <span class="kw">let</span> <span class="ident">protocol</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">into</span>();
@@ -1103,8 +1103,8 @@
     }
 
     <span class="kw">let</span> <span class="ident">socket_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">UnixSocketType::try_from</span>(<span class="ident">socket_type</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
             <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>);
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EPROTONOSUPPORT</span>.<span class="ident">into</span>());
         }
@@ -1200,8 +1200,8 @@
 
     <span class="comment">// clean up in case of error</span>
     <span class="kw">match</span> <span class="ident">write_res</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>()),
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>()),
+        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
             <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
                 <span class="comment">// ignore any errors when closing</span>
                 <span class="ident">ctx</span>.<span class="ident">process</span>
@@ -1219,7 +1219,7 @@
 }
 
 <span class="doccomment">/// Returns a nix socket address object where only the family is set.</span>
-<span class="kw">fn</span> <span class="ident">empty_sockaddr</span>(<span class="ident">family</span>: <span class="ident">nix::sys::socket::AddressFamily</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">nix::sys::socket::SockAddr</span> {
+<span class="kw">fn</span> <span class="ident">empty_sockaddr</span>(<span class="ident">family</span>: <span class="ident">nix::sys::socket::AddressFamily</span>) -&gt; <span class="ident">nix::sys::socket::SockAddr</span> {
     <span class="kw">let</span> <span class="ident">family</span> <span class="op">=</span> <span class="ident">family</span> <span class="kw">as</span> <span class="ident">libc::sa_family_t</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addr</span>: <span class="ident">nix::sys::socket::sockaddr_storage</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
     <span class="ident">addr</span>.<span class="ident">ss_family</span> <span class="op">=</span> <span class="ident">family</span>;
@@ -1236,10 +1236,10 @@
     <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
     <span class="ident">plugin_addr</span>: <span class="ident">PluginPtr</span>,
     <span class="ident">plugin_addr_len</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">addr</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="prelude-val">None</span> =&gt; {
             <span class="ident">process</span>.<span class="ident">memory_mut</span>().<span class="ident">copy_to_ptr</span>(<span class="ident">plugin_addr_len</span>, <span class="kw-2">&amp;</span>[<span class="number">0</span>])<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -1271,7 +1271,7 @@
     };
 
     <span class="comment">// return early if the address length is 0</span>
-    <span class="kw">if</span> <span class="ident">plugin_addr_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">plugin_addr_len</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
     }
 
@@ -1293,7 +1293,7 @@
     <span class="ident">process</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Process</span>,
     <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span>,
     <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">addr_ptr</span>.<span class="ident">is_null</span>() {
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
     }
@@ -1347,7 +1347,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_socket</span>(
         <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+    ) -&gt; <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">socket</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }
@@ -1356,7 +1356,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_bind</span>(
         <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+    ) -&gt; <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }
@@ -1365,7 +1365,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_sendto</span>(
         <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+    ) -&gt; <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">sendto</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }
@@ -1374,7 +1374,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_recvfrom</span>(
         <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+    ) -&gt; <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">recvfrom</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }
@@ -1383,7 +1383,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_getsockname</span>(
         <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+    ) -&gt; <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">getsockname</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }
@@ -1392,7 +1392,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_getpeername</span>(
         <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+    ) -&gt; <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">getpeername</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }
@@ -1401,7 +1401,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rustsyscallhandler_socketpair</span>(
         <span class="ident">sys</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c::SysCallHandler</span>,
         <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c::SysCallArgs</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c::SysCallReturn</span> {
+    ) -&gt; <span class="ident">c::SysCallReturn</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objs</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ThreadContextObjs::from_syscallhandler</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">sys</span>)) };
         <span class="ident">socketpair</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">objs</span>.<span class="ident">borrow</span>(), <span class="kw">unsafe</span> { <span class="ident">args</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() }).<span class="ident">into</span>()
     }

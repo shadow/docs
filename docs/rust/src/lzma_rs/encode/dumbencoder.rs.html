@@ -161,7 +161,7 @@
 <span class="kw">where</span>
     <span class="ident">W</span>: <span class="ident">io::Write</span>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_stream</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">W</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">Options</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_stream</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">W</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">Options</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">dict_size</span> <span class="op">=</span> <span class="number">0x0080_0000</span>;
 
         <span class="comment">// Properties</span>
@@ -175,20 +175,20 @@
 
         <span class="comment">// Unpacked size</span>
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">options</span>.<span class="ident">unpacked_size</span> {
-            <span class="ident">UnpackedSize::WriteToHeader</span>(<span class="ident">unpacked_size</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnpackedSize::WriteToHeader</span>(<span class="ident">unpacked_size</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">unpacked_size</span> {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">None</span> =&gt; {
                         <span class="macro">lzma_info!</span>(<span class="string">&quot;Unpacked size: unknown&quot;</span>);
                         <span class="number">0xFFFF_FFFF_FFFF_FFFF</span>
                     }
-                    <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; {
                         <span class="macro">lzma_info!</span>(<span class="string">&quot;Unpacked size: {}&quot;</span>, <span class="ident">x</span>);
                         <span class="kw-2">*</span><span class="ident">x</span>
                     }
                 };
                 <span class="ident">stream</span>.<span class="ident">write_u64</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="ident">value</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">UnpackedSize::SkipWritingToHeader</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">UnpackedSize::SkipWritingToHeader</span> =&gt; {}
         };
 
         <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">Encoder</span> {
@@ -201,7 +201,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">encoder</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="ident">R</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">io::Read</span>,
     {
@@ -224,10 +224,10 @@
         <span class="self">self</span>.<span class="ident">finish</span>(<span class="ident">input_len</span> <span class="op">+</span> <span class="number">1</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input_len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input_len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">unpacked_size</span> {
-            <span class="ident">UnpackedSize::SkipWritingToHeader</span> <span class="op">|</span> <span class="ident">UnpackedSize::WriteToHeader</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">UnpackedSize::WriteToHeader</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">UnpackedSize::SkipWritingToHeader</span> <span class="op">|</span> <span class="ident">UnpackedSize::WriteToHeader</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {}
+            <span class="ident">UnpackedSize::WriteToHeader</span>(<span class="prelude-val">None</span>) =&gt; {
                 <span class="comment">// Write end-of-stream marker</span>
                 <span class="kw">let</span> <span class="ident">pos_state</span> <span class="op">=</span> <span class="ident">input_len</span> <span class="op">&amp;</span> <span class="number">3</span>;
 
@@ -262,7 +262,7 @@
         <span class="self">self</span>.<span class="ident">rangecoder</span>.<span class="ident">finish</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">encode_literal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">u8</span>, <span class="ident">prev_byte</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">encode_literal</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">byte</span>: <span class="ident">u8</span>, <span class="ident">prev_byte</span>: <span class="ident">u8</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">prev_byte</span> <span class="op">=</span> <span class="ident">prev_byte</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;

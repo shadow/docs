@@ -54,7 +54,7 @@
     <span class="doccomment">/// &quot;Steal&quot; from a C pointer. i.e. doesn&#39;t increase ref count.</span>
     <span class="doccomment">/// `ptr` must point to a valid object that will not be accessed by other threads</span>
     <span class="doccomment">/// for the lifetime of this object.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">consume_from_c</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::SysCallCondition</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">consume_from_c</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::SysCallCondition</span>) -&gt; <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">ptr</span>.<span class="ident">is_null</span>());
         <span class="self">Self</span> { <span class="ident">c_ptr</span>: <span class="ident">ptr</span> }
     }
@@ -62,14 +62,14 @@
     <span class="doccomment">/// Constructor.</span>
     <span class="comment">// TODO: Add support for taking a Timer, ideally after we have a Rust</span>
     <span class="comment">// implementation or wrapper.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">trigger</span>: <span class="ident">Trigger</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">trigger</span>: <span class="ident">Trigger</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">SysCallCondition</span> {
             <span class="ident">c_ptr</span>: <span class="kw">unsafe</span> { <span class="ident">cshadow::syscallcondition_new</span>(<span class="ident">trigger</span>.<span class="ident">into</span>()) },
         }
     }
 
     <span class="doccomment">/// &quot;Steal&quot; the inner pointer without unref&#39;ing it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::SysCallCondition</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::SysCallCondition</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_ptr</span>;
         <span class="comment">// We *don&#39;t* want Drop to deref</span>
         <span class="self">self</span>.<span class="ident">c_ptr</span> <span class="op">=</span> <span class="ident">std::ptr::null_mut</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">cshadow::SysCallCondition</span>;

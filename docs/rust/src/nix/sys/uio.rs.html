@@ -232,7 +232,7 @@
 <span class="doccomment">/// Low-level vectored write to a raw file descriptor</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also [writev(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/writev.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writev</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writev</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::writev</span>(<span class="ident">fd</span>, <span class="ident">iov</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::iovec</span>, <span class="ident">iov</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>) };
 
     <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>)
@@ -241,7 +241,7 @@
 <span class="doccomment">/// Low-level vectored read from a raw file descriptor</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also [readv(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/readv.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readv</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">iov</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">readv</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">iov</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::readv</span>(<span class="ident">fd</span>, <span class="ident">iov</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::iovec</span>, <span class="ident">iov</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>) };
 
     <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span> <span class="kw">as</span> <span class="ident">usize</span>)
@@ -255,7 +255,7 @@
 <span class="doccomment">/// See also: [`writev`](fn.writev.html) and [`pwrite`](fn.pwrite.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pwritev</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>],
-               <span class="ident">offset</span>: <span class="ident">off_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+               <span class="ident">offset</span>: <span class="ident">off_t</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">libc::pwritev</span>(<span class="ident">fd</span>, <span class="ident">iov</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::iovec</span>, <span class="ident">iov</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>, <span class="ident">offset</span>)
     };
@@ -272,7 +272,7 @@
 <span class="doccomment">/// See also: [`readv`](fn.readv.html) and [`pread`](fn.pread.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">preadv</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>],
-              <span class="ident">offset</span>: <span class="ident">off_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+              <span class="ident">offset</span>: <span class="ident">off_t</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">libc::preadv</span>(<span class="ident">fd</span>, <span class="ident">iov</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::iovec</span>, <span class="ident">iov</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>, <span class="ident">offset</span>)
     };
@@ -284,7 +284,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also [pwrite(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pwrite.html)</span>
 <span class="comment">// TODO: move to unistd</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pwrite</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">offset</span>: <span class="ident">off_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pwrite</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">offset</span>: <span class="ident">off_t</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">libc::pwrite</span>(<span class="ident">fd</span>, <span class="ident">buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_void</span>, <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>,
                     <span class="ident">offset</span>)
@@ -297,7 +297,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also [pread(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pread.html)</span>
 <span class="comment">// TODO: move to unistd</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pread</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">offset</span>: <span class="ident">off_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>{
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pread</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">offset</span>: <span class="ident">off_t</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>{
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">libc::pread</span>(<span class="ident">fd</span>, <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>,
                    <span class="ident">offset</span>)
@@ -348,7 +348,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process_vm_writev</span>(
     <span class="ident">pid</span>: <span class="ident"><span class="kw">crate</span>::unistd::Pid</span>,
     <span class="ident">local_iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>],
-    <span class="ident">remote_iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">RemoteIoVec</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="ident">remote_iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">RemoteIoVec</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
 {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">libc::process_vm_writev</span>(<span class="ident">pid</span>.<span class="ident">into</span>(),
@@ -383,7 +383,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process_vm_readv</span>(
     <span class="ident">pid</span>: <span class="ident"><span class="kw">crate</span>::unistd::Pid</span>,
     <span class="ident">local_iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>],
-    <span class="ident">remote_iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">RemoteIoVec</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="ident">remote_iov</span>: <span class="kw-2">&amp;</span>[<span class="ident">RemoteIoVec</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
 {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">libc::process_vm_readv</span>(<span class="ident">pid</span>.<span class="ident">into</span>(),
@@ -406,7 +406,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IoVec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// View the `IoVec` as a Rust slice.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="kw">use</span> <span class="ident">std::slice</span>;
 
         <span class="kw">unsafe</span> {
@@ -419,7 +419,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_raw_parts</span>(<span class="ident">base</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_raw_parts</span>(<span class="ident">base</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">IoVec</span>(<span class="ident">libc::iovec</span> {
             <span class="ident">iov_base</span>: <span class="ident">base</span>,
             <span class="ident">iov_len</span>: <span class="ident">len</span>
@@ -427,7 +427,7 @@
     }
 
     <span class="doccomment">/// Create an `IoVec` from a Rust slice.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_slice</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_slice</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
         <span class="ident">IoVec</span>(<span class="ident">libc::iovec</span> {
             <span class="ident">iov_base</span>: <span class="ident">buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">iov_len</span>: <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>,
@@ -437,7 +437,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
     <span class="doccomment">/// Create an `IoVec` from a mutable Rust slice.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_mut_slice</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_mut_slice</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">IoVec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
         <span class="ident">IoVec</span>(<span class="ident">libc::iovec</span> {
             <span class="ident">iov_base</span>: <span class="ident">buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">iov_len</span>: <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>,
