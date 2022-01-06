@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["FromDeriveInput",""],["FromField",""],["FromMeta",""],["FromMetaItem",""],["FromTypeParam",""],["FromVariant",""]]});
+initSidebarItems({"derive":[["FromAttributes",""],["FromDeriveInput",""],["FromField",""],["FromMeta",""],["FromMetaItem",""],["FromTypeParam",""],["FromVariant",""]]});

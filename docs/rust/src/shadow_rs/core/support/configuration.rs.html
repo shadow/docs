@@ -1644,6 +1644,9 @@
 <span id="1644">1644</span>
 <span id="1645">1645</span>
 <span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -1662,15 +1665,18 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
 
+<span class="kw">const</span> <span class="ident">START_HELP_TEXT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;\
+    Run real applications over simulated networks.\n\n\
+    For documentation, visit https://shadow.github.io/docs/guide&quot;</span>;
+
 <span class="kw">const</span> <span class="ident">END_HELP_TEXT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;\
     If units are not specified, all values are assumed to be given in their base \
     unit (seconds, bytes, bits, etc). Units can optionally be specified (for \
     example: &#39;1024 B&#39;, &#39;1024 bytes&#39;, &#39;1 KiB&#39;, &#39;1 kibibyte&#39;, etc) and are \
     case-sensitive.&quot;</span>;
 
-<span class="doccomment">/// Run real applications over simulated networks.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Parser</span>)]</span>
-<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;Shadow&quot;</span>, <span class="ident">after_help</span> <span class="op">=</span> <span class="ident">END_HELP_TEXT</span>)]</span>
+<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;Shadow&quot;</span>, <span class="ident">about</span> <span class="op">=</span> <span class="ident">START_HELP_TEXT</span>, <span class="ident">after_help</span> <span class="op">=</span> <span class="ident">END_HELP_TEXT</span>)]</span>
 <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">version</span> <span class="op">=</span> <span class="macro">std::option_env!</span>(<span class="string">&quot;SHADOW_VERSION&quot;</span>).<span class="ident">unwrap_or</span>(<span class="macro">std::env!</span>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CliOptions</span> {
     <span class="doccomment">/// Path to the Shadow configuration file. Use &#39;-&#39; to read from stdin</span>
@@ -1779,12 +1785,12 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GeneralOptions</span> {
     <span class="doccomment">/// The simulated time at which simulated processes are sent a SIGKILL signal</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;stop_time&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;stop_time&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">stop_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Initialize randomness using seed N</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;N&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;seed&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;seed&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_1&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">seed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 
@@ -1792,38 +1798,38 @@
     <span class="doccomment">/// performance is usually obtained with `cores`, or sometimes `cores/2`</span>
     <span class="doccomment">/// with hyperthreading.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;p&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;cores&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;parallelism&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;parallelism&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_nz_1&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">parallelism</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The simulated time that ends Shadow&#39;s high network bandwidth/reliability bootstrap period</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;bootstrap_end_time&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;bootstrap_end_time&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_time_0&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">bootstrap_end_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Log level of output written on stdout. If Shadow was built in release mode, then log</span>
     <span class="doccomment">/// messages at level &#39;trace&#39; will always be dropped</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;l&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;log_level&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_info&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Interval at which to print heartbeat messages</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;heartbeat_interval&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;heartbeat_interval&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_time_1&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">heartbeat_interval</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Path to store simulation output</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;d&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;path&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;data_directory&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;data_directory&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_data_directory&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">data_directory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Path to recursively copy during startup and use as the data-directory</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span> <span class="op">=</span> <span class="string">&#39;e&#39;</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;path&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;template_directory&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;template_directory&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="kw">pub</span> <span class="ident">template_directory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
@@ -1855,7 +1861,7 @@
     <span class="doccomment">/// edge between nodes. If false, the network graph is required to be complete.</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_true&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">NETWORK_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_shortest_path&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">NETWORK_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_shortest_path&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_shortest_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
@@ -1880,115 +1886,115 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExperimentalOptions</span> {
     <span class="doccomment">/// Use the SCHED_FIFO scheduler. Requires CAP_SYS_NICE. See sched(7), capabilities(7)</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_sched_fifo&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_sched_fifo&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_sched_fifo</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Use performance workarounds for waitpid being O(n). Beneficial to disable if waitpid</span>
     <span class="doccomment">/// is patched to be O(1), if using one logical processor per host, or in some cases where</span>
     <span class="doccomment">/// it&#39;d otherwise result in excessive detaching and reattaching</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_o_n_waitpid_workarounds&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_o_n_waitpid_workarounds&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_o_n_waitpid_workarounds</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Send message to plugin telling it to stop spinning when a syscall blocks</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_explicit_block_message&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_explicit_block_message&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_explicit_block_message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Use seccomp to trap syscalls. Default is true for preload mode, false otherwise.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_seccomp&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_seccomp&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_seccomp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Count the number of occurrences for individual syscalls</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_syscall_counters&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_syscall_counters&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_syscall_counters</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Count object allocations and deallocations. If disabled, we will not be able to detect object memory leaks</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_object_counters&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_object_counters&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_object_counters</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Preload our libc library for all managed processes for fast syscall interposition when possible.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_libc_preload&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_libc_preload&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="ident">use_libc_preload</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Preload our OpenSSL RNG library for all managed processes to mitigate non-deterministic use of OpenSSL.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_openssl_rng_preload&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_openssl_rng_preload&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="ident">use_openssl_rng_preload</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Max number of iterations to busy-wait on IPC semaphore before blocking</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;iterations&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;preload_spin_max&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;preload_spin_max&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">preload_spin_max</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Use the MemoryManager. It can be useful to disable for debugging, but will hurt performance in</span>
     <span class="doccomment">/// most cases</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_memory_manager&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_memory_manager&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_memory_manager</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Use shim-side syscall handler to force hot-path syscalls to be handled via an inter-process syscall with Shadow</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_shim_syscall_handler&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_shim_syscall_handler&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_shim_syscall_handler</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Pin each thread and any processes it executes to the same logical CPU Core to improve cache affinity</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_cpu_pinning&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_cpu_pinning&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_cpu_pinning</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Which interposition method to use</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;method&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;interpose_method&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;interpose_method&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">interpose_method</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InterposeMethod</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// If set, overrides the automatically calculated minimum time workers may run ahead when sending events between nodes</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;runahead&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;runahead&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">runahead</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Update the minimum runahead dynamically throughout the simulation.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_dynamic_runahead&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_dynamic_runahead&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_dynamic_runahead</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The event scheduler&#39;s policy for thread synchronization</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;policy&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;scheduler_policy&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;scheduler_policy&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">scheduler_policy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SchedulerPolicy</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Initial size of the socket&#39;s send buffer</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_send_buffer&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_send_buffer&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">socket_send_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Bytes</span><span class="op">&lt;</span><span class="ident">units::SiPrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Enable send window autotuning</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_send_autotune&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_send_autotune&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">socket_send_autotune</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Initial size of the socket&#39;s receive buffer</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_recv_buffer&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_recv_buffer&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">socket_recv_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Bytes</span><span class="op">&lt;</span><span class="ident">units::SiPrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Enable receive window autotuning</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_recv_autotune&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;socket_recv_autotune&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">socket_recv_autotune</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Size of the interface receive buffer that accepts incoming packets</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;interface_buffer&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;interface_buffer&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">interface_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Bytes</span><span class="op">&lt;</span><span class="ident">units::SiPrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The queueing discipline to use at the network interface</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;mode&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;interface_qdisc&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;interface_qdisc&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">interface_qdisc</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">QDiscMode</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Create N worker threads. Note though, that `--parallelism` of them will</span>
@@ -1996,33 +2002,33 @@
     <span class="doccomment">/// each simulated Host. This is to work around limitations in ptrace, and</span>
     <span class="doccomment">/// may change in the future.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;N&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;worker_threads&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;worker_threads&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">worker_threads</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Don&#39;t adjust the working directories of the plugins</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_legacy_working_dir&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_legacy_working_dir&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_legacy_working_dir</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Show the simulation progress at the bottom of the terminal</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;progress&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;progress&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Log level at which to print host statistics</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_log_level&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">host_heartbeat_log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// List of information to show in the host&#39;s heartbeat message</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">parse</span>(<span class="ident">try_from_str</span> <span class="op">=</span> <span class="ident">parse_set_log_info_flags</span>))]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;options&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_log_info&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_log_info&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">host_heartbeat_log_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::collections::HashSet</span><span class="op">&lt;</span><span class="ident">LogInfoFlag</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Amount of time between heartbeat messages for this host</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_interval&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_interval&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">host_heartbeat_interval</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
@@ -2081,12 +2087,12 @@
     <span class="doccomment">/// Log level at which to print node messages</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;host-log-level&quot;</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;host-log-level&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;log_level&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;log_level&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">log_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Where to save the pcap files (relative to the host directory)</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;path&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;pcap_directory&quot;</span>).<span class="ident">unwrap</span>())]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;pcap_directory&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">pcap_directory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
