@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["statusBar_free",""],["statusBar_new",""],["statusBar_update",""]]});
+initSidebarItems({"enum":[["StatusLogger",""]],"fn":[["statusBar_new",""],["statusLogger_free",""],["statusLogger_update",""],["statusPrinter_new",""]]});
