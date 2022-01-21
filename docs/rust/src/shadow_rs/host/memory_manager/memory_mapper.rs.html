@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `host&#x2F;memory_manager&#x2F;memory_mapper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>memory_mapper.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../shadow_rs/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `host&#x2F;memory_manager&#x2F;memory_mapper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>memory_mapper.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../shadow_rs/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1063,7 +1064,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Region</span> {
     <span class="comment">// Where the region is mapped into shadow&#39;s address space, or NULL if it isn&#39;t.</span>
-    <span class="ident">shadow_base</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="ident">shadow_base</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
     <span class="ident">prot</span>: <span class="ident">i32</span>,
     <span class="ident">sharing</span>: <span class="ident">proc_maps::Sharing</span>,
     <span class="comment">// The *original* path. Not the path to our mem file.</span>
@@ -1122,7 +1123,7 @@
 
 <span class="kw">impl</span> <span class="ident">ShmFile</span> {
     <span class="doccomment">/// Allocate space in the file for the given interval.</span>
-    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>) {
+    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>) {
         <span class="kw">let</span> <span class="ident">needed_len</span> <span class="op">=</span> <span class="ident">interval</span>.<span class="ident">end</span> <span class="kw">as</span> <span class="ident">libc::off_t</span>;
         <span class="comment">// Ensure that the file size extends through the end of the interval.</span>
         <span class="comment">// Unlike calling fallocate or posix_fallocate, this does not pre-reserve</span>
@@ -1147,7 +1148,7 @@
     }
 
     <span class="doccomment">/// Map the given interval of the file into shadow&#39;s address space.</span>
-    <span class="kw">fn</span> <span class="ident">mmap_into_shadow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>, <span class="ident">prot</span>: <span class="ident">i32</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span> {
+    <span class="kw">fn</span> <span class="ident">mmap_into_shadow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>, <span class="ident">prot</span>: <span class="ident">i32</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_void</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">sys::mman::mmap</span>(
                 <span class="ident">std::ptr::null_mut</span>(),
@@ -1180,7 +1181,7 @@
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">interval</span>.<span class="ident">start</span> <span class="op">-</span> <span class="ident">region_interval</span>.<span class="ident">start</span>;
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">std::slice::from_raw_parts_mut</span>(
-                <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>,
+                <span class="ident">region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>,
                 <span class="ident">interval</span>.<span class="ident">len</span>(),
             )
         };
@@ -1194,7 +1195,7 @@
     }
 
     <span class="doccomment">/// Map the given range of the file into the plugin&#39;s address space.</span>
-    <span class="kw">fn</span> <span class="ident">mmap_into_plugin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Thread</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>, <span class="ident">prot</span>: <span class="ident">i32</span>) {
+    <span class="kw">fn</span> <span class="ident">mmap_into_plugin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Thread</span>, <span class="ident">interval</span>: <span class="kw-2">&amp;</span><span class="ident">Interval</span>, <span class="ident">prot</span>: <span class="ident">i32</span>) {
         <span class="ident">thread</span>
             .<span class="ident">native_mmap</span>(
                 <span class="ident">PluginPtr::from</span>(<span class="ident">interval</span>.<span class="ident">start</span>),
@@ -1239,10 +1240,10 @@
 
 <span class="doccomment">/// Find the heap range, and map it if non-empty.</span>
 <span class="kw">fn</span> <span class="ident">get_heap</span>(
-    <span class="ident">shm_file</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ShmFile</span>,
-    <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>,
+    <span class="ident">shm_file</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ShmFile</span>,
+    <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>,
     <span class="ident">memory_manager</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
-    <span class="ident">regions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
+    <span class="ident">regions</span>: <span class="kw-2">&amp;mut</span> <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">Interval</span> {
     <span class="comment">// If there&#39;s already a region labeled heap, we use those bounds.</span>
     <span class="kw">let</span> <span class="ident">heap_mapping</span> <span class="op">=</span> {
@@ -1284,10 +1285,10 @@
 <span class="doccomment">/// Finds where the stack is located and maps the region bounding the maximum</span>
 <span class="doccomment">/// stack size.</span>
 <span class="kw">fn</span> <span class="ident">map_stack</span>(
-    <span class="ident">memory_manager</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span>,
-    <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Thread</span>,
-    <span class="ident">shm_file</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ShmFile</span>,
-    <span class="ident">regions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
+    <span class="ident">memory_manager</span>: <span class="kw-2">&amp;mut</span> <span class="ident">MemoryManager</span>,
+    <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Thread</span>,
+    <span class="ident">shm_file</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ShmFile</span>,
+    <span class="ident">regions</span>: <span class="kw-2">&amp;mut</span> <span class="ident">IntervalMap</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
 ) {
     <span class="comment">// Find the current stack region. There should be exactly one.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">regions</span>
@@ -1338,7 +1339,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">MemoryMapper</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">misses</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">misses_by_path</span>.<span class="ident">borrow</span>();
         <span class="kw">if</span> <span class="ident">misses</span>.<span class="ident">is_empty</span>() {
             <span class="macro">debug!</span>(<span class="string">&quot;MemoryManager misses: None&quot;</span>);
@@ -1364,7 +1365,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">MemoryMapper</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">memory_manager</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MemoryManager</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>) -&gt; <span class="ident">MemoryMapper</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">memory_manager</span>: <span class="kw-2">&amp;mut</span> <span class="ident">MemoryManager</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>) -&gt; <span class="ident">MemoryMapper</span> {
         <span class="kw">let</span> <span class="ident">shm_path</span> <span class="op">=</span> <span class="macro">format!</span>(
             <span class="string">&quot;/dev/shm/shadow_memory_manager_{}_{}_{}&quot;</span>,
             <span class="ident">process::id</span>(),
@@ -1413,8 +1414,8 @@
             <span class="ident">len</span>: <span class="number">0</span>,
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regions</span> <span class="op">=</span> <span class="ident">get_regions</span>(<span class="ident">memory_manager</span>.<span class="ident">pid</span>);
-        <span class="kw">let</span> <span class="ident">heap</span> <span class="op">=</span> <span class="ident">get_heap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">shm_file</span>, <span class="ident">thread</span>, <span class="ident">memory_manager</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">regions</span>);
-        <span class="ident">map_stack</span>(<span class="ident">memory_manager</span>, <span class="ident">thread</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">shm_file</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">regions</span>);
+        <span class="kw">let</span> <span class="ident">heap</span> <span class="op">=</span> <span class="ident">get_heap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">shm_file</span>, <span class="ident">thread</span>, <span class="ident">memory_manager</span>, <span class="kw-2">&amp;mut</span> <span class="ident">regions</span>);
+        <span class="ident">map_stack</span>(<span class="ident">memory_manager</span>, <span class="ident">thread</span>, <span class="kw-2">&amp;mut</span> <span class="ident">shm_file</span>, <span class="kw-2">&amp;mut</span> <span class="ident">regions</span>);
 
         <span class="ident">MemoryMapper</span> {
             <span class="ident">shm_file</span>,
@@ -1436,7 +1437,7 @@
     <span class="doccomment">/// When used on mutations after an insert, if the inserted region is to be mapped into shadow,</span>
     <span class="doccomment">/// be sure to call this *before* doing that mapping; otherwise we&#39;ll end up deallocating some</span>
     <span class="doccomment">/// or all of the space in that new mapping.</span>
-    <span class="kw">fn</span> <span class="ident">unmap_mutations</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">mutations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Mutation</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">unmap_mutations</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mutations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Mutation</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
         <span class="kw">for</span> <span class="ident">mutation</span> <span class="kw">in</span> <span class="ident">mutations</span> {
             <span class="kw">match</span> <span class="ident">mutation</span> {
                 <span class="ident">Mutation::ModifiedBegin</span>(<span class="ident">interval</span>, <span class="ident">new_start</span>) =&gt; {
@@ -1490,7 +1491,7 @@
                     <span class="comment">// Unmap range from Shadow&#39;s address space.</span>
                     <span class="kw">unsafe</span> {
                         <span class="ident">sys::mman::munmap</span>(
-                            (<span class="ident">left_region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">left</span>.<span class="ident">len</span>())) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+                            (<span class="ident">left_region</span>.<span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">left</span>.<span class="ident">len</span>())) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
                             <span class="ident">removed_range</span>.<span class="ident">len</span>(),
                         )
                     }
@@ -1526,8 +1527,8 @@
     <span class="doccomment">/// mappings are remapped.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_mmap_result</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">Thread</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Thread</span>,
         <span class="ident">ptr</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
         <span class="ident">prot</span>: <span class="ident">i32</span>,
         <span class="ident">flags</span>: <span class="ident">i32</span>,
@@ -1595,7 +1596,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Executes the actual mmap operation in the plugin, updates the MemoryManager&#39;s understanding of</span>
     <span class="doccomment">/// the plugin&#39;s address space, and unmaps the affected memory from Shadow if it was mapped in.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_munmap_result</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">addr</span>: <span class="ident">PluginPtr</span>, <span class="ident">length</span>: <span class="ident">usize</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_munmap_result</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">addr</span>: <span class="ident">PluginPtr</span>, <span class="ident">length</span>: <span class="ident">usize</span>) {
         <span class="macro">trace!</span>(<span class="string">&quot;handle_munmap_result({:?}, {})&quot;</span>, <span class="ident">addr</span>, <span class="ident">length</span>);
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span>;
@@ -1614,8 +1615,8 @@
     <span class="doccomment">/// understanding of the plugin&#39;s address space, and updates Shadow&#39;s mappings of that region</span>
     <span class="doccomment">/// if applicable.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_mremap</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>,
         <span class="ident">old_address</span>: <span class="ident">PluginPtr</span>,
         <span class="ident">old_size</span>: <span class="ident">usize</span>,
         <span class="ident">new_size</span>: <span class="ident">usize</span>,
@@ -1741,7 +1742,7 @@
     <span class="doccomment">/// Execute the requested `brk` and update our mappings accordingly. May invalidate outstanding</span>
     <span class="doccomment">/// pointers. (Rust won&#39;t allow mutable methods such as this one to be called with outstanding</span>
     <span class="doccomment">/// borrowed references).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_brk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>, <span class="ident">ptr</span>: <span class="ident">PluginPtr</span>) -&gt; <span class="ident">SyscallResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_brk</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>, <span class="ident">ptr</span>: <span class="ident">PluginPtr</span>) -&gt; <span class="ident">SyscallResult</span> {
         <span class="kw">let</span> <span class="ident">requested_brk</span> <span class="op">=</span> <span class="ident">usize::from</span>(<span class="ident">ptr</span>);
 
         <span class="comment">// On error, brk syscall returns current brk (end of heap). The only errors we specifically</span>
@@ -1860,8 +1861,8 @@
     <span class="doccomment">/// settings can help catch bugs earlier. Shadow should never have reason to access plugin</span>
     <span class="doccomment">/// memory in a way that the plugin itself can&#39;t.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_mprotect</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">thread</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>,
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">thread</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Thread</span>,
         <span class="ident">addr</span>: <span class="ident">PluginPtr</span>,
         <span class="ident">size</span>: <span class="ident">usize</span>,
         <span class="ident">prot</span>: <span class="ident">i32</span>,
@@ -1986,7 +1987,7 @@
 
     <span class="comment">// Get a raw pointer to the plugin&#39;s memory, if it&#39;s been remapped into Shadow.</span>
     <span class="comment">// Panics if called with zero-length `src`.</span>
-    <span class="kw">fn</span> <span class="ident">get_mapped_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_mapped_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="macro">assert!</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>);
 
         <span class="kw">if</span> <span class="ident">usize::from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>()) <span class="op">%</span> <span class="ident">std::mem::align_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
@@ -2023,12 +2024,12 @@
 
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">usize::from</span>(<span class="ident">src</span>.<span class="ident">ptr</span>()) <span class="op">-</span> <span class="ident">interval</span>.<span class="ident">start</span>;
         <span class="comment">// Base pointer + offset won&#39;t wrap around, by construction.</span>
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">offset</span>) } <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">shadow_base</span>.<span class="ident">add</span>(<span class="ident">offset</span>) } <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">T</span>;
 
         <span class="prelude-val">Some</span>(<span class="ident">ptr</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_mapped_ptr_and_count</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_mapped_ptr_and_count</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Pod</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_mapped_ptr</span>(<span class="ident">src</span>);
         <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_none</span>() {
             <span class="self">self</span>.<span class="ident">inc_misses</span>(<span class="ident">src</span>);
@@ -2044,9 +2045,9 @@
         <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">std::slice::from_raw_parts</span>(<span class="ident">notnull_debug</span>(<span class="ident">ptr</span>), <span class="ident">src</span>.<span class="ident">len</span>()) })
     }
 
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> []);
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> []);
         }
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_mapped_ptr_and_count</span>(<span class="ident">src</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">std::slice::from_raw_parts_mut</span>(<span class="ident">notnull_mut_debug</span>(<span class="ident">ptr</span>), <span class="ident">src</span>.<span class="ident">len</span>()) })
@@ -2074,5 +2075,4 @@
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="shadow_rs" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
-    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script>
 </body></html>

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `utility&#x2F;byte_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>byte_queue.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../shadow_rs/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `utility&#x2F;byte_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>byte_queue.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../shadow_rs/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -691,7 +692,7 @@
     }
 
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">fn</span> <span class="ident">alloc_zeroed_buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">BytesMut</span> {
+    <span class="kw">fn</span> <span class="ident">alloc_zeroed_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">BytesMut</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
         {
             <span class="self">self</span>.<span class="ident">total_allocations</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -701,7 +702,7 @@
     }
 
     <span class="doccomment">/// Push stream data onto the queue. The data may be merged into the previous stream chunk.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_stream</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_stream</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_copied</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="kw">loop</span> {
@@ -713,7 +714,7 @@
             };
             <span class="macro">assert_eq!</span>(<span class="ident">unused</span>.<span class="ident">len</span>(), <span class="ident">unused</span>.<span class="ident">capacity</span>());
 
-            <span class="kw">let</span> <span class="ident">copied</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">unused</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">copied</span> <span class="op">=</span> <span class="ident">src</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">unused</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">unused</span>.<span class="ident">split_to</span>(<span class="ident">copied</span>);
 
             <span class="ident">total_copied</span> <span class="op">+</span><span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">bytes</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
@@ -734,7 +735,7 @@
                 <span class="comment">// if the last chunk was a stream chunk</span>
                 <span class="kw">if</span> <span class="ident">last_chunk</span>.<span class="ident">chunk_type</span> <span class="op">==</span> <span class="ident">ChunkType::Stream</span> {
                     <span class="comment">// if the last stream chunk is mutable</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">last_chunk</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">last_chunk</span>.<span class="ident">data</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BytesWrapper::Mutable</span>(<span class="ident">last_chunk</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">last_chunk</span>.<span class="ident">data</span> {
                         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">len</span>();
                         <span class="comment">// try merging our new bytes into the last chunk, which will be</span>
                         <span class="comment">// successful if it doesn&#39;t require any memory copying</span>
@@ -759,22 +760,22 @@
 
     <span class="doccomment">/// Push packet data onto the queue in a single chunk. Exactly `size` bytes will be read into</span>
     <span class="doccomment">/// the packet.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_packet</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_packet</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// we may need somewhere to store a new buffer</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_buf</span>;
 
-        <span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">unused_buffer</span> {
+        <span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">unused_buffer</span> {
             <span class="comment">// if the existing &#39;unused_buffer&#39; has enough space</span>
             <span class="prelude-val">Some</span>(<span class="ident">buf</span>) <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size</span> =&gt; <span class="ident">buf</span>,
             <span class="comment">// otherwise allocate a new buffer</span>
             <span class="kw">_</span> =&gt; {
                 <span class="ident">new_buf</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_zeroed_buffer</span>(<span class="ident">size</span>);
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_buf</span>
+                <span class="kw-2">&amp;mut</span> <span class="ident">new_buf</span>
             }
         };
         <span class="macro">assert_eq!</span>(<span class="ident">unused</span>.<span class="ident">len</span>(), <span class="ident">unused</span>.<span class="ident">capacity</span>());
 
-        <span class="ident">src</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">unused</span>[..<span class="ident">size</span>])<span class="question-mark">?</span>;
+        <span class="ident">src</span>.<span class="ident">read_exact</span>(<span class="kw-2">&amp;mut</span> <span class="ident">unused</span>[..<span class="ident">size</span>])<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">unused</span>.<span class="ident">split_to</span>(<span class="ident">size</span>);
 
         <span class="comment">// we may have used up all of the space in &#39;unused_buffer&#39;</span>
@@ -790,7 +791,7 @@
     }
 
     <span class="doccomment">/// Push a chunk of stream or packet data onto the queue.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_chunk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">BytesWrapper</span><span class="op">&gt;</span>, <span class="ident">chunk_type</span>: <span class="ident">ChunkType</span>) -&gt; <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_chunk</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">BytesWrapper</span><span class="op">&gt;</span>, <span class="ident">chunk_type</span>: <span class="ident">ChunkType</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">data</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
         <span class="self">self</span>.<span class="ident">length</span> <span class="op">+</span><span class="op">=</span> <span class="ident">len</span>;
@@ -802,7 +803,7 @@
     <span class="doccomment">/// all data from the queue, you must call this method until the returned chunk type is `None`.</span>
     <span class="doccomment">/// Zero-length packets may be returned. If packet data is returned but `dst` did not have</span>
     <span class="doccomment">/// enough space, the remaining bytes in the packet will be dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChunkType</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChunkType</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="comment">// peek the front to see what kind of data is next</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">front</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">chunk_type</span> {
@@ -813,7 +814,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">pop_stream</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop_stream</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_copied</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="macro">assert_ne!</span>(
             <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">len</span>(),
@@ -824,7 +825,7 @@
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">front_mut</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">chunk_type</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ChunkType::Stream</span> =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">x</span>.<span class="ident">data</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">&amp;mut</span> <span class="ident">x</span>.<span class="ident">data</span>,
                 <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
             };
 
@@ -862,13 +863,13 @@
         <span class="prelude-val">Ok</span>(<span class="ident">total_copied</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">pop_packet</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop_packet</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">dst</span>: <span class="ident">W</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">bytes</span>
             .<span class="ident">pop_front</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;This function assumes there is a chunk&quot;</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">chunk</span>.<span class="ident">chunk_type</span>, <span class="ident">ChunkType::Packet</span>);
-        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">chunk</span>.<span class="ident">data</span>;
+        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">chunk</span>.<span class="ident">data</span>;
 
         <span class="comment">// decrease the length now in case we return early</span>
         <span class="self">self</span>.<span class="ident">length</span> <span class="op">-</span><span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">bytes</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
@@ -905,7 +906,7 @@
     <span class="doccomment">/// Pop a single chunk of data from the queue. The `size_hint` argument is used to limit the</span>
     <span class="doccomment">/// number of bytes in the returned chunk iff the next chunk has stream data. If the returned</span>
     <span class="doccomment">/// chunk has packet data, the `size_hint` is ignored and the entire packet is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_chunk</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size_hint</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Bytes</span>, <span class="ident">ChunkType</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_chunk</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">size_hint</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Bytes</span>, <span class="ident">ChunkType</span>)<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">front_mut</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">chunk_type</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">chunk_type</span>;
 
@@ -931,7 +932,7 @@
 <span class="comment">// a sanity check only when using debug mode</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
 <span class="kw">impl</span> <span class="ident">std::ops::Drop</span> <span class="kw">for</span> <span class="ident">ByteQueue</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// check that the length is consistent with the number of remaining bytes</span>
         <span class="macro">assert_eq!</span>(
             <span class="self">self</span>.<span class="ident">num_bytes</span>(),
@@ -1000,7 +1001,7 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
     );
     <span class="macro">enum_passthrough_into!</span>(<span class="self">self</span>, (<span class="ident">at</span>), <span class="ident">Mutable</span>, <span class="ident">Immutable</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_to</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">BytesWrapper</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; <span class="ident">BytesWrapper</span>
     );
 }
 
@@ -1021,12 +1022,12 @@
     <span class="kw">use</span> <span class="ident">std::slice</span>;
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_new</span>(<span class="ident">default_chunk_size</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_new</span>(<span class="ident">default_chunk_size</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">ByteQueue</span> {
         <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">ByteQueue::new</span>(<span class="ident">default_chunk_size</span>)))
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_free</span>(<span class="ident">bq_ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_free</span>(<span class="ident">bq_ptr</span>: <span class="kw-2">*mut</span> <span class="ident">ByteQueue</span>) {
         <span class="kw">if</span> <span class="ident">bq_ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span>;
         }
@@ -1036,54 +1037,54 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_numBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>) -&gt; <span class="ident">u64</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_numBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*mut</span> <span class="ident">ByteQueue</span>) -&gt; <span class="ident">u64</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
+        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="ident">bq</span>.<span class="ident">num_bytes</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_hasBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_hasBytes</span>(<span class="ident">bq</span>: <span class="kw-2">*mut</span> <span class="ident">ByteQueue</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
+        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="ident">bq</span>.<span class="ident">has_bytes</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_pushStream</span>(
-        <span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>,
-        <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">std::os::raw::c_uchar</span>,
+        <span class="ident">bq</span>: <span class="kw-2">*mut</span> <span class="ident">ByteQueue</span>,
+        <span class="ident">src</span>: <span class="kw-2">*const</span> <span class="ident">std::os::raw::c_uchar</span>,
         <span class="ident">len</span>: <span class="ident">libc::size_t</span>,
     ) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">src</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
+        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>, <span class="ident">len</span>) };
         <span class="ident">bq</span>.<span class="ident">push_stream</span>(<span class="ident">src</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_pushPacket</span>(
-        <span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>,
-        <span class="ident">src</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">std::os::raw::c_uchar</span>,
+        <span class="ident">bq</span>: <span class="kw-2">*mut</span> <span class="ident">ByteQueue</span>,
+        <span class="ident">src</span>: <span class="kw-2">*const</span> <span class="ident">std::os::raw::c_uchar</span>,
         <span class="ident">len</span>: <span class="ident">libc::size_t</span>,
     ) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">src</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
+        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice::from_raw_parts</span>(<span class="ident">src</span>, <span class="ident">len</span>) };
         <span class="ident">bq</span>.<span class="ident">push_packet</span>(<span class="ident">src</span>, <span class="ident">src</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">bytequeue_pop</span>(
-        <span class="ident">bq</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ByteQueue</span>,
-        <span class="ident">dst</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">std::os::raw::c_uchar</span>,
+        <span class="ident">bq</span>: <span class="kw-2">*mut</span> <span class="ident">ByteQueue</span>,
+        <span class="ident">dst</span>: <span class="kw-2">*mut</span> <span class="ident">std::os::raw::c_uchar</span>,
         <span class="ident">len</span>: <span class="ident">libc::size_t</span>,
     ) -&gt; <span class="ident">libc::size_t</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">dst</span>.<span class="ident">is_null</span>());
-        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
+        <span class="kw">let</span> <span class="ident">bq</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">bq</span> };
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>, <span class="ident">len</span>) };
         <span class="kw">let</span> (<span class="ident">count</span>, <span class="ident">_chunk_type</span>) <span class="op">=</span> <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="ident">dst</span>).<span class="ident">unwrap</span>();
         <span class="ident">count</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()
@@ -1116,8 +1117,8 @@
         );
         <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">total_allocations</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">bq</span>.<span class="ident">bytes</span>.<span class="ident">len</span>());
 
-        <span class="macro">assert_eq!</span>(<span class="number">8</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst1</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">8</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst2</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">8</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dst1</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">8</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dst2</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
 
         <span class="macro">assert_eq!</span>(<span class="ident">dst1</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>]);
         <span class="macro">assert_eq!</span>(<span class="ident">dst2</span>, [<span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>, <span class="number">13</span>, <span class="number">51</span>, <span class="number">52</span>, <span class="number">53</span>, <span class="number">0</span>, <span class="number">0</span>]);
@@ -1141,9 +1142,9 @@
         <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">bytes</span>.<span class="ident">len</span>(), <span class="number">3</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">total_allocations</span>, <span class="number">3</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="number">8</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst1</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst2</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst2</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">8</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dst1</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dst2</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dst2</span>[..]).<span class="ident">unwrap</span>().<span class="number">0</span>);
 
         <span class="macro">assert_eq!</span>(<span class="ident">dst1</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>]);
         <span class="macro">assert_eq!</span>(<span class="ident">dst2</span>, [<span class="number">51</span>, <span class="number">52</span>, <span class="number">53</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]);
@@ -1164,13 +1165,13 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">20</span>];
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">3</span>], [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">3</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]);
 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">has_bytes</span>());
@@ -1197,22 +1198,22 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">20</span>];
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">3</span>]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">3</span>]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">3</span>], [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">5</span>]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">4</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">4</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">4</span>], [<span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>]);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">3</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Stream</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">3</span>], [<span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>]);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">4</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">4</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
         <span class="macro">assert_eq!</span>(<span class="ident">buf</span>[..<span class="number">4</span>], [<span class="number">100</span>, <span class="number">101</span>, <span class="number">102</span>, <span class="number">103</span>]);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">ChunkType::Packet</span>)));
 
         <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop_chunk</span>(<span class="number">4</span>), <span class="prelude-val">Some</span>(([<span class="number">18</span>][..].<span class="ident">into</span>(), <span class="ident">ChunkType::Stream</span>)));
 
@@ -1222,7 +1223,7 @@
         );
 
         <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop_chunk</span>(<span class="number">8</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">0</span>, <span class="prelude-val">None</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[..<span class="number">4</span>]).<span class="ident">unwrap</span>(), (<span class="number">0</span>, <span class="prelude-val">None</span>));
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">bq</span>.<span class="ident">has_bytes</span>());
     }
 
@@ -1231,10 +1232,10 @@
         <span class="kw">struct</span> <span class="ident">TestWriter</span>;
 
         <span class="kw">impl</span> <span class="ident">std::io::Write</span> <span class="kw">for</span> <span class="ident">TestWriter</span> {
-            <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">std::io::ErrorKind::BrokenPipe</span>.<span class="ident">into</span>())
             }
-            <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
                 <span class="prelude-val">Ok</span>(())
             }
         }
@@ -1247,14 +1248,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">TestWriter</span> {};
 
         <span class="comment">// the remainder of the packet will be dropped, so length will decrease by 3 bytes</span>
-        <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">writer</span>).<span class="ident">unwrap_err</span>();
+        <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">writer</span>).<span class="ident">unwrap_err</span>();
         <span class="comment">// no stream data will be dropped, so length will not decrease</span>
-        <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">writer</span>).<span class="ident">unwrap_err</span>();
+        <span class="ident">bq</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;mut</span> <span class="ident">writer</span>).<span class="ident">unwrap_err</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">bq</span>.<span class="ident">num_bytes</span>(), <span class="number">3</span>);
     }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="shadow_rs" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
-    <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>
