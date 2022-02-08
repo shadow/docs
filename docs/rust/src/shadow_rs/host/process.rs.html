@@ -291,7 +291,29 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<span class="ident">FromRawFd</span>, <span class="ident">IntoRawFd</span>};
+
+<span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::CompatDescriptor</span>;
@@ -403,6 +425,24 @@
         }
 
         <span class="ident">removed_desc</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strace_logging_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">unsafe</span> { <span class="ident">cshadow::process_straceLoggingEnabled</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) }
+    }
+
+    <span class="doccomment">/// If strace logging is disabled, this function will do nothing and return `None`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_strace_file</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">std::fs::File</span>) -&gt; <span class="ident">T</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">cshadow::process_getStraceFd</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) };
+
+        <span class="kw">if</span> <span class="ident">fd</span> <span class="op">&lt;</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::fs::File::from_raw_fd</span>(<span class="ident">fd</span>) };
+        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;mut</span> <span class="ident">file</span>);
+        <span class="ident">file</span>.<span class="ident">into_raw_fd</span>();
+        <span class="prelude-val">Some</span>(<span class="ident">rv</span>)
     }
 
     <span class="doccomment">/// Get a reference to the descriptor with the given fd handle.</span>

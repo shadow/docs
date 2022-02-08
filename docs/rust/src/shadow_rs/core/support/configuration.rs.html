@@ -1648,6 +1648,20 @@
 <span id="1647">1647</span>
 <span id="1648">1648</span>
 <span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -2031,6 +2045,11 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_interval&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">host_heartbeat_interval</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Log the syscalls for each process to individual &quot;strace&quot; files</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_strace_logging&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">use_strace_logging</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ExperimentalOptions</span> {
@@ -2072,6 +2091,7 @@
             <span class="ident">host_heartbeat_log_level</span>: <span class="prelude-val">Some</span>(<span class="ident">LogLevel::Info</span>),
             <span class="ident">host_heartbeat_log_info</span>: <span class="prelude-val">Some</span>(<span class="ident">IntoIterator::into_iter</span>([<span class="ident">LogInfoFlag::Node</span>]).<span class="ident">collect</span>()),
             <span class="ident">host_heartbeat_interval</span>: <span class="prelude-val">None</span>,
+            <span class="ident">use_strace_logging</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
         }
     }
 }
@@ -2996,6 +3016,14 @@
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::TimePrefixUpper::Sec</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>() <span class="op">*</span> <span class="ident">SIMTIME_ONE_SECOND</span>,
             <span class="prelude-val">None</span> =&gt; <span class="ident">SIMTIME_INVALID</span>,
         }
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseStraceLogging</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+
+        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_strace_logging</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
