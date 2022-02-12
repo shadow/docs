@@ -1662,6 +1662,48 @@
 <span id="1661">1661</span>
 <span id="1662">1662</span>
 <span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -2377,11 +2419,53 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">untagged</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProcessArgs</span> {
     <span class="ident">List</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>),
     <span class="ident">Str</span>(<span class="ident">String</span>),
+}
+
+<span class="doccomment">/// Serde doesn&#39;t provide good deserialization error messages for untagged enums, so we implement</span>
+<span class="doccomment">/// our own. For example, if serde finds a yaml value such as 4 for the process arguments, it won&#39;t</span>
+<span class="doccomment">/// deserialize it to the string &quot;4&quot; and the yaml parsing will fail. The serde-generated error</span>
+<span class="doccomment">/// message will say something like &quot;data did not match any variant of untagged enum ProcessArgs at</span>
+<span class="doccomment">/// line X column Y&quot; which isn&#39;t very helpful to the user, so here we try to give a better error</span>
+<span class="doccomment">/// message.</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">serde::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProcessArgs</span> {
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">serde::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span> {
+        <span class="kw">struct</span> <span class="ident">ProcessArgsVisitor</span>;
+
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">serde::de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProcessArgsVisitor</span> {
+            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">ProcessArgs</span>;
+
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span>) -&gt; <span class="ident">std::fmt::Result</span> {
+                <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a string or a sequence of strings&quot;</span>)
+            }
+
+            <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">E</span>: <span class="ident">serde::de::Error</span>,
+            {
+                <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Value::Str</span>(<span class="ident">v</span>.<span class="ident">to_owned</span>()))
+            }
+
+            <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">seq</span>: <span class="ident">A</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">A::Error</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">A</span>: <span class="ident">serde::de::SeqAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">seq</span>.<span class="ident">next_element</span>()<span class="question-mark">?</span> {
+                    <span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">val</span>);
+                }
+
+                <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Value::List</span>(<span class="ident">v</span>))
+            }
+        }
+
+        <span class="ident">deserializer</span>.<span class="ident">deserialize_any</span>(<span class="ident">ProcessArgsVisitor</span>)
+    }
 }
 
 <span class="doccomment">/// Helper function for serde default `ProcessArgs::Str(&quot;&quot;)` values.</span>
