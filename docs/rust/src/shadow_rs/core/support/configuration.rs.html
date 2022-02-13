@@ -1704,6 +1704,21 @@
 <span id="1703">1703</span>
 <span id="1704">1704</span>
 <span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -1975,13 +1990,20 @@
 
     <span class="doccomment">/// Preload our libc library for all managed processes for fast syscall interposition when possible.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_libc_preload&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
-    <span class="ident">use_libc_preload</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_preload_libc&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="ident">use_preload_libc</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Preload our OpenSSL RNG library for all managed processes to mitigate non-deterministic use of OpenSSL.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_openssl_rng_preload&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
-    <span class="ident">use_openssl_rng_preload</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_preload_openssl_rng&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="ident">use_preload_openssl_rng</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Preload our OpenSSL crypto library for all managed processes to skip some crypto operations</span>
+    <span class="doccomment">/// (may speed up simulation if your CPU lacks AES-NI support, but can cause bugs so do not use</span>
+    <span class="doccomment">/// unless you know what you&#39;re doing).</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_preload_openssl_crypto&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="ident">use_preload_openssl_crypto</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Max number of iterations to busy-wait on IPC semaphore before blocking</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;iterations&quot;</span>)]</span>
@@ -2111,8 +2133,9 @@
             <span class="ident">use_seccomp</span>: <span class="prelude-val">None</span>,
             <span class="ident">use_syscall_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">use_object_counters</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
-            <span class="ident">use_libc_preload</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
-            <span class="ident">use_openssl_rng_preload</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+            <span class="ident">use_preload_libc</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+            <span class="ident">use_preload_openssl_rng</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+            <span class="ident">use_preload_openssl_crypto</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">preload_spin_max</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
             <span class="ident">use_memory_manager</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_shim_syscall_handler</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
@@ -2853,14 +2876,21 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseLibcPreload</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
-        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_libc_preload</span>.<span class="ident">unwrap</span>()
+        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_preload_libc</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseOpensslRNGPreload</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
-        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_openssl_rng_preload</span>.<span class="ident">unwrap</span>()
+        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_preload_openssl_rng</span>.<span class="ident">unwrap</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseOpensslCryptoPreload</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_preload_openssl_crypto</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
