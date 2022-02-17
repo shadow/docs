@@ -258,6 +258,7 @@
 <span id="257">257</span>
 <span id="258">258</span>
 <span id="259">259</span>
+<span id="260">260</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow::Borrow</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">OsStr</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -270,6 +271,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::logger::shadow_logger</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::configuration</span>::{<span class="ident">CliOptions</span>, <span class="ident">ConfigFileOptions</span>, <span class="ident">ConfigOptions</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::shmem::cleanup</span>;
 
 <span class="doccomment">/// Main entry point for the simulator.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_shadow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span><span class="op">&gt;</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -306,7 +308,7 @@
 
     <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">shm_cleanup</span> {
         <span class="comment">// clean up any orphaned shared memory</span>
-        <span class="kw">unsafe</span> { <span class="ident">c::shmemcleanup_tryCleanup</span>() };
+        <span class="ident">cleanup::try_shm_cleanup</span>();
         <span class="ident">std::process::exit</span>(<span class="number">0</span>);
     }
 
@@ -356,7 +358,7 @@
     }
 
     <span class="comment">// before we run the simulation, clean up any orphaned shared memory</span>
-    <span class="kw">unsafe</span> { <span class="ident">c::shmemcleanup_tryCleanup</span>() };
+    <span class="ident">cleanup::try_shm_cleanup</span>();
 
     <span class="comment">// save the platform data required for CPU pinning</span>
     <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_cpu_pinning</span>.<span class="ident">unwrap</span>() {
