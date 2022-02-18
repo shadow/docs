@@ -259,6 +259,8 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow::Borrow</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">OsStr</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -308,7 +310,7 @@
 
     <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">shm_cleanup</span> {
         <span class="comment">// clean up any orphaned shared memory</span>
-        <span class="ident">cleanup::try_shm_cleanup</span>();
+        <span class="ident">cleanup::try_shm_cleanup</span>().<span class="ident">context</span>(<span class="string">&quot;Cleaning shared memory files&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">std::process::exit</span>(<span class="number">0</span>);
     }
 
@@ -358,7 +360,9 @@
     }
 
     <span class="comment">// before we run the simulation, clean up any orphaned shared memory</span>
-    <span class="ident">cleanup::try_shm_cleanup</span>();
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">cleanup::try_shm_cleanup</span>() {
+        <span class="macro">log::warn!</span>(<span class="string">&quot;Unable to clean up shared memory files: {:?}&quot;</span>, <span class="ident">e</span>);
+    }
 
     <span class="comment">// save the platform data required for CPU pinning</span>
     <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_cpu_pinning</span>.<span class="ident">unwrap</span>() {
