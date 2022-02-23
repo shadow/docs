@@ -177,8 +177,8 @@
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="self">self</span>, <span class="ident">Context</span>};
 
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHM_DIR_PATH</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;/dev/shm/&quot;</span>;
 <span class="kw">const</span> <span class="ident">PROC_DIR_PATH</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;/proc/&quot;</span>;
-<span class="kw">const</span> <span class="ident">SHM_DIR_PATH</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;/dev/shm/&quot;</span>;
 <span class="kw">const</span> <span class="ident">SHADOW_SHM_FILE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;shadow_shmemfile&quot;</span>;
 
 <span class="comment">// Get the paths from the given directory path.</span>
@@ -240,13 +240,13 @@
 <span class="comment">// Cleans up orphaned shared memory files that are no longer mapped by a shadow</span>
 <span class="comment">// process. This function should never fail or crash, but is not guaranteed to</span>
 <span class="comment">// reclaim all possible orphans. Returns the number of orphans removed.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_shm_cleanup</span>() -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shm_cleanup</span>(<span class="ident">shm_dir</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
     <span class="comment">// Get the shm file paths before the PIDs to avoid a race condition (#1343).</span>
-    <span class="kw">let</span> <span class="ident">shm_paths</span> <span class="op">=</span> <span class="ident">get_shadow_shm_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">Path::new</span>(<span class="ident">SHM_DIR_PATH</span>))<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">shm_paths</span> <span class="op">=</span> <span class="ident">get_shadow_shm_file_paths</span>(<span class="ident">shm_dir</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>;
     <span class="macro">log::debug!</span>(
         <span class="string">&quot;Found {} shadow shared memory files in {}&quot;</span>,
         <span class="ident">shm_paths</span>.<span class="ident">len</span>(),
-        <span class="ident">SHM_DIR_PATH</span>
+        <span class="ident">shm_dir</span>.<span class="ident">as_ref</span>().<span class="ident">display</span>()
     );
 
     <span class="kw">let</span> <span class="ident">running_pids</span> <span class="op">=</span> <span class="ident">get_running_pid_set</span>(<span class="kw-2">&amp;</span><span class="ident">Path::new</span>(<span class="ident">PROC_DIR_PATH</span>))<span class="question-mark">?</span>;
@@ -294,49 +294,49 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std::fs::OpenOptions</span>;
+    <span class="kw">use</span> <span class="ident">std::io</span>;
     <span class="kw">use</span> <span class="ident">std::process</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs</span>, <span class="ident">io</span>};
 
-    <span class="kw">fn</span> <span class="ident">touch</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">OpenOptions::new</span>().<span class="ident">create</span>(<span class="bool-val">true</span>).<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">open</span>(<span class="ident">path</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        }
+    <span class="kw">fn</span> <span class="ident">touch</span>(<span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="ident">OpenOptions::new</span>()
+            .<span class="ident">create</span>(<span class="bool-val">true</span>)
+            .<span class="ident">write</span>(<span class="bool-val">true</span>)
+            .<span class="ident">open</span>(<span class="ident">path</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_expired_shm_file_is_removed</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;/dev/shm/shadow_shmemfile_6379761.950298775-999999999&quot;</span>;
-        <span class="kw">let</span> <span class="ident">expired</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;shadow_shmemfile_6379761.950298775-999999999&quot;</span>;
+        <span class="kw">let</span> <span class="ident">expired</span>: <span class="ident">PathBuf</span> <span class="op">=</span> [<span class="ident">dir</span>.<span class="ident">as_ref</span>(), <span class="ident">s</span>.<span class="ident">as_ref</span>()].<span class="ident">iter</span>().<span class="ident">collect</span>();
 
         <span class="ident">touch</span>(<span class="kw-2">&amp;</span><span class="ident">expired</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">try_shm_cleanup</span>().<span class="ident">unwrap</span>(), <span class="number">1</span>);
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">expired</span>.<span class="ident">exists</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">shm_cleanup</span>(<span class="kw-2">&amp;</span><span class="ident">dir</span>).<span class="ident">unwrap</span>(), <span class="number">1</span>);
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">expired</span>.<span class="ident">exists</span>(), <span class="string">&quot;Exists: {}&quot;</span>, <span class="ident">expired</span>.<span class="ident">display</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_valid_shm_file_is_not_removed</span>() {
         <span class="kw">let</span> <span class="ident">my_pid</span> <span class="op">=</span> <span class="ident">process::id</span>();
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;/dev/shm/shadow_shmemfile_6379761.950298775-{my_pid}&quot;</span>);
-        <span class="kw">let</span> <span class="ident">valid</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;shadow_shmemfile_6379761.950298775-{my_pid}&quot;</span>);
+        <span class="kw">let</span> <span class="ident">valid</span>: <span class="ident">PathBuf</span> <span class="op">=</span> [<span class="ident">dir</span>.<span class="ident">as_ref</span>(), <span class="ident">s</span>.<span class="ident">as_ref</span>()].<span class="ident">iter</span>().<span class="ident">collect</span>();
 
         <span class="ident">touch</span>(<span class="kw-2">&amp;</span><span class="ident">valid</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">try_shm_cleanup</span>().<span class="ident">unwrap</span>(), <span class="number">0</span>);
-        <span class="macro">assert!</span>(<span class="ident">valid</span>.<span class="ident">exists</span>());
-
-        <span class="ident">fs::remove_file</span>(<span class="ident">valid</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">shm_cleanup</span>(<span class="kw-2">&amp;</span><span class="ident">dir</span>).<span class="ident">unwrap</span>(), <span class="number">0</span>);
+        <span class="macro">assert!</span>(<span class="ident">valid</span>.<span class="ident">exists</span>(), <span class="string">&quot;Doesn&#39;t exist: {}&quot;</span>, <span class="ident">valid</span>.<span class="ident">display</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_nonshadow_shm_file_is_not_removed</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;/dev/shm/shadow_unimportant_test_file&quot;</span>;
-        <span class="kw">let</span> <span class="ident">nonshadow</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;shadow_unimportant_test_file&quot;</span>;
+        <span class="kw">let</span> <span class="ident">nonshadow</span>: <span class="ident">PathBuf</span> <span class="op">=</span> [<span class="ident">dir</span>.<span class="ident">as_ref</span>(), <span class="ident">s</span>.<span class="ident">as_ref</span>()].<span class="ident">iter</span>().<span class="ident">collect</span>();
 
         <span class="ident">touch</span>(<span class="kw-2">&amp;</span><span class="ident">nonshadow</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">try_shm_cleanup</span>().<span class="ident">unwrap</span>(), <span class="number">0</span>);
-        <span class="macro">assert!</span>(<span class="ident">nonshadow</span>.<span class="ident">exists</span>());
-
-        <span class="ident">fs::remove_file</span>(<span class="ident">nonshadow</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">shm_cleanup</span>(<span class="kw-2">&amp;</span><span class="ident">dir</span>).<span class="ident">unwrap</span>(), <span class="number">0</span>);
+        <span class="macro">assert!</span>(<span class="ident">nonshadow</span>.<span class="ident">exists</span>(), <span class="string">&quot;Doesn&#39;t exist: {}&quot;</span>, <span class="ident">nonshadow</span>.<span class="ident">display</span>());
     }
 }
 </code></pre></div>
