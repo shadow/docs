@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["disable_aslr",""],["log_environment",""],["pause_for_gdb_attach",""],["raise_rlimit",""],["run_shadow","Main entry point for the simulator."],["set_sched_fifo",""]],"mod":[["export",""]]});
+initSidebarItems({"fn":[["run_shadow","Main entry point for the simulator."]]});

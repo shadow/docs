@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["WriteMode",""]],"struct":[["PipeFile",""]]});
+initSidebarItems({"struct":[["PipeFile",""]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["random_free",""],["random_new",""],["random_nextDouble","Returns a pseudo-random float in the range [0, 1)."],["random_nextNBytes","Fills the buffer with pseudo-random bytes."],["random_nextU32","Returns a pseudo-random integer in the range [0, [`u32::MAX`]]."],["random_rand","Returns a pseudo-random integer in the range [0, [`libc::RAND_MAX`]]."]]});

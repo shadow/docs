@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["rustsyscallhandler_eventfd",""],["rustsyscallhandler_eventfd2",""]]});

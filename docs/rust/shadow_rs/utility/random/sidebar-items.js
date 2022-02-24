@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["export",""]],"struct":[["Random",""]]});
+initSidebarItems({"struct":[["Random",""]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["shadow_logger_setEnableBuffering","When disabled, the logger thread is notified to write each record as soon as it’s created.  The calling thread still isn’t blocked on the record actually being written, though."]]});

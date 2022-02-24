@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["export",""]],"struct":[["Process",""],["ProcessId",""]]});
+initSidebarItems({"struct":[["Process",""],["ProcessId",""]]});

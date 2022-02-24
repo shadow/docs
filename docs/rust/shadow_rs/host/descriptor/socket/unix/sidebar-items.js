@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["UNIX_SOCKET_DEFAULT_BUFFER_SIZE",""]],"enum":[["UnixSocketType",""]],"struct":[["UnixSocketFile",""],["UnixSocketTypeConversionError",""]]});
+initSidebarItems({"enum":[["UnixSocketType",""]],"struct":[["UnixSocketFile",""],["UnixSocketTypeConversionError",""]]});

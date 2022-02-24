@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["ioctl",""],["ioctl_original",""]],"mod":[["export",""]]});
+initSidebarItems({"fn":[["ioctl",""]]});
