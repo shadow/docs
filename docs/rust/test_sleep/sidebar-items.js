@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["call_clock_gettime",""],["clock_nanosleep",""],["main",""],["nanosleep",""],["sleep",""],["sleep_and_test",""],["syscall_clock_gettime",""],["usleep",""]],"type":[["SleepFn",""],["TimeFn",""]]});
