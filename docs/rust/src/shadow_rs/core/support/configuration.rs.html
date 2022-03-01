@@ -1719,6 +1719,11 @@
 <span id="1718">1718</span>
 <span id="1719">1719</span>
 <span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -1904,6 +1909,12 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;template_directory&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="kw">pub</span> <span class="ident">template_directory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Show the simulation progress on stderr</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;progress&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_false&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">GeneralOptions</span> {
@@ -2089,11 +2100,6 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_legacy_working_dir&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">use_legacy_working_dir</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// Show the simulation progress</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;progress&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
-    <span class="kw">pub</span> <span class="ident">progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-
     <span class="doccomment">/// Log level at which to print host statistics</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;level&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;host_heartbeat_log_level&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
@@ -2152,7 +2158,6 @@
             <span class="ident">interface_qdisc</span>: <span class="prelude-val">Some</span>(<span class="ident">QDiscMode::Fifo</span>),
             <span class="ident">worker_threads</span>: <span class="prelude-val">None</span>,
             <span class="ident">use_legacy_working_dir</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
-            <span class="ident">progress</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">host_heartbeat_log_level</span>: <span class="prelude-val">Some</span>(<span class="ident">LogLevel::Info</span>),
             <span class="ident">host_heartbeat_log_info</span>: <span class="prelude-val">Some</span>(<span class="ident">IntoIterator::into_iter</span>([<span class="ident">LogInfoFlag::Node</span>]).<span class="ident">collect</span>()),
             <span class="ident">host_heartbeat_interval</span>: <span class="prelude-val">None</span>,
@@ -2504,6 +2509,11 @@
 <span class="doccomment">/// Helper function for serde default `Some(true)` values.</span>
 <span class="kw">fn</span> <span class="ident">default_some_true</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
     <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
+}
+
+<span class="doccomment">/// Helper function for serde default `Some(false)` values.</span>
+<span class="kw">fn</span> <span class="ident">default_some_false</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Some</span>(<span class="bool-val">false</span>)
 }
 
 <span class="doccomment">/// Helper function for serde default `Some(1)` values.</span>
@@ -3082,7 +3092,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getProgress</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
-        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">progress</span>.<span class="ident">unwrap</span>()
+        <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">progress</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
