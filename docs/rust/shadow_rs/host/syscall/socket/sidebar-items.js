@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["bind",""],["getpeername",""],["getsockname",""],["recvfrom",""],["recvfrom_helper",""],["sendto",""],["sendto_helper",""],["socket",""],["socketpair",""]]});

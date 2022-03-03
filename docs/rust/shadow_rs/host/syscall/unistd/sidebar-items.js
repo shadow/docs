@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["close",""],["dup",""],["dup2",""],["dup3",""],["pipe",""],["pipe2",""],["pread64",""],["pwrite64",""],["read",""],["write",""]]});
