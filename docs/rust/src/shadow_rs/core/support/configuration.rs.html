@@ -1725,6 +1725,31 @@
 <span id="1723">1723</span>
 <span id="1724">1724</span>
 <span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -2186,6 +2211,11 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;path&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;pcap_directory&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">pcap_directory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// How much data to capture per packet (header and payload) if pcap logging is enabled</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bytes&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">HOST_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;pcap_capture_size&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">pcap_capture_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Bytes</span><span class="op">&lt;</span><span class="ident">units::SiPrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">HostDefaultOptions</span> {
@@ -2193,6 +2223,7 @@
         <span class="self">Self</span> {
             <span class="ident">log_level</span>: <span class="prelude-val">None</span>,
             <span class="ident">pcap_directory</span>: <span class="prelude-val">None</span>,
+            <span class="ident">pcap_capture_size</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -2208,6 +2239,10 @@
         <span class="self">Self</span> {
             <span class="ident">log_level</span>: <span class="prelude-val">None</span>,
             <span class="ident">pcap_directory</span>: <span class="prelude-val">None</span>,
+            <span class="comment">// From pcap(3): &quot;A value of 65535 should be sufficient, on most if not all networks, to</span>
+            <span class="comment">// capture all the data available from the packet&quot;. The maximum length of an IP packet</span>
+            <span class="comment">// (including the header) is 65535 bytes.</span>
+            <span class="ident">pcap_capture_size</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Bytes::new</span>(<span class="number">65535</span>, <span class="ident">units::SiPrefixUpper::Base</span>)),
         }
     }
 }
@@ -3027,7 +3062,7 @@
             .<span class="ident">unwrap</span>()
             .<span class="ident">convert</span>(<span class="ident">units::SiPrefixUpper::Base</span>)
             .<span class="ident">unwrap</span>()
-            .<span class="ident">value</span>() <span class="kw">as</span> <span class="ident">u64</span>
+            .<span class="ident">value</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -3041,7 +3076,7 @@
             .<span class="ident">unwrap</span>()
             .<span class="ident">convert</span>(<span class="ident">units::SiPrefixUpper::Base</span>)
             .<span class="ident">unwrap</span>()
-            .<span class="ident">value</span>() <span class="kw">as</span> <span class="ident">u64</span>
+            .<span class="ident">value</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -3270,6 +3305,21 @@
             }
             <span class="prelude-val">None</span> =&gt; <span class="ident">std::ptr::null_mut</span>(),
         }
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">hostoptions_getPcapCaptureSize</span>(<span class="ident">host</span>: <span class="kw-2">*const</span> <span class="ident">HostOptions</span>) -&gt; <span class="ident">u32</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">host</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span> };
+
+        <span class="ident">host</span>.<span class="ident">options</span>
+            .<span class="ident">pcap_capture_size</span>
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">convert</span>(<span class="ident">units::SiPrefixUpper::Base</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">value</span>()
+            .<span class="ident">try_into</span>()
+            .<span class="ident">unwrap</span>()
     }
 
     <span class="doccomment">/// Get the downstream bandwidth of the host if it exists. A non-zero return value means that</span>
