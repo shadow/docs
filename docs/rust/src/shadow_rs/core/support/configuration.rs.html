@@ -1750,8 +1750,30 @@
 <span id="1748">1748</span>
 <span id="1749">1749</span>
 <span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
+<span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
 <span class="kw">use</span> <span class="ident">std::os::unix::fs::MetadataExt</span>;
 
@@ -1761,11 +1783,11 @@
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">schemars</span>::{<span class="ident">schema_for</span>, <span class="ident">JsonSchema</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::simulation_time</span>::{<span class="ident">SIMTIME_INVALID</span>, <span class="ident">SIMTIME_ONE_NANOSECOND</span>, <span class="ident">SIMTIME_ONE_SECOND</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::units</span>::{<span class="self">self</span>, <span class="ident">Unit</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::format::StraceFmtMode</span>;
 <span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
 
 <span class="kw">const</span> <span class="ident">START_HELP_TEXT</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;\
@@ -2143,9 +2165,9 @@
     <span class="kw">pub</span> <span class="ident">host_heartbeat_interval</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefixUpper</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Log the syscalls for each process to individual &quot;strace&quot; files</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_strace_logging&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
-    <span class="kw">pub</span> <span class="ident">use_strace_logging</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;mode&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;strace_logging_mode&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">strace_logging_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StraceLoggingMode</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ExperimentalOptions</span> {
@@ -2187,7 +2209,7 @@
             <span class="ident">host_heartbeat_log_level</span>: <span class="prelude-val">Some</span>(<span class="ident">LogLevel::Info</span>),
             <span class="ident">host_heartbeat_log_info</span>: <span class="prelude-val">Some</span>(<span class="ident">IntoIterator::into_iter</span>([<span class="ident">LogInfoFlag::Node</span>]).<span class="ident">collect</span>()),
             <span class="ident">host_heartbeat_interval</span>: <span class="prelude-val">None</span>,
-            <span class="ident">use_strace_logging</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+            <span class="ident">strace_logging_mode</span>: <span class="prelude-val">Some</span>(<span class="ident">StraceLoggingMode::Off</span>),
         }
     }
 }
@@ -2529,6 +2551,22 @@
         }
 
         <span class="ident">deserializer</span>.<span class="ident">deserialize_any</span>(<span class="ident">ProcessArgsVisitor</span>)
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;snake_case&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StraceLoggingMode</span> {
+    <span class="ident">Off</span>,
+    <span class="ident">Standard</span>,
+    <span class="ident">Deterministic</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">std::str::FromStr</span> <span class="kw">for</span> <span class="ident">StraceLoggingMode</span> {
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">serde_yaml::Error</span>;
+
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+        <span class="ident">serde_yaml::from_str</span>(<span class="ident">s</span>)
     }
 }
 
@@ -3179,11 +3217,15 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUseStraceLogging</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getStraceLoggingMode</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">StraceFmtMode</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
 
-        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_strace_logging</span>.<span class="ident">unwrap</span>()
+        <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">strace_logging_mode</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() {
+            <span class="ident">StraceLoggingMode::Standard</span> =&gt; <span class="ident">StraceFmtMode::Standard</span>,
+            <span class="ident">StraceLoggingMode::Deterministic</span> =&gt; <span class="ident">StraceFmtMode::Deterministic</span>,
+            <span class="ident">StraceLoggingMode::Off</span> =&gt; <span class="ident">StraceFmtMode::Off</span>,
+        }
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>

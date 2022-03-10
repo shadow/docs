@@ -549,6 +549,77 @@
 <span id="547">547</span>
 <span id="548">548</span>
 <span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::any::TypeId</span>;
 <span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -561,6 +632,43 @@
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::thread::ThreadId</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::time::TimeParts</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FmtOptions</span> {
+    <span class="ident">Standard</span>,
+    <span class="ident">Deterministic</span>,
+}
+
+<span class="comment">// this type is required until we no longer need to access the format options from C</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StraceFmtMode</span> {
+    <span class="ident">Off</span>,
+    <span class="ident">Standard</span>,
+    <span class="ident">Deterministic</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StraceFmtMode</span> {
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
+
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">v</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">v</span> {
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::Off</span> <span class="kw">as</span> <span class="ident">u32</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Off</span>),
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::Standard</span> <span class="kw">as</span> <span class="ident">u32</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Standard</span>),
+            <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::Deterministic</span> <span class="kw">as</span> <span class="ident">u32</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Deterministic</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(()),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">StraceFmtMode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FmtOptions</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">StraceFmtMode</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">x</span> {
+            <span class="ident">StraceFmtMode::Off</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident">StraceFmtMode::Standard</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">FmtOptions::Standard</span>),
+            <span class="ident">StraceFmtMode::Deterministic</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">FmtOptions::Deterministic</span>),
+        }
+    }
+}
 
 <span class="doccomment">/// Convert from a `SysCallReg`.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">TryFromSyscallReg</span>
@@ -578,7 +686,12 @@
 <span class="doccomment">/// Format trait for syscall pointers. Should be implemented on `SyscallPtr&lt;*const T&gt;` or</span>
 <span class="doccomment">/// `SyscallPtr&lt;[T; K]&gt;` types.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SyscallPtrDisplay</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>) -&gt; <span class="ident">std::fmt::Result</span>;
+    <span class="kw">fn</span> <span class="ident">fmt</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">options</span>: <span class="ident">FmtOptions</span>,
+        <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
+    ) -&gt; <span class="ident">std::fmt::Result</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SysCallReg</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">TryFromSyscallReg</span> <span class="kw">for</span> <span class="ident">T</span> {
@@ -628,12 +741,15 @@
             <span class="kw">fn</span> <span class="macro-nonterminal">fmt</span>(
                 <span class="kw-2">&amp;</span><span class="self">self</span>,
                 <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+                <span class="ident">options</span>: <span class="ident">FmtOptions</span>,
                 <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
             ) -&gt; <span class="ident">std::fmt::Result</span> {
-                <span class="kw">match</span> <span class="ident">mem</span>.<span class="ident">memory_ref</span>(<span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>(<span class="macro-nonterminal">self</span>.<span class="ident">ptr</span>, <span class="number">1</span>)) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">vals</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} ({:p})&quot;</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">vals</span>)[<span class="number">0</span>], <span class="self">self</span>.<span class="ident">ptr</span>),
+                <span class="kw">match</span> (<span class="ident">options</span>, <span class="ident">mem</span>.<span class="ident">memory_ref</span>(<span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>(<span class="macro-nonterminal">self</span>.<span class="ident">ptr</span>, <span class="number">1</span>))) {
+                    (<span class="ident">FmtOptions::Standard</span>, <span class="prelude-val">Ok</span>(<span class="ident">vals</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} ({:p})&quot;</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">vals</span>)[<span class="number">0</span>], <span class="self">self</span>.<span class="ident">ptr</span>),
+                    (<span class="ident">FmtOptions::Deterministic</span>, <span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;pointer&gt;&quot;</span>),
                     <span class="comment">// if we couldn&#39;t read the memory, just show the pointer instead</span>
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>),
+                    (<span class="ident">FmtOptions::Standard</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>),
+                    (<span class="ident">FmtOptions::Deterministic</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;pointer&gt;&quot;</span>),
                 }
             }
         }
@@ -652,9 +768,13 @@
             <span class="kw">fn</span> <span class="macro-nonterminal">fmt</span>(
                 <span class="kw-2">&amp;</span><span class="self">self</span>,
                 <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+                <span class="ident">options</span>: <span class="ident">FmtOptions</span>,
                 <span class="ident">_mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
             ) -&gt; <span class="ident">std::fmt::Result</span> {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>)
+                <span class="kw">match</span> <span class="ident">options</span> {
+                    <span class="ident">FmtOptions::Standard</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>),
+                    <span class="ident">FmtOptions::Deterministic</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;pointer&gt;&quot;</span>),
+                }
             }
         }
     };
@@ -671,12 +791,15 @@
             <span class="kw">fn</span> <span class="ident">fmt</span>(
                 <span class="kw-2">&amp;</span><span class="self">self</span>,
                 <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+                <span class="ident">options</span>: <span class="ident">FmtOptions</span>,
                 <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
             ) -&gt; <span class="ident">std::fmt::Result</span> {
-                <span class="kw">match</span> <span class="ident">mem</span>.<span class="ident">memory_ref</span>(<span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>(<span class="macro-nonterminal">self</span>.<span class="ident">ptr</span>, <span class="ident">K</span>)) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">vals</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} ({:p})&quot;</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">vals</span>), <span class="self">self</span>.<span class="ident">ptr</span>),
+                <span class="kw">match</span> (<span class="ident">options</span>, <span class="ident">mem</span>.<span class="ident">memory_ref</span>(<span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>(<span class="macro-nonterminal">self</span>.<span class="ident">ptr</span>, <span class="ident">K</span>))) {
+                    (<span class="ident">FmtOptions::Standard</span>, <span class="prelude-val">Ok</span>(<span class="ident">vals</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} ({:p})&quot;</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">vals</span>), <span class="self">self</span>.<span class="ident">ptr</span>),
+                    (<span class="ident">FmtOptions::Deterministic</span>, <span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;pointer&gt;&quot;</span>),
                     <span class="comment">// if we couldn&#39;t read the memory, just show the pointer instead</span>
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>),
+                    (<span class="ident">FmtOptions::Standard</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">ptr</span>),
+                    (<span class="ident">FmtOptions::Deterministic</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;pointer&gt;&quot;</span>),
                 }
             }
         }
@@ -731,8 +854,17 @@
 <span class="macro">simple_debug_impl!</span>(<span class="ident">nix::sys::socket::MsgFlags</span>);
 
 <span class="kw">impl</span> <span class="ident">SyscallPtrDisplay</span> <span class="kw">for</span> <span class="ident">SyscallPtr</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">i8</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>) -&gt; <span class="ident">std::fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">options</span>: <span class="ident">FmtOptions</span>,
+        <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
+    ) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">const</span> <span class="ident">DISPLAY_LEN</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">40</span>;
+
+        <span class="kw">if</span> <span class="ident">options</span> <span class="op">==</span> <span class="ident">FmtOptions::Deterministic</span> {
+            <span class="kw">return</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;pointer&gt;&quot;</span>);
+        }
 
         <span class="comment">// read up to one extra character to check if it&#39;s a null byte</span>
         <span class="kw">let</span> <span class="ident">mem_ref</span> <span class="op">=</span>
@@ -810,30 +942,30 @@
 
 <span class="doccomment">/// A trait for objects that can be read from plugin memory.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FromSyscallMem</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">options</span>: <span class="ident">FmtOptions</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span>;
 }
 
 <span class="doccomment">/// A syscall value, either data or a pointer.</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SyscallVal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">Data</span>(<span class="ident">SysCallReg</span>),
-    <span class="ident">Ptr</span>(<span class="ident">SyscallPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>),
+    <span class="ident">Ptr</span>(<span class="ident">SyscallPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">FmtOptions</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>),
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">TryFromSyscallReg</span><span class="op">&gt;</span> <span class="ident">FromSyscallMem</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SyscallVal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">_mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">_options</span>: <span class="ident">FmtOptions</span>, <span class="ident">_mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Data</span>(<span class="ident">reg</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FromSyscallMem</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SyscallVal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="kw-2">*const</span> <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">SyscallPtr::from</span>(<span class="ident">reg</span>), <span class="ident">mem</span>)
+    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">options</span>: <span class="ident">FmtOptions</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">SyscallPtr::from</span>(<span class="ident">reg</span>), <span class="ident">options</span>, <span class="ident">mem</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="kw">const</span> <span class="ident">K</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">FromSyscallMem</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SyscallVal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">T</span>; <span class="ident">K</span>]<span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">SyscallPtr::from</span>(<span class="ident">reg</span>), <span class="ident">mem</span>)
+    <span class="kw">fn</span> <span class="ident">from_mem</span>(<span class="ident">reg</span>: <span class="ident">SysCallReg</span>, <span class="ident">options</span>: <span class="ident">FmtOptions</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">SyscallPtr::from</span>(<span class="ident">reg</span>), <span class="ident">options</span>, <span class="ident">mem</span>)
     }
 }
 
@@ -848,7 +980,7 @@
                 <span class="comment">// if the conversion to type T was unsuccessful, just show an integer</span>
                 <span class="prelude-val">None</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:#x} &lt;invalid&gt;&quot;</span>, <span class="kw">unsafe</span> { <span class="ident">reg</span>.<span class="ident">as_u64</span> }),
             },
-            <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 }
@@ -860,7 +992,7 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Data</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">x</span>, <span class="ident">mem</span>) =&gt; <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>, <span class="ident">mem</span>),
+            <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">x</span>, <span class="ident">options</span>, <span class="ident">mem</span>) =&gt; <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">options</span>, <span class="ident">mem</span>),
         }
     }
 }
@@ -872,7 +1004,7 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Data</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">x</span>, <span class="ident">mem</span>) =&gt; <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>, <span class="ident">mem</span>),
+            <span class="ident"><span class="self">Self</span>::Ptr</span>(<span class="ident">x</span>, <span class="ident">options</span>, <span class="ident">mem</span>) =&gt; <span class="ident">x</span>.<span class="ident">fmt</span>(<span class="ident">f</span>, <span class="kw-2">*</span><span class="ident">options</span>, <span class="ident">mem</span>),
         }
     }
 }
@@ -912,14 +1044,14 @@
     <span class="ident">SyscallVal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>: <span class="ident">Display</span> <span class="op">+</span> <span class="ident">FromSyscallMem</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">SyscallVal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span>: <span class="ident">Display</span> <span class="op">+</span> <span class="ident">FromSyscallMem</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>, <span class="ident">options</span>: <span class="ident">FmtOptions</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">a</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>), <span class="ident">mem</span>),
-            <span class="ident">b</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>), <span class="ident">mem</span>),
-            <span class="ident">c</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>), <span class="ident">mem</span>),
-            <span class="ident">d</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">3</span>), <span class="ident">mem</span>),
-            <span class="ident">e</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">4</span>), <span class="ident">mem</span>),
-            <span class="ident">f</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">5</span>), <span class="ident">mem</span>),
+            <span class="ident">a</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>), <span class="ident">options</span>, <span class="ident">mem</span>),
+            <span class="ident">b</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>), <span class="ident">options</span>, <span class="ident">mem</span>),
+            <span class="ident">c</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>), <span class="ident">options</span>, <span class="ident">mem</span>),
+            <span class="ident">d</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">3</span>), <span class="ident">options</span>, <span class="ident">mem</span>),
+            <span class="ident">e</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">4</span>), <span class="ident">options</span>, <span class="ident">mem</span>),
+            <span class="ident">f</span>: <span class="ident">SyscallVal::from_mem</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">5</span>), <span class="ident">options</span>, <span class="ident">mem</span>),
         }
     }
 }
@@ -978,6 +1110,7 @@
     <span class="ident">RV</span>: <span class="ident">std::fmt::Debug</span>,
 {
     <span class="ident">rv</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SyscallResult</span>,
+    <span class="ident">options</span>: <span class="ident">FmtOptions</span>,
     <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>,
     <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">RV</span><span class="op">&gt;</span>,
 }
@@ -987,12 +1120,13 @@
     <span class="ident">SyscallVal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">RV</span><span class="op">&gt;</span>: <span class="ident">Display</span> <span class="op">+</span> <span class="ident">FromSyscallMem</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">RV</span>: <span class="ident">std::fmt::Debug</span>,
 {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">rv</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SyscallResult</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">rv</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SyscallResult</span>, <span class="ident">options</span>: <span class="ident">FmtOptions</span>, <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryManager</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">rv</span> {
             <span class="ident">SyscallResult::Ok</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">SyscallResult::Err</span>(<span class="ident">SyscallError::Errno</span>(<span class="kw">_</span>))
             <span class="op">|</span> <span class="ident">SyscallResult::Err</span>(<span class="ident">SyscallError::Native</span>) =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span> {
                 <span class="ident">rv</span>,
+                <span class="ident">options</span>,
                 <span class="ident">mem</span>,
                 <span class="ident">_phantom</span>: <span class="ident">PhantomData::default</span>(),
             }),
@@ -1010,14 +1144,14 @@
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">rv</span> {
             <span class="ident">SyscallResult::Ok</span>(<span class="ident">x</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">SyscallVal</span>::<span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">RV</span><span class="op">&gt;</span><span class="ident">::from_mem</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="self">self</span>.<span class="ident">mem</span>);
+                <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">SyscallVal</span>::<span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">RV</span><span class="op">&gt;</span><span class="ident">::from_mem</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="self">self</span>.<span class="ident">options</span>, <span class="self">self</span>.<span class="ident">mem</span>);
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">rv</span>)
             }
             <span class="ident">SyscallResult::Err</span>(<span class="ident">SyscallError::Errno</span>(<span class="ident">e</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">SysCallReg</span> {
                     <span class="ident">as_i64</span>: <span class="op">-</span>(<span class="kw-2">*</span><span class="ident">e</span> <span class="kw">as</span> <span class="ident">i64</span>),
                 };
-                <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">SyscallVal</span>::<span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">RV</span><span class="op">&gt;</span><span class="ident">::from_mem</span>(<span class="ident">rv</span>, <span class="self">self</span>.<span class="ident">mem</span>);
+                <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">SyscallVal</span>::<span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">RV</span><span class="op">&gt;</span><span class="ident">::from_mem</span>(<span class="ident">rv</span>, <span class="self">self</span>.<span class="ident">options</span>, <span class="self">self</span>.<span class="ident">mem</span>);
                 <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} ({})&quot;</span>, <span class="ident">rv</span>, <span class="ident">e</span>)
             }
             <span class="ident">SyscallResult::Err</span>(<span class="ident">SyscallError::Native</span>) =&gt; {
@@ -1059,6 +1193,7 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">log_syscall</span>(
         <span class="ident">proc</span>: <span class="kw-2">*mut</span> <span class="ident">c::Process</span>,
+        <span class="ident">logging_mode</span>: <span class="ident">c::StraceFmtMode</span>,
         <span class="ident">tid</span>: <span class="ident">libc::pid_t</span>,
         <span class="ident">name</span>: <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
         <span class="ident">args</span>: <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
@@ -1074,8 +1209,15 @@
         <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">CStr::from_ptr</span>(<span class="ident">args</span>) }.<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">SyscallResult::from</span>(<span class="ident">result</span>);
 
+        <span class="kw">let</span> <span class="ident">logging_mode</span> <span class="op">=</span> <span class="ident">StraceFmtMode::try_from</span>(<span class="ident">logging_mode</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">logging_mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">logging_mode</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+            <span class="comment">// logging was disabled</span>
+            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">result</span>.<span class="ident">into</span>(),
+        };
+
         <span class="comment">// we don&#39;t know the type, so just show it as an int</span>
-        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">SyscallResultFmt</span>::<span class="op">&lt;</span><span class="ident">libc::c_long</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>, <span class="ident">proc</span>.<span class="ident">memory</span>());
+        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">SyscallResultFmt</span>::<span class="op">&lt;</span><span class="ident">libc::c_long</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>, <span class="ident">logging_mode</span>, <span class="ident">proc</span>.<span class="ident">memory</span>());
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">rv</span>) <span class="op">=</span> <span class="ident">rv</span> {
             <span class="ident">proc</span>.<span class="ident">with_strace_file</span>(<span class="op">|</span><span class="ident">file</span><span class="op">|</span> {

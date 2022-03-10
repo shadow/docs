@@ -118,6 +118,7 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">proc_macro</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">quote::ToTokens</span>;
 
@@ -191,16 +192,17 @@
             ctx: &amp;mut crate::host::context::ThreadContext,
             args: &amp;crate::host::syscall_types::SysCallArgs,
         ) -&gt; crate::host::syscall_types::SyscallResult {{
-            // exit early if strace logging is not enabled
-            if !ctx.process.strace_logging_enabled() {{
-                return self.{syscall_name}_original(ctx, args);
-            }}
+            let strace_fmt_options = match ctx.process.strace_logging_options() {{
+                Some(x) =&gt; x,
+                // exit early if strace logging is not enabled
+                None =&gt; return self.{syscall_name}_original(ctx, args),
+            }};
 
             // make sure to include the full path to all used types
             use crate::core::worker::Worker;
             use crate::host::syscall::format::{{SyscallArgsFmt, SyscallResultFmt, write_syscall}};
 
-            let syscall_args = SyscallArgsFmt::&lt;{syscall_args}&gt;::new(args, ctx.process.memory());
+            let syscall_args = SyscallArgsFmt::&lt;{syscall_args}&gt;::new(args, strace_fmt_options, ctx.process.memory());
             // need to convert to a string so that we read the plugin&#39;s memory before we potentially
             // modify it during the syscall
             let syscall_args = format!(&quot;{{}}&quot;, syscall_args);
@@ -209,7 +211,7 @@
             let rv = self.{syscall_name}_original(ctx, args);
 
             // format the result (returns None if the syscall didn&#39;t complete)
-            let syscall_rv = SyscallResultFmt::&lt;{syscall_rv}&gt;::new(&amp;rv, ctx.process.memory());
+            let syscall_rv = SyscallResultFmt::&lt;{syscall_rv}&gt;::new(&amp;rv, strace_fmt_options, ctx.process.memory());
 
             if let Some(ref syscall_rv) = syscall_rv {{
                 ctx.process.with_strace_file(|file| {{

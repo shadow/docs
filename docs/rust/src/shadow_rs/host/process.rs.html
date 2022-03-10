@@ -308,12 +308,16 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<span class="ident">FromRawFd</span>, <span class="ident">IntoRawFd</span>};
 
 <span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::CompatDescriptor</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::format</span>::{<span class="ident">FmtOptions</span>, <span class="ident">StraceFmtMode</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">host::HostId</span>, <span class="ident">memory_manager::MemoryManager</span>};
 
@@ -421,8 +425,10 @@
         <span class="ident">removed_desc</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strace_logging_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">cshadow::process_straceLoggingEnabled</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strace_logging_options</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FmtOptions</span><span class="op">&gt;</span> {
+        <span class="ident">StraceFmtMode::try_from</span>(<span class="kw">unsafe</span> { <span class="ident">cshadow::process_straceLoggingMode</span>(<span class="self">self</span>.<span class="ident">cprocess</span>) })
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">into</span>()
     }
 
     <span class="doccomment">/// If strace logging is disabled, this function will do nothing and return `None`.</span>
