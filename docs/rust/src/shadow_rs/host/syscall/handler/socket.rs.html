@@ -668,6 +668,9 @@
 <span id="666">666</span>
 <span id="667">667</span>
 <span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::unix</span>::{<span class="ident">UnixSocketFile</span>, <span class="ident">UnixSocketType</span>};
@@ -675,7 +678,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
     <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">PosixFile</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::process::Process</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::Trigger</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_condition::SysCallCondition</span>;
@@ -772,7 +775,7 @@
         <span class="kw">let</span> <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">into</span>();
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
             <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
             <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
             <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
@@ -794,7 +797,7 @@
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
         };
 
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_sockaddr</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">read_sockaddr</span>(<span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory</span>(), <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)<span class="question-mark">?</span>;
 
         <span class="macro">debug!</span>(<span class="string">&quot;Attempting to bind fd {} to {:?}&quot;</span>, <span class="ident">fd</span>, <span class="ident">addr</span>);
 
@@ -813,7 +816,7 @@
         <span class="kw">let</span> <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">5</span>).<span class="ident">into</span>();
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
             <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
             <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
             <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
@@ -864,7 +867,7 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EOPNOTSUPP</span>.<span class="ident">into</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_sockaddr</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">read_sockaddr</span>(<span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory</span>(), <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)<span class="question-mark">?</span>;
 
         <span class="macro">debug!</span>(<span class="string">&quot;Attempting to send {} bytes to {:?}&quot;</span>, <span class="ident">buf_len</span>, <span class="ident">addr</span>);
 
@@ -907,7 +910,7 @@
         <span class="kw">let</span> <span class="ident">addr_len_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">5</span>).<span class="ident">into</span>();
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
             <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
             <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
             <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
@@ -986,8 +989,8 @@
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="ident">from_addr</span>) <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">addr_ptr</span>.<span class="ident">is_null</span>() {
-            <span class="self">self</span>.<span class="ident">write_sockaddr</span>(
-                <span class="ident">ctx</span>.<span class="ident">process</span>,
+            <span class="ident">write_sockaddr</span>(
+                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory_mut</span>(),
                 <span class="ident">from_addr</span>,
                 <span class="ident">addr_ptr</span>,
                 <span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span>(<span class="ident">addr_len_ptr</span>, <span class="number">1</span>),
@@ -1006,7 +1009,7 @@
             <span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">into</span>(), <span class="number">1</span>);
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
             <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
             <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
             <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
@@ -1028,11 +1031,16 @@
 
         <span class="kw">let</span> <span class="ident">addr_to_write</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">get_bound_address</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">empty_sockaddr</span>(<span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">address_family</span>()),
+            <span class="prelude-val">None</span> =&gt; <span class="ident">empty_sockaddr</span>(<span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">address_family</span>()),
         };
 
         <span class="macro">debug!</span>(<span class="string">&quot;Returning socket address of {}&quot;</span>, <span class="ident">addr_to_write</span>);
-        <span class="self">self</span>.<span class="ident">write_sockaddr</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="prelude-val">Some</span>(<span class="ident">addr_to_write</span>), <span class="ident">addr_ptr</span>, <span class="ident">addr_len_ptr</span>)<span class="question-mark">?</span>;
+        <span class="ident">write_sockaddr</span>(
+            <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory_mut</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">addr_to_write</span>),
+            <span class="ident">addr_ptr</span>,
+            <span class="ident">addr_len_ptr</span>,
+        )<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
     }
@@ -1046,7 +1054,7 @@
             <span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">into</span>(), <span class="number">1</span>);
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
             <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
             <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
             <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
@@ -1069,7 +1077,12 @@
         <span class="kw">let</span> <span class="ident">peer_addr</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">get_peer_address</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr_to_write</span>) <span class="op">=</span> <span class="ident">peer_addr</span> {
             <span class="macro">debug!</span>(<span class="string">&quot;Returning peer address of {}&quot;</span>, <span class="ident">addr_to_write</span>);
-            <span class="self">self</span>.<span class="ident">write_sockaddr</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="prelude-val">Some</span>(<span class="ident">addr_to_write</span>), <span class="ident">addr_ptr</span>, <span class="ident">addr_len_ptr</span>)<span class="question-mark">?</span>;
+            <span class="ident">write_sockaddr</span>(
+                <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory_mut</span>(),
+                <span class="prelude-val">Some</span>(<span class="ident">addr_to_write</span>),
+                <span class="ident">addr_ptr</span>,
+                <span class="ident">addr_len_ptr</span>,
+            )<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTCONN</span>.<span class="ident">into</span>());
         }
@@ -1138,7 +1151,7 @@
 
         <span class="comment">// link the sockets together</span>
         <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">unnamed_sock_addr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">empty_sockaddr</span>(<span class="ident">nix::sys::socket::AddressFamily::Unix</span>);
+            <span class="kw">let</span> <span class="ident">unnamed_sock_addr</span> <span class="op">=</span> <span class="ident">empty_sockaddr</span>(<span class="ident">nix::sys::socket::AddressFamily::Unix</span>);
             <span class="kw">let</span> <span class="ident">unnamed_sock_addr</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">nix::sys::socket::SockAddr::Unix</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">unnamed_sock_addr</span> {
                 <span class="ident">x</span>
             } <span class="kw">else</span> {
@@ -1210,131 +1223,124 @@
             }
         }
     }
+}
 
-    <span class="doccomment">/// Returns a nix socket address object where only the family is set.</span>
-    <span class="kw">fn</span> <span class="ident">empty_sockaddr</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">family</span>: <span class="ident">nix::sys::socket::AddressFamily</span>,
-    ) -&gt; <span class="ident">nix::sys::socket::SockAddr</span> {
-        <span class="kw">let</span> <span class="ident">family</span> <span class="op">=</span> <span class="ident">family</span> <span class="kw">as</span> <span class="ident">libc::sa_family_t</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addr</span>: <span class="ident">nix::sys::socket::sockaddr_storage</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
-        <span class="ident">addr</span>.<span class="ident">ss_family</span> <span class="op">=</span> <span class="ident">family</span>;
-        <span class="comment">// the size of ss_family will be 2 bytes on linux</span>
-        <span class="ident">nix::sys::socket::sockaddr_storage_to_addr</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>, <span class="number">2</span>).<span class="ident">unwrap</span>()
+<span class="doccomment">/// Returns a nix socket address object where only the family is set.</span>
+<span class="kw">fn</span> <span class="ident">empty_sockaddr</span>(<span class="ident">family</span>: <span class="ident">nix::sys::socket::AddressFamily</span>) -&gt; <span class="ident">nix::sys::socket::SockAddr</span> {
+    <span class="kw">let</span> <span class="ident">family</span> <span class="op">=</span> <span class="ident">family</span> <span class="kw">as</span> <span class="ident">libc::sa_family_t</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addr</span>: <span class="ident">nix::sys::socket::sockaddr_storage</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
+    <span class="ident">addr</span>.<span class="ident">ss_family</span> <span class="op">=</span> <span class="ident">family</span>;
+    <span class="comment">// the size of ss_family will be 2 bytes on linux</span>
+    <span class="ident">nix::sys::socket::sockaddr_storage_to_addr</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>, <span class="number">2</span>).<span class="ident">unwrap</span>()
+}
+
+<span class="doccomment">/// Copy the socket address to the plugin. Will return an error if either the address or address</span>
+<span class="doccomment">/// length pointers are NULL. The plugin&#39;s address length will be updated to store the size of the</span>
+<span class="doccomment">/// socket address, even if greater than the provided buffer size. If the address is `None`, the</span>
+<span class="doccomment">/// plugin&#39;s address length will be set to 0.</span>
+<span class="kw">fn</span> <span class="ident">write_sockaddr</span>(
+    <span class="ident">mem</span>: <span class="kw-2">&amp;mut</span> <span class="ident">MemoryManager</span>,
+    <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
+    <span class="ident">plugin_addr</span>: <span class="ident">PluginPtr</span>,
+    <span class="ident">plugin_addr_len</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">addr</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+        <span class="prelude-val">None</span> =&gt; {
+            <span class="ident">mem</span>.<span class="ident">copy_to_ptr</span>(<span class="ident">plugin_addr_len</span>, <span class="kw-2">&amp;</span>[<span class="number">0</span>])<span class="question-mark">?</span>;
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+        }
+    };
+
+    <span class="kw">let</span> (<span class="ident">from_addr</span>, <span class="ident">from_len</span>) <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">as_ffi_pair</span>();
+
+    <span class="comment">// make sure that we have a real libc sockaddr before converting to a u8 pointer</span>
+    <span class="kw">let</span> <span class="ident">from_addr</span>: <span class="kw-2">&amp;</span><span class="ident">libc::sockaddr</span> <span class="op">=</span> <span class="ident">from_addr</span>;
+    <span class="kw">let</span> <span class="ident">from_addr_slice</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+        <span class="ident">std::slice::from_raw_parts</span>(
+            <span class="ident">from_addr</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>,
+            <span class="ident">from_len</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+        )
+    };
+
+    <span class="comment">// get the provided address buffer length, and overwrite it with the real address length</span>
+    <span class="kw">let</span> <span class="ident">plugin_addr_len</span> <span class="op">=</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">plugin_addr_len</span> <span class="op">=</span> <span class="ident">mem</span>.<span class="ident">memory_ref_mut</span>(<span class="ident">plugin_addr_len</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">plugin_addr_len_value</span> <span class="op">=</span> <span class="ident">plugin_addr_len</span>.<span class="ident">get_mut</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
+
+        <span class="comment">// keep a copy before we change it</span>
+        <span class="kw">let</span> <span class="ident">plugin_addr_len_copy</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">plugin_addr_len_value</span>;
+
+        <span class="kw-2">*</span><span class="ident">plugin_addr_len_value</span> <span class="op">=</span> <span class="ident">from_len</span>;
+
+        <span class="ident">plugin_addr_len</span>.<span class="ident">flush</span>()<span class="question-mark">?</span>;
+        <span class="ident">plugin_addr_len_copy</span>
+    };
+
+    <span class="comment">// return early if the address length is 0</span>
+    <span class="kw">if</span> <span class="ident">plugin_addr_len</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
     }
 
-    <span class="doccomment">/// Copy the socket address to the plugin. Will return an error if either the address or address</span>
-    <span class="doccomment">/// length pointers are NULL. The plugin&#39;s address length will be updated to store the size of the</span>
-    <span class="doccomment">/// socket address, even if greater than the provided buffer size. If the address is `None`, the</span>
-    <span class="doccomment">/// plugin&#39;s address length will be set to 0.</span>
-    <span class="kw">fn</span> <span class="ident">write_sockaddr</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">process</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Process</span>,
-        <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
-        <span class="ident">plugin_addr</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">plugin_addr_len</span>: <span class="ident">TypedPluginPtr</span><span class="op">&lt;</span><span class="ident">libc::socklen_t</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">addr</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="ident">process</span>.<span class="ident">memory_mut</span>().<span class="ident">copy_to_ptr</span>(<span class="ident">plugin_addr_len</span>, <span class="kw-2">&amp;</span>[<span class="number">0</span>])<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-            }
-        };
+    <span class="comment">// the minimum of the given address buffer length and the real address length</span>
+    <span class="kw">let</span> <span class="ident">len_to_copy</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">from_len</span>, <span class="ident">plugin_addr_len</span>).<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> (<span class="ident">from_addr</span>, <span class="ident">from_len</span>) <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">as_ffi_pair</span>();
+    <span class="kw">let</span> <span class="ident">plugin_addr</span> <span class="op">=</span> <span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">plugin_addr</span>, <span class="ident">len_to_copy</span>);
+    <span class="ident">mem</span>.<span class="ident">copy_to_ptr</span>(<span class="ident">plugin_addr</span>, <span class="kw-2">&amp;</span><span class="ident">from_addr_slice</span>[..<span class="ident">len_to_copy</span>])<span class="question-mark">?</span>;
 
-        <span class="comment">// make sure that we have a real libc sockaddr before converting to a u8 pointer</span>
-        <span class="kw">let</span> <span class="ident">from_addr</span>: <span class="kw-2">&amp;</span><span class="ident">libc::sockaddr</span> <span class="op">=</span> <span class="ident">from_addr</span>;
-        <span class="kw">let</span> <span class="ident">from_addr_slice</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">std::slice::from_raw_parts</span>(
-                <span class="ident">from_addr</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>,
-                <span class="ident">from_len</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="doccomment">/// Reads a sockaddr pointer from the plugin. Returns `None` if the pointer is null, otherwise</span>
+<span class="doccomment">/// returns a nix `SockAddr`. The address length must be at most the size of</span>
+<span class="doccomment">/// [`nix::sys::socket::sockaddr_storage`].</span>
+<span class="kw">fn</span> <span class="ident">read_sockaddr</span>(
+    <span class="ident">mem</span>: <span class="kw-2">&amp;</span><span class="ident">MemoryManager</span>,
+    <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span>,
+    <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">addr_ptr</span>.<span class="ident">is_null</span>() {
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    }
+
+    <span class="kw">let</span> <span class="ident">addr_len</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">addr_len</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addr</span>: <span class="ident">nix::sys::socket::sockaddr_storage</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
+
+    <span class="comment">// make sure we will not lose data when we copy</span>
+    <span class="kw">if</span> <span class="ident">addr_len</span> <span class="op">&gt;</span> <span class="ident">std::mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>) {
+        <span class="macro">warn!</span>(
+            <span class="string">&quot;Shadow does not support the address length {}, which is larger than {}&quot;</span>,
+            <span class="ident">addr_len</span>,
+            <span class="ident">std::mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>),
+        );
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>());
+    }
+
+    <span class="comment">// make sure that we have at least the address family</span>
+    <span class="kw">if</span> <span class="ident">addr_len</span> <span class="op">&lt;</span> <span class="number">2</span> {
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>());
+    }
+
+    <span class="comment">// limit the scope of the unsafe slice</span>
+    {
+        <span class="comment">// safety: do not make any other references to addr within this scope</span>
+        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">std::slice::from_raw_parts_mut</span>(
+                <span class="kw-2">&amp;mut</span> <span class="ident">addr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>,
+                <span class="ident">std::mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>),
             )
         };
 
-        <span class="comment">// get the provided address buffer length, and overwrite it with the real address length</span>
-        <span class="kw">let</span> <span class="ident">plugin_addr_len</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">plugin_addr_len</span> <span class="op">=</span> <span class="ident">process</span>.<span class="ident">memory_mut</span>().<span class="ident">memory_ref_mut</span>(<span class="ident">plugin_addr_len</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">plugin_addr_len_value</span> <span class="op">=</span> <span class="ident">plugin_addr_len</span>.<span class="ident">get_mut</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
-
-            <span class="comment">// keep a copy before we change it</span>
-            <span class="kw">let</span> <span class="ident">plugin_addr_len_copy</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">plugin_addr_len_value</span>;
-
-            <span class="kw-2">*</span><span class="ident">plugin_addr_len_value</span> <span class="op">=</span> <span class="ident">from_len</span>;
-
-            <span class="ident">plugin_addr_len</span>.<span class="ident">flush</span>()<span class="question-mark">?</span>;
-            <span class="ident">plugin_addr_len_copy</span>
-        };
-
-        <span class="comment">// return early if the address length is 0</span>
-        <span class="kw">if</span> <span class="ident">plugin_addr_len</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-        }
-
-        <span class="comment">// the minimum of the given address buffer length and the real address length</span>
-        <span class="kw">let</span> <span class="ident">len_to_copy</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">from_len</span>, <span class="ident">plugin_addr_len</span>).<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="ident">plugin_addr</span> <span class="op">=</span> <span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">plugin_addr</span>, <span class="ident">len_to_copy</span>);
-        <span class="ident">process</span>
-            .<span class="ident">memory_mut</span>()
-            .<span class="ident">copy_to_ptr</span>(<span class="ident">plugin_addr</span>, <span class="kw-2">&amp;</span><span class="ident">from_addr_slice</span>[..<span class="ident">len_to_copy</span>])<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(())
+        <span class="ident">mem</span>.<span class="ident">copy_from_ptr</span>(
+            <span class="kw-2">&amp;mut</span> <span class="ident">slice</span>[..<span class="ident">addr_len</span>],
+            <span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>),
+        )<span class="question-mark">?</span>;
     }
 
-    <span class="doccomment">/// Reads a sockaddr pointer from the plugin. Returns `None` if the pointer is null, otherwise</span>
-    <span class="doccomment">/// returns a nix `SockAddr`. The address length must be at most the size of</span>
-    <span class="doccomment">/// [`nix::sys::socket::sockaddr_storage`].</span>
-    <span class="kw">fn</span> <span class="ident">read_sockaddr</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">process</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Process</span>,
-        <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span>,
-        <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">addr_ptr</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-        }
-
-        <span class="kw">let</span> <span class="ident">addr_len</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">addr_len</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addr</span>: <span class="ident">nix::sys::socket::sockaddr_storage</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
-
-        <span class="comment">// make sure we will not lose data when we copy</span>
-        <span class="kw">if</span> <span class="ident">addr_len</span> <span class="op">&gt;</span> <span class="ident">std::mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>) {
-            <span class="macro">warn!</span>(
-                <span class="string">&quot;Shadow does not support the address length {}, which is larger than {}&quot;</span>,
-                <span class="ident">addr_len</span>,
-                <span class="ident">std::mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>),
-            );
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>());
-        }
-
-        <span class="comment">// make sure that we have at least the address family</span>
-        <span class="kw">if</span> <span class="ident">addr_len</span> <span class="op">&lt;</span> <span class="number">2</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>());
-        }
-
-        <span class="comment">// limit the scope of the unsafe slice</span>
-        {
-            <span class="comment">// safety: do not make any other references to addr within this scope</span>
-            <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="ident">std::slice::from_raw_parts_mut</span>(
-                    <span class="kw-2">&amp;mut</span> <span class="ident">addr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>,
-                    <span class="ident">std::mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>),
-                )
-            };
-
-            <span class="ident">process</span>.<span class="ident">memory</span>().<span class="ident">copy_from_ptr</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">slice</span>[..<span class="ident">addr_len</span>],
-                <span class="ident">TypedPluginPtr::new</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>),
-            )<span class="question-mark">?</span>;
-        }
-
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">nix::sys::socket::sockaddr_storage_to_addr</span>(
-            <span class="kw-2">&amp;</span><span class="ident">addr</span>, <span class="ident">addr_len</span>,
-        )<span class="question-mark">?</span>))
-    }
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">nix::sys::socket::sockaddr_storage_to_addr</span>(
+        <span class="kw-2">&amp;</span><span class="ident">addr</span>, <span class="ident">addr_len</span>,
+    )<span class="question-mark">?</span>))
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="shadow_rs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>

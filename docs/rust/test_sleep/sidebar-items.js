@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["call_clock_gettime",""],["clock_nanosleep",""],["main",""],["nanosleep",""],["sleep",""],["sleep_and_test",""],["syscall_clock_gettime",""],["usleep",""]],"type":[["SleepFn",""],["TimeFn",""]]});
+initSidebarItems({"constant":[["SLEEP_FNS",""],["TIME_FNS",""]],"fn":[["call_clock_gettime",""],["clock_nanosleep",""],["duration_abs_diff",""],["main",""],["nanosleep",""],["nop",""],["sleep",""],["sleep_and_signal_test",""],["sleep_and_test",""],["syscall_clock_gettime",""],["usleep",""]],"type":[["SleepFn",""],["TimeFn",""]]});
