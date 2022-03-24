@@ -488,6 +488,17 @@
 <span id="486">486</span>
 <span id="487">487</span>
 <span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
@@ -500,8 +511,7 @@
     <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>, <span class="ident">SyscallResult</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types::SysCallReg</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallError</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallReg</span>, <span class="ident">SyscallError</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::stream_len::StreamLen</span>;
 
@@ -520,6 +530,9 @@
     <span class="ident">namespace</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">AbstractUnixNamespace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">send_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">recv_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="comment">// should only be used by `OpenFile` to make sure there is only ever one `OpenFile` instance for</span>
+    <span class="comment">// this file</span>
+    <span class="ident">has_open_file</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">UnixSocketFile</span> {
@@ -549,6 +562,7 @@
             <span class="ident">namespace</span>: <span class="ident">Arc::clone</span>(<span class="ident">namespace</span>),
             <span class="ident">send_buffer_event_handle</span>: <span class="prelude-val">None</span>,
             <span class="ident">recv_buffer_event_handle</span>: <span class="prelude-val">None</span>,
+            <span class="ident">has_open_file</span>: <span class="bool-val">false</span>,
         };
 
         <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">socket</span>));
@@ -594,6 +608,14 @@
         <span class="self">self</span>.<span class="ident">mode</span>
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_open_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">has_open_file</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_has_open_file</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">has_open_file</span> <span class="op">=</span> <span class="ident">val</span>;
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bound_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">bound_addr</span>
     }
@@ -624,7 +646,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">recv_buffer</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="ident">SyscallResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="comment">// drop the event listener handles so that we stop receiving new events</span>
         <span class="self">self</span>.<span class="ident">send_buffer_event_handle</span>
             .<span class="ident">take</span>()
@@ -648,7 +670,7 @@
             <span class="ident">event_queue</span>,
         );
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(

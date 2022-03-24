@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["DescriptorTable","Table of (file) descriptors. Typically owned by a Process."]]});
+initSidebarItems({"struct":[["DescriptorTable","Map of file handles to file descriptors. Typically owned by a Process."]]});

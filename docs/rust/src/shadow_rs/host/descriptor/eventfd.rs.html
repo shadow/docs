@@ -223,6 +223,18 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
@@ -230,7 +242,7 @@
     <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallResult</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallError</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::stream_len::StreamLen</span>;
 
@@ -240,6 +252,9 @@
     <span class="ident">event_source</span>: <span class="ident">StateEventSource</span>,
     <span class="ident">state</span>: <span class="ident">FileState</span>,
     <span class="ident">status</span>: <span class="ident">FileStatus</span>,
+    <span class="comment">// should only be used by `OpenFile` to make sure there is only ever one `OpenFile` instance for</span>
+    <span class="comment">// this file</span>
+    <span class="ident">has_open_file</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">EventFdFile</span> {
@@ -250,6 +265,7 @@
             <span class="ident">event_source</span>: <span class="ident">StateEventSource::new</span>(),
             <span class="ident">state</span>: <span class="ident">FileState::ACTIVE</span> <span class="op">|</span> <span class="ident">FileState::WRITABLE</span>,
             <span class="ident">status</span>,
+            <span class="ident">has_open_file</span>: <span class="bool-val">false</span>,
         }
     }
 
@@ -265,7 +281,15 @@
         <span class="ident">FileMode::READ</span> <span class="op">|</span> <span class="ident">FileMode::WRITE</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="ident">SyscallResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_open_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">has_open_file</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_has_open_file</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">has_open_file</span> <span class="op">=</span> <span class="ident">val</span>;
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="comment">// set the closed flag and remove the active, readable, and writable flags</span>
         <span class="self">self</span>.<span class="ident">copy_state</span>(
             <span class="ident">FileState::CLOSED</span> <span class="op">|</span> <span class="ident">FileState::ACTIVE</span> <span class="op">|</span> <span class="ident">FileState::READABLE</span> <span class="op">|</span> <span class="ident">FileState::WRITABLE</span>,
@@ -273,7 +297,7 @@
             <span class="ident">event_queue</span>,
         );
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(

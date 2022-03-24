@@ -140,7 +140,7 @@
 <span id="138">138</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">CompatDescriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileStatus</span>, <span class="ident">PosixFile</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">CompatDescriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileStatus</span>, <span class="ident">GenericFile</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">SysCallArgs</span>, <span class="ident">SysCallReg</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
@@ -172,7 +172,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">cmd</span> {
             <span class="ident">libc::F_GETFL</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>().<span class="ident">borrow</span>();
+                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>().<span class="ident">borrow</span>();
                 <span class="comment">// combine the file status and access mode flags</span>
                 <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">get_status</span>().<span class="ident">as_o_flags</span>() <span class="op">|</span> <span class="ident">file</span>.<span class="ident">mode</span>().<span class="ident">as_o_flags</span>();
                 <span class="ident">SysCallReg::from</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
@@ -193,7 +193,7 @@
                         <span class="op">|</span> <span class="ident">OFlag::O_TRUNC</span>,
                 );
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>().<span class="ident">borrow_mut</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>().<span class="ident">borrow_mut</span>();
                 <span class="kw">let</span> <span class="ident">old_flags</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">get_status</span>().<span class="ident">as_o_flags</span>();
 
                 <span class="comment">// fcntl(2): &quot;On Linux, this command can change only the O_APPEND, O_ASYNC, O_DIRECT,</span>
@@ -231,7 +231,7 @@
                 <span class="ident">SysCallReg::from</span>(<span class="number">0</span>)
             }
             <span class="ident">libc::F_GETFD</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_flags</span>().<span class="ident">bits</span>();
+                <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">flags</span>().<span class="ident">bits</span>();
                 <span class="comment">// the only descriptor flag supported by Linux is FD_CLOEXEC, so let&#39;s make sure</span>
                 <span class="comment">// we&#39;re returning the correct value</span>
                 <span class="macro">debug_assert!</span>(<span class="ident">flags</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">flags</span> <span class="op">==</span> <span class="ident">libc::FD_CLOEXEC</span>);
@@ -266,7 +266,7 @@
             <span class="ident">libc::F_GETPIPE_SZ</span> =&gt;
             {
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">irrefutable_let_patterns</span>)]</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PosixFile::Pipe</span>(<span class="ident">pipe</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">get_file</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericFile::Pipe</span>(<span class="ident">pipe</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>() {
                     <span class="ident">SysCallReg::from</span>(<span class="ident">i32::try_from</span>(<span class="ident">pipe</span>.<span class="ident">borrow</span>().<span class="ident">max_size</span>()).<span class="ident">unwrap</span>())
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>());

@@ -86,7 +86,7 @@
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::eventfd</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
-    <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileStatus</span>, <span class="ident">PosixFile</span>,
+    <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileStatus</span>, <span class="ident">GenericFile</span>, <span class="ident">OpenFile</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types::SysCallArgs</span>;
@@ -156,7 +156,7 @@
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">eventfd::EventFdFile::new</span>(<span class="ident">init_val</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">semaphore_mode</span>, <span class="ident">file_flags</span>);
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">file</span>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">PosixFile::EventFd</span>(<span class="ident">file</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">OpenFile::new</span>(<span class="ident">GenericFile::EventFd</span>(<span class="ident">file</span>)));
         <span class="ident">desc</span>.<span class="ident">set_flags</span>(<span class="ident">descriptor_flags</span>);
 
         <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor</span>(<span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>));

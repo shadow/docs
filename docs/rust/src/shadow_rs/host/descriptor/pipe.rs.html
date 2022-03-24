@@ -311,6 +311,39 @@
 <span id="309">309</span>
 <span id="310">310</span>
 <span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
@@ -321,7 +354,7 @@
     <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallResult</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallError</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::stream_len::StreamLen</span>;
 
@@ -333,6 +366,9 @@
     <span class="ident">status</span>: <span class="ident">FileStatus</span>,
     <span class="ident">write_mode</span>: <span class="ident">WriteMode</span>,
     <span class="ident">buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="comment">// should only be used by `OpenFile` to make sure there is only ever one `OpenFile` instance for</span>
+    <span class="comment">// this file</span>
+    <span class="ident">has_open_file</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">PipeFile</span> {
@@ -347,6 +383,7 @@
             <span class="ident">status</span>,
             <span class="ident">write_mode</span>: <span class="ident">WriteMode::Stream</span>,
             <span class="ident">buffer_event_handle</span>: <span class="prelude-val">None</span>,
+            <span class="ident">has_open_file</span>: <span class="bool-val">false</span>,
         }
     }
 
@@ -362,11 +399,19 @@
         <span class="self">self</span>.<span class="ident">mode</span>
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_open_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">has_open_file</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_has_open_file</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>) {
+        <span class="self">self</span>.<span class="ident">has_open_file</span> <span class="op">=</span> <span class="ident">val</span>;
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">borrow</span>().<span class="ident">max_len</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="ident">SyscallResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="comment">// drop the event listener handle so that we stop receiving new events</span>
         <span class="self">self</span>.<span class="ident">buffer_event_handle</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">stop_listening</span>();
 
@@ -379,6 +424,15 @@
                 .<span class="ident">remove_writer</span>(<span class="ident">event_queue</span>);
         }
 
+        <span class="comment">// if open for reading, inform the buffer that there is one fewer readers</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::READ</span>) {
+            <span class="self">self</span>.<span class="ident">buffer</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">borrow_mut</span>()
+                .<span class="ident">remove_reader</span>(<span class="ident">event_queue</span>);
+        }
+
         <span class="comment">// no need to hold on to the buffer anymore</span>
         <span class="self">self</span>.<span class="ident">buffer</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
@@ -389,7 +443,7 @@
             <span class="ident">event_queue</span>,
         );
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(
@@ -452,6 +506,10 @@
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>();
+
+        <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">num_readers</span>() <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::EPIPE</span>.<span class="ident">into</span>());
+        }
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">write_mode</span> <span class="op">==</span> <span class="ident">WriteMode::Packet</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">status</span>.<span class="ident">contains</span>(<span class="ident">FileStatus::DIRECT</span>) {
             <span class="comment">// switch to stream mode immediately, regardless of whether the buffer is empty or not</span>
@@ -525,6 +583,14 @@
                 .<span class="ident">unwrap</span>()
                 .<span class="ident">borrow_mut</span>()
                 .<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
+        }
+
+        <span class="kw">if</span> <span class="ident">pipe</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::READ</span>) {
+            <span class="ident">pipe</span>.<span class="ident">buffer</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">borrow_mut</span>()
+                .<span class="ident">add_reader</span>(<span class="ident">event_queue</span>);
         }
 
         <span class="comment">// remove any state flags that aren&#39;t relevant to us</span>
