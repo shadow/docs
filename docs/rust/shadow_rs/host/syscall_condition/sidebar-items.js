@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SysCallCondition","Wrapper"]]});
+initSidebarItems({"struct":[["SysCallCondition","An owned syscall condition."],["SysCallConditionRef","An immutable reference to a syscall condition."],["SysCallConditionRefMut","A mutable reference to a syscall condition."]]});

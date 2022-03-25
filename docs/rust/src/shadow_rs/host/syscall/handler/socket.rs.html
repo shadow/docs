@@ -889,6 +889,26 @@
 <span id="887">887</span>
 <span id="888">888</span>
 <span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::unix</span>::{<span class="ident">UnixSocketFile</span>, <span class="ident">UnixSocketType</span>};
@@ -1034,23 +1054,35 @@
         <span class="kw">let</span> <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">4</span>).<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">addr_len</span>: <span class="ident">libc::socklen_t</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">5</span>).<span class="ident">into</span>();
 
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
-            <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return</span> <span class="kw">unsafe</span> {
-                    <span class="ident">c::syscallhandler_sendto</span>(
-                        <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
-                        <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">c::SysCallArgs</span>,
-                    )
-                    .<span class="ident">into</span>()
+        <span class="comment">// if we were previously blocked, get the active file from the last syscall handler</span>
+        <span class="comment">// invocation since it may no longer exist in the descriptor table</span>
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">ctx</span>
+            .<span class="ident">thread</span>
+            .<span class="ident">syscall_condition</span>()
+            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object</span>
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">active_file</span>().<span class="ident">cloned</span>())
+            .<span class="ident">flatten</span>();
+
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">file</span> {
+            <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation</span>
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist</span>
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
+                <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>(),
+                <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
+                <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">return</span> <span class="kw">unsafe</span> {
+                        <span class="ident">c::syscallhandler_sendto</span>(
+                            <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
+                            <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">SysCallArgs</span>,
+                        )
+                        .<span class="ident">into</span>()
+                    };
                 }
-            }
+            },
         };
 
-        <span class="kw">let</span> <span class="ident">open_file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>();
-        <span class="self">self</span>.<span class="ident">sendto_helper</span>(<span class="ident">ctx</span>, <span class="ident">open_file</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_len</span>, <span class="ident">flags</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)
+        <span class="self">self</span>.<span class="ident">sendto_helper</span>(<span class="ident">ctx</span>, <span class="ident">file</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_len</span>, <span class="ident">flags</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sendto_helper</span>(
@@ -1106,9 +1138,11 @@
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_status</span>.<span class="ident">contains</span>(<span class="ident">FileStatus::NONBLOCK</span>)
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">MsgFlags::MSG_DONTWAIT</span>)
         {
-            <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_open_file</span>(<span class="ident">open_file</span>, <span class="ident">FileState::WRITABLE</span>);
+            <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_open_file</span>(<span class="ident">open_file</span>.<span class="ident">clone</span>(), <span class="ident">FileState::WRITABLE</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cond</span> <span class="op">=</span> <span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>);
+            <span class="ident">cond</span>.<span class="ident">set_active_file</span>(<span class="ident">open_file</span>);
 
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>)));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">cond</span>));
         };
 
         <span class="ident">result</span>
@@ -1125,31 +1159,35 @@
         <span class="kw">let</span> <span class="ident">addr_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">4</span>).<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">addr_len_ptr</span>: <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">5</span>).<span class="ident">into</span>();
 
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
-            <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return</span> <span class="kw">unsafe</span> {
-                    <span class="ident">c::syscallhandler_recvfrom</span>(
-                        <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
-                        <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">c::SysCallArgs</span>,
-                    )
-                    .<span class="ident">into</span>()
+        <span class="comment">// if we were previously blocked, get the active file from the last syscall handler</span>
+        <span class="comment">// invocation since it may no longer exist in the descriptor table</span>
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">ctx</span>
+            .<span class="ident">thread</span>
+            .<span class="ident">syscall_condition</span>()
+            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object</span>
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">active_file</span>().<span class="ident">cloned</span>())
+            .<span class="ident">flatten</span>();
+
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">file</span> {
+            <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation</span>
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist</span>
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
+                <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>(),
+                <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
+                <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="kw">return</span> <span class="kw">unsafe</span> {
+                        <span class="ident">c::syscallhandler_recvfrom</span>(
+                            <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
+                            <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">SysCallArgs</span>,
+                        )
+                        .<span class="ident">into</span>()
+                    };
                 }
-            }
+            },
         };
 
-        <span class="kw">let</span> <span class="ident">open_file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>();
-        <span class="self">self</span>.<span class="ident">recvfrom_helper</span>(
-            <span class="ident">ctx</span>,
-            <span class="ident">open_file</span>,
-            <span class="ident">buf_ptr</span>,
-            <span class="ident">buf_len</span>,
-            <span class="ident">flags</span>,
-            <span class="ident">addr_ptr</span>,
-            <span class="ident">addr_len_ptr</span>,
-        )
+        <span class="self">self</span>.<span class="ident">recvfrom_helper</span>(<span class="ident">ctx</span>, <span class="ident">file</span>, <span class="ident">buf_ptr</span>, <span class="ident">buf_len</span>, <span class="ident">flags</span>, <span class="ident">addr_ptr</span>, <span class="ident">addr_len_ptr</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recvfrom_helper</span>(
@@ -1202,9 +1240,11 @@
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">file_status</span>.<span class="ident">contains</span>(<span class="ident">FileStatus::NONBLOCK</span>)
             <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">MsgFlags::MSG_DONTWAIT</span>)
         {
-            <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_open_file</span>(<span class="ident">open_file</span>, <span class="ident">FileState::READABLE</span>);
+            <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_open_file</span>(<span class="ident">open_file</span>.<span class="ident">clone</span>(), <span class="ident">FileState::READABLE</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cond</span> <span class="op">=</span> <span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>);
+            <span class="ident">cond</span>.<span class="ident">set_active_file</span>(<span class="ident">open_file</span>);
 
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>)));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">cond</span>));
         };
 
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="ident">from_addr</span>) <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
