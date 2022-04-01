@@ -94,6 +94,7 @@ sourcesIndex["terminal_size"] = {"name":"","files":["lib.rs","unix.rs"]};
 sourcesIndex["test_accept"] = {"name":"","files":["test_accept.rs"]};
 sourcesIndex["test_bind"] = {"name":"","files":["test_bind.rs"]};
 sourcesIndex["test_bind_in_new_process"] = {"name":"","files":["test_bind_in_new_process.rs"]};
+sourcesIndex["test_busy_wait"] = {"name":"","files":["test_busy_wait.rs"]};
 sourcesIndex["test_connect"] = {"name":"","files":["test_connect.rs"]};
 sourcesIndex["test_dup"] = {"name":"","files":["test_dup.rs"]};
 sourcesIndex["test_env"] = {"name":"","files":["test_env.rs"]};
