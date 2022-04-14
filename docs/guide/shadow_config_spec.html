@@ -436,6 +436,20 @@ the &quot;deterministic&quot; mode will avoid logging memory addresses or potent
 uninitialized memory.</p>
 <p>The logs will be stored at
 <code>shadow.data/hosts/&lt;hostname&gt;/&lt;hostname&gt;.&lt;procname&gt;.&lt;pid&gt;.strace</code>.</p>
+<p>Limitations:</p>
+<ul>
+<li>Syscalls handled within Shadow's preloaded &quot;shim&quot; library will not be logged
+(for example <code>SYS_gettimeofday</code>).</li>
+<li>Syscalls run natively will not log the syscall arguments or return value (for
+example <code>SYS_getcwd</code>).</li>
+<li>Syscalls processed within Shadow's C code will not log the syscall arguments.</li>
+<li>Syscalls that are interrupted by a signal may not be logged (for example
+<code>SYS_read</code>).</li>
+<li>Syscalls that are interrupted by a signal may be logged inaccurately. For
+example, the log may show <code>syscall(...) = -1 (EINTR)</code>, but the managed
+process may not actually see this return value. Instead the syscall may be
+restarted.</li>
+</ul>
 <h4 id="experimentalunblocked_syscall_latency"><a class="header" href="#experimentalunblocked_syscall_latency"><code>experimental.unblocked_syscall_latency</code></a></h4>
 <p>Default: &quot;2 microseconds&quot;<br />
 Type: String</p>

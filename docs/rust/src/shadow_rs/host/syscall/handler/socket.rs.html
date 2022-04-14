@@ -1,6 +1,9 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main&#x2F;host&#x2F;syscall&#x2F;handler&#x2F;socket.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../../../shadow_rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../shadow_rs/index.html"><img class="rust-logo" src="../../../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/socket.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><script defer src="../../../../../main.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../shadow_rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../../../../shadow_rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../shadow_rs/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -909,6 +912,14 @@
 <span id="907">907</span>
 <span id="908">908</span>
 <span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::unix</span>::{<span class="ident">UnixSocketFile</span>, <span class="ident">UnixSocketType</span>};
@@ -921,7 +932,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::Trigger</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_condition::SysCallCondition</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallArgs</span>, <span class="ident">TypedPluginPtr</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">Blocked</span>, <span class="ident">PluginPtr</span>, <span class="ident">SysCallArgs</span>, <span class="ident">TypedPluginPtr</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">SyscallError</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue::EventQueue</span>;
 
@@ -1140,9 +1151,13 @@
         {
             <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_open_file</span>(<span class="ident">open_file</span>.<span class="ident">clone</span>(), <span class="ident">FileState::WRITABLE</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cond</span> <span class="op">=</span> <span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>);
+            <span class="kw">let</span> <span class="ident">supports_sa_restart</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">supports_sa_restart</span>();
             <span class="ident">cond</span>.<span class="ident">set_active_file</span>(<span class="ident">open_file</span>);
 
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">cond</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Blocked</span>(<span class="ident">Blocked</span> {
+                <span class="ident">condition</span>: <span class="ident">cond</span>,
+                <span class="ident">restartable</span>: <span class="ident">supports_sa_restart</span>,
+            }));
         };
 
         <span class="ident">result</span>
@@ -1242,9 +1257,13 @@
         {
             <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_open_file</span>(<span class="ident">open_file</span>.<span class="ident">clone</span>(), <span class="ident">FileState::READABLE</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cond</span> <span class="op">=</span> <span class="ident">SysCallCondition::new</span>(<span class="ident">trigger</span>);
+            <span class="kw">let</span> <span class="ident">supports_sa_restart</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">supports_sa_restart</span>();
             <span class="ident">cond</span>.<span class="ident">set_active_file</span>(<span class="ident">open_file</span>);
 
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Cond</span>(<span class="ident">cond</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SyscallError::Blocked</span>(<span class="ident">Blocked</span> {
+                <span class="ident">condition</span>: <span class="ident">cond</span>,
+                <span class="ident">restartable</span>: <span class="ident">supports_sa_restart</span>,
+            }));
         };
 
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="ident">from_addr</span>) <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
@@ -1819,5 +1838,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="shadow_rs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="shadow_rs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
 </body></html>
