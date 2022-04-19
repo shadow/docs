@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SharedBuf",""]]});
+initSidebarItems({"struct":[["BufferState",""],["SharedBuf",""]],"type":[["BufferHandle",""]]});

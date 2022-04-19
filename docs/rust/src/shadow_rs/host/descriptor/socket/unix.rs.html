@@ -510,13 +510,23 @@
 <span id="505">505</span>
 <span id="506">506</span>
 <span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf::SharedBuf</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf</span>::{<span class="ident">BufferHandle</span>, <span class="ident">BufferState</span>, <span class="ident">SharedBuf</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::abstract_unix_ns::AbstractUnixNamespace</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
     <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>, <span class="ident">SyscallResult</span>,
@@ -539,8 +549,8 @@
     <span class="ident">peer_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
     <span class="ident">bound_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
     <span class="ident">namespace</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">AbstractUnixNamespace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">send_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">recv_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">send_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
+    <span class="ident">recv_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
     <span class="comment">// should only be used by `OpenFile` to make sure there is only ever one `OpenFile` instance for</span>
     <span class="comment">// this file</span>
     <span class="ident">has_open_file</span>: <span class="ident">bool</span>,
@@ -582,9 +592,8 @@
         <span class="comment">// update the socket&#39;s state when the buffer&#39;s state changes</span>
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">socket</span>);
         <span class="kw">let</span> <span class="ident">recv_handle</span> <span class="op">=</span> <span class="ident">socket_ref</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
-            <span class="ident">FileState::READABLE</span>,
-            <span class="ident">StateListenerFilter::Always</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="ident">state</span>, <span class="ident">_changed</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="ident">BufferState::READABLE</span>,
+            <span class="kw">move</span> <span class="op">|</span><span class="ident">state</span>, <span class="ident">event_queue</span><span class="op">|</span> {
                 <span class="comment">// if the file hasn&#39;t been dropped</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow_mut</span>();
@@ -595,7 +604,14 @@
                     }
 
                     <span class="comment">// the socket is readable iff the buffer is readable</span>
-                    <span class="ident">socket</span>.<span class="ident">copy_state</span>(<span class="ident">FileState::READABLE</span>, <span class="ident">state</span>, <span class="ident">event_queue</span>);
+                    <span class="ident">socket</span>.<span class="ident">copy_state</span>(
+                        <span class="comment">/* mask */</span> <span class="ident">FileState::READABLE</span>,
+                        <span class="ident">state</span>
+                            .<span class="ident">contains</span>(<span class="ident">BufferState::READABLE</span>)
+                            .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">FileState::READABLE</span>)
+                            .<span class="ident">unwrap_or_default</span>(),
+                        <span class="ident">event_queue</span>,
+                    );
                 }
             },
         );
@@ -907,16 +923,14 @@
         <span class="ident">send_buffer_ref</span>.<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
 
         <span class="comment">// update the socket file&#39;s state based on the buffer&#39;s state</span>
-        <span class="kw">if</span> <span class="ident">send_buffer_ref</span>.<span class="ident">state</span>().<span class="ident">contains</span>(<span class="ident">FileState::WRITABLE</span>) {
+        <span class="kw">if</span> <span class="ident">send_buffer_ref</span>.<span class="ident">state</span>().<span class="ident">contains</span>(<span class="ident">BufferState::WRITABLE</span>) {
             <span class="ident">socket_ref</span>.<span class="ident">state</span>.<span class="ident">insert</span>(<span class="ident">FileState::WRITABLE</span>);
         }
 
         <span class="comment">// update the socket&#39;s state when the buffer&#39;s state changes</span>
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">socket</span>);
-        <span class="kw">let</span> <span class="ident">send_handle</span> <span class="op">=</span> <span class="ident">send_buffer_ref</span>.<span class="ident">add_listener</span>(
-            <span class="ident">FileState::WRITABLE</span>,
-            <span class="ident">StateListenerFilter::Always</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="ident">state</span>, <span class="ident">_changed</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">send_handle</span> <span class="op">=</span>
+            <span class="ident">send_buffer_ref</span>.<span class="ident">add_listener</span>(<span class="ident">BufferState::WRITABLE</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">state</span>, <span class="ident">event_queue</span><span class="op">|</span> {
                 <span class="comment">// if the file hasn&#39;t been dropped</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow_mut</span>();
@@ -927,10 +941,16 @@
                     }
 
                     <span class="comment">// the socket is writable iff the buffer is writable</span>
-                    <span class="ident">socket</span>.<span class="ident">copy_state</span>(<span class="ident">FileState::WRITABLE</span>, <span class="ident">state</span>, <span class="ident">event_queue</span>);
+                    <span class="ident">socket</span>.<span class="ident">copy_state</span>(
+                        <span class="comment">/* mask */</span> <span class="ident">FileState::WRITABLE</span>,
+                        <span class="ident">state</span>
+                            .<span class="ident">contains</span>(<span class="ident">BufferState::WRITABLE</span>)
+                            .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">FileState::WRITABLE</span>)
+                            .<span class="ident">unwrap_or_default</span>(),
+                        <span class="ident">event_queue</span>,
+                    );
                 }
-            },
-        );
+            });
 
         <span class="ident">std::mem::drop</span>(<span class="ident">send_buffer_ref</span>);
 

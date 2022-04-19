@@ -107,6 +107,7 @@ sourcesIndex["test_ifaddrs"] = {"name":"","files":["test_ifaddrs.rs"]};
 sourcesIndex["test_ioctl"] = {"name":"","files":["test_ioctl.rs"]};
 sourcesIndex["test_listen"] = {"name":"","files":["test_listen.rs"]};
 sourcesIndex["test_mmap"] = {"name":"","files":["test_mmap.rs"]};
+sourcesIndex["test_pid_assignment"] = {"name":"","files":["test_pid_assignment.rs"]};
 sourcesIndex["test_pipe"] = {"name":"","files":["test_pipe.rs"]};
 sourcesIndex["test_poll"] = {"name":"","files":["test_poll.rs"]};
 sourcesIndex["test_pthreads"] = {"name":"","files":["test_pthreads.rs"]};

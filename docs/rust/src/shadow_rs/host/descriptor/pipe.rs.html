@@ -351,12 +351,38 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf::SharedBuf</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf</span>::{<span class="ident">BufferHandle</span>, <span class="ident">BufferState</span>, <span class="ident">SharedBuf</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
     <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>,
 };
@@ -372,7 +398,7 @@
     <span class="ident">mode</span>: <span class="ident">FileMode</span>,
     <span class="ident">status</span>: <span class="ident">FileStatus</span>,
     <span class="ident">write_mode</span>: <span class="ident">WriteMode</span>,
-    <span class="ident">buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
     <span class="comment">// should only be used by `OpenFile` to make sure there is only ever one `OpenFile` instance for</span>
     <span class="comment">// this file</span>
     <span class="ident">has_open_file</span>: <span class="ident">bool</span>,
@@ -604,32 +630,41 @@
                 .<span class="ident">add_reader</span>(<span class="ident">event_queue</span>);
         }
 
-        <span class="comment">// remove any state flags that aren&#39;t relevant to us</span>
-        <span class="kw">let</span> <span class="ident">monitoring</span> <span class="op">=</span> <span class="ident">pipe</span>.<span class="ident">filter_state</span>(<span class="ident">FileState::READABLE</span> <span class="op">|</span> <span class="ident">FileState::WRITABLE</span>);
+        <span class="comment">// buffer state changes that we want to receive events for</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">monitoring</span> <span class="op">=</span> <span class="ident">BufferState::empty</span>();
+
+        <span class="comment">// if the file is open for reading, watch for the buffer to become readable or have no</span>
+        <span class="comment">// writers</span>
+        <span class="kw">if</span> <span class="ident">pipe</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::READ</span>) {
+            <span class="ident">monitoring</span>.<span class="ident">insert</span>(<span class="ident">BufferState::READABLE</span>);
+            <span class="ident">monitoring</span>.<span class="ident">insert</span>(<span class="ident">BufferState::NO_WRITERS</span>);
+        }
+
+        <span class="comment">// if the file is open for writing, watch for the buffer to become writable or have no</span>
+        <span class="comment">// readers</span>
+        <span class="kw">if</span> <span class="ident">pipe</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::WRITE</span>) {
+            <span class="ident">monitoring</span>.<span class="ident">insert</span>(<span class="ident">BufferState::WRITABLE</span>);
+            <span class="ident">monitoring</span>.<span class="ident">insert</span>(<span class="ident">BufferState::NO_READERS</span>);
+        }
 
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">pipe</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
             <span class="ident">monitoring</span>,
-            <span class="ident">StateListenerFilter::Always</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="ident">state</span>, <span class="ident">_changed</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="kw">move</span> <span class="op">|</span><span class="ident">buffer_state</span>, <span class="ident">event_queue</span><span class="op">|</span> {
                 <span class="comment">// if the file hasn&#39;t been dropped</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pipe</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pipe</span> <span class="op">=</span> <span class="ident">pipe</span>.<span class="ident">borrow_mut</span>();
 
-                    <span class="comment">// if the pipe is already closed, do nothing</span>
-                    <span class="kw">if</span> <span class="ident">pipe</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::CLOSED</span>) {
-                        <span class="kw">return</span>;
-                    }
-
-                    <span class="ident">pipe</span>.<span class="ident">copy_state</span>(<span class="ident">monitoring</span>, <span class="ident">state</span>, <span class="ident">event_queue</span>);
+                    <span class="comment">// update the pipe file&#39;s state to align with the buffer&#39;s current state</span>
+                    <span class="ident">pipe</span>.<span class="ident">align_state_to_buffer</span>(<span class="ident">buffer_state</span>, <span class="ident">event_queue</span>);
                 }
             },
         );
 
         <span class="ident">pipe</span>.<span class="ident">buffer_event_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>);
 
-        <span class="comment">// update the pipe file&#39;s initial state based on the buffer&#39;s state</span>
-        <span class="kw">let</span> <span class="ident">buffer_state</span> <span class="op">=</span> <span class="ident">pipe</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_mut</span>().<span class="ident">state</span>();
-        <span class="ident">pipe</span>.<span class="ident">state</span>.<span class="ident">insert</span>(<span class="ident">pipe</span>.<span class="ident">filter_state</span>(<span class="ident">buffer_state</span>));
+        <span class="comment">// update the pipe file&#39;s initial state to align with the buffer&#39;s current state</span>
+        <span class="kw">let</span> <span class="ident">buffer_state</span> <span class="op">=</span> <span class="ident">pipe</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">borrow</span>().<span class="ident">state</span>();
+        <span class="ident">pipe</span>.<span class="ident">align_state_to_buffer</span>(<span class="ident">buffer_state</span>, <span class="ident">event_queue</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_listener</span>(
@@ -654,25 +689,42 @@
         <span class="self">self</span>.<span class="ident">state</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">filter_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">state</span>: <span class="ident">FileState</span>) -&gt; <span class="ident">FileState</span> {
-        <span class="comment">// if not open for reading, remove the readable flag</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::READ</span>) {
-            <span class="ident">state</span>.<span class="ident">remove</span>(<span class="ident">FileState::READABLE</span>);
+    <span class="doccomment">/// Align the pipe&#39;s state to the buffer state. For example if the buffer is both `READABLE` and</span>
+    <span class="doccomment">/// `WRITABLE`, and the pipe is only open in `READ` mode, the pipe&#39;s `READABLE` state will be</span>
+    <span class="doccomment">/// set and the `WRITABLE` state will be unchanged.</span>
+    <span class="kw">fn</span> <span class="ident">align_state_to_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buffer_state</span>: <span class="ident">BufferState</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mask</span> <span class="op">=</span> <span class="ident">FileState::empty</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_state</span> <span class="op">=</span> <span class="ident">FileState::empty</span>();
+
+        <span class="comment">// if the pipe is already closed, do nothing</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::CLOSED</span>) {
+            <span class="kw">return</span>;
         }
 
-        <span class="comment">// if not open for writing, remove the writable flag</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::WRITE</span>) {
-            <span class="ident">state</span>.<span class="ident">remove</span>(<span class="ident">FileState::WRITABLE</span>);
+        <span class="comment">// only update the readable state if the file is open for reading</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::READ</span>) {
+            <span class="ident">mask</span>.<span class="ident">insert</span>(<span class="ident">FileState::READABLE</span>);
+            <span class="comment">// file is readable if the buffer is readable or there are no writers</span>
+            <span class="kw">if</span> <span class="ident">buffer_state</span>.<span class="ident">intersects</span>(<span class="ident">BufferState::READABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_WRITERS</span>) {
+                <span class="ident">file_state</span>.<span class="ident">insert</span>(<span class="ident">FileState::READABLE</span>);
+            }
         }
 
-        <span class="ident">state</span>
+        <span class="comment">// only update the writable state if the file is open for writing</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::WRITE</span>) {
+            <span class="ident">mask</span>.<span class="ident">insert</span>(<span class="ident">FileState::WRITABLE</span>);
+            <span class="comment">// file is writable if the buffer is writable or there are no readers</span>
+            <span class="kw">if</span> <span class="ident">buffer_state</span>.<span class="ident">intersects</span>(<span class="ident">BufferState::WRITABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_READERS</span>) {
+                <span class="ident">file_state</span>.<span class="ident">insert</span>(<span class="ident">FileState::WRITABLE</span>);
+            }
+        }
+
+        <span class="comment">// update the file&#39;s state</span>
+        <span class="self">self</span>.<span class="ident">copy_state</span>(<span class="ident">mask</span>, <span class="ident">file_state</span>, <span class="ident">event_queue</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">copy_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mask</span>: <span class="ident">FileState</span>, <span class="ident">state</span>: <span class="ident">FileState</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
         <span class="kw">let</span> <span class="ident">old_state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>;
-
-        <span class="comment">// remove any flags that aren&#39;t relevant</span>
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">filter_state</span>(<span class="ident">state</span>);
 
         <span class="comment">// remove the masked flags, then copy the masked flags</span>
         <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">remove</span>(<span class="ident">mask</span>);
