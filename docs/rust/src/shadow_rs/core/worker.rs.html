@@ -603,7 +603,7 @@
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">last</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_min_runahead</span>(<span class="ident">t</span>: <span class="ident">Duration</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_min_host_runahead</span>(<span class="ident">t</span>: <span class="ident">Duration</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">t</span>.<span class="ident">is_zero</span>());
 
         <span class="ident">Worker::with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
@@ -611,7 +611,7 @@
             <span class="kw">if</span> <span class="ident">min_latency_cache</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">t</span> <span class="op">&lt;</span> <span class="ident">min_latency_cache</span>.<span class="ident">unwrap</span>() {
                 <span class="ident">w</span>.<span class="ident">min_latency_cache</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>));
                 <span class="kw">unsafe</span> {
-                    <span class="ident">cshadow::workerpool_updateMinRunahead</span>(
+                    <span class="ident">cshadow::workerpool_updateMinHostRunahead</span>(
                         <span class="ident">w</span>.<span class="ident">worker_pool</span>,
                         <span class="ident">SimulationTime::to_c_simtime</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>.<span class="ident">into</span>())),
                     )
@@ -751,8 +751,8 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_updateMinRunahead</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
-        <span class="ident">Worker::update_min_runahead</span>(<span class="kw-2">*</span><span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_updateMinHostRunahead</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
+        <span class="ident">Worker::update_min_host_runahead</span>(<span class="kw-2">*</span><span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
