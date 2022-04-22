@@ -1880,6 +1880,49 @@
 <span id="1875">1875</span>
 <span id="1876">1876</span>
 <span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
+<span id="1915">1915</span>
+<span id="1916">1916</span>
+<span id="1917">1917</span>
+<span id="1918">1918</span>
+<span id="1919">1919</span>
+<span id="1920">1920</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
@@ -2073,6 +2116,15 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;progress&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_false&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">progress</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Model syscalls and VDSO functions that don&#39;t block as having some</span>
+    <span class="doccomment">/// latency. This should have minimal effect on typical simulations, but</span>
+    <span class="doccomment">/// can be helpful for programs with &quot;busy loops&quot; that otherwise deadlock</span>
+    <span class="doccomment">/// under Shadow.</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">GENERAL_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;model_unblocked_syscall_latency&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span> <span class="op">=</span> <span class="string">&quot;default_some_false&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="ident">model_unblocked_syscall_latency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">GeneralOptions</span> {
@@ -2308,12 +2360,17 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;strace_logging_mode&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">strace_logging_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StraceLoggingMode</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// Number of consecutive unblocked syscalls before a thread applies</span>
-    <span class="doccomment">/// `unblocked_syscall_latency` and yields. 0 to never yield.</span>
+    <span class="doccomment">/// Max amount of execution-time latency allowed to accumulate before the</span>
+    <span class="doccomment">/// clock is moved forward. Moving the clock forward is a potentially</span>
+    <span class="doccomment">/// expensive operation, so larger values reduce simulation overhead, at the</span>
+    <span class="doccomment">/// cost of coarser time jumps. Note also that accumulated-but-unapplied</span>
+    <span class="doccomment">/// latency is discarded when a thread is blocked on a syscall.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// 0 to never account for CPU latency.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">hide_short_help</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;count&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;unblocked_syscall_limit&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
-    <span class="kw">pub</span> <span class="ident">unblocked_syscall_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;max_unapplied_cpu_latency&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">max_unapplied_cpu_latency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Simulated latency of an unblocked syscall. For efficiency Shadow only</span>
     <span class="doccomment">/// actually adds this latency if and when `unblocked_syscall_limit` is</span>
@@ -2322,6 +2379,13 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;unblocked_syscall_latency&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">unblocked_syscall_latency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Simulated latency of a vdso &quot;syscall&quot;. For efficiency Shadow only</span>
+    <span class="doccomment">/// actually adds this latency if and when `unblocked_syscall_limit` is</span>
+    <span class="doccomment">/// reached.</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;unblocked_vdso_latency&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">unblocked_vdso_latency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// List of hostnames to debug</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">hide_short_help</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
@@ -2354,14 +2418,12 @@
             <span class="ident">use_preload_openssl_rng</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_preload_openssl_crypto</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">preload_spin_max</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            <span class="comment">// Experimentally, 500 is high enough to trigger infrequently</span>
-            <span class="comment">// outside of a true &quot;busy loop&quot;, and low enough to get out of such</span>
-            <span class="comment">// loops fairly quickly. Disabled by default for now, pending further</span>
-            <span class="comment">// testing.</span>
-            <span class="ident">unblocked_syscall_limit</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
+            <span class="ident">max_unapplied_cpu_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">10</span>, <span class="ident">units::TimePrefix::Micro</span>)),
             <span class="comment">// 2 microseconds is a ballpark estimate of the minimal latency for</span>
             <span class="comment">// context switching to the kernel and back on modern machines.</span>
             <span class="ident">unblocked_syscall_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">2</span>, <span class="ident">units::TimePrefix::Micro</span>)),
+            <span class="comment">// Actual latencies vary from ~40 to ~400 CPU cycles. https://stackoverflow.com/a/13096917</span>
+            <span class="ident">unblocked_vdso_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">100</span>, <span class="ident">units::TimePrefix::Nano</span>)),
             <span class="ident">use_memory_manager</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_shim_syscall_handler</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_cpu_pinning</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
@@ -3194,10 +3256,14 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUnblockedSyscallLimit</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">i32</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getMaxUnappliedCpuLatency</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">u64</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
-        <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">unblocked_syscall_limit</span>.<span class="ident">unwrap</span>()
+        <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">max_unapplied_cpu_latency</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::TimePrefix::Nano</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>() <span class="op">*</span> <span class="ident">SIMTIME_ONE_NANOSECOND</span>,
+            <span class="comment">// shadow uses a value of 0 as &quot;not set&quot; instead of SIMTIME_INVALID</span>
+            <span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
+        }
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -3207,6 +3273,19 @@
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">unblocked_syscall_latency</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::TimePrefix::Nano</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>() <span class="op">*</span> <span class="ident">SIMTIME_ONE_NANOSECOND</span>,
+            <span class="comment">// shadow uses a value of 0 as &quot;not set&quot; instead of SIMTIME_INVALID</span>
+            <span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUnblockedVdsoLatency</span>(
+        <span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>,
+    ) -&gt; <span class="ident">c::SimulationTime</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+        <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">unblocked_vdso_latency</span> {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::TimePrefix::Nano</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>() <span class="op">*</span> <span class="ident">SIMTIME_ONE_NANOSECOND</span>,
             <span class="comment">// shadow uses a value of 0 as &quot;not set&quot; instead of SIMTIME_INVALID</span>
             <span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
@@ -3382,6 +3461,13 @@
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">progress</span>.<span class="ident">unwrap</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getModelUnblockedSyscallLatency</span>(<span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
+        <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">model_unblocked_syscall_latency</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>

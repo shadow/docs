@@ -1135,6 +1135,7 @@ hosts:
 <li><a href="shadow_config_spec.html#generaldata_directory"><code>general.data_directory</code></a></li>
 <li><a href="shadow_config_spec.html#generalheartbeat_interval"><code>general.heartbeat_interval</code></a></li>
 <li><a href="shadow_config_spec.html#generallog_level"><code>general.log_level</code></a></li>
+<li><a href="shadow_config_spec.html#generalmodel_unblocked_syscall_latency"><code>general.model_unblocked_syscall_latency</code></a></li>
 <li><a href="shadow_config_spec.html#generalparallelism"><code>general.parallelism</code></a></li>
 <li><a href="shadow_config_spec.html#generalprogress"><code>general.progress</code></a></li>
 <li><a href="shadow_config_spec.html#generalseed"><code>general.seed</code></a></li>
@@ -1154,6 +1155,7 @@ hosts:
 <li><a href="shadow_config_spec.html#experimentalinterface_buffer"><code>experimental.interface_buffer</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalinterface_qdisc"><code>experimental.interface_qdisc</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalinterpose_method"><code>experimental.interpose_method</code></a></li>
+<li><a href="shadow_config_spec.html#experimentalmax_unapplied_cpu_latency"><code>experimental.max_unapplied_cpu_latency</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalpreload_spin_max"><code>experimental.preload_spin_max</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalrunahead"><code>experimental.runahead</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalscheduler_policy"><code>experimental.scheduler_policy</code></a></li>
@@ -1163,7 +1165,7 @@ hosts:
 <li><a href="shadow_config_spec.html#experimentalsocket_send_buffer"><code>experimental.socket_send_buffer</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalstrace_logging_mode"><code>experimental.strace_logging_mode</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalunblocked_syscall_latency"><code>experimental.unblocked_syscall_latency</code></a></li>
-<li><a href="shadow_config_spec.html#experimentalunblocked_syscall_limit"><code>experimental.unblocked_syscall_limit</code></a></li>
+<li><a href="shadow_config_spec.html#experimentalunblocked_vdso_latency"><code>experimental.unblocked_vdso_latency</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_cpu_pinning"><code>experimental.use_cpu_pinning</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_dynamic_runahead"><code>experimental.use_dynamic_runahead</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_explicit_block_message"><code>experimental.use_explicit_block_message</code></a></li>
@@ -1223,6 +1225,12 @@ Type: String OR Integer OR null</p>
 Type: &quot;error&quot; OR &quot;warning&quot; OR &quot;info&quot; OR &quot;debug&quot; OR &quot;trace&quot;</p>
 <p>Log level of output written on stdout. If Shadow was built in release mode, then
 messages at level 'trace' will always be dropped.</p>
+<h4 id="generalmodel_unblocked_syscall_latency"><a class="header" href="#generalmodel_unblocked_syscall_latency"><code>general.model_unblocked_syscall_latency</code></a></h4>
+<p>Default: false<br />
+Type: Bool</p>
+<p>Whether to model syscalls and VDSO functions that don't block as having some
+latency. This should have minimal effect on typical simulations, but can be
+helpful for programs with &quot;busy loops&quot; that otherwise deadlock under Shadow.</p>
 <h4 id="generalparallelism"><a class="header" href="#generalparallelism"><code>general.parallelism</code></a></h4>
 <p>Default: 1<br />
 Type: Integer</p>
@@ -1339,6 +1347,17 @@ Type: &quot;fifo&quot; OR &quot;roundrobin&quot;</p>
 <p>Default: &quot;preload&quot;<br />
 Type: &quot;ptrace&quot; OR &quot;preload&quot;</p>
 <p>Which interposition method to use.</p>
+<h4 id="experimentalmax_unapplied_cpu_latency"><a class="header" href="#experimentalmax_unapplied_cpu_latency"><code>experimental.max_unapplied_cpu_latency</code></a></h4>
+<p>Default: &quot;10 microseconds&quot;<br />
+Type: String</p>
+<p>Max amount of execution-time latency allowed to accumulate before the clock is
+moved forward. Moving the clock forward is a potentially expensive operation, so
+larger values reduce simulation overhead, at the cost of coarser time jumps.</p>
+<p>Note also that accumulated-but-unapplied latency is discarded when a thread is
+blocked on a syscall.</p>
+<p>Ignored when
+<a href="shadow_config_spec.html#generalmodel_unblocked_syscall_latency"><code>general.model_unblocked_syscall_latency</code></a>
+is false.</p>
 <h4 id="experimentalpreload_spin_max"><a class="header" href="#experimentalpreload_spin_max"><code>experimental.preload_spin_max</code></a></h4>
 <p>Default: 0<br />
 Type: Integer</p>
@@ -1395,15 +1414,18 @@ restarted.</li>
 <p>Default: &quot;2 microseconds&quot;<br />
 Type: String</p>
 <p>The simulated latency of an unblocked syscall. For simulation efficiency, this
-latency is only added when <code>unblocked_syscall_limit</code> is reached.</p>
-<h4 id="experimentalunblocked_syscall_limit"><a class="header" href="#experimentalunblocked_syscall_limit"><code>experimental.unblocked_syscall_limit</code></a></h4>
-<p>Default: 0
-Type: Integer</p>
-<p>If non-zero, the number of consecutive unblocked syscalls that Shadow will
-allow a thread to execute before <code>unblocked_syscall_latency</code> is applied.
-Setting this to a non-zero value allows time to eventually move forward in cases
-where the managed thread is in a &quot;busy loop&quot; that executes forever until a
-timeout or some other condition is satisfied.</p>
+latency is only added when <code>max_unapplied_cpu_latency</code> is reached.</p>
+<p>Ignored when
+<a href="shadow_config_spec.html#generalmodel_unblocked_syscall_latency"><code>general.model_unblocked_syscall_latency</code></a>
+is false.</p>
+<h4 id="experimentalunblocked_vdso_latency"><a class="header" href="#experimentalunblocked_vdso_latency"><code>experimental.unblocked_vdso_latency</code></a></h4>
+<p>Default: &quot;100 nanoseconds&quot;<br />
+Type: String</p>
+<p>The simulated latency of an unblocked vdso function. For simulation efficiency, this
+latency is only added when <code>max_unapplied_cpu_latency</code> is reached.</p>
+<p>Ignored when
+<a href="shadow_config_spec.html#generalmodel_unblocked_syscall_latency"><code>general.model_unblocked_syscall_latency</code></a>
+is false.</p>
 <h4 id="experimentaluse_cpu_pinning"><a class="header" href="#experimentaluse_cpu_pinning"><code>experimental.use_cpu_pinning</code></a></h4>
 <p>Default: true<br />
 Type: Bool</p>
@@ -2057,9 +2079,7 @@ attribute in the Shadow config. Example:
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
 <pre><code class="language-yaml">general:
   stop_time: 10s
-
-experimental:
-  unblocked_syscall_limit: 500
+  model_unblocked_syscall_latency: true
 
 network:
   graph:
@@ -2087,8 +2107,8 @@ hosts:
 <li>Older versions of cURL use a busy loop that is incompatible with Shadow and
 will cause Shadow to deadlock. Newer versions of cURL, such as the version
 provided in Ubuntu 20.04, don't have this issue. See issue #1794 for details. A
-workaround for older versions is to use the experimental
-<code>unblocked_syscall_limit</code> option.</li>
+workaround for older versions is to use the <code>model_unblocked_syscall_latency</code>
+option.</li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="nginx"><a class="header" href="#nginx">Nginx</a></h1>
 <h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
@@ -2198,9 +2218,7 @@ hosts:
 <h2 id="example-3"><a class="header" href="#example-3">Example</a></h2>
 <pre><code class="language-yaml">general:
   stop_time: 10s
-
-experimental:
-  unblocked_syscall_limit: 500
+  model_unblocked_syscall_latency: true
 
 network:
   graph:
@@ -2237,8 +2255,8 @@ socket option.</p>
 </li>
 <li>
 <p>iPerf 3 uses a busy loop that is incompatible with Shadow and will cause
-Shadow to deadlock. A workaround is to use the experimental
-<code>unblocked_syscall_limit</code> option.</p>
+Shadow to deadlock. A workaround is to use the <code>model_unblocked_syscall_latency</code>
+option.</p>
 </li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="coding"><a class="header" href="#coding">Coding</a></h1>

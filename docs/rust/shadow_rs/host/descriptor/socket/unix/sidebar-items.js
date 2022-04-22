@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["UnixSocketType",""]],"struct":[["UnixSocketFile",""],["UnixSocketTypeConversionError",""]]});
+initSidebarItems({"enum":[["UnixSocketType",""]],"struct":[["UnixSocketFile","A unix socket. The `UnixSocketFile` is the public-facing API, which forwards API calls to the inner state object."],["UnixSocketTypeConversionError",""]]});
