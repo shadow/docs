@@ -1335,12 +1335,6 @@
 <span id="1330">1330</span>
 <span id="1331">1331</span>
 <span id="1332">1332</span>
-<span id="1333">1333</span>
-<span id="1334">1334</span>
-<span id="1335">1335</span>
-<span id="1336">1336</span>
-<span id="1337">1337</span>
-<span id="1338">1338</span>
 </pre><pre class="rust"><code><span class="comment">/*
  * The Shadow Simulator
  * See LICENSE for licensing information
@@ -1437,32 +1431,26 @@
         <span class="comment">// add details to the test names to avoid duplicates</span>
         <span class="kw">let</span> <span class="ident">append_args</span> <span class="op">=</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{} &lt;domain={:?}&gt;&quot;</span>, <span class="ident">s</span>, <span class="ident">domain</span>);
 
-        <span class="kw">let</span> <span class="ident">passing</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">domain</span> <span class="op">!</span><span class="op">=</span> <span class="ident">libc::AF_UNIX</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>]
-        } <span class="kw">else</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>] <span class="comment">// TODO: enable once we support socket() for unix sockets</span>
-        };
-
         <span class="ident">tests</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
             <span class="ident">test_utils::ShadowTest::new</span>(
                 <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_invalid_fd&quot;</span>),
                 <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_invalid_fd</span>(<span class="ident">domain</span>),
-                <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
             ),
             <span class="ident">test_utils::ShadowTest::new</span>(
                 <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_non_existent_fd&quot;</span>),
                 <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_non_existent_fd</span>(<span class="ident">domain</span>),
-                <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
             ),
             <span class="ident">test_utils::ShadowTest::new</span>(
                 <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_non_socket_fd&quot;</span>),
                 <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_non_socket_fd</span>(<span class="ident">domain</span>),
-                <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
             ),
             <span class="ident">test_utils::ShadowTest::new</span>(
                 <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_large_buf_udp&quot;</span>),
                 <span class="ident">test_large_buf_udp</span>,
-                <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
             ),
         ]);
 
@@ -1479,7 +1467,7 @@
             <span class="ident">tests</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[<span class="ident">test_utils::ShadowTest::new</span>(
                 <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_not_connected&quot;</span>),
                 <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_not_connected</span>(<span class="ident">domain</span>, <span class="ident">sock_type</span>),
-                <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
             )]);
         }
     }
@@ -1497,7 +1485,7 @@
         <span class="kw">let</span> <span class="ident">passing</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">method</span> <span class="op">!</span><span class="op">=</span> <span class="ident">SocketInitMethod::Unix</span> {
             <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>]
         } <span class="kw">else</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>] <span class="comment">// TODO: enable once we support socket() for unix sockets</span>
+            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>] <span class="comment">// TODO: enable once we support connect() for unix sockets</span>
         };
 
         <span class="kw">let</span> <span class="ident">sock_types</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">method</span>.<span class="ident">domain</span>() {
@@ -1548,7 +1536,7 @@
         <span class="kw">let</span> <span class="ident">passing</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">method</span> <span class="op">!</span><span class="op">=</span> <span class="ident">SocketInitMethod::Unix</span> {
             <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>]
         } <span class="kw">else</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>] <span class="comment">// TODO: enable once we support socket() for unix sockets</span>
+            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>] <span class="comment">// TODO: enable once we support connect() for unix sockets</span>
         };
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">flag</span> <span class="kw">in</span> <span class="ident">flags</span>.<span class="ident">iter</span>() {
@@ -1629,7 +1617,7 @@
                     <span class="ident">tests</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[<span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_null_addr_not_connected&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_null_addr_not_connected</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                     )]);
                 }
             }
