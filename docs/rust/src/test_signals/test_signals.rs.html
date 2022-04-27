@@ -1028,12 +1028,90 @@
 <span id="1023">1023</span>
 <span id="1024">1024</span>
 <span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">nix::sys::signal</span>;
 <span class="kw">use</span> <span class="ident">nix::sys::signal::Signal</span>;
 <span class="kw">use</span> <span class="ident">nix::unistd</span>;
 <span class="kw">use</span> <span class="ident">once_cell::sync::OnceCell</span>;
 <span class="kw">use</span> <span class="ident">signal_hook::low_level::channel::Channel</span> <span class="kw">as</span> <span class="ident">SignalSafeChannel</span>;
+<span class="kw">use</span> <span class="ident">std::arch::asm</span>;
 <span class="kw">use</span> <span class="ident">std::error::Error</span>;
 <span class="kw">use</span> <span class="ident">std::iter::Iterator</span>;
 <span class="kw">use</span> <span class="ident">std::os::unix::io::RawFd</span>;
@@ -1918,6 +1996,75 @@
     <span class="prelude-val">Ok</span>(())
 }
 
+<span class="kw">static</span> <span class="ident">GLOBAL_STATIC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xdeadbeef</span>;
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">change_rax_from_null_to_global_static</span>(
+    <span class="ident">signal</span>: <span class="ident">i32</span>,
+    <span class="ident">info</span>: <span class="kw-2">*mut</span> <span class="ident">libc::siginfo_t</span>,
+    <span class="ident">voidctx</span>: <span class="kw-2">*mut</span> <span class="ident">std::ffi::c_void</span>,
+) {
+    <span class="macro">assert_eq!</span>(<span class="ident">signal</span>, <span class="ident">signal::SIGSEGV</span> <span class="kw">as</span> <span class="ident">i32</span>);
+
+    <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">info</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() };
+    <span class="comment">// Not exposed in libc crate</span>
+    <span class="kw">const</span> <span class="ident">SEGV_MAPERR</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="number">1</span>;
+    <span class="macro">assert_eq!</span>(<span class="ident">info</span>.<span class="ident">si_code</span>, <span class="ident">SEGV_MAPERR</span>);
+    <span class="macro">assert!</span>(<span class="kw">unsafe</span> { <span class="ident">info</span>.<span class="ident">si_addr</span>().<span class="ident">is_null</span>() });
+
+    <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">voidctx</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::ucontext_t</span>;
+    <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ctx</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>() };
+    <span class="ident">ctx</span>.<span class="ident">uc_mcontext</span>.<span class="ident">gregs</span>[<span class="ident">libc::REG_RAX</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">GLOBAL_STATIC</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="ident">i64</span>;
+}
+
+<span class="kw">fn</span> <span class="ident">test_synchronous_sigsegv</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="comment">// Ensure SIGSEGV isn&#39;t blocked.</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sigset</span> <span class="op">=</span> <span class="ident">signal::SigSet::empty</span>();
+    <span class="ident">sigset</span>.<span class="ident">add</span>(<span class="ident">signal::SIGSEGV</span>);
+    <span class="ident">signal::sigprocmask</span>(<span class="ident">signal::SigmaskHow::SIG_UNBLOCK</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">sigset</span>), <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
+
+    <span class="comment">// Install our SIGSEGV handler, which is going to mutate registers in the</span>
+    <span class="comment">// caller to fix the null pointer dereference below.</span>
+    <span class="comment">// This may seem esoteric, but this is sometimes done to implement custom</span>
+    <span class="comment">// memory management. Observed in OpenJDK in particular - see</span>
+    <span class="comment">// https://github.com/shadow/shadow/issues/2094.</span>
+    <span class="kw">unsafe</span> {
+        <span class="ident">signal::sigaction</span>(
+            <span class="ident">signal::SIGSEGV</span>,
+            <span class="kw-2">&amp;</span><span class="ident">signal::SigAction::new</span>(
+                <span class="ident">signal::SigHandler::SigAction</span>(<span class="ident">change_rax_from_null_to_global_static</span>),
+                <span class="ident">signal::SaFlags::empty</span>(),
+                <span class="ident">signal::SigSet::empty</span>(),
+            ),
+        )
+        .<span class="ident">unwrap</span>()
+    };
+
+    <span class="comment">// Dereference a NULL pointer from rax. The SIGSEGV handler will rewrite rax</span>
+    <span class="comment">// to a valid pointer.</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">addr</span> <span class="op">=</span> <span class="number">0u64</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span>: <span class="ident">u32</span>;
+    <span class="kw">unsafe</span> {
+        <span class="macro">asm!</span>(<span class="string">&quot;mov {val:e}, [rax]&quot;</span>, <span class="ident">val</span> <span class="op">=</span> <span class="ident">out</span>(<span class="ident">reg</span>) <span class="ident">val</span>, <span class="ident">inout</span>(<span class="string">&quot;rax&quot;</span>) <span class="ident">addr</span>);
+    }
+    <span class="macro">assert_eq!</span>(<span class="ident">addr</span>, <span class="kw-2">&amp;</span><span class="ident">GLOBAL_STATIC</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">u64</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">val</span>, <span class="ident">GLOBAL_STATIC</span>);
+
+    <span class="comment">// Restore default action to avoid surprising behavior in the case of an</span>
+    <span class="comment">// unexpected SIGSEGV later.</span>
+    <span class="kw">unsafe</span> {
+        <span class="ident">signal::sigaction</span>(
+            <span class="ident">signal::SIGSEGV</span>,
+            <span class="kw-2">&amp;</span><span class="ident">signal::SigAction::new</span>(
+                <span class="ident">signal::SigHandler::SigDfl</span>,
+                <span class="ident">signal::SaFlags::empty</span>(),
+                <span class="ident">signal::SigSet::empty</span>(),
+            ),
+        )
+        .<span class="ident">unwrap</span>()
+    };
+
+    <span class="prelude-val">Ok</span>(())
+}
+
 <span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// should we restrict the tests we run?</span>
     <span class="kw">let</span> <span class="ident">filter_shadow_passing</span> <span class="op">=</span> <span class="ident">std::env::args</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="string">&quot;--shadow-passing&quot;</span>);
@@ -2032,6 +2179,13 @@
             <span class="string">&quot;sa_restart second&quot;</span>,
             <span class="ident">test_restart_second</span>,
             <span class="macro">set!</span>[<span class="ident">TestEnv::Shadow</span>],
+        ),
+        <span class="ident">ShadowTest::new</span>(
+            <span class="string">&quot;synchronous sigsegv&quot;</span>,
+            <span class="ident">test_synchronous_sigsegv</span>,
+            <span class="comment">// FIXME: Doesn&#39;t work in Shadow&#39;s preload mode.</span>
+            <span class="comment">// https://github.com/shadow/shadow/issues/2091</span>
+            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>],
         ),
     ];
 

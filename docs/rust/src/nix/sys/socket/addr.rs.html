@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.0/src/sys/socket/addr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>addr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/sys/socket/addr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>addr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2749,6 +2749,45 @@
 <span id="2744">2744</span>
 <span id="2745">2745</span>
 <span id="2746">2746</span>
+<span id="2747">2747</span>
+<span id="2748">2748</span>
+<span id="2749">2749</span>
+<span id="2750">2750</span>
+<span id="2751">2751</span>
+<span id="2752">2752</span>
+<span id="2753">2753</span>
+<span id="2754">2754</span>
+<span id="2755">2755</span>
+<span id="2756">2756</span>
+<span id="2757">2757</span>
+<span id="2758">2758</span>
+<span id="2759">2759</span>
+<span id="2760">2760</span>
+<span id="2761">2761</span>
+<span id="2762">2762</span>
+<span id="2763">2763</span>
+<span id="2764">2764</span>
+<span id="2765">2765</span>
+<span id="2766">2766</span>
+<span id="2767">2767</span>
+<span id="2768">2768</span>
+<span id="2769">2769</span>
+<span id="2770">2770</span>
+<span id="2771">2771</span>
+<span id="2772">2772</span>
+<span id="2773">2773</span>
+<span id="2774">2774</span>
+<span id="2775">2775</span>
+<span id="2776">2776</span>
+<span id="2777">2777</span>
+<span id="2778">2778</span>
+<span id="2779">2779</span>
+<span id="2780">2780</span>
+<span id="2781">2781</span>
+<span id="2782">2782</span>
+<span id="2783">2783</span>
+<span id="2784">2784</span>
+<span id="2785">2785</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::sa_family_t</span>;
 <span class="kw">use</span> <span class="ident">cfg_if::cfg_if</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="prelude-ty">Result</span>, <span class="ident">NixPath</span>};
@@ -3703,6 +3742,10 @@
         };
         <span class="ident">ptr::copy</span>(<span class="ident">addr</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>, <span class="ident">sup</span>, <span class="ident">su_len</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::from_raw_parts</span>(<span class="ident">su</span>, <span class="ident">su_len</span> <span class="kw">as</span> <span class="ident">u8</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">size</span>() -&gt; <span class="ident">libc::socklen_t</span> <span class="kw">where</span> <span class="self">Self</span>: <span class="ident">Sized</span> {
+        <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">libc::sockaddr_un</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::socklen_t</span>
     }
 }
 
@@ -5366,11 +5409,12 @@
     }
 
     <span class="kw">mod</span> <span class="ident">link</span> {
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                   <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>
                   ))]</span>
-        <span class="kw">use</span> <span class="kw">super</span>::{<span class="kw-2">*</span>, <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::socklen_t</span>};
+        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::socklen_t</span>;
 
         <span class="doccomment">/// Don&#39;t panic when trying to display an empty datalink address</span>
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
@@ -5452,6 +5496,24 @@
             <span class="macro">assert_eq!</span>(<span class="ident">sock_addr</span>.<span class="ident">as_link_addr</span>().<span class="ident">unwrap</span>().<span class="ident">addr</span>(),
                     <span class="prelude-val">Some</span>([<span class="number">24u8</span>, <span class="number">101</span>, <span class="number">144</span>, <span class="number">221</span>, <span class="number">76</span>, <span class="number">176</span>]));
         }
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">size</span>() {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+            <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">libc::sockaddr_dl</span><span class="op">&gt;</span>();
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                    <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+            <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">libc::sockaddr_ll</span><span class="op">&gt;</span>();
+            <span class="macro">assert_eq!</span>( <span class="ident">LinkAddr::size</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">l</span>);
+        }
     }
 
     <span class="kw">mod</span> <span class="ident">sockaddr_in</span> {
@@ -5463,6 +5525,12 @@
             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;127.0.0.1:8080&quot;</span>;
             <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">SockaddrIn::from_str</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">addr</span>));
+        }
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">size</span>() {
+            <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">libc::sockaddr_in</span><span class="op">&gt;</span>(),
+                <span class="ident">SockaddrIn::size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         }
     }
 
@@ -5476,10 +5544,15 @@
             <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">SockaddrIn6::from_str</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
             <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">addr</span>));
         }
+
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">size</span>() {
+            <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">libc::sockaddr_in6</span><span class="op">&gt;</span>(),
+                <span class="ident">SockaddrIn6::size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
+        }
     }
 
     <span class="kw">mod</span> <span class="ident">unixaddr</span> {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
         <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
@@ -5493,6 +5566,11 @@
             <span class="macro">assert_eq!</span>(<span class="ident">sun_path1</span>, <span class="ident">sun_path2</span>);
         }
 
+        <span class="attribute">#[<span class="ident">test</span>]</span>
+        <span class="kw">fn</span> <span class="ident">size</span>() {
+            <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">libc::sockaddr_un</span><span class="op">&gt;</span>(),
+                <span class="ident">UnixAddr::size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
+        }
     }
 }
 </code></pre></div>
