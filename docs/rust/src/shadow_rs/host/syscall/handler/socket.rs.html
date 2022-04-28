@@ -1142,10 +1142,6 @@
 <span id="1137">1137</span>
 <span id="1138">1138</span>
 <span id="1139">1139</span>
-<span id="1140">1140</span>
-<span id="1141">1141</span>
-<span id="1142">1142</span>
-<span id="1143">1143</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::unix</span>::{<span class="ident">UnixSocketFile</span>, <span class="ident">UnixSocketType</span>};
@@ -1602,7 +1598,7 @@
     <span class="attribute">#[<span class="ident">log_syscall</span>(<span class="comment">/* rv */</span> <span class="ident">libc::c_int</span>, <span class="comment">/* sockfd */</span> <span class="ident">libc::c_int</span>, <span class="comment">/* backlog */</span> <span class="ident">libc::c_int</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span>) -&gt; <span class="ident">SyscallResult</span> {
         <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">_backlog</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">backlog</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">into</span>();
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
         <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
@@ -1625,13 +1621,9 @@
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
         };
 
-        <span class="comment">// TODO: support rust sockets</span>
-        <span class="macro">log::warn!</span>(
-            <span class="string">&quot;listen() syscall not yet supported for fd {} of type {:?}; Returning ENOSYS&quot;</span>,
-            <span class="ident">fd</span>,
-            <span class="ident">socket</span>,
-        );
-        <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOSYS</span>.<span class="ident">into</span>())
+        <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">listen</span>(<span class="ident">backlog</span>, <span class="ident">event_queue</span>))<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>())
     }
 
     <span class="attribute">#[<span class="ident">log_syscall</span>(<span class="comment">/* rv */</span> <span class="ident">libc::c_int</span>, <span class="comment">/* sockfd */</span> <span class="ident">libc::c_int</span>, <span class="comment">/* addr */</span> <span class="kw-2">*const</span> <span class="ident">libc::sockaddr</span>,
