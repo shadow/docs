@@ -1333,8 +1333,6 @@
 <span id="1328">1328</span>
 <span id="1329">1329</span>
 <span id="1330">1330</span>
-<span id="1331">1331</span>
-<span id="1332">1332</span>
 </pre><pre class="rust"><code><span class="comment">/*
  * The Shadow Simulator
  * See LICENSE for licensing information
@@ -1482,12 +1480,6 @@
         <span class="comment">// add details to the test names to avoid duplicates</span>
         <span class="kw">let</span> <span class="ident">append_args</span> <span class="op">=</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{} &lt;init_method={:?}&gt;&quot;</span>, <span class="ident">s</span>, <span class="ident">method</span>);
 
-        <span class="kw">let</span> <span class="ident">passing</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">method</span> <span class="op">!</span><span class="op">=</span> <span class="ident">SocketInitMethod::Unix</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>]
-        } <span class="kw">else</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>] <span class="comment">// TODO: enable once we support connect() for unix sockets</span>
-        };
-
         <span class="kw">let</span> <span class="ident">sock_types</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">method</span>.<span class="ident">domain</span>() {
             <span class="ident">libc::AF_INET</span> =&gt; <span class="kw-2">&amp;</span>[<span class="ident">libc::SOCK_STREAM</span>, <span class="ident">libc::SOCK_DGRAM</span>][..],
             <span class="ident">libc::AF_UNIX</span> =&gt; <span class="kw-2">&amp;</span>[<span class="ident">libc::SOCK_STREAM</span>, <span class="ident">libc::SOCK_DGRAM</span>, <span class="ident">libc::SOCK_SEQPACKET</span>][..],
@@ -1503,22 +1495,22 @@
                 <span class="ident">test_utils::ShadowTest::new</span>(
                     <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_null_buf&quot;</span>),
                     <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_null_buf</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>),
-                    <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                    <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                 ),
                 <span class="ident">test_utils::ShadowTest::new</span>(
                     <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_zero_len_buf&quot;</span>),
                     <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_zero_len_buf</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>),
-                    <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                    <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                 ),
                 <span class="ident">test_utils::ShadowTest::new</span>(
                     <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_invalid_flag&quot;</span>),
                     <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_invalid_flag</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>),
-                    <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                    <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                 ),
                 <span class="ident">test_utils::ShadowTest::new</span>(
                     <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_flag_dontwait&quot;</span>),
                     <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_flag_dontwait</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>),
-                    <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                    <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                 ),
             ]);
         }
@@ -1526,19 +1518,13 @@
         <span class="ident">tests</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[<span class="ident">test_utils::ShadowTest::new</span>(
             <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_nonblocking_stream&quot;</span>),
             <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_nonblocking_stream</span>(<span class="ident">method</span>),
-            <span class="ident">passing</span>.<span class="ident">clone</span>(),
+            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
         )]);
     }
 
     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> [<span class="number">0</span>, <span class="ident">libc::SOCK_NONBLOCK</span>, <span class="ident">libc::SOCK_CLOEXEC</span>];
 
     <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">method</span> <span class="kw">in</span> <span class="ident">init_methods</span>.<span class="ident">iter</span>() {
-        <span class="kw">let</span> <span class="ident">passing</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">method</span> <span class="op">!</span><span class="op">=</span> <span class="ident">SocketInitMethod::Unix</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>]
-        } <span class="kw">else</span> {
-            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>] <span class="comment">// TODO: enable once we support connect() for unix sockets</span>
-        };
-
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">flag</span> <span class="kw">in</span> <span class="ident">flags</span>.<span class="ident">iter</span>() {
             <span class="kw">let</span> <span class="ident">sock_types</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">method</span>.<span class="ident">domain</span>() {
                 <span class="ident">libc::AF_INET</span> =&gt; <span class="kw-2">&amp;</span>[<span class="ident">libc::SOCK_STREAM</span>, <span class="ident">libc::SOCK_DGRAM</span>][..],
@@ -1559,32 +1545,42 @@
                     <span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_null_addr&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_null_addr</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                     ),
                     <span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_null_addr_len&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_null_addr_len</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                     ),
                     <span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_null_both&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_null_both</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                     ),
                     <span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_nonnull_addr&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_nonnull_addr</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                     ),
                     <span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_recv_addr &lt;bind_client=false&gt;&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_recv_addr</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>, <span class="bool-val">false</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="kw">match</span> <span class="ident">method</span> {
+                            <span class="comment">// TODO: enable in shadow once we support returning the source</span>
+                            <span class="comment">// address in recvfrom() for unix sockets</span>
+                            <span class="ident">SocketInitMethod::Unix</span> =&gt; <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>],
+                            <span class="kw">_</span> =&gt; <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
+                        },
                     ),
                     <span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_recv_addr &lt;bind_client=true&gt;&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_recv_addr</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>, <span class="bool-val">true</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="kw">match</span> <span class="ident">method</span> {
+                            <span class="comment">// TODO: enable in shadow once we support returning the source</span>
+                            <span class="comment">// address in recvfrom() for unix sockets</span>
+                            <span class="ident">SocketInitMethod::Unix</span> =&gt; <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>],
+                            <span class="kw">_</span> =&gt; <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
+                        },
                     ),
                 ]);
 
@@ -1593,7 +1589,7 @@
                     <span class="ident">tests</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[<span class="ident">test_utils::ShadowTest::new</span>(
                         <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_large_buf&quot;</span>),
                         <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_large_buf</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                        <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                        <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                     )]);
                 }
 
@@ -1603,12 +1599,12 @@
                         <span class="ident">test_utils::ShadowTest::new</span>(
                             <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_short_recv_buf_dgram&quot;</span>),
                             <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_short_recv_buf_dgram</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                            <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                         ),
                         <span class="ident">test_utils::ShadowTest::new</span>(
                             <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_msg_order_dgram&quot;</span>),
                             <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_msg_order_dgram</span>(<span class="ident">method</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>),
-                            <span class="ident">passing</span>.<span class="ident">clone</span>(),
+                            <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                         ),
                     ]);
                 }

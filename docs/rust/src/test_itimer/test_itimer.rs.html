@@ -326,6 +326,53 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">mem::MaybeUninit</span>,
     <span class="ident">ops::Sub</span>,
@@ -433,6 +480,48 @@
     <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="ident">TimeVal::from</span>(<span class="ident">it_value</span>).<span class="ident">sub</span>(<span class="ident">val</span>.<span class="ident">value</span>);
     <span class="macro">ensure_ord!</span>(<span class="ident">diff</span>, <span class="op">&gt;</span><span class="op">=</span>, <span class="ident">TimeVal::zero</span>());
     <span class="macro">ensure_ord!</span>(<span class="ident">diff</span>, <span class="op">&lt;</span>, <span class="ident">TimeVal::microseconds</span>(<span class="number">100</span>));
+
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn</span> <span class="ident">test_itimers_are_process_wide</span>() -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="ident">reset</span>()<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="ident">thread1_val</span> <span class="op">=</span> <span class="ident">libc::itimerval</span> {
+        <span class="ident">it_value</span>: <span class="ident">libc::timeval</span> {
+            <span class="ident">tv_sec</span>: <span class="number">1</span>,
+            <span class="ident">tv_usec</span>: <span class="number">0</span>,
+        },
+        <span class="ident">it_interval</span>: <span class="ident">libc::timeval</span> {
+            <span class="ident">tv_sec</span>: <span class="number">1</span>,
+            <span class="ident">tv_usec</span>: <span class="number">0</span>,
+        },
+    };
+    <span class="kw">let</span> <span class="ident">thread2_val</span> <span class="op">=</span> <span class="ident">libc::itimerval</span> {
+        <span class="ident">it_value</span>: <span class="ident">libc::timeval</span> {
+            <span class="ident">tv_sec</span>: <span class="number">1</span>,
+            <span class="ident">tv_usec</span>: <span class="number">0</span>,
+        },
+        <span class="ident">it_interval</span>: <span class="ident">libc::timeval</span> {
+            <span class="ident">tv_sec</span>: <span class="number">2</span>,
+            <span class="ident">tv_usec</span>: <span class="number">0</span>,
+        },
+    };
+
+    <span class="ident">setitimer</span>(<span class="ident">libc::ITIMER_REAL</span>, <span class="kw-2">&amp;</span><span class="ident">thread1_val</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">ITimer</span> <span class="op">=</span> <span class="ident">std::thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+        <span class="comment">// Overwrites timer set in the parent thread.</span>
+        <span class="ident">setitimer</span>(<span class="ident">libc::ITIMER_REAL</span>, <span class="kw-2">&amp;</span><span class="ident">thread2_val</span>)
+    })
+    .<span class="ident">join</span>()
+    .<span class="ident">unwrap</span>()<span class="question-mark">?</span>;
+    <span class="comment">// setitimer should have gotten back the first timer.</span>
+    <span class="macro">ensure_ord!</span>(<span class="ident">res</span>.<span class="ident">interval</span>, <span class="op">==</span>, <span class="ident">thread1_val</span>.<span class="ident">it_interval</span>.<span class="ident">into</span>());
+
+    <span class="comment">// This thread should now see the timer that was set by the child thread.</span>
+    <span class="kw">let</span> <span class="ident">res</span>: <span class="ident">ITimer</span> <span class="op">=</span> <span class="ident">getitimer</span>(<span class="ident">libc::ITIMER_REAL</span>)<span class="question-mark">?</span>;
+    <span class="macro">ensure_ord!</span>(<span class="ident">res</span>.<span class="ident">interval</span>, <span class="op">==</span>, <span class="ident">thread2_val</span>.<span class="ident">it_interval</span>.<span class="ident">into</span>());
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -626,6 +715,11 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tests</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">test_utils::ShadowTest</span><span class="op">&lt;</span>(), <span class="ident">anyhow::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[
         <span class="ident">ShadowTest::new</span>(<span class="string">&quot;initially_unset&quot;</span>, <span class="ident">test_initially_unset</span>, <span class="ident">all_envs</span>.<span class="ident">clone</span>()),
         <span class="ident">ShadowTest::new</span>(<span class="string">&quot;set_then_get&quot;</span>, <span class="ident">test_set_then_get</span>, <span class="ident">all_envs</span>.<span class="ident">clone</span>()),
+        <span class="ident">ShadowTest::new</span>(
+            <span class="string">&quot;itimers_are_process_wide&quot;</span>,
+            <span class="ident">test_itimers_are_process_wide</span>,
+            <span class="ident">all_envs</span>.<span class="ident">clone</span>(),
+        ),
         <span class="ident">ShadowTest::new</span>(<span class="string">&quot;set_then_set&quot;</span>, <span class="ident">test_set_then_set</span>, <span class="ident">all_envs</span>.<span class="ident">clone</span>()),
         <span class="ident">ShadowTest::new</span>(<span class="string">&quot;set_oneshot&quot;</span>, <span class="ident">test_oneshot</span>, <span class="ident">all_envs</span>.<span class="ident">clone</span>()),
         <span class="ident">ShadowTest::new</span>(<span class="string">&quot;set_interval&quot;</span>, <span class="ident">test_interval</span>, <span class="ident">all_envs</span>.<span class="ident">clone</span>()),
