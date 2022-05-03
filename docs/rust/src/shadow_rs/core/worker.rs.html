@@ -390,6 +390,10 @@
 <span id="385">385</span>
 <span id="386">386</span>
 <span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
 
@@ -737,17 +741,23 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setCurrentTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>) {
-            <span class="ident">Worker::set_current_time</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">t</span>));
-        } <span class="kw">else</span> {
-            <span class="ident">Worker::clear_current_time</span>();
-        }
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setCurrentEmulatedTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::EmulatedTime</span>) {
+        <span class="ident">Worker::set_current_time</span>(<span class="ident">EmulatedTime::from_c_emutime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentTime</span>() -&gt; <span class="ident">cshadow::SimulationTime</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_clearCurrentTime</span>() {
+        <span class="ident">Worker::clear_current_time</span>();
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentSimulationTime</span>() -&gt; <span class="ident">cshadow::SimulationTime</span> {
         <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">Worker::current_time</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">to_abs_simtime</span>()))
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentEmulatedTime</span>() -&gt; <span class="ident">cshadow::EmulatedTime</span> {
+        <span class="ident">EmulatedTime::to_c_emutime</span>(<span class="ident">Worker::current_time</span>())
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -756,10 +766,8 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_setLastEventTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
-        <span class="ident">Worker::set_last_event_time</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(
-            <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>(),
-        ));
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_setLastEventTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::EmulatedTime</span>) {
+        <span class="ident">Worker::set_last_event_time</span>(<span class="ident">EmulatedTime::from_c_emutime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>())
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>

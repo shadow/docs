@@ -1922,7 +1922,6 @@
 <span id="1917">1917</span>
 <span id="1918">1918</span>
 <span id="1919">1919</span>
-<span id="1920">1920</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
@@ -2365,15 +2364,13 @@
     <span class="doccomment">/// expensive operation, so larger values reduce simulation overhead, at the</span>
     <span class="doccomment">/// cost of coarser time jumps. Note also that accumulated-but-unapplied</span>
     <span class="doccomment">/// latency is discarded when a thread is blocked on a syscall.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// 0 to never account for CPU latency.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">hide_short_help</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;count&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;max_unapplied_cpu_latency&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">max_unapplied_cpu_latency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Simulated latency of an unblocked syscall. For efficiency Shadow only</span>
-    <span class="doccomment">/// actually adds this latency if and when `unblocked_syscall_limit` is</span>
+    <span class="doccomment">/// actually adds this latency if and when `max_unapplied_cpu_latency` is</span>
     <span class="doccomment">/// reached.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">hide_short_help</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
@@ -2381,7 +2378,7 @@
     <span class="kw">pub</span> <span class="ident">unblocked_syscall_latency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Simulated latency of a vdso &quot;syscall&quot;. For efficiency Shadow only</span>
-    <span class="doccomment">/// actually adds this latency if and when `unblocked_syscall_limit` is</span>
+    <span class="doccomment">/// actually adds this latency if and when `max_unapplied_cpu_latency` is</span>
     <span class="doccomment">/// reached.</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;unblocked_vdso_latency&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
@@ -2418,12 +2415,14 @@
             <span class="ident">use_preload_openssl_rng</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_preload_openssl_crypto</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
             <span class="ident">preload_spin_max</span>: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-            <span class="ident">max_unapplied_cpu_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">10</span>, <span class="ident">units::TimePrefix::Micro</span>)),
-            <span class="comment">// 2 microseconds is a ballpark estimate of the minimal latency for</span>
+            <span class="ident">max_unapplied_cpu_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">1</span>, <span class="ident">units::TimePrefix::Micro</span>)),
+            <span class="comment">// 1-2 microseconds is a ballpark estimate of the minimal latency for</span>
             <span class="comment">// context switching to the kernel and back on modern machines.</span>
-            <span class="ident">unblocked_syscall_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">2</span>, <span class="ident">units::TimePrefix::Micro</span>)),
+            <span class="comment">// Default to the lower end to minimize effect in simualations without busy loops.</span>
+            <span class="ident">unblocked_syscall_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">1</span>, <span class="ident">units::TimePrefix::Micro</span>)),
             <span class="comment">// Actual latencies vary from ~40 to ~400 CPU cycles. https://stackoverflow.com/a/13096917</span>
-            <span class="ident">unblocked_vdso_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">100</span>, <span class="ident">units::TimePrefix::Nano</span>)),
+            <span class="comment">// Default to the lower end to minimize effect in simualations without busy loops.</span>
+            <span class="ident">unblocked_vdso_latency</span>: <span class="prelude-val">Some</span>(<span class="ident">units::Time::new</span>(<span class="number">10</span>, <span class="ident">units::TimePrefix::Nano</span>)),
             <span class="ident">use_memory_manager</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_shim_syscall_handler</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
             <span class="ident">use_cpu_pinning</span>: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
@@ -3838,8 +3837,7 @@
 
         <span class="kw">match</span> <span class="ident">proc</span>.<span class="ident">stop_time</span> {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">convert</span>(<span class="ident">units::TimePrefixUpper::Sec</span>).<span class="ident">unwrap</span>().<span class="ident">value</span>() <span class="op">*</span> <span class="ident">SIMTIME_ONE_SECOND</span>,
-            <span class="comment">// shadow uses a value of 0 as &quot;not set&quot; instead of SIMTIME_INVALID</span>
-            <span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="ident">SIMTIME_INVALID</span>,
         }
     }
 }
