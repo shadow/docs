@@ -1075,6 +1075,10 @@
 <span id="1070">1070</span>
 <span id="1071">1071</span>
 <span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Access and manage memory of a plugin process.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The starting point for the public API is [`MemoryManager`].</span>
@@ -1198,13 +1202,15 @@
     <span class="ident">Mapped</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">T</span>]),
 }
 
-<span class="doccomment">/// An immutable reference to a slice of plugin memory. Implements Deref&lt;[T]&gt;,</span>
+<span class="doccomment">/// An immutable reference to a slice of plugin memory. Implements `Deref&lt;[T]&gt;`,</span>
 <span class="doccomment">/// allowing, e.g.:</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
 <span class="doccomment">/// let tpp = TypedPluginPtr::&lt;u32&gt;::new(ptr, 10);</span>
 <span class="doccomment">/// let pmr = memory_manager.memory_ref(ptr);</span>
 <span class="doccomment">/// assert_eq!(pmr.len(), 10);</span>
 <span class="doccomment">/// let x = pmr[5];</span>
+<span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProcessMemoryRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span>(<span class="ident">CopiedOrMapped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Pod</span><span class="op">&gt;</span> <span class="ident">ProcessMemoryRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
@@ -1218,7 +1224,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ProcessMemoryRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u8</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get a `cstr` from the reference. Fails with ENAMETOOLONG if there is no</span>
+    <span class="doccomment">/// Get a `cstr` from the reference. Fails with `ENAMETOOLONG` if there is no</span>
     <span class="doccomment">/// NULL byte.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_cstr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">std::ffi::CStr</span>, <span class="ident">Errno</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">nullpos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">c</span> <span class="op">==</span> <span class="number">0</span>);
@@ -1254,13 +1260,15 @@
     <span class="ident">Mapped</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">T</span>]),
 }
 
-<span class="doccomment">/// A mutable reference to a slice of plugin memory. Implements DerefMut&lt;[T]&gt;,</span>
+<span class="doccomment">/// A mutable reference to a slice of plugin memory. Implements `DerefMut&lt;[T]&gt;`,</span>
 <span class="doccomment">/// allowing, e.g.:</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
 <span class="doccomment">/// let tpp = TypedPluginPtr::&lt;u32&gt;::new(ptr, 10);</span>
 <span class="doccomment">/// let pmr = memory_manager.memory_ref_mut(ptr);</span>
 <span class="doccomment">/// assert_eq!(pmr.len(), 10);</span>
 <span class="doccomment">/// pmr[5] = 100;</span>
+<span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The object must be disposed of by calling `flush` or `noflush`.  Dropping</span>
 <span class="doccomment">/// the object without doing so will result in a panic.</span>

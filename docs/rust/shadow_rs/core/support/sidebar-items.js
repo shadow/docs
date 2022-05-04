@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["configuration",""],["emulated_time","Deals with instances of time in a Shadow simulation."],["simulation_time","cbindgen:ignore Values for working with time in simulation units."],["units","Types for parsing/deserializing unit values."]]});
+initSidebarItems({"mod":[["configuration",""],["emulated_time","Deals with instances of time in a Shadow simulation."],["simulation_time","Values for working with a simulated duration. Use `EmulatedTime` to represent an instant in time."],["units","Types for parsing/deserializing unit values."]]});
