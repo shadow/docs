@@ -1856,6 +1856,67 @@
 <span id="1851">1851</span>
 <span id="1852">1852</span>
 <span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
@@ -1863,12 +1924,13 @@
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf</span>::{<span class="ident">BufferHandle</span>, <span class="ident">BufferState</span>, <span class="ident">SharedBuf</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf</span>::{
+    <span class="ident">BufferHandle</span>, <span class="ident">BufferState</span>, <span class="ident">ReaderHandle</span>, <span class="ident">SharedBuf</span>, <span class="ident">WriterHandle</span>,
+};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::abstract_unix_ns::AbstractUnixNamespace</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket</span>::{<span class="ident">empty_sockaddr</span>, <span class="ident">SocketFile</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket</span>::{<span class="ident">empty_sockaddr</span>, <span class="ident">Socket</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
-    <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">GenericFile</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>,
-    <span class="ident">SyscallResult</span>,
+    <span class="ident">File</span>, <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>, <span class="ident">SyscallResult</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::Trigger</span>;
@@ -1879,16 +1941,16 @@
 
 <span class="kw">const</span> <span class="ident">UNIX_SOCKET_DEFAULT_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">212_992</span>;
 
-<span class="doccomment">/// A unix socket. The `UnixSocketFile` is the public-facing API, which forwards API calls to the</span>
-<span class="doccomment">/// inner state object.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnixSocketFile</span> {
+<span class="doccomment">/// A unix socket. The `UnixSocket` is the public-facing API, which forwards API calls to the inner</span>
+<span class="doccomment">/// state object.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnixSocket</span> {
     <span class="doccomment">/// Data and functionality that is general for all states.</span>
     <span class="ident">common</span>: <span class="ident">UnixSocketCommon</span>,
     <span class="doccomment">/// State-specific data and functionality.</span>
     <span class="ident">protocol_state</span>: <span class="ident">ProtocolState</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">UnixSocketFile</span> {
+<span class="kw">impl</span> <span class="ident">UnixSocket</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">mode</span>: <span class="ident">FileMode</span>,
         <span class="ident">status</span>: <span class="ident">FileStatus</span>,
@@ -1902,9 +1964,12 @@
         <span class="kw">let</span> <span class="ident">recv_buffer</span> <span class="op">=</span> <span class="ident">SharedBuf::new</span>(<span class="ident">UNIX_SOCKET_DEFAULT_BUFFER_SIZE</span>);
         <span class="kw">let</span> <span class="ident">recv_buffer</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">recv_buffer</span>));
 
-        <span class="comment">// increment the buffer&#39;s reader count</span>
+        <span class="comment">// increment the buffer&#39;s reader count; we&#39;ll return the handle back to the buffer when</span>
+        <span class="comment">// we&#39;re no longer acting as a reader (when we&#39;re closed)</span>
         <span class="comment">// this is a new buffer and there are no listeners, so safe to use a temporary event queue</span>
-        <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> <span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">event_queue</span>));
+        <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">event_queue</span>)
+        });
 
         <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">common</span>: <span class="ident">UnixSocketCommon</span> {
@@ -1915,7 +1980,8 @@
                 <span class="ident">status</span>,
                 <span class="ident">socket_type</span>,
                 <span class="ident">namespace</span>: <span class="ident">Arc::clone</span>(<span class="ident">namespace</span>),
-                <span class="ident">recv_buffer_event_handle</span>: <span class="prelude-val">None</span>,
+                <span class="ident">recv_buffer_handle</span>: <span class="prelude-val">None</span>,
+                <span class="ident">reader_handle</span>: <span class="prelude-val">Some</span>(<span class="ident">reader_handle</span>),
                 <span class="ident">has_open_file</span>: <span class="bool-val">false</span>,
             },
             <span class="ident">protocol_state</span>: <span class="ident">ProtocolState::new</span>(<span class="ident">socket_type</span>),
@@ -1938,7 +2004,7 @@
                         <span class="kw">return</span>;
                     }
 
-                    <span class="comment">// the socket is readable iff the buffer is readable</span>
+                    <span class="comment">// the socket is readable iff the buffer is readable or has no writers</span>
                     <span class="ident">socket</span>.<span class="ident">common</span>.<span class="ident">copy_state</span>(
                         <span class="comment">/* mask */</span> <span class="ident">FileState::READABLE</span>,
                         <span class="ident">state</span>
@@ -1951,7 +2017,7 @@
             },
         );
 
-        <span class="ident">socket_ref</span>.<span class="ident">common</span>.<span class="ident">recv_buffer_event_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">recv_handle</span>);
+        <span class="ident">socket_ref</span>.<span class="ident">common</span>.<span class="ident">recv_buffer_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">recv_handle</span>);
 
         <span class="ident">std::mem::drop</span>(<span class="ident">socket_ref</span>);
 
@@ -2024,10 +2090,10 @@
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
-        <span class="comment">// we could call UnixSocketFile::recvfrom() here, but for now we expect that there are no</span>
-        <span class="comment">// code paths that would call UnixSocketFile::read() since the read() syscall handler should</span>
-        <span class="comment">// have called UnixSocketFile::recvfrom() instead</span>
-        <span class="macro">panic!</span>(<span class="string">&quot;Called UnixSocketFile::read() on a unix socket.&quot;</span>);
+        <span class="comment">// we could call UnixSocket::recvfrom() here, but for now we expect that there are no code</span>
+        <span class="comment">// paths that would call UnixSocket::read() since the read() syscall handler should have</span>
+        <span class="comment">// called UnixSocket::recvfrom() instead</span>
+        <span class="macro">panic!</span>(<span class="string">&quot;Called UnixSocket::read() on a unix socket.&quot;</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
@@ -2039,10 +2105,10 @@
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
-        <span class="comment">// we could call UnixSocketFile::sendto() here, but for now we expect that there are no code</span>
-        <span class="comment">// paths that would call UnixSocketFile::write() since the write() syscall handler should</span>
-        <span class="comment">// have called UnixSocketFile::sendto() instead</span>
-        <span class="macro">panic!</span>(<span class="string">&quot;Called UnixSocketFile::write() on a unix socket&quot;</span>);
+        <span class="comment">// we could call UnixSocket::sendto() here, but for now we expect that there are no code</span>
+        <span class="comment">// paths that would call UnixSocket::write() since the write() syscall handler should have</span>
+        <span class="comment">// called UnixSocket::sendto() instead</span>
+        <span class="macro">panic!</span>(<span class="string">&quot;Called UnixSocket::write() on a unix socket&quot;</span>);
     }
 
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
@@ -2109,7 +2175,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">protocol_state</span>.<span class="ident">accept</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">event_queue</span>)
     }
 
@@ -2120,8 +2186,8 @@
         <span class="ident">namespace</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">AbstractUnixNamespace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">socket_1</span> <span class="op">=</span> <span class="ident">UnixSocketFile::new</span>(<span class="ident">mode</span>, <span class="ident">status</span>, <span class="ident">socket_type</span>, <span class="ident">namespace</span>);
-        <span class="kw">let</span> <span class="ident">socket_2</span> <span class="op">=</span> <span class="ident">UnixSocketFile::new</span>(<span class="ident">mode</span>, <span class="ident">status</span>, <span class="ident">socket_type</span>, <span class="ident">namespace</span>);
+        <span class="kw">let</span> <span class="ident">socket_1</span> <span class="op">=</span> <span class="ident">UnixSocket::new</span>(<span class="ident">mode</span>, <span class="ident">status</span>, <span class="ident">socket_type</span>, <span class="ident">namespace</span>);
+        <span class="kw">let</span> <span class="ident">socket_2</span> <span class="op">=</span> <span class="ident">UnixSocket::new</span>(<span class="ident">mode</span>, <span class="ident">status</span>, <span class="ident">socket_type</span>, <span class="ident">namespace</span>);
 
         {
             <span class="kw">let</span> <span class="ident">socket_1_ref</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">socket_1</span>.<span class="ident">borrow_mut</span>();
@@ -2181,15 +2247,16 @@
 }
 <span class="kw">struct</span> <span class="ident">ConnOrientedListening</span> {
     <span class="ident">bound_addr</span>: <span class="ident">nix::sys::socket::UnixAddr</span>,
-    <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">queue_limit</span>: <span class="ident">u32</span>,
 }
 <span class="kw">struct</span> <span class="ident">ConnOrientedConnected</span> {
     <span class="ident">bound_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
     <span class="ident">peer_addr</span>: <span class="ident">nix::sys::socket::UnixAddr</span>,
     <span class="ident">send_buffer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="ident">send_buffer_event_handle</span>: <span class="ident">BufferHandle</span>,
+    <span class="ident">writer_handle</span>: <span class="ident">WriterHandle</span>,
+    <span class="comment">// this handle is never accessed, but we store it because of its drop impl</span>
+    <span class="ident">_send_buffer_handle</span>: <span class="ident">BufferHandle</span>,
 }
 <span class="kw">struct</span> <span class="ident">ConnOrientedClosed</span> {}
 
@@ -2197,7 +2264,9 @@
     <span class="ident">bound_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
     <span class="ident">peer_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
     <span class="ident">send_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">send_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
+    <span class="ident">writer_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WriterHandle</span><span class="op">&gt;</span>,
+    <span class="comment">// this handle is never accessed, but we store it because of its drop impl</span>
+    <span class="ident">_send_buffer_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
 }
 <span class="kw">struct</span> <span class="ident">ConnLessClosed</span> {}
 
@@ -2270,7 +2339,8 @@
                 <span class="ident">bound_addr</span>: <span class="prelude-val">None</span>,
                 <span class="ident">peer_addr</span>: <span class="prelude-val">None</span>,
                 <span class="ident">send_buffer</span>: <span class="prelude-val">None</span>,
-                <span class="ident">send_buffer_event_handle</span>: <span class="prelude-val">None</span>,
+                <span class="ident">writer_handle</span>: <span class="prelude-val">None</span>,
+                <span class="ident">_send_buffer_handle</span>: <span class="prelude-val">None</span>,
             })),
         }
     }
@@ -2320,7 +2390,7 @@
     <span class="kw">fn</span> <span class="ident">bind</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
         <span class="ident">rng</span>: <span class="kw">impl</span> <span class="ident">rand::Rng</span>,
     ) -&gt; <span class="ident">SyscallResult</span> {
@@ -2462,7 +2532,7 @@
     <span class="kw">fn</span> <span class="ident">connect</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
@@ -2492,7 +2562,7 @@
     <span class="kw">fn</span> <span class="ident">connect_unnamed</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">send_buffer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
@@ -2537,7 +2607,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
             <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
@@ -2555,7 +2625,7 @@
         <span class="ident">from_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
         <span class="ident">child_send_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">queue_incoming_conn</span>(
                 <span class="ident">common</span>,
@@ -2621,7 +2691,7 @@
     <span class="kw">fn</span> <span class="ident">bind</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
         <span class="ident">_rng</span>: <span class="kw">impl</span> <span class="ident">rand::Rng</span>,
     ) -&gt; <span class="ident">SyscallResult</span> {
@@ -2689,7 +2759,7 @@
     <span class="kw">fn</span> <span class="ident">connect</span>(
         <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
         <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
@@ -2700,7 +2770,7 @@
     <span class="kw">fn</span> <span class="ident">connect_unnamed</span>(
         <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_send_buffer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
@@ -2715,7 +2785,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EOPNOTSUPP</span>.<span class="ident">into</span>())
     }
@@ -2726,7 +2796,7 @@
         <span class="ident">_from_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
         <span class="ident">_child_send_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(
             <span class="string">&quot;queue_incoming_conn() while in state {}&quot;</span>,
             <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
@@ -2758,7 +2828,7 @@
     <span class="kw">fn</span> <span class="ident">bind</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
         <span class="ident">rng</span>: <span class="kw">impl</span> <span class="ident">rand::Rng</span>,
     ) -&gt; <span class="ident">SyscallResult</span> {
@@ -2855,7 +2925,7 @@
     <span class="kw">fn</span> <span class="ident">connect</span>(
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
@@ -2893,7 +2963,7 @@
 
                 <span class="comment">// block until the server has room for new connections, or is closed</span>
                 <span class="kw">let</span> <span class="ident">trigger</span> <span class="op">=</span> <span class="ident">Trigger::from_file</span>(
-                    <span class="ident">GenericFile::Socket</span>(<span class="ident">SocketFile::Unix</span>(<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">server</span>))),
+                    <span class="ident">File::Socket</span>(<span class="ident">Socket::Unix</span>(<span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">server</span>))),
                     <span class="ident">FileState::SOCKET_ALLOWING_CONNECT</span> <span class="op">|</span> <span class="ident">FileState::CLOSED</span>,
                 );
                 <span class="kw">let</span> <span class="ident">blocked</span> <span class="op">=</span> <span class="ident">Blocked</span> {
@@ -2907,13 +2977,17 @@
 
         <span class="comment">// our send buffer will be the peer&#39;s receive buffer</span>
         <span class="kw">let</span> <span class="ident">send_buffer</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="ident">peer</span>.<span class="ident">borrow</span>().<span class="ident">recv_buffer</span>());
-        <span class="kw">let</span> <span class="ident">send_buffer_event_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">connect_buffer</span>(<span class="ident">socket</span>, <span class="kw-2">&amp;</span><span class="ident">send_buffer</span>, <span class="ident">event_queue</span>);
+        <span class="kw">let</span> <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">connect_buffer</span>(<span class="ident">socket</span>, <span class="kw-2">&amp;</span><span class="ident">send_buffer</span>, <span class="ident">event_queue</span>);
+
+        <span class="comment">// increment the buffer&#39;s writer count</span>
+        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedConnected</span> {
             <span class="ident">bound_addr</span>: <span class="self">self</span>.<span class="ident">bound_addr</span>,
             <span class="ident">peer_addr</span>: <span class="ident">addr</span>.<span class="ident">clone</span>(),
             <span class="ident">send_buffer</span>,
-            <span class="ident">send_buffer_event_handle</span>,
+            <span class="ident">_send_buffer_handle</span>: <span class="ident">send_buffer_handle</span>,
+            <span class="ident">writer_handle</span>,
         };
 
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
@@ -2922,21 +2996,25 @@
     <span class="kw">fn</span> <span class="ident">connect_unnamed</span>(
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">send_buffer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>.<span class="ident">is_none</span>());
 
         <span class="kw">let</span> <span class="ident">unnamed_sock_addr</span> <span class="op">=</span> <span class="ident">empty_unix_sockaddr</span>();
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">connect_buffer</span>(<span class="ident">socket</span>, <span class="kw-2">&amp;</span><span class="ident">send_buffer</span>, <span class="ident">event_queue</span>);
+        <span class="kw">let</span> <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">connect_buffer</span>(<span class="ident">socket</span>, <span class="kw-2">&amp;</span><span class="ident">send_buffer</span>, <span class="ident">event_queue</span>);
+
+        <span class="comment">// increment the buffer&#39;s writer count</span>
+        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedConnected</span> {
             <span class="comment">// bind the socket to an unnamed address so that we don&#39;t accidentally bind it later</span>
             <span class="ident">bound_addr</span>: <span class="prelude-val">Some</span>(<span class="ident">unnamed_sock_addr</span>),
             <span class="ident">peer_addr</span>: <span class="ident">unnamed_sock_addr</span>,
             <span class="ident">send_buffer</span>,
-            <span class="ident">send_buffer_event_handle</span>: <span class="ident">handle</span>,
+            <span class="ident">_send_buffer_handle</span>: <span class="ident">send_buffer_handle</span>,
+            <span class="ident">writer_handle</span>,
         };
 
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
@@ -2946,7 +3024,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>())
     }
@@ -2966,6 +3044,13 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
+        <span class="kw">for</span> <span class="ident">sock</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">queue</span> {
+            <span class="comment">// close all queued sockets</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">borrow_mut</span>().<span class="ident">close</span>(<span class="ident">event_queue</span>) {
+                <span class="macro">log::warn!</span>(<span class="string">&quot;Unexpected error while closing queued unix socket: {:?}&quot;</span>, <span class="ident">e</span>);
+            }
+        }
+
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedClosed</span> {};
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>))
     }
@@ -2989,7 +3074,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">child_socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>()),
@@ -3008,7 +3093,7 @@
         <span class="ident">from_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
         <span class="ident">child_send_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">queue_limit</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>() {
             <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">common</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::SOCKET_ALLOWING_CONNECT</span>));
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">IncomingConnError::QueueFull</span>);
@@ -3018,7 +3103,7 @@
 
         <span class="kw">let</span> <span class="ident">child_send_buffer</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="ident">child_send_buffer</span>);
 
-        <span class="kw">let</span> <span class="ident">child_socket</span> <span class="op">=</span> <span class="ident">UnixSocketFile::new</span>(
+        <span class="kw">let</span> <span class="ident">child_socket</span> <span class="op">=</span> <span class="ident">UnixSocket::new</span>(
             <span class="ident">FileMode::READ</span> <span class="op">|</span> <span class="ident">FileMode::WRITE</span>,
             <span class="comment">// copy the parent&#39;s status</span>
             <span class="ident">common</span>.<span class="ident">status</span>,
@@ -3026,18 +3111,22 @@
             <span class="kw-2">&amp;</span><span class="ident">common</span>.<span class="ident">namespace</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">send_buffer_event_handle</span> <span class="op">=</span> <span class="ident">child_socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">common</span>.<span class="ident">connect_buffer</span>(
+        <span class="kw">let</span> <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">child_socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">common</span>.<span class="ident">connect_buffer</span>(
             <span class="kw-2">&amp;</span><span class="ident">child_socket</span>,
             <span class="kw-2">&amp;</span><span class="ident">child_send_buffer</span>,
             <span class="ident">event_queue</span>,
         );
+
+        <span class="comment">// increment the buffer&#39;s writer count</span>
+        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">child_send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_child_state</span> <span class="op">=</span> <span class="ident">ConnOrientedConnected</span> {
             <span class="comment">// use the parent&#39;s bind address</span>
             <span class="ident">bound_addr</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>.<span class="ident">clone</span>()),
             <span class="ident">peer_addr</span>: <span class="ident">from_address</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">empty_unix_sockaddr</span>()),
             <span class="ident">send_buffer</span>: <span class="ident">child_send_buffer</span>,
-            <span class="ident">send_buffer_event_handle</span>,
+            <span class="ident">_send_buffer_handle</span>: <span class="ident">send_buffer_handle</span>,
+            <span class="ident">writer_handle</span>,
         };
 
         <span class="comment">// update the child socket&#39;s state</span>
@@ -3074,7 +3163,9 @@
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// inform the buffer that there is one fewer writers</span>
-        <span class="self">self</span>.<span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove_writer</span>(<span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">send_buffer</span>
+            .<span class="ident">borrow_mut</span>()
+            .<span class="ident">remove_writer</span>(<span class="self">self</span>.<span class="ident">writer_handle</span>, <span class="ident">event_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedClosed</span> {};
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>))
@@ -3123,7 +3214,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>())
     }
@@ -3171,8 +3262,12 @@
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// inform the buffer that there is one fewer writers</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">send_buffer</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">send_buffer</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove_writer</span>(<span class="ident">event_queue</span>);
+        <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">send_buffer</span>), <span class="prelude-val">Some</span>(<span class="ident">writer_handle</span>)) <span class="op">=</span>
+            (<span class="self">self</span>.<span class="ident">send_buffer</span>.<span class="ident">as_ref</span>(), <span class="self">self</span>.<span class="ident">writer_handle</span>)
+        {
+            <span class="ident">send_buffer</span>
+                .<span class="ident">borrow_mut</span>()
+                .<span class="ident">remove_writer</span>(<span class="ident">writer_handle</span>, <span class="ident">event_queue</span>);
         }
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnLessClosed</span> {};
@@ -3184,7 +3279,7 @@
     <span class="kw">fn</span> <span class="ident">bind</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
         <span class="ident">rng</span>: <span class="kw">impl</span> <span class="ident">rand::Rng</span>,
     ) -&gt; <span class="ident">SyscallResult</span> {
@@ -3241,7 +3336,7 @@
     <span class="kw">fn</span> <span class="ident">connect</span>(
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
@@ -3258,21 +3353,27 @@
         };
 
         <span class="comment">// inform any existing buffer that there is one fewer writers</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">old_send_buffer</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">send_buffer</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">old_send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove_writer</span>(<span class="ident">event_queue</span>);
+        <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">old_send_buffer</span>), <span class="prelude-val">Some</span>(<span class="ident">writer_handle</span>)) <span class="op">=</span>
+            (<span class="self">self</span>.<span class="ident">send_buffer</span>.<span class="ident">as_ref</span>(), <span class="self">self</span>.<span class="ident">writer_handle</span>)
+        {
+            <span class="ident">old_send_buffer</span>
+                .<span class="ident">borrow_mut</span>()
+                .<span class="ident">remove_writer</span>(<span class="ident">writer_handle</span>, <span class="ident">event_queue</span>);
         }
 
         <span class="comment">// get the new send buffer</span>
         <span class="kw">let</span> <span class="ident">new_send_buffer</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="ident">peer</span>.<span class="ident">borrow</span>().<span class="ident">recv_buffer</span>());
 
+        <span class="kw">let</span> <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">connect_buffer</span>(<span class="ident">socket</span>, <span class="kw-2">&amp;</span><span class="ident">new_send_buffer</span>, <span class="ident">event_queue</span>);
+
+        <span class="comment">// increment the buffer&#39;s writer count</span>
+        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">new_send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
+
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">peer_addr</span>: <span class="prelude-val">Some</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()),
-            <span class="ident">send_buffer_event_handle</span>: <span class="prelude-val">Some</span>(<span class="ident">common</span>.<span class="ident">connect_buffer</span>(
-                <span class="ident">socket</span>,
-                <span class="kw-2">&amp;</span><span class="ident">new_send_buffer</span>,
-                <span class="ident">event_queue</span>,
-            )),
             <span class="ident">send_buffer</span>: <span class="prelude-val">Some</span>(<span class="ident">new_send_buffer</span>),
+            <span class="ident">writer_handle</span>: <span class="prelude-val">Some</span>(<span class="ident">writer_handle</span>),
+            <span class="ident">_send_buffer_handle</span>: <span class="prelude-val">Some</span>(<span class="ident">send_buffer_handle</span>),
             ..<span class="self">self</span>
         };
 
@@ -3280,9 +3381,9 @@
     }
 
     <span class="kw">fn</span> <span class="ident">connect_unnamed</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">send_buffer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
@@ -3291,14 +3392,22 @@
 
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">peer_addr</span>.<span class="ident">is_none</span>());
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>.<span class="ident">is_none</span>());
-        <span class="self">self</span>.<span class="ident">peer_addr</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">unnamed_sock_addr</span>);
-        <span class="self">self</span>.<span class="ident">bound_addr</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">unnamed_sock_addr</span>);
 
-        <span class="self">self</span>.<span class="ident">send_buffer_event_handle</span> <span class="op">=</span>
-            <span class="prelude-val">Some</span>(<span class="ident">common</span>.<span class="ident">connect_buffer</span>(<span class="ident">socket</span>, <span class="kw-2">&amp;</span><span class="ident">send_buffer</span>, <span class="ident">event_queue</span>));
-        <span class="self">self</span>.<span class="ident">send_buffer</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">send_buffer</span>);
+        <span class="kw">let</span> <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">connect_buffer</span>(<span class="ident">socket</span>, <span class="kw-2">&amp;</span><span class="ident">send_buffer</span>, <span class="ident">event_queue</span>);
 
-        (<span class="self">self</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
+        <span class="comment">// increment the buffer&#39;s writer count</span>
+        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
+
+        <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="self">Self</span> {
+            <span class="ident">bound_addr</span>: <span class="prelude-val">Some</span>(<span class="ident">unnamed_sock_addr</span>),
+            <span class="ident">peer_addr</span>: <span class="prelude-val">Some</span>(<span class="ident">unnamed_sock_addr</span>),
+            <span class="ident">send_buffer</span>: <span class="prelude-val">Some</span>(<span class="ident">send_buffer</span>),
+            <span class="ident">writer_handle</span>: <span class="prelude-val">Some</span>(<span class="ident">writer_handle</span>),
+            <span class="ident">_send_buffer_handle</span>: <span class="prelude-val">Some</span>(<span class="ident">send_buffer_handle</span>),
+            ..<span class="self">self</span>
+        };
+
+        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
     }
 }
 
@@ -3334,7 +3443,10 @@
     <span class="ident">status</span>: <span class="ident">FileStatus</span>,
     <span class="ident">socket_type</span>: <span class="ident">UnixSocketType</span>,
     <span class="ident">namespace</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">AbstractUnixNamespace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">recv_buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
+    <span class="comment">// listener handle for recv buffer events</span>
+    <span class="ident">recv_buffer_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
+    <span class="comment">// a handle that signifies we&#39;re acting as a reader for the recv buffer</span>
+    <span class="ident">reader_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ReaderHandle</span><span class="op">&gt;</span>,
     <span class="comment">// should only be used by `OpenFile` to make sure there is only ever one `OpenFile` instance for</span>
     <span class="comment">// this file</span>
     <span class="ident">has_open_file</span>: <span class="ident">bool</span>,
@@ -3342,13 +3454,20 @@
 
 <span class="kw">impl</span> <span class="ident">UnixSocketCommon</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::CLOSED</span>) {
+            <span class="macro">log::warn!</span>(<span class="string">&quot;Attempting to close an already-closed unix socket&quot;</span>);
+        }
+
         <span class="comment">// drop the event listener handle so that we stop receiving new events</span>
-        <span class="self">self</span>.<span class="ident">recv_buffer_event_handle</span>
-            .<span class="ident">take</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">stop_listening</span>());
+        <span class="self">self</span>.<span class="ident">recv_buffer_handle</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">stop_listening</span>());
 
         <span class="comment">// inform the buffer that there is one fewer readers</span>
-        <span class="self">self</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove_reader</span>(<span class="ident">event_queue</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reader_handle</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader_handle</span>.<span class="ident">take</span>() {
+            <span class="comment">// return the handle back to the buffer</span>
+            <span class="self">self</span>.<span class="ident">recv_buffer</span>
+                .<span class="ident">borrow_mut</span>()
+                .<span class="ident">remove_reader</span>(<span class="ident">reader_handle</span>, <span class="ident">event_queue</span>);
+        }
 
         <span class="comment">// set the closed flag and remove the active, readable, and writable flags</span>
         <span class="self">self</span>.<span class="ident">copy_state</span>(
@@ -3368,7 +3487,7 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
         <span class="ident">rng</span>: <span class="kw">impl</span> <span class="ident">rand::Rng</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
@@ -3567,19 +3686,22 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect_buffer</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">send_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; <span class="ident">BufferHandle</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">send_buffer_ref</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>();
 
-        <span class="comment">// increment the buffer&#39;s writer count</span>
-        <span class="ident">send_buffer_ref</span>.<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
-
-        <span class="comment">// update the socket file&#39;s state based on the buffer&#39;s state</span>
-        <span class="kw">if</span> <span class="ident">send_buffer_ref</span>.<span class="ident">state</span>().<span class="ident">contains</span>(<span class="ident">BufferState::WRITABLE</span>) {
-            <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">insert</span>(<span class="ident">FileState::WRITABLE</span>);
-        }
+        <span class="comment">// the socket is writable iff the buffer is writable or has no readers</span>
+        <span class="self">self</span>.<span class="ident">copy_state</span>(
+            <span class="comment">/* mask */</span> <span class="ident">FileState::WRITABLE</span>,
+            <span class="ident">send_buffer_ref</span>
+                .<span class="ident">state</span>()
+                .<span class="ident">intersects</span>(<span class="ident">BufferState::WRITABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_READERS</span>)
+                .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">FileState::WRITABLE</span>)
+                .<span class="ident">unwrap_or_default</span>(),
+            <span class="ident">event_queue</span>,
+        );
 
         <span class="comment">// update the socket&#39;s state when the buffer&#39;s state changes</span>
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">socket</span>);
@@ -3595,7 +3717,7 @@
                         <span class="kw">return</span>;
                     }
 
-                    <span class="comment">// the socket is writable iff the buffer is writable</span>
+                    <span class="comment">// the socket is writable iff the buffer is writable or has no readers</span>
                     <span class="ident">socket</span>.<span class="ident">common</span>.<span class="ident">copy_state</span>(
                         <span class="comment">/* mask */</span> <span class="ident">FileState::WRITABLE</span>,
                         <span class="ident">state</span>
@@ -3636,7 +3758,7 @@
     <span class="ident">namespace</span>: <span class="kw-2">&amp;</span><span class="ident">AbstractUnixNamespace</span>,
     <span class="ident">socket_type</span>: <span class="ident">UnixSocketType</span>,
     <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::UnixAddr</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// if an abstract address</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">as_abstract</span>() {
         <span class="comment">// look up the socket from the address name</span>

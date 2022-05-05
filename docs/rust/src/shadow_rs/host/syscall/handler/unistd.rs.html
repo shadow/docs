@@ -540,14 +540,12 @@
 <span id="535">535</span>
 <span id="536">536</span>
 <span id="537">537</span>
-<span id="538">538</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::pipe</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf::SharedBuf</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
-    <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">GenericFile</span>,
-    <span class="ident">OpenFile</span>,
+    <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">File</span>, <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">OpenFile</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::Trigger</span>;
@@ -797,7 +795,7 @@
         <span class="kw">let</span> <span class="ident">generic_file</span> <span class="op">=</span> <span class="ident">open_file</span>.<span class="ident">inner_file</span>();
 
         <span class="comment">// if it&#39;s a socket, call recvfrom() instead</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericFile::Socket</span>(..) <span class="op">=</span> <span class="ident">generic_file</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">File::Socket</span>(..) <span class="op">=</span> <span class="ident">generic_file</span> {
             <span class="kw">if</span> <span class="ident">offset</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="comment">// sockets don&#39;t support offsets</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ESPIPE</span>.<span class="ident">into</span>());
@@ -931,7 +929,7 @@
         <span class="kw">let</span> <span class="ident">generic_file</span> <span class="op">=</span> <span class="ident">open_file</span>.<span class="ident">inner_file</span>();
 
         <span class="comment">// if it&#39;s a socket, call recvfrom() instead</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericFile::Socket</span>(..) <span class="op">=</span> <span class="ident">generic_file</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">File::Socket</span>(..) <span class="op">=</span> <span class="ident">generic_file</span> {
             <span class="kw">if</span> <span class="ident">offset</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="comment">// sockets don&#39;t support offsets</span>
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ESPIPE</span>.<span class="ident">into</span>());
@@ -1020,22 +1018,22 @@
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">buffer</span>));
 
         <span class="comment">// reference-counted file object for read end of the pipe</span>
-        <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">pipe::PipeFile::new</span>(<span class="ident">FileMode::READ</span>, <span class="ident">file_flags</span>);
+        <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">pipe::Pipe::new</span>(<span class="ident">FileMode::READ</span>, <span class="ident">file_flags</span>);
         <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">reader</span>));
 
         <span class="comment">// reference-counted file object for write end of the pipe</span>
-        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">pipe::PipeFile::new</span>(<span class="ident">FileMode::WRITE</span>, <span class="ident">file_flags</span>);
+        <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">pipe::Pipe::new</span>(<span class="ident">FileMode::WRITE</span>, <span class="ident">file_flags</span>);
         <span class="kw">let</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">writer</span>));
 
         <span class="comment">// set the file objects to listen for events on the buffer</span>
         <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
-            <span class="ident">pipe::PipeFile::connect_to_buffer</span>(<span class="kw-2">&amp;</span><span class="ident">reader</span>, <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>), <span class="ident">event_queue</span>);
-            <span class="ident">pipe::PipeFile::connect_to_buffer</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>, <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>), <span class="ident">event_queue</span>);
+            <span class="ident">pipe::Pipe::connect_to_buffer</span>(<span class="kw-2">&amp;</span><span class="ident">reader</span>, <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>), <span class="ident">event_queue</span>);
+            <span class="ident">pipe::Pipe::connect_to_buffer</span>(<span class="kw-2">&amp;</span><span class="ident">writer</span>, <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>), <span class="ident">event_queue</span>);
         });
 
         <span class="comment">// file descriptors for the read and write file objects</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">OpenFile::new</span>(<span class="ident">GenericFile::Pipe</span>(<span class="ident">reader</span>)));
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">OpenFile::new</span>(<span class="ident">GenericFile::Pipe</span>(<span class="ident">writer</span>)));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">OpenFile::new</span>(<span class="ident">File::Pipe</span>(<span class="ident">reader</span>)));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">OpenFile::new</span>(<span class="ident">File::Pipe</span>(<span class="ident">writer</span>)));
 
         <span class="comment">// set the file descriptor flags</span>
         <span class="ident">reader_desc</span>.<span class="ident">set_flags</span>(<span class="ident">descriptor_flags</span>);

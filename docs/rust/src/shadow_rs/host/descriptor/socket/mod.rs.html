@@ -298,7 +298,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallReg</span>, <span class="ident">SyscallError</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue::EventQueue</span>;
 
-<span class="kw">use</span> <span class="ident">unix::UnixSocketFile</span>;
+<span class="kw">use</span> <span class="ident">unix::UnixSocket</span>;
 
 <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
@@ -308,32 +308,32 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">unix</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SocketFile</span> {
-    <span class="ident">Unix</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Socket</span> {
+    <span class="ident">Unix</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">SocketFile</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SocketFileRef</span> {
+<span class="kw">impl</span> <span class="ident">Socket</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SocketRef</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketFileRef::Unix</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketRef::Unix</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SocketFileRef</span>, <span class="ident">atomic_refcell::BorrowError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SocketRef</span>, <span class="ident">atomic_refcell::BorrowError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketFileRef::Unix</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketRef::Unix</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SocketFileRefMut</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SocketRefMut</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketFileRefMut::Unix</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketRefMut::Unix</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SocketFileRefMut</span>, <span class="ident">atomic_refcell::BorrowMutError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SocketRefMut</span>, <span class="ident">atomic_refcell::BorrowMutError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketFileRefMut::Unix</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">SocketRefMut::Unix</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
         })
     }
 
@@ -351,7 +351,7 @@
         <span class="ident">rng</span>: <span class="kw">impl</span> <span class="ident">rand::Rng</span>,
     ) -&gt; <span class="ident">SyscallResult</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">UnixSocketFile::bind</span>(<span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">rng</span>),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">UnixSocket::bind</span>(<span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">rng</span>),
         }
     }
 
@@ -363,12 +363,12 @@
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">UnixSocketFile::connect</span>(<span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">UnixSocket::connect</span>(<span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">SocketFile</span> {
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">Socket</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Unix&quot;</span>)<span class="question-mark">?</span>,
@@ -387,16 +387,16 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SocketFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Unix</span>(<span class="ident">atomic_refcell::AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">UnixSocketFile</span><span class="op">&gt;</span>),
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SocketRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Unix</span>(<span class="ident">atomic_refcell::AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">UnixSocket</span><span class="op">&gt;</span>),
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SocketFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Unix</span>(<span class="ident">atomic_refcell::AtomicRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">UnixSocketFile</span><span class="op">&gt;</span>),
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SocketRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Unix</span>(<span class="ident">atomic_refcell::AtomicRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">UnixSocket</span><span class="op">&gt;</span>),
 }
 
 <span class="comment">// file functions</span>
-<span class="kw">impl</span> <span class="ident">SocketFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">SocketRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Unix</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FileState</span>
     );
@@ -415,7 +415,7 @@
 }
 
 <span class="comment">// socket-specific functions</span>
-<span class="kw">impl</span> <span class="ident">SocketFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">SocketRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_peer_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SockAddr</span><span class="op">&gt;</span> {
@@ -438,7 +438,7 @@
 }
 
 <span class="comment">// file functions</span>
-<span class="kw">impl</span> <span class="ident">SocketFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">SocketRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Unix</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FileState</span>
     );
@@ -485,7 +485,7 @@
 }
 
 <span class="comment">// socket-specific functions</span>
-<span class="kw">impl</span> <span class="ident">SocketFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">SocketRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_peer_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SockAddr</span><span class="op">&gt;</span> {
@@ -526,14 +526,14 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">backlog</span>: <span class="ident">i32</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     );
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SocketFile</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Socket</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">socket</span>.<span class="ident">accept</span>(<span class="ident">event_queue</span>).<span class="ident">map</span>(<span class="ident">SocketFile::Unix</span>),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">socket</span>.<span class="ident">accept</span>(<span class="ident">event_queue</span>).<span class="ident">map</span>(<span class="ident">Socket::Unix</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">SocketFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">SocketRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Unix&quot;</span>)<span class="question-mark">?</span>,
@@ -548,7 +548,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">SocketFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">SocketRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Unix&quot;</span>)<span class="question-mark">?</span>,

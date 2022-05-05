@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["BufferState",""],["SharedBuf",""]],"type":[["BufferHandle",""]]});
+initSidebarItems({"struct":[["BufferState",""],["ReaderHandle","A handle that signifies that the owner is acting as a reader for the buffer. The handle must be returned to the buffer later with [`SharedBuf::remove_reader()`]."],["SharedBuf",""],["WriterHandle","See [`ReaderHandle`]."]],"type":[["BufferHandle",""]]});

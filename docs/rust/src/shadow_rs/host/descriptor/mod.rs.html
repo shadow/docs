@@ -1082,14 +1082,6 @@
 <span id="1077">1077</span>
 <span id="1078">1078</span>
 <span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
@@ -1101,7 +1093,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">EventSource</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility</span>::{<span class="ident">IsSend</span>, <span class="ident">IsSync</span>, <span class="ident">SyncSendPointer</span>};
 
-<span class="kw">use</span> <span class="ident">socket</span>::{<span class="ident">SocketFile</span>, <span class="ident">SocketFileRef</span>, <span class="ident">SocketFileRefMut</span>};
+<span class="kw">use</span> <span class="ident">socket</span>::{<span class="ident">Socket</span>, <span class="ident">SocketRef</span>, <span class="ident">SocketRefMut</span>};
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">descriptor_table</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">eventfd</span>;
@@ -1190,8 +1182,8 @@
 <span class="macro">bitflags::bitflags!</span> {
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileState</span>: <span class="ident">libc::c_int</span> {
-        <span class="doccomment">/// Has been initialized and it is now OK to unblock any plugin waiting</span>
-        <span class="doccomment">/// on a particular state.</span>
+        <span class="doccomment">/// Has been initialized and it is now OK to unblock any plugin waiting on a particular</span>
+        <span class="doccomment">/// state. (This is a legacy C state and should be considered deprecated.)</span>
         <span class="kw">const</span> <span class="ident">ACTIVE</span> <span class="op">=</span> <span class="ident">c::_Status_STATUS_DESCRIPTOR_ACTIVE</span>;
         <span class="doccomment">/// Can be read, i.e. there is data waiting for user.</span>
         <span class="kw">const</span> <span class="ident">READABLE</span> <span class="op">=</span> <span class="ident">c::_Status_STATUS_DESCRIPTOR_READABLE</span>;
@@ -1358,46 +1350,46 @@
 
 <span class="doccomment">/// A wrapper for any type of file object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GenericFile</span> {
-    <span class="ident">Pipe</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">pipe::PipeFile</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-    <span class="ident">EventFd</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">eventfd::EventFdFile</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-    <span class="ident">Socket</span>(<span class="ident">SocketFile</span>),
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">File</span> {
+    <span class="ident">Pipe</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">pipe::Pipe</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">EventFd</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">eventfd::EventFd</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Socket</span>(<span class="ident">Socket</span>),
 }
 
-<span class="comment">// will not compile if `GenericFile` is not Send + Sync</span>
-<span class="kw">impl</span> <span class="ident">IsSend</span> <span class="kw">for</span> <span class="ident">GenericFile</span> {}
-<span class="kw">impl</span> <span class="ident">IsSync</span> <span class="kw">for</span> <span class="ident">GenericFile</span> {}
+<span class="comment">// will not compile if `File` is not Send + Sync</span>
+<span class="kw">impl</span> <span class="ident">IsSend</span> <span class="kw">for</span> <span class="ident">File</span> {}
+<span class="kw">impl</span> <span class="ident">IsSync</span> <span class="kw">for</span> <span class="ident">File</span> {}
 
-<span class="kw">impl</span> <span class="ident">GenericFile</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">GenericFileRef</span> {
+<span class="kw">impl</span> <span class="ident">File</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FileRef</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRef::Pipe</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
-            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRef::EventFd</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
-            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRef::Socket</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
+            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRef::Pipe</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
+            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRef::EventFd</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
+            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRef::Socket</span>(<span class="ident">f</span>.<span class="ident">borrow</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GenericFileRef</span>, <span class="ident">atomic_refcell::BorrowError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FileRef</span>, <span class="ident">atomic_refcell::BorrowError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRef::Pipe</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
-            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRef::EventFd</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
-            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRef::Socket</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRef::Pipe</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRef::EventFd</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRef::Socket</span>(<span class="ident">f</span>.<span class="ident">try_borrow</span>()<span class="question-mark">?</span>),
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">GenericFileRefMut</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FileRefMut</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRefMut::Pipe</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
-            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRefMut::EventFd</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
-            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRefMut::Socket</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
+            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRefMut::Pipe</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
+            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRefMut::EventFd</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
+            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRefMut::Socket</span>(<span class="ident">f</span>.<span class="ident">borrow_mut</span>()),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GenericFileRefMut</span>, <span class="ident">atomic_refcell::BorrowMutError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FileRefMut</span>, <span class="ident">atomic_refcell::BorrowMutError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRefMut::Pipe</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
-            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRefMut::EventFd</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
-            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">GenericFileRefMut::Socket</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRefMut::Pipe</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::EventFd</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRefMut::EventFd</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
+            <span class="ident"><span class="self">Self</span>::Socket</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) =&gt; <span class="ident">FileRefMut::Socket</span>(<span class="ident">f</span>.<span class="ident">try_borrow_mut</span>()<span class="question-mark">?</span>),
         })
     }
 
@@ -1410,7 +1402,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">GenericFile</span> {
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">File</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Pipe&quot;</span>)<span class="question-mark">?</span>,
@@ -1431,19 +1423,19 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GenericFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Pipe</span>(<span class="ident">atomic_refcell::AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">pipe::PipeFile</span><span class="op">&gt;</span>),
-    <span class="ident">EventFd</span>(<span class="ident">atomic_refcell::AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">eventfd::EventFdFile</span><span class="op">&gt;</span>),
-    <span class="ident">Socket</span>(<span class="ident">SocketFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Pipe</span>(<span class="ident">atomic_refcell::AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">pipe::Pipe</span><span class="op">&gt;</span>),
+    <span class="ident">EventFd</span>(<span class="ident">atomic_refcell::AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">eventfd::EventFd</span><span class="op">&gt;</span>),
+    <span class="ident">Socket</span>(<span class="ident">SocketRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GenericFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Pipe</span>(<span class="ident">atomic_refcell::AtomicRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">pipe::PipeFile</span><span class="op">&gt;</span>),
-    <span class="ident">EventFd</span>(<span class="ident">atomic_refcell::AtomicRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">eventfd::EventFdFile</span><span class="op">&gt;</span>),
-    <span class="ident">Socket</span>(<span class="ident">SocketFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">Pipe</span>(<span class="ident">atomic_refcell::AtomicRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">pipe::Pipe</span><span class="op">&gt;</span>),
+    <span class="ident">EventFd</span>(<span class="ident">atomic_refcell::AtomicRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">eventfd::EventFd</span><span class="op">&gt;</span>),
+    <span class="ident">Socket</span>(<span class="ident">SocketRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">GenericFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">FileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FileState</span>
     );
@@ -1461,7 +1453,7 @@
     );
 }
 
-<span class="kw">impl</span> <span class="ident">GenericFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">FileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FileState</span>
     );
@@ -1507,7 +1499,7 @@
     );
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">GenericFileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">FileRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Pipe&quot;</span>)<span class="question-mark">?</span>,
@@ -1524,7 +1516,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">GenericFileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">FileRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Pipe</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Pipe&quot;</span>)<span class="question-mark">?</span>,
@@ -1542,11 +1534,10 @@
 }
 
 <span class="doccomment">/// Represents a POSIX file description, or a Linux `struct file`. An `OpenFile` wraps a reference</span>
-<span class="doccomment">/// to a `GenericFile`. Once there are no more `OpenFile` objects for a given `GenericFile`, the</span>
-<span class="doccomment">/// `GenericFile` will be closed. Typically this means that holding an `OpenFile` will ensure that</span>
-<span class="doccomment">/// the file remains open (the file&#39;s status will not become `FileStatus::CLOSED`), but the</span>
-<span class="doccomment">/// underlying file may close itself in extenuating circumstances (for example if the file has an</span>
-<span class="doccomment">/// internal error).</span>
+<span class="doccomment">/// to a `File`. Once there are no more `OpenFile` objects for a given `File`, the `File` will be</span>
+<span class="doccomment">/// closed. Typically this means that holding an `OpenFile` will ensure that the file remains open</span>
+<span class="doccomment">/// (the file&#39;s status will not become `FileStatus::CLOSED`), but the underlying file may close</span>
+<span class="doccomment">/// itself in extenuating circumstances (for example if the file has an internal error).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Safety:** If an `OpenFile` for a specific file already exists, it is an error to create a new</span>
 <span class="doccomment">/// `OpenFile` for that file. You must clone the existing `OpenFile` object. A new `OpenFile` object</span>
@@ -1564,7 +1555,7 @@
 <span class="kw">impl</span> <span class="ident">IsSync</span> <span class="kw">for</span> <span class="ident">OpenFile</span> {}
 
 <span class="kw">impl</span> <span class="ident">OpenFile</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file</span>: <span class="ident">GenericFile</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file</span>: <span class="ident">File</span>) -&gt; <span class="self">Self</span> {
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">borrow_mut</span>();
 
@@ -1596,13 +1587,13 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">GenericFile</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">File</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">file</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
     }
 
-    <span class="doccomment">/// Will close the inner `GenericFile` object if this is the last `OpenFile` for that</span>
-    <span class="doccomment">/// `GenericFile`. This behaviour is the same as simply dropping this `OpenFile` object, but</span>
-    <span class="doccomment">/// allows you to pass an event queue and get the return value of the close operation.</span>
+    <span class="doccomment">/// Will close the inner `File` object if this is the last `OpenFile` for that `File`. This</span>
+    <span class="doccomment">/// behaviour is the same as simply dropping this `OpenFile` object, but allows you to pass an</span>
+    <span class="doccomment">/// event queue and get the return value of the close operation.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">OpenFile</span> { <span class="ident">inner</span> } <span class="op">=</span> <span class="self">self</span>;
 
@@ -1629,7 +1620,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">OpenFileInner</span> {
-    <span class="ident">file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GenericFile</span><span class="op">&gt;</span>,
+    <span class="ident">file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">OpenFileInner</span> {
@@ -1960,13 +1951,12 @@
     }
 
     <span class="doccomment">/// If the compat descriptor is a new descriptor, returns a pointer to the reference-counted</span>
-    <span class="doccomment">/// `GenericFile` object. Otherwise returns NULL. The `GenericFile` object&#39;s ref count is</span>
-    <span class="doccomment">/// incremented, so the pointer must always later be passed to `genericfile_drop()`, otherwise</span>
-    <span class="doccomment">/// the memory will leak.</span>
+    <span class="doccomment">/// `File` object. Otherwise returns NULL. The `File` object&#39;s ref count is incremented, so the</span>
+    <span class="doccomment">/// pointer must always later be passed to `file_drop()`, otherwise the memory will leak.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_newRefGenericFile</span>(
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_newRefFile</span>(
         <span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">CompatDescriptor</span>,
-    ) -&gt; <span class="kw-2">*const</span> <span class="ident">GenericFile</span> {
+    ) -&gt; <span class="kw-2">*const</span> <span class="ident">File</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
@@ -1977,18 +1967,18 @@
         }
     }
 
-    <span class="doccomment">/// Decrement the ref count of the `GenericFile` object. The pointer must not be used after</span>
-    <span class="doccomment">/// calling this function.</span>
+    <span class="doccomment">/// Decrement the ref count of the `File` object. The pointer must not be used after calling</span>
+    <span class="doccomment">/// this function.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">genericfile_drop</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">GenericFile</span>) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">file_drop</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">File</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
 
-        <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">file</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">GenericFile</span>) };
+        <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">file</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">File</span>) };
     }
 
-    <span class="doccomment">/// Get the state of the `GenericFile` object.</span>
+    <span class="doccomment">/// Get the state of the `File` object.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">genericfile_getStatus</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">GenericFile</span>) -&gt; <span class="ident">c::Status</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">file_getStatus</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">File</span>) -&gt; <span class="ident">c::Status</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };
@@ -1996,14 +1986,11 @@
         <span class="ident">file</span>.<span class="ident">borrow</span>().<span class="ident">state</span>().<span class="ident">into</span>()
     }
 
-    <span class="doccomment">/// Add a status listener to the `GenericFile` object. This will increment the status listener&#39;s</span>
-    <span class="doccomment">/// ref count, and will decrement the ref count when this status listener is removed or when the</span>
-    <span class="doccomment">/// `GenericFile` is freed/dropped.</span>
+    <span class="doccomment">/// Add a status listener to the `File` object. This will increment the status listener&#39;s ref</span>
+    <span class="doccomment">/// count, and will decrement the ref count when this status listener is removed or when the</span>
+    <span class="doccomment">/// `File` is freed/dropped.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">genericfile_addListener</span>(
-        <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">GenericFile</span>,
-        <span class="ident">listener</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>,
-    ) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">file_addListener</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">File</span>, <span class="ident">listener</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">listener</span>.<span class="ident">is_null</span>());
 
@@ -2012,12 +1999,9 @@
         <span class="ident">file</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_legacy_listener</span>(<span class="ident">listener</span>);
     }
 
-    <span class="doccomment">/// Remove a listener from the `GenericFile` object.</span>
+    <span class="doccomment">/// Remove a listener from the `File` object.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">genericfile_removeListener</span>(
-        <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">GenericFile</span>,
-        <span class="ident">listener</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>,
-    ) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">file_removeListener</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">File</span>, <span class="ident">listener</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">listener</span>.<span class="ident">is_null</span>());
 
@@ -2026,10 +2010,10 @@
         <span class="ident">file</span>.<span class="ident">borrow_mut</span>().<span class="ident">remove_legacy_listener</span>(<span class="ident">listener</span>);
     }
 
-    <span class="doccomment">/// Get the canonical handle for a `GenericFile` object. Two `GenericFile` objects refer to the</span>
-    <span class="doccomment">/// same underlying data if their handles are equal.</span>
+    <span class="doccomment">/// Get the canonical handle for a `File` object. Two `File` objects refer to the same</span>
+    <span class="doccomment">/// underlying data if their handles are equal.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">genericfile_getCanonicalHandle</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">GenericFile</span>) -&gt; <span class="ident">libc::uintptr_t</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">file_getCanonicalHandle</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">File</span>) -&gt; <span class="ident">libc::uintptr_t</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };

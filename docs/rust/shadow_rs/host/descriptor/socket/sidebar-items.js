@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["SocketFile",""],["SocketFileRef",""],["SocketFileRefMut",""]],"fn":[["empty_sockaddr","Returns a nix socket address object where only the family is set."]],"mod":[["abstract_unix_ns",""],["unix",""]]});
+initSidebarItems({"enum":[["Socket",""],["SocketRef",""],["SocketRefMut",""]],"fn":[["empty_sockaddr","Returns a nix socket address object where only the family is set."]],"mod":[["abstract_unix_ns",""],["unix",""]]});

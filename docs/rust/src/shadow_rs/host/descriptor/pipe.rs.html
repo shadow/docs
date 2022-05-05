@@ -377,12 +377,28 @@
 <span id="372">372</span>
 <span id="373">373</span>
 <span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf</span>::{<span class="ident">BufferHandle</span>, <span class="ident">BufferState</span>, <span class="ident">SharedBuf</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf</span>::{
+    <span class="ident">BufferHandle</span>, <span class="ident">BufferState</span>, <span class="ident">ReaderHandle</span>, <span class="ident">SharedBuf</span>, <span class="ident">WriterHandle</span>,
+};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
     <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>,
 };
@@ -391,7 +407,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::stream_len::StreamLen</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PipeFile</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pipe</span> {
     <span class="ident">buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">event_source</span>: <span class="ident">StateEventSource</span>,
     <span class="ident">state</span>: <span class="ident">FileState</span>,
@@ -399,14 +415,16 @@
     <span class="ident">status</span>: <span class="ident">FileStatus</span>,
     <span class="ident">write_mode</span>: <span class="ident">WriteMode</span>,
     <span class="ident">buffer_event_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BufferHandle</span><span class="op">&gt;</span>,
+    <span class="ident">reader_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ReaderHandle</span><span class="op">&gt;</span>,
+    <span class="ident">writer_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WriterHandle</span><span class="op">&gt;</span>,
     <span class="comment">// should only be used by `OpenFile` to make sure there is only ever one `OpenFile` instance for</span>
     <span class="comment">// this file</span>
     <span class="ident">has_open_file</span>: <span class="ident">bool</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">PipeFile</span> {
-    <span class="doccomment">/// Create a new [`PipeFile`]. The new pipe must be initialized using</span>
-    <span class="doccomment">/// [`PipeFile::connect_to_buffer`] before any of its methods are called.</span>
+<span class="kw">impl</span> <span class="ident">Pipe</span> {
+    <span class="doccomment">/// Create a new [`Pipe`]. The new pipe must be initialized using [`Pipe::connect_to_buffer`]</span>
+    <span class="doccomment">/// before any of its methods are called.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">mode</span>: <span class="ident">FileMode</span>, <span class="ident">status</span>: <span class="ident">FileStatus</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">buffer</span>: <span class="prelude-val">None</span>,
@@ -416,6 +434,8 @@
             <span class="ident">status</span>,
             <span class="ident">write_mode</span>: <span class="ident">WriteMode::Stream</span>,
             <span class="ident">buffer_event_handle</span>: <span class="prelude-val">None</span>,
+            <span class="ident">reader_handle</span>: <span class="prelude-val">None</span>,
+            <span class="ident">writer_handle</span>: <span class="prelude-val">None</span>,
             <span class="ident">has_open_file</span>: <span class="bool-val">false</span>,
         }
     }
@@ -449,25 +469,29 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
-        <span class="comment">// drop the event listener handle so that we stop receiving new events</span>
-        <span class="self">self</span>.<span class="ident">buffer_event_handle</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">stop_listening</span>();
-
-        <span class="comment">// if open for writing, inform the buffer that there is one fewer writers</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::WRITE</span>) {
-            <span class="self">self</span>.<span class="ident">buffer</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">borrow_mut</span>()
-                .<span class="ident">remove_writer</span>(<span class="ident">event_queue</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::CLOSED</span>) {
+            <span class="macro">log::warn!</span>(<span class="string">&quot;Attempting to close an already-closed pipe&quot;</span>);
         }
 
-        <span class="comment">// if open for reading, inform the buffer that there is one fewer readers</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::READ</span>) {
+        <span class="comment">// drop the event listener handle so that we stop receiving new events</span>
+        <span class="self">self</span>.<span class="ident">buffer_event_handle</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span>.<span class="ident">stop_listening</span>());
+
+        <span class="comment">// if acting as a writer, inform the buffer that there is one fewer writers</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">writer_handle</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">writer_handle</span>.<span class="ident">take</span>() {
             <span class="self">self</span>.<span class="ident">buffer</span>
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">unwrap</span>()
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">remove_reader</span>(<span class="ident">event_queue</span>);
+                .<span class="ident">remove_writer</span>(<span class="ident">writer_handle</span>, <span class="ident">event_queue</span>);
+        }
+
+        <span class="comment">// if acting as a reader, inform the buffer that there is one fewer readers</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reader_handle</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reader_handle</span>.<span class="ident">take</span>() {
+            <span class="self">self</span>.<span class="ident">buffer</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">borrow_mut</span>()
+                .<span class="ident">remove_reader</span>(<span class="ident">reader_handle</span>, <span class="ident">event_queue</span>);
         }
 
         <span class="comment">// no need to hold on to the buffer anymore</span>
@@ -615,19 +639,23 @@
         <span class="ident">pipe</span>.<span class="ident">buffer</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">buffer</span>);
 
         <span class="kw">if</span> <span class="ident">pipe</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::WRITE</span>) {
-            <span class="ident">pipe</span>.<span class="ident">buffer</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">borrow_mut</span>()
-                .<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
+            <span class="ident">pipe</span>.<span class="ident">writer_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
+                <span class="ident">pipe</span>.<span class="ident">buffer</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">borrow_mut</span>()
+                    .<span class="ident">add_writer</span>(<span class="ident">event_queue</span>),
+            );
         }
 
         <span class="kw">if</span> <span class="ident">pipe</span>.<span class="ident">mode</span>.<span class="ident">contains</span>(<span class="ident">FileMode::READ</span>) {
-            <span class="ident">pipe</span>.<span class="ident">buffer</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">borrow_mut</span>()
-                .<span class="ident">add_reader</span>(<span class="ident">event_queue</span>);
+            <span class="ident">pipe</span>.<span class="ident">reader_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
+                <span class="ident">pipe</span>.<span class="ident">buffer</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">borrow_mut</span>()
+                    .<span class="ident">add_reader</span>(<span class="ident">event_queue</span>),
+            );
         }
 
         <span class="comment">// buffer state changes that we want to receive events for</span>

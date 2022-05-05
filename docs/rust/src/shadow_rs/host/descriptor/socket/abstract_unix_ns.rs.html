@@ -342,21 +342,21 @@
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 <span class="kw">use</span> <span class="ident">rand::seq::SliceRandom</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::unix</span>::{<span class="ident">UnixSocketFile</span>, <span class="ident">UnixSocketType</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::unix</span>::{<span class="ident">UnixSocket</span>, <span class="ident">UnixSocketType</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::FileState</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">StateEventSource</span>, <span class="ident">StateListenerFilter</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue::Handle</span>;
 
 <span class="kw">struct</span> <span class="ident">NamespaceEntry</span> {
     <span class="doccomment">/// The bound socket.</span>
-    <span class="ident">socket</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">socket</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The event listener handle, which removes the listener when dropped.</span>
     <span class="ident">_handle</span>: <span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">NamespaceEntry</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">socket</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">handle</span>: <span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -391,7 +391,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">sock_type</span>: <span class="ident">UnixSocketType</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// the unwrap() will panic if the socket was dropped without being closed, but this should</span>
         <span class="comment">// only be possible at the end of the simulation and there wouldn&#39;t be any reason to call</span>
         <span class="comment">// lookup() at that time, so a panic here would most likely indicate an issue somewhere else</span>
@@ -407,7 +407,7 @@
         <span class="ident">ns_arc</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">sock_type</span>: <span class="ident">UnixSocketType</span>,
         <span class="kw-2">mut</span> <span class="ident">name</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">socket_event_source</span>: <span class="kw-2">&amp;mut</span> <span class="ident">StateEventSource</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">BindError</span><span class="op">&gt;</span> {
         <span class="comment">// make sure we aren&#39;t wasting memory since we don&#39;t mutate the name</span>
@@ -436,7 +436,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">autobind</span>(
         <span class="ident">ns_arc</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">sock_type</span>: <span class="ident">UnixSocketType</span>,
-        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocketFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">socket_event_source</span>: <span class="kw-2">&amp;mut</span> <span class="ident">StateEventSource</span>,
         <span class="kw-2">mut</span> <span class="ident">rng</span>: <span class="kw">impl</span> <span class="ident">rand::Rng</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">BindError</span><span class="op">&gt;</span> {
