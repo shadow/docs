@@ -507,6 +507,27 @@
 <span id="502">502</span>
 <span id="503">503</span>
 <span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">regex::Regex</span>;
 <span class="kw">use</span> <span class="ident">std::error::Error</span>;
@@ -591,7 +612,7 @@
     <span class="kw">pub</span> <span class="ident">offset</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">device_major</span>: <span class="ident">i32</span>,
     <span class="kw">pub</span> <span class="ident">device_minor</span>: <span class="ident">i32</span>,
-    <span class="kw">pub</span> <span class="ident">inode</span>: <span class="ident">i32</span>,
+    <span class="kw">pub</span> <span class="ident">inode</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span> <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MappingPath</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">deleted</span>: <span class="ident">bool</span>,
 }
@@ -666,7 +687,7 @@
             <span class="comment">// Undocumented whether this is actually base 10; change to 16 if we find</span>
             <span class="comment">// counter-examples.</span>
             <span class="ident">inode</span>: <span class="ident">parse_field</span>(<span class="ident">caps</span>.<span class="ident">get</span>(<span class="number">10</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>(), <span class="string">&quot;inode&quot;</span>, <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-                <span class="ident">i32::from_str_radix</span>(<span class="ident">s</span>, <span class="number">10</span>)
+                <span class="ident">u64::from_str_radix</span>(<span class="ident">s</span>, <span class="number">10</span>)
             })<span class="question-mark">?</span>,
             <span class="ident">path</span>: <span class="ident">parse_field</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span>(
                 <span class="ident">caps</span>.<span class="ident">get</span>(<span class="number">11</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>(),
@@ -868,6 +889,27 @@
                     .<span class="ident">unwrap</span>();
             <span class="macro">assert!</span>(<span class="ident">mapping</span>.<span class="ident">deleted</span>);
         }
+
+        <span class="comment">// A large 64-bit inode value.</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="string">&quot;00400000-00452000 r-xp 00000000 08:02 18446744073709551615      /usr/bin/dbus-daemon&quot;</span>
+                .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Mapping</span><span class="op">&gt;</span>()
+                .<span class="ident">unwrap</span>(),
+            <span class="ident">Mapping</span> {
+                <span class="ident">begin</span>: <span class="number">0x00400000</span>,
+                <span class="ident">end</span>: <span class="number">0x00452000</span>,
+                <span class="ident">read</span>: <span class="bool-val">true</span>,
+                <span class="ident">write</span>: <span class="bool-val">false</span>,
+                <span class="ident">execute</span>: <span class="bool-val">true</span>,
+                <span class="ident">sharing</span>: <span class="ident">Sharing::Private</span>,
+                <span class="ident">offset</span>: <span class="number">0</span>,
+                <span class="ident">device_major</span>: <span class="number">8</span>,
+                <span class="ident">device_minor</span>: <span class="number">2</span>,
+                <span class="ident">inode</span>: <span class="number">18446744073709551615</span>,
+                <span class="ident">path</span>: <span class="prelude-val">Some</span>(<span class="ident">MappingPath::Path</span>(<span class="ident">PathBuf::from</span>(<span class="string">&quot;/usr/bin/dbus-daemon&quot;</span>))),
+                <span class="ident">deleted</span>: <span class="bool-val">false</span>,
+            }
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
