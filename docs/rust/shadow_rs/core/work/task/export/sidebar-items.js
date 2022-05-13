@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["taskref_clone","Creates a new reference to the `Task`."],["taskref_drop","Destroys this reference to the `Task`, dropping the `Task` if no references remain."],["taskref_execute","Executes the task."],["taskref_new","Create a new reference-counted task."]],"type":[["TaskArgumentFreeFunc",""],["TaskCallbackFunc",""],["TaskObjectFreeFunc",""]]});
