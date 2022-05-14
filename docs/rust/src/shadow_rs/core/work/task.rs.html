@@ -200,29 +200,6 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
@@ -230,57 +207,35 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">core::worker::Worker</span>,
     <span class="ident">host::host::Host</span>,
-    <span class="ident">utility</span>::{<span class="ident">IsSend</span>, <span class="ident">IsSync</span>},
+    <span class="ident">utility</span>::{<span class="ident">IsSend</span>, <span class="ident">IsSync</span>, <span class="ident">Magic</span>},
 };
 
 <span class="doccomment">/// Mostly for interoperability with C APIs.</span>
 <span class="doccomment">/// In Rust code that doesn&#39;t need to interact with C, it may make more sense</span>
 <span class="doccomment">/// to directly use a `FnMut(&amp;mut Host)` trait object.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TaskRef</span> {
+    <span class="ident">magic</span>: <span class="ident">Magic</span><span class="op">&lt;</span><span class="number">0xe0408897</span><span class="op">&gt;</span>,
     <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="comment">// Runtime memory error checking to help catch errors that C code is prone</span>
-    <span class="comment">// to.  Can probably drop once C interop is removed, if we don&#39;t drop this</span>
-    <span class="comment">// type altogether.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="ident">magic</span>: <span class="ident">u32</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TaskRef</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="kw">const</span> <span class="ident">MAGIC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xe0408897</span>;
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Worker::increment_object_alloc_counter</span>(<span class="string">&quot;TaskRef&quot;</span>);
         <span class="self">Self</span> {
             <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">f</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-            <span class="ident">magic</span>: <span class="ident"><span class="self">Self</span>::MAGIC</span>,
+            <span class="ident">magic</span>: <span class="ident">Magic::new</span>(),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) {
-        <span class="self">self</span>.<span class="ident">check_magic</span>();
+        <span class="self">self</span>.<span class="ident">magic</span>.<span class="ident">debug_check</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>();
         <span class="ident">inner</span>(<span class="ident">host</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">clear_magic</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="kw">unsafe</span> {
-            <span class="ident">std::ptr::write_volatile</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">magic</span>, <span class="number">0</span>)
-        };
-    }
-
-    <span class="kw">fn</span> <span class="ident">check_magic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">magic</span> <span class="op">==</span> <span class="ident"><span class="self">Self</span>::MAGIC</span>);
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">TaskRef</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">check_magic</span>();
-        <span class="self">self</span>.<span class="ident">clear_magic</span>();
         <span class="ident">Worker::increment_object_dealloc_counter</span>(<span class="string">&quot;TaskRef&quot;</span>);
     }
 }
@@ -290,7 +245,6 @@
         <span class="ident">Worker::increment_object_alloc_counter</span>(<span class="string">&quot;TaskRef&quot;</span>);
         <span class="self">Self</span> {
             <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
             <span class="ident">magic</span>: <span class="self">self</span>.<span class="ident">magic</span>.<span class="ident">clone</span>(),
         }
     }
