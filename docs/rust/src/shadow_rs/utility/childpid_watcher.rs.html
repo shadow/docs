@@ -653,6 +653,10 @@
 <span id="648">648</span>
 <span id="649">649</span>
 <span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">nix::fcntl</span>::{<span class="ident">FcntlArg</span>, <span class="ident">FdFlag</span>, <span class="ident">OFlag</span>};
 <span class="kw">use</span> <span class="ident">nix::sys::epoll</span>::{
@@ -1272,6 +1276,10 @@
     <span class="doccomment">/// The returned handle is guaranteed to be non-zero.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `pid` doesn&#39;t exist.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// SAFETY: It must be safe for `callback` to execute and manipulate `data`</span>
+    <span class="doccomment">/// from another thread. e.g. typically this means that `data` must be `Send`</span>
+    <span class="doccomment">/// and `Sync`.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">childpidwatcher_watch</span>(
         <span class="ident">watcher</span>: <span class="kw-2">*const</span> <span class="ident">ChildPidWatcher</span>,
@@ -1279,7 +1287,7 @@
         <span class="ident">callback</span>: <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">libc::pid_t</span>, <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>),
         <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
     ) -&gt; <span class="ident">WatchHandle</span> {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">SyncSendPointer</span>(<span class="ident">data</span>);
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">SyncSendPointer::new</span>(<span class="ident">data</span>) };
         <span class="kw">unsafe</span> { <span class="ident">watcher</span>.<span class="ident">as_ref</span>() }
             .<span class="ident">unwrap</span>()
             .<span class="ident">register_callback</span>(<span class="ident">Pid::from_raw</span>(<span class="ident">pid</span>), <span class="kw">move</span> <span class="op">|</span><span class="ident">pid</span><span class="op">|</span> {

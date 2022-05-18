@@ -136,9 +136,53 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::worker::Worker</span>;
-
-<span class="comment">// defines macros, so must be included first</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+</pre><pre class="rust"><code><span class="comment">// defines macros, so must be included first</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">enum_passthrough</span>;
 
@@ -159,23 +203,71 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syscall</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">time</span>;
 
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">core::worker::Worker</span>, <span class="ident">host::host::HostId</span>};
+
 <span class="doccomment">/// A type that allows us to make a pointer Send + Sync since there is no way</span>
 <span class="doccomment">/// to add these traits to the pointer itself.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SyncSendPointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="kw-2">*mut</span> <span class="ident">T</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SyncSendPointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">*mut</span> <span class="ident">T</span>);
 
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">SyncSendPointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">SyncSendPointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">SyncSendPointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get the pointer.</span>
+    <span class="doccomment">/// SAFETY: The object pointed to by `ptr` must actually be `Send` and</span>
+    <span class="doccomment">/// `Sync`, or else not subsequently used in contexts where it matters.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">ptr</span>)
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">T</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
+}
 
-    <span class="doccomment">/// Get a mutable reference to the pointer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_ref</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="kw-2">*mut</span> <span class="ident">T</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="number">0</span>
+<span class="doccomment">/// A pointer to an object that is safe to dereference from any thread,</span>
+<span class="doccomment">/// *if* the Host lock for the specified host is held.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">host_id</span>: <span class="ident">HostId</span>,
+    <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>,
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Create a pointer that may only be accessed when the lock for `host_id`</span>
+    <span class="doccomment">/// is held.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_for_host</span>(<span class="ident">host_id</span>: <span class="ident">HostId</span>, <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">host_id</span>, <span class="ident">ptr</span> }
+    }
+
+    <span class="doccomment">/// Create a pointer that may only be accessed when the lock for the current host</span>
+    <span class="doccomment">/// is held.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">host_id</span> <span class="op">=</span> <span class="ident">Worker::with_active_host_info</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span>.<span class="ident">id</span>);
+        <span class="ident"><span class="self">Self</span>::new_for_host</span>(<span class="ident">host_id</span>.<span class="ident">unwrap</span>(), <span class="ident">ptr</span>)
+    }
+
+    <span class="doccomment">/// Get the pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if the configured host lock is not held.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// SAFETY: Pointer must only be dereferenced with the Host lock held, in</span>
+    <span class="doccomment">/// addition to the normal safety requirements for dereferencing a pointer.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">T</span> {
+        <span class="comment">// While a caller might conceivably get the pointer without the lock</span>
+        <span class="comment">// held but only dereference after it actually is held, better to be</span>
+        <span class="comment">// conservative here and try to catch mistakes.</span>
+        <span class="comment">//</span>
+        <span class="comment">// This function is still `unsafe` since it&#39;s now the caller&#39;s</span>
+        <span class="comment">// responsibility to not release the lock and *then* dereference the</span>
+        <span class="comment">// pointer.</span>
+        <span class="ident">Worker::with_active_host_info</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
+            <span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="ident">host_id</span>, <span class="ident">i</span>.<span class="ident">id</span>);
+        });
+        <span class="self">self</span>.<span class="ident">ptr</span>
     }
 }
 

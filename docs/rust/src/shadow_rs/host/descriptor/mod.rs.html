@@ -1083,6 +1083,19 @@
 <span id="1078">1078</span>
 <span id="1079">1079</span>
 <span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
@@ -1092,7 +1105,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallError</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">EventSource</span>, <span class="ident">Handle</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility</span>::{<span class="ident">IsSend</span>, <span class="ident">IsSync</span>, <span class="ident">SyncSendPointer</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility</span>::{<span class="ident">HostTreePointer</span>, <span class="ident">IsSend</span>, <span class="ident">IsSync</span>};
 
 <span class="kw">use</span> <span class="ident">socket</span>::{<span class="ident">Socket</span>, <span class="ident">SocketRef</span>, <span class="ident">SocketRefMut</span>};
 
@@ -1223,17 +1236,21 @@
 
 <span class="doccomment">/// A wrapper for a `*mut c::StatusListener` that increments its ref count when created,</span>
 <span class="doccomment">/// and decrements when dropped.</span>
-<span class="kw">struct</span> <span class="ident">LegacyListener</span>(<span class="ident">SyncSendPointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>);
+<span class="kw">struct</span> <span class="ident">LegacyListener</span>(<span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">LegacyListener</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>) -&gt; <span class="self">Self</span> {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">ptr</span>.<span class="ident">is_null</span>());
-        <span class="kw">unsafe</span> { <span class="ident">c::statuslistener_ref</span>(<span class="ident">ptr</span>) };
-        <span class="self">Self</span>(<span class="ident">SyncSendPointer</span>(<span class="ident">ptr</span>))
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">unsafe</span> { <span class="ident">ptr</span>.<span class="ident">ptr</span>().<span class="ident">is_null</span>() });
+        <span class="kw">unsafe</span> { <span class="ident">c::statuslistener_ref</span>(<span class="ident">ptr</span>.<span class="ident">ptr</span>()) };
+        <span class="self">Self</span>(<span class="ident">ptr</span>)
     }
+}
 
-    <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">ptr</span>()
+<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">LegacyListener</span> {
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
 
@@ -1257,13 +1274,16 @@
 
     <span class="kw">fn</span> <span class="ident">add_listener</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>,
+        <span class="ident">ptr</span>: <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>,
         <span class="ident">event_source</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventSource</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span>,
     ) {
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">ptr</span>.<span class="ident">is_null</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="kw">unsafe</span> { <span class="ident">ptr</span>.<span class="ident">ptr</span>() }.<span class="ident">is_null</span>());
 
         <span class="comment">// if it&#39;s already listening, don&#39;t add a second time</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">handle_map</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>)) {
+        <span class="kw">if</span> <span class="self">self</span>
+            .<span class="ident">handle_map</span>
+            .<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span>(<span class="kw">unsafe</span> { <span class="ident">ptr</span>.<span class="ident">ptr</span>() } <span class="kw">as</span> <span class="ident">usize</span>))
+        {
             <span class="kw">return</span>;
         }
 
@@ -1275,7 +1295,8 @@
         });
 
         <span class="comment">// use a usize as the key so we don&#39;t accidentally deref the pointer</span>
-        <span class="self">self</span>.<span class="ident">handle_map</span>.<span class="ident">insert</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">handle</span>);
+        <span class="self">self</span>.<span class="ident">handle_map</span>
+            .<span class="ident">insert</span>(<span class="kw">unsafe</span> { <span class="ident">ptr</span>.<span class="ident">ptr</span>() } <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">handle</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">remove_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>) {
@@ -1331,7 +1352,7 @@
             })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">legacy_helper</span>.<span class="ident">add_listener</span>(<span class="ident">ptr</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>);
     }
 
@@ -1483,7 +1504,7 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ioctl</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">request</span>: <span class="ident">u64</span>, <span class="ident">arg_ptr</span>: <span class="ident">PluginPtr</span>, <span class="ident">memory_manager</span>: <span class="kw-2">&amp;mut</span> <span class="ident">MemoryManager</span>) -&gt; <span class="ident">SyscallResult</span>
     );
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">ptr</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>)
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>)
     );
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">ptr</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>)
@@ -1729,17 +1750,18 @@
 <span class="doccomment">/// Represents a counted reference to a legacy descriptor object. Will decrement the descriptor&#39;s</span>
 <span class="doccomment">/// ref count when dropped.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CountedLegacyDescriptorRef</span>(<span class="ident">SyncSendPointer</span><span class="op">&lt;</span><span class="ident">c::LegacyDescriptor</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CountedLegacyDescriptorRef</span>(<span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::LegacyDescriptor</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">CountedLegacyDescriptorRef</span> {
     <span class="doccomment">/// Does not increment the legacy descriptor&#39;s ref count, but will decrement the ref count</span>
     <span class="doccomment">/// when dropped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::LegacyDescriptor</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">SyncSendPointer</span>(<span class="ident">ptr</span>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::LegacyDescriptor</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">ptr</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c::LegacyDescriptor</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">ptr</span>()
+    <span class="doccomment">/// SAFETY: See `HostTreePointer::ptr`.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c::LegacyDescriptor</span> {
+        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="number">0</span>.<span class="ident">ptr</span>() }
     }
 }
 
@@ -1820,13 +1842,14 @@
     <span class="doccomment">/// does not increment its ref count, but will decrement the ref count when this compat</span>
     <span class="doccomment">/// descriptor is freed/dropped.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_fromLegacy</span>(
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_fromLegacy</span>(
         <span class="ident">legacy_descriptor</span>: <span class="kw-2">*mut</span> <span class="ident">c::LegacyDescriptor</span>,
     ) -&gt; <span class="kw-2">*mut</span> <span class="ident">CompatDescriptor</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">legacy_descriptor</span>.<span class="ident">is_null</span>());
 
-        <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">CountedLegacyDescriptorRef::new</span>(<span class="ident">legacy_descriptor</span>));
+        <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">CountedLegacyDescriptorRef::new</span>(
+            <span class="ident">HostTreePointer::new</span>(<span class="ident">legacy_descriptor</span>),
+        ));
         <span class="ident">CompatDescriptor::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">descriptor</span>))
     }
 
@@ -1842,7 +1865,7 @@
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">d</span>) <span class="op">=</span> <span class="ident">descriptor</span> {
-            <span class="ident">d</span>.<span class="ident">ptr</span>()
+            <span class="kw">unsafe</span> { <span class="ident">d</span>.<span class="ident">ptr</span>() }
         } <span class="kw">else</span> {
             <span class="ident">std::ptr::null_mut</span>()
         }
@@ -1913,7 +1936,7 @@
     <span class="doccomment">/// ref count, and will decrement the ref count when this status listener is removed or when the</span>
     <span class="doccomment">/// `OpenFile` is freed/dropped.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">openfile_addListener</span>(
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">openfile_addListener</span>(
         <span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">OpenFile</span>,
         <span class="ident">listener</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>,
     ) {
@@ -1922,7 +1945,9 @@
 
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };
 
-        <span class="ident">file</span>.<span class="ident">inner_file</span>().<span class="ident">borrow_mut</span>().<span class="ident">add_legacy_listener</span>(<span class="ident">listener</span>);
+        <span class="ident">file</span>.<span class="ident">inner_file</span>()
+            .<span class="ident">borrow_mut</span>()
+            .<span class="ident">add_legacy_listener</span>(<span class="ident">HostTreePointer::new</span>(<span class="ident">listener</span>));
     }
 
     <span class="doccomment">/// Remove a listener from the `OpenFile` object.</span>
@@ -1992,13 +2017,14 @@
     <span class="doccomment">/// count, and will decrement the ref count when this status listener is removed or when the</span>
     <span class="doccomment">/// `File` is freed/dropped.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">file_addListener</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">File</span>, <span class="ident">listener</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>) {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">file_addListener</span>(<span class="ident">file</span>: <span class="kw-2">*const</span> <span class="ident">File</span>, <span class="ident">listener</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">file</span>.<span class="ident">is_null</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">listener</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">file</span> };
 
-        <span class="ident">file</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_legacy_listener</span>(<span class="ident">listener</span>);
+        <span class="ident">file</span>.<span class="ident">borrow_mut</span>()
+            .<span class="ident">add_legacy_listener</span>(<span class="ident">HostTreePointer::new</span>(<span class="ident">listener</span>));
     }
 
     <span class="doccomment">/// Remove a listener from the `File` object.</span>
