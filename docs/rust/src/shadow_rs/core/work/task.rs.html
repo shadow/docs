@@ -188,42 +188,31 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">core::worker::Worker</span>,
     <span class="ident">host::host::Host</span>,
-    <span class="ident">utility</span>::{<span class="ident">IsSend</span>, <span class="ident">IsSync</span>, <span class="ident">Magic</span>},
+    <span class="ident">utility</span>::{<span class="ident">IsSend</span>, <span class="ident">IsSync</span>, <span class="ident">Magic</span>, <span class="ident">ObjectCounter</span>},
 };
 
 <span class="doccomment">/// Mostly for interoperability with C APIs.</span>
 <span class="doccomment">/// In Rust code that doesn&#39;t need to interact with C, it may make more sense</span>
 <span class="doccomment">/// to directly use a `FnMut(&amp;mut Host)` trait object.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TaskRef</span> {
     <span class="ident">magic</span>: <span class="ident">Magic</span><span class="op">&lt;</span><span class="number">0xe0408897</span><span class="op">&gt;</span>,
+    <span class="ident">_counter</span>: <span class="ident">ObjectCounter</span>,
     <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TaskRef</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Worker::increment_object_alloc_counter</span>(<span class="string">&quot;TaskRef&quot;</span>);
         <span class="self">Self</span> {
             <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">f</span>)),
             <span class="ident">magic</span>: <span class="ident">Magic::new</span>(),
+            <span class="ident">_counter</span>: <span class="ident">ObjectCounter::new</span>(<span class="string">&quot;TaskRef&quot;</span>),
         }
     }
 
@@ -234,27 +223,14 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">TaskRef</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="ident">Worker::increment_object_dealloc_counter</span>(<span class="string">&quot;TaskRef&quot;</span>);
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TaskRef</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Worker::increment_object_alloc_counter</span>(<span class="string">&quot;TaskRef&quot;</span>);
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>(),
-            <span class="ident">magic</span>: <span class="self">self</span>.<span class="ident">magic</span>.<span class="ident">clone</span>(),
-        }
-    }
-}
-
 <span class="kw">impl</span> <span class="ident">IsSend</span> <span class="kw">for</span> <span class="ident">TaskRef</span> {}
 <span class="kw">impl</span> <span class="ident">IsSync</span> <span class="kw">for</span> <span class="ident">TaskRef</span> {}
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">export</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::worker::Worker</span>;
 
     <span class="kw">use</span> <span class="kw">crate</span>::{
         <span class="ident">cshadow</span>,
