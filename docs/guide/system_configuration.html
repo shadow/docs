@@ -150,11 +150,13 @@
 <p>Some Linux system configuration changes are needed to run large-scale Shadow
 simulations (more than about 1000 processes).</p>
 <h2 id="number-of-open-files"><a class="header" href="#number-of-open-files">Number of Open Files</a></h2>
-<p>There is a default linux system limit on the number of open files. If each
-process in your Shadow virtual host opens many file or socket descriptors (if
-you have many hosts, this is very likely to happen), you'll likely want to
-increase the limit so you application doesn't start getting errors when calling
-<code>open()</code> or <code>socket()</code>.</p>
+<p>There is a default Linux system limit on the total number of open files. Since
+Shadow opens files from within its own process space and not from within the
+managed processes, both the system limit and the per-process limit must be
+greater than the combined total number of files opened by all managed
+processes. If each managed process in your simulation opens many files, you'll
+likely want to increase the limit so that your application doesn't receive
+<code>EMFILE</code> errors when calling <code>open()</code>.</p>
 <h3 id="system-wide-limits"><a class="header" href="#system-wide-limits">System-wide Limits</a></h3>
 <p>Check the <em>system-wide</em> limits with:</p>
 <pre><code class="language-bash">sysctl fs.nr_open # per-process open file limit
