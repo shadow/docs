@@ -266,15 +266,7 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-
-<span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">host::host::Host</span>,
@@ -283,27 +275,26 @@
 
 <span class="doccomment">/// Mostly for interoperability with C APIs.</span>
 <span class="doccomment">/// In Rust code that doesn&#39;t need to interact with C, it may make more sense</span>
-<span class="doccomment">/// to directly use a `FnMut(&amp;mut Host)` trait object.</span>
+<span class="doccomment">/// to directly use a `Fn(&amp;mut Host)` trait object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TaskRef</span> {
     <span class="ident">magic</span>: <span class="ident">Magic</span><span class="op">&lt;</span><span class="number">0xe0408897</span><span class="op">&gt;</span>,
     <span class="ident">_counter</span>: <span class="ident">ObjectCounter</span>,
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TaskRef</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">AtomicRefCell::new</span>(<span class="ident">f</span>)),
+            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<span class="ident">f</span>),
             <span class="ident">magic</span>: <span class="ident">Magic::new</span>(),
             <span class="ident">_counter</span>: <span class="ident">ObjectCounter::new</span>(<span class="string">&quot;TaskRef&quot;</span>),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Host</span>) {
         <span class="self">self</span>.<span class="ident">magic</span>.<span class="ident">debug_check</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>();
-        <span class="ident">inner</span>(<span class="ident">host</span>)
+        (<span class="self">self</span>.<span class="ident">inner</span>)(<span class="ident">host</span>)
     }
 }
 
@@ -312,9 +303,6 @@
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">export</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::worker::Worker</span>;
 
     <span class="kw">use</span> <span class="kw">crate</span>::{
         <span class="ident">cshadow</span>,

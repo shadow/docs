@@ -403,6 +403,36 @@
 <span id="398">398</span>
 <span id="399">399</span>
 <span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
 
@@ -419,6 +449,8 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::notnull</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::work::task::TaskRef</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WorkerThreadID</span>(<span class="ident">u32</span>);
@@ -613,6 +645,34 @@
 
     <span class="kw">fn</span> <span class="ident">set_last_event_time</span>(<span class="ident">t</span>: <span class="ident">EmulatedTime</span>) {
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">last</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_task_at_emulated_time</span>(
+        <span class="kw-2">mut</span> <span class="ident">task</span>: <span class="ident">TaskRef</span>,
+        <span class="ident">host</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Host</span>,
+        <span class="ident">t</span>: <span class="ident">EmulatedTime</span>,
+    ) -&gt; <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">cshadow::worker_scheduleTaskAtEmulatedTime</span>(
+                <span class="kw-2">&amp;mut</span> <span class="ident">task</span>,
+                <span class="ident">host</span>.<span class="ident">chost</span>(),
+                <span class="ident">EmulatedTime::to_c_emutime</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>)),
+            )
+        };
+        <span class="comment">// Intentionally drop `task`. worker_scheduleTaskAtEmulatedTime clones.</span>
+        <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_task_with_delay</span>(<span class="kw-2">mut</span> <span class="ident">task</span>: <span class="ident">TaskRef</span>, <span class="ident">host</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Host</span>, <span class="ident">t</span>: <span class="ident">SimulationTime</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident">cshadow::worker_scheduleTaskWithDelay</span>(
+                <span class="kw-2">&amp;mut</span> <span class="ident">task</span>,
+                <span class="ident">host</span>.<span class="ident">chost</span>(),
+                <span class="ident">SimulationTime::to_c_simtime</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>)),
+            )
+        };
+        <span class="comment">// Intentionally drop `task`. worker_scheduleTaskAtEmulatedTime clones.</span>
+        <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_min_host_runahead</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
