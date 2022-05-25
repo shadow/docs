@@ -187,6 +187,33 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
 </pre><pre class="rust"><code><span class="doccomment">//! An event/listener framework to allow listeners to subscribe to event sources. To prevent</span>
 <span class="doccomment">//! recursive events (events which trigger new events) from leading to two listeners attempting to</span>
 <span class="doccomment">//! mutate the same state simultaneously, an event queue is used to defer new events until the</span>
@@ -204,6 +231,14 @@
     <span class="doccomment">/// Create an empty event queue.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">std::collections::VecDeque::new</span>())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">len</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Add an event to the queue.</span>
@@ -238,6 +273,25 @@
         <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> (<span class="ident">f</span>)(<span class="kw-2">&amp;mut</span> <span class="ident">event_queue</span>);
         <span class="ident">event_queue</span>.<span class="ident">run</span>();
         <span class="ident">rv</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">std::ops::Drop</span> <span class="kw">for</span> <span class="ident">EventQueue</span> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="comment">// don&#39;t show the following warning message if panicking</span>
+        <span class="kw">if</span> <span class="ident">std::thread::panicking</span>() {
+            <span class="kw">return</span>;
+        }
+
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">const</span> <span class="ident">MSG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Dropping EventQueue while it still has events pending.&quot;</span>;
+
+            <span class="macro">log::warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">MSG</span>);
+
+            <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+            <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">MSG</span>);
+        }
     }
 }
 

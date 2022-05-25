@@ -1093,6 +1093,10 @@
 <span id="1088">1088</span>
 <span id="1089">1089</span>
 <span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
 </pre><pre class="rust"><code><span class="comment">/*
  * The Shadow Simulator
  * See LICENSE for licensing information
@@ -1103,7 +1107,7 @@
 
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
-<span class="kw">use</span> <span class="ident">nix::sys::time::TimeValLike</span>;
+<span class="kw">use</span> <span class="ident">nix::poll::PollFlags</span>;
 
 <span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="comment">// should we restrict the tests we run?</span>
@@ -1534,8 +1538,17 @@
             );
         });
 
-        <span class="comment">// read fd should be readable</span>
-        <span class="macro">assert!</span>(<span class="ident">is_readable</span>(<span class="ident">read_fd</span>).<span class="ident">unwrap</span>());
+        <span class="comment">// read fd should be POLLHUP</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">test_utils::poll_status</span>(<span class="ident">read_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>(),
+            <span class="comment">// shadow doesn&#39;t support POLLHUP</span>
+            <span class="comment">// https://github.com/shadow/shadow/issues/2181</span>
+            <span class="kw">if</span> <span class="ident">test_utils::running_in_shadow</span>() {
+                <span class="ident">PollFlags::POLLIN</span>
+            } <span class="kw">else</span> {
+                <span class="ident">PollFlags::POLLHUP</span>
+            }
+        );
 
         <span class="comment">// the write fd is closed, so reading should return 0</span>
         <span class="macro">assert_eq!</span>(<span class="ident">nix::unistd::read</span>(<span class="ident">read_fd</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>(), <span class="number">0</span>);
@@ -1570,13 +1583,22 @@
         });
 
         <span class="comment">// read fd should be readable</span>
-        <span class="macro">assert!</span>(<span class="ident">is_readable</span>(<span class="ident">read_fd</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert!</span>(<span class="ident">test_utils::is_readable</span>(<span class="ident">read_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>());
 
         <span class="comment">// the write fd is closed, but there are still bytes remaining</span>
         <span class="macro">assert_eq!</span>(<span class="ident">nix::unistd::read</span>(<span class="ident">read_fd</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>(), <span class="number">3</span>);
 
-        <span class="comment">// read fd should be readable</span>
-        <span class="macro">assert!</span>(<span class="ident">is_readable</span>(<span class="ident">read_fd</span>).<span class="ident">unwrap</span>());
+        <span class="comment">// read fd should be POLLHUP</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">test_utils::poll_status</span>(<span class="ident">read_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>(),
+            <span class="comment">// shadow doesn&#39;t support POLLHUP</span>
+            <span class="comment">// https://github.com/shadow/shadow/issues/2181</span>
+            <span class="kw">if</span> <span class="ident">test_utils::running_in_shadow</span>() {
+                <span class="ident">PollFlags::POLLIN</span>
+            } <span class="kw">else</span> {
+                <span class="ident">PollFlags::POLLHUP</span>
+            }
+        );
 
         <span class="comment">// the write fd is closed, so reading should return 0</span>
         <span class="macro">assert_eq!</span>(<span class="ident">nix::unistd::read</span>(<span class="ident">read_fd</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>).<span class="ident">unwrap</span>(), <span class="number">0</span>);
@@ -1609,13 +1631,22 @@
         }
 
         <span class="comment">// write fd should not be writable</span>
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">is_writable</span>(<span class="ident">write_fd</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">test_utils::is_writable</span>(<span class="ident">write_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>());
 
         <span class="comment">// close the read fd</span>
         <span class="ident">nix::unistd::close</span>(<span class="ident">read_fd</span>).<span class="ident">unwrap</span>();
 
-        <span class="comment">// write fd should be writable</span>
-        <span class="macro">assert!</span>(<span class="ident">is_writable</span>(<span class="ident">write_fd</span>).<span class="ident">unwrap</span>());
+        <span class="comment">// write fd should be POLLERR</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">test_utils::poll_status</span>(<span class="ident">write_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>(),
+            <span class="comment">// shadow doesn&#39;t support POLLERR</span>
+            <span class="comment">// https://github.com/shadow/shadow/issues/2181</span>
+            <span class="kw">if</span> <span class="ident">test_utils::running_in_shadow</span>() {
+                <span class="ident">PollFlags::POLLOUT</span>
+            } <span class="kw">else</span> {
+                <span class="ident">PollFlags::POLLERR</span>
+            }
+        );
 
         <span class="comment">// the read fd is closed, so writing should return EPIPE</span>
         <span class="macro">assert_eq!</span>(
@@ -1623,8 +1654,17 @@
             <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::EPIPE</span>)
         );
 
-        <span class="comment">// write fd should be writable</span>
-        <span class="macro">assert!</span>(<span class="ident">is_writable</span>(<span class="ident">write_fd</span>).<span class="ident">unwrap</span>());
+        <span class="comment">// write fd should be POLLERR</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">test_utils::poll_status</span>(<span class="ident">write_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>(),
+            <span class="comment">// shadow doesn&#39;t support POLLERR</span>
+            <span class="comment">// https://github.com/shadow/shadow/issues/2181</span>
+            <span class="kw">if</span> <span class="ident">test_utils::running_in_shadow</span>() {
+                <span class="ident">PollFlags::POLLOUT</span>
+            } <span class="kw">else</span> {
+                <span class="ident">PollFlags::POLLERR</span>
+            }
+        );
     });
 
     <span class="prelude-val">Ok</span>(())
@@ -1649,7 +1689,7 @@
         });
 
         <span class="comment">// write fd should be writable</span>
-        <span class="macro">assert!</span>(<span class="ident">is_writable</span>(<span class="ident">write_fd</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert!</span>(<span class="ident">test_utils::is_writable</span>(<span class="ident">write_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>());
 
         <span class="comment">// the read fd is closed, so writing should return EPIPE</span>
         <span class="macro">assert_eq!</span>(
@@ -1658,7 +1698,7 @@
         );
 
         <span class="comment">// write fd should be writable</span>
-        <span class="macro">assert!</span>(<span class="ident">is_writable</span>(<span class="ident">write_fd</span>).<span class="ident">unwrap</span>());
+        <span class="macro">assert!</span>(<span class="ident">test_utils::is_writable</span>(<span class="ident">write_fd</span>, <span class="number">0</span>).<span class="ident">unwrap</span>());
     });
 
     <span class="prelude-val">Ok</span>(())
@@ -2150,38 +2190,6 @@
     <span class="ident">thread_handle</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>();
 
     <span class="prelude-val">Ok</span>(())
-}
-
-<span class="kw">fn</span> <span class="ident">is_readable</span>(<span class="ident">fd</span>: <span class="ident">libc::c_int</span>) -&gt; <span class="ident">nix::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_set</span> <span class="op">=</span> <span class="ident">nix::sys::select::FdSet::new</span>();
-    <span class="ident">read_set</span>.<span class="ident">insert</span>(<span class="ident">fd</span>);
-
-    <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">nix::sys::select::select</span>(
-        <span class="prelude-val">None</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">read_set</span>),
-        <span class="prelude-val">None</span>,
-        <span class="prelude-val">None</span>,
-        <span class="comment">// don&#39;t block</span>
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">nix::sys::time::TimeVal::seconds</span>(<span class="number">0</span>)),
-    )<span class="question-mark">?</span>;
-
-    <span class="prelude-val">Ok</span>(<span class="ident">count</span> <span class="op">==</span> <span class="number">1</span>)
-}
-
-<span class="kw">fn</span> <span class="ident">is_writable</span>(<span class="ident">fd</span>: <span class="ident">libc::c_int</span>) -&gt; <span class="ident">nix::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">write_set</span> <span class="op">=</span> <span class="ident">nix::sys::select::FdSet::new</span>();
-    <span class="ident">write_set</span>.<span class="ident">insert</span>(<span class="ident">fd</span>);
-
-    <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">nix::sys::select::select</span>(
-        <span class="prelude-val">None</span>,
-        <span class="prelude-val">None</span>,
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">write_set</span>),
-        <span class="prelude-val">None</span>,
-        <span class="comment">// don&#39;t block</span>
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut</span> <span class="ident">nix::sys::time::TimeVal::seconds</span>(<span class="number">0</span>)),
-    )<span class="question-mark">?</span>;
-
-    <span class="prelude-val">Ok</span>(<span class="ident">count</span> <span class="op">==</span> <span class="number">1</span>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="test_pipe" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
