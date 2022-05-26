@@ -1235,10 +1235,14 @@
 <span id="1230">1230</span>
 <span id="1231">1231</span>
 <span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::unix</span>::{<span class="ident">UnixSocket</span>, <span class="ident">UnixSocketType</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket</span>::{<span class="ident">empty_sockaddr</span>, <span class="ident">Socket</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::socket::Socket</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
     <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">File</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">OpenFile</span>,
 };
@@ -1625,15 +1629,17 @@
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
         };
 
-        <span class="kw">let</span> <span class="ident">addr_to_write</span> <span class="op">=</span> <span class="ident">socket</span>
-            .<span class="ident">borrow</span>()
-            .<span class="ident">get_bound_address</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">empty_sockaddr</span>(<span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">address_family</span>()));
+        <span class="comment">// linux will return an EFAULT before other errors</span>
+        <span class="kw">if</span> <span class="ident">addr_ptr</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">addr_len_ptr</span>.<span class="ident">is_null</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EFAULT</span>.<span class="ident">into</span>());
+        }
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Returning socket address of {}&quot;</span>, <span class="ident">addr_to_write</span>);
+        <span class="kw">let</span> <span class="ident">addr_to_write</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">getsockname</span>()<span class="question-mark">?</span>;
+
+        <span class="macro">debug!</span>(<span class="string">&quot;Returning socket address of {:?}&quot;</span>, <span class="ident">addr_to_write</span>);
         <span class="ident">write_sockaddr</span>(
             <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory_mut</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">addr_to_write</span>),
+            <span class="ident">addr_to_write</span>,
             <span class="ident">addr_ptr</span>,
             <span class="ident">addr_len_ptr</span>,
         )<span class="question-mark">?</span>;
@@ -1670,15 +1676,17 @@
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTSOCK</span>.<span class="ident">into</span>()),
         };
 
-        <span class="kw">let</span> <span class="ident">addr_to_write</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">get_peer_address</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOTCONN</span>.<span class="ident">into</span>()),
-        };
+        <span class="comment">// linux will return an EFAULT before other errors like ENOTCONN</span>
+        <span class="kw">if</span> <span class="ident">addr_ptr</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">addr_len_ptr</span>.<span class="ident">is_null</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EFAULT</span>.<span class="ident">into</span>());
+        }
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Returning peer address of {}&quot;</span>, <span class="ident">addr_to_write</span>);
+        <span class="kw">let</span> <span class="ident">addr_to_write</span> <span class="op">=</span> <span class="ident">socket</span>.<span class="ident">borrow</span>().<span class="ident">getpeername</span>()<span class="question-mark">?</span>;
+
+        <span class="macro">debug!</span>(<span class="string">&quot;Returning peer address of {:?}&quot;</span>, <span class="ident">addr_to_write</span>);
         <span class="ident">write_sockaddr</span>(
             <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">memory_mut</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">addr_to_write</span>),
+            <span class="ident">addr_to_write</span>,
             <span class="ident">addr_ptr</span>,
             <span class="ident">addr_len_ptr</span>,
         )<span class="question-mark">?</span>;
@@ -1840,7 +1848,7 @@
         <span class="comment">// must not drop the new socket without closing</span>
         <span class="kw">let</span> <span class="ident">new_socket</span> <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">from_addr</span> <span class="op">=</span> <span class="ident">new_socket</span>.<span class="ident">borrow</span>().<span class="ident">get_peer_address</span>();
+        <span class="kw">let</span> <span class="ident">from_addr</span> <span class="op">=</span> <span class="ident">new_socket</span>.<span class="ident">borrow</span>().<span class="ident">getpeername</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">addr_ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">write_sockaddr</span>(
