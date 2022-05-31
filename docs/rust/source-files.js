@@ -130,7 +130,7 @@ sourcesIndex["test_unaligned"] = {"name":"","files":["test_unaligned.rs"]};
 sourcesIndex["test_unistd"] = {"name":"","files":["test_unistd.rs"]};
 sourcesIndex["test_utils"] = {"name":"","files":["socket_utils.rs","test_utils.rs"]};
 sourcesIndex["textwrap"] = {"name":"","files":["core.rs","indentation.rs","lib.rs","word_separators.rs","word_splitters.rs","wrap_algorithms.rs"]};
-sourcesIndex["unicode_xid"] = {"name":"","files":["lib.rs","tables.rs"]};
+sourcesIndex["unicode_ident"] = {"name":"","files":["lib.rs","tables.rs"]};
 sourcesIndex["vsprintf"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["yaml_rust"] = {"name":"","files":["emitter.rs","lib.rs","parser.rs","scanner.rs","yaml.rs"]};
 createSourceSidebar();
