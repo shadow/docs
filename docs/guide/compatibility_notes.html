@@ -147,6 +147,14 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="compatibility-notes"><a class="header" href="#compatibility-notes">Compatibility Notes</a></h1>
+<ul>
+<li><a href="#libopenblas">libopenblas</a></li>
+<li><a href="#curl">cURL</a></li>
+<li><a href="#nginx">Nginx</a></li>
+<li><a href="#iperf-2">iPerf 2</a></li>
+<li><a href="#iperf-3">iPerf 3</a></li>
+<li><a href="#etcd-distributed-key-value-store">etcd (distributed key-value store)</a></li>
+</ul>
 <h2 id="libopenblas"><a class="header" href="#libopenblas">libopenblas</a></h2>
 <p>libopenblas is a fairly low-level library, and can get pulled in transitively
 via dependencies. e.g., <a href="https://github.com/shadow/tgen">tgen</a> uses libigraph,
@@ -367,6 +375,90 @@ socket option.</p>
 Shadow to deadlock. A workaround is to use the <code>model_unblocked_syscall_latency</code>
 option.</p>
 </li>
+</ol>
+<h2 id="etcd-distributed-key-value-store"><a class="header" href="#etcd-distributed-key-value-store">etcd (distributed key-value store)</a></h2>
+<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
+<p>Example for etcd version 3.5.x.</p>
+<pre><code class="language-yaml">general:
+  stop_time: 30s
+  model_unblocked_syscall_latency: true
+
+network:
+  graph:
+    type: gml
+    inline: |
+      graph [
+        node [
+          id 0
+          host_bandwidth_down &quot;20 Mbit&quot;
+          host_bandwidth_up &quot;20 Mbit&quot;
+        ]
+        edge [
+          source 0
+          target 0
+          latency &quot;150 ms&quot;
+          packet_loss 0.01
+        ]
+      ]
+
+hosts:
+  server1:
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/etcd
+      args:
+        --name server1
+        --log-outputs=stdout
+        --initial-cluster-token etcd-cluster-1
+        --initial-cluster 'server1=http://server1:2380,server2=http://server2:2380,server3=http://server3:2380'
+        --listen-client-urls http://0.0.0.0:2379
+        --advertise-client-urls http://server1:2379
+        --listen-peer-urls http://0.0.0.0:2380
+        --initial-advertise-peer-urls http://server1:2380
+    - path: /usr/bin/etcdctl
+      args: put my-key my-value
+      start_time: 10s
+  server2:
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/etcd
+      args:
+        --name server2
+        --log-outputs=stdout
+        --initial-cluster-token etcd-cluster-1
+        --initial-cluster 'server1=http://server1:2380,server2=http://server2:2380,server3=http://server3:2380'
+        --listen-client-urls http://0.0.0.0:2379
+        --advertise-client-urls http://server2:2379
+        --listen-peer-urls http://0.0.0.0:2380
+        --initial-advertise-peer-urls http://server2:2380
+    - path: /usr/bin/etcdctl
+      args: get my-key
+      start_time: 12s
+  server3:
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/etcd
+      args:
+        --name server3
+        --log-outputs=stdout
+        --initial-cluster-token etcd-cluster-1
+        --initial-cluster 'server1=http://server1:2380,server2=http://server2:2380,server3=http://server3:2380'
+        --listen-client-urls http://0.0.0.0:2379
+        --advertise-client-urls http://server3:2379
+        --listen-peer-urls http://0.0.0.0:2380
+        --initial-advertise-peer-urls http://server3:2380
+    - path: /usr/bin/etcdctl
+      args: get my-key
+      start_time: 12s
+</code></pre>
+<pre><code class="language-bash">rm -rf shadow.data; shadow shadow.yaml &gt; shadow.log
+</code></pre>
+<h3 id="notes-4"><a class="header" href="#notes-4">Notes</a></h3>
+<ol>
+<li>The etcd binary must not be statically linked. You can build a dynamically
+linked version by replacing <code>CGO_ENABLED=0</code> with <code>CGO_ENABLED=1</code> in etcd's
+<code>build.sh</code> script. The etcd packages included in the Debian and Ubuntu APT
+repositories are dynamically linked, so they can be used directly.</li>
 </ol>
 
                     </main>
