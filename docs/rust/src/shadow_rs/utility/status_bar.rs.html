@@ -297,6 +297,17 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::emulated_time::EmulatedTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::simulation_time::SimulationTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::time::TimeParts</span>;
@@ -475,6 +486,7 @@
     <span class="ident">start</span>: <span class="ident">std::time::Instant</span>,
     <span class="ident">current</span>: <span class="ident">EmulatedTime</span>,
     <span class="ident">end</span>: <span class="ident">EmulatedTime</span>,
+    <span class="ident">num_failed_processes</span>: <span class="ident">u32</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">ShadowStatusBarState</span> {
@@ -489,11 +501,12 @@
 
         <span class="macro">write!</span>(
             <span class="ident">f</span>,
-            <span class="string">&quot;{}% — simulated: {}/{}, realtime: {}&quot;</span>,
+            <span class="string">&quot;{}% — simulated: {}/{}, realtime: {}, processes failed: {}&quot;</span>,
             (<span class="ident">frac</span> <span class="op">*</span> <span class="number">100.0</span>).<span class="ident">round</span>() <span class="kw">as</span> <span class="ident">i8</span>,
             <span class="ident">sim_current</span>.<span class="ident">fmt_hr_min_sec</span>(),
             <span class="ident">sim_end</span>.<span class="ident">fmt_hr_min_sec</span>(),
             <span class="ident">realtime</span>.<span class="ident">fmt_hr_min_sec</span>(),
+            <span class="self">self</span>.<span class="ident">num_failed_processes</span>,
         )
     }
 }
@@ -504,11 +517,8 @@
             <span class="ident">start</span>: <span class="ident">std::time::Instant::now</span>(),
             <span class="ident">current</span>: <span class="ident">EmulatedTime::SIMULATION_START</span>,
             <span class="ident">end</span>,
+            <span class="ident">num_failed_processes</span>: <span class="number">0</span>,
         }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">current</span>: <span class="ident">EmulatedTime</span>) {
-        <span class="self">self</span>.<span class="ident">current</span> <span class="op">=</span> <span class="ident">current</span>;
     }
 }
 
@@ -578,7 +588,7 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">statusLogger_update</span>(
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">statusLogger_updateEmuTime</span>(
         <span class="ident">status_logger</span>: <span class="kw-2">*const</span> <span class="ident">StatusLogger</span><span class="op">&lt;</span><span class="ident">ShadowStatusBarState</span><span class="op">&gt;</span>,
         <span class="ident">current</span>: <span class="ident">u64</span>,
     ) {
@@ -587,7 +597,19 @@
         <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">current</span>);
 
         <span class="ident">status_logger</span>.<span class="ident">mutate_state</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-            <span class="ident">state</span>.<span class="ident">update</span>(<span class="ident">current</span>);
+            <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="ident">current</span>;
+        });
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">statusLogger_updateNumFailedProcesses</span>(
+        <span class="ident">status_logger</span>: <span class="kw-2">*const</span> <span class="ident">StatusLogger</span><span class="op">&lt;</span><span class="ident">ShadowStatusBarState</span><span class="op">&gt;</span>,
+        <span class="ident">num_failed_processes</span>: <span class="ident">u32</span>,
+    ) {
+        <span class="kw">let</span> <span class="ident">status_logger</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">status_logger</span>.<span class="ident">as_ref</span>() }.<span class="ident">unwrap</span>();
+
+        <span class="ident">status_logger</span>.<span class="ident">mutate_state</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+            <span class="ident">state</span>.<span class="ident">num_failed_processes</span> <span class="op">=</span> <span class="ident">num_failed_processes</span>;
         });
     }
 }
