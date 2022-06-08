@@ -213,7 +213,6 @@ hosts:
 <li><a href="#experimentalhost_heartbeat_log_level"><code>experimental.host_heartbeat_log_level</code></a></li>
 <li><a href="#experimentalinterface_buffer"><code>experimental.interface_buffer</code></a></li>
 <li><a href="#experimentalinterface_qdisc"><code>experimental.interface_qdisc</code></a></li>
-<li><a href="#experimentalinterpose_method"><code>experimental.interpose_method</code></a></li>
 <li><a href="#experimentalmax_unapplied_cpu_latency"><code>experimental.max_unapplied_cpu_latency</code></a></li>
 <li><a href="#experimentalpreload_spin_max"><code>experimental.preload_spin_max</code></a></li>
 <li><a href="#experimentalrunahead"><code>experimental.runahead</code></a></li>
@@ -231,7 +230,6 @@ hosts:
 <li><a href="#experimentaluse_legacy_working_dir"><code>experimental.use_legacy_working_dir</code></a></li>
 <li><a href="#experimentaluse_libc_preload"><code>experimental.use_libc_preload</code></a></li>
 <li><a href="#experimentaluse_memory_manager"><code>experimental.use_memory_manager</code></a></li>
-<li><a href="#experimentaluse_o_n_waitpid_workarounds"><code>experimental.use_o_n_waitpid_workarounds</code></a></li>
 <li><a href="#experimentaluse_object_counters"><code>experimental.use_object_counters</code></a></li>
 <li><a href="#experimentaluse_preload_openssl_crypto"><code>experimental.use_preload_openssl_crypto</code></a></li>
 <li><a href="#experimentaluse_preload_openssl_rng"><code>experimental.use_preload_openssl_rng</code></a></li>
@@ -402,10 +400,6 @@ Type: String OR Integer</p>
 <p>Default: &quot;fifo&quot;<br />
 Type: &quot;fifo&quot; OR &quot;roundrobin&quot;</p>
 <p>The queueing discipline to use at the network interface.</p>
-<h4 id="experimentalinterpose_method"><a class="header" href="#experimentalinterpose_method"><code>experimental.interpose_method</code></a></h4>
-<p>Default: &quot;preload&quot;<br />
-Type: &quot;ptrace&quot; OR &quot;preload&quot;</p>
-<p>Which interposition method to use.</p>
 <h4 id="experimentalmax_unapplied_cpu_latency"><a class="header" href="#experimentalmax_unapplied_cpu_latency"><code>experimental.max_unapplied_cpu_latency</code></a></h4>
 <p>Default: &quot;1 microsecond&quot;<br />
 Type: String</p>
@@ -513,12 +507,6 @@ interposition when possible.</p>
 Type: Bool</p>
 <p>Use the MemoryManager. It can be useful to disable for debugging, but will hurt
 performance in most cases.</p>
-<h4 id="experimentaluse_o_n_waitpid_workarounds"><a class="header" href="#experimentaluse_o_n_waitpid_workarounds"><code>experimental.use_o_n_waitpid_workarounds</code></a></h4>
-<p>Default: false<br />
-Type: Bool</p>
-<p>Use performance workarounds for waitpid being O(n). Beneficial to disable if
-waitpid is patched to be O(1), if using one logical processor per host, or in
-some cases where it'd otherwise result in excessive detaching and reattaching.</p>
 <h4 id="experimentaluse_object_counters"><a class="header" href="#experimentaluse_object_counters"><code>experimental.use_object_counters</code></a></h4>
 <p>Default: true<br />
 Type: Bool</p>
@@ -548,7 +536,7 @@ Type: Bool</p>
 <p>Use shim-side syscall handler to force hot-path syscalls to be handled via an
 inter-process syscall with Shadow.</p>
 <h4 id="experimentaluse_seccomp"><a class="header" href="#experimentaluse_seccomp"><code>experimental.use_seccomp</code></a></h4>
-<p>Default: true iff <code>experimental.interpose_method == preload</code>.
+<p>Default: true
 Type: Bool</p>
 <p>Use seccomp to trap syscalls.</p>
 <h4 id="experimentaluse_syscall_counters"><a class="header" href="#experimentaluse_syscall_counters"><code>experimental.use_syscall_counters</code></a></h4>
@@ -560,8 +548,7 @@ Type: Bool</p>
 Type: Integer</p>
 <p>Create N worker threads. Note though, that <code>general.parallelism</code> of them will be
 allowed to run simultaneously. If unset, will create a thread for each simulated
-Host. This is to work around limitations in ptrace, and may change in the
-future.</p>
+Host.</p>
 <h4 id="host_defaults"><a class="header" href="#host_defaults"><code>host_defaults</code></a></h4>
 <p>Default options for all hosts. These options can also be overridden for each
 host individually in the host's <a href="#hostshostnameoptions"><code>hosts.&lt;hostname&gt;.options</code></a>
