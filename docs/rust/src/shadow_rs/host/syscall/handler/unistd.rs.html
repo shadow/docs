@@ -506,46 +506,12 @@
 <span id="501">501</span>
 <span id="502">502</span>
 <span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::pipe</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor::shared_buf::SharedBuf</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{
-    <span class="ident">CompatDescriptor</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">File</span>, <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">OpenFile</span>,
+    <span class="ident">CompatFile</span>, <span class="ident">Descriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">File</span>, <span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">OpenFile</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::Trigger</span>;
@@ -591,20 +557,10 @@
         <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>));
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
-            <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
-                <span class="kw">return</span> <span class="ident">c::syscallhandler_dup</span>(
-                    <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
-                    <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">c::SysCallArgs</span>,
-                )
-                .<span class="ident">into</span>();
-            },
-        };
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// duplicate the descriptor</span>
-        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>()));
+        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>());
         <span class="kw">let</span> <span class="ident">new_fd</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor</span>(<span class="ident">new_desc</span>);
 
         <span class="comment">// return the new fd</span>
@@ -617,17 +573,7 @@
         <span class="kw">let</span> <span class="ident">new_fd</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>));
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">old_fd</span>)<span class="question-mark">?</span> {
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
-            <span class="comment">// we don&#39;t support dup2 for legacy descriptors</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">warn!</span>(
-                    <span class="string">&quot;dup2() is not supported for legacy descriptors (fd={})&quot;</span>,
-                    <span class="ident">old_fd</span>
-                );
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::ENOSYS</span>.<span class="ident">into</span>());
-            }
-        };
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">old_fd</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// from &#39;man 2 dup2&#39;: &quot;If oldfd is a valid file descriptor, and newfd has the same</span>
         <span class="comment">// value as oldfd, then dup2() does nothing, and returns newfd&quot;</span>
@@ -638,7 +584,7 @@
         <span class="kw">let</span> <span class="ident">new_fd</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">new_fd</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">nix::errno::Errno::EBADF</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// duplicate the descriptor</span>
-        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>()));
+        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>());
         <span class="kw">let</span> <span class="ident">replaced_desc</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor_with_fd</span>(<span class="ident">new_desc</span>, <span class="ident">new_fd</span>);
 
         <span class="comment">// close the replaced descriptor</span>
@@ -662,17 +608,7 @@
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">libc::c_int::from</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>));
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">old_fd</span>)<span class="question-mark">?</span> {
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
-            <span class="comment">// we don&#39;t support dup3 for legacy descriptors</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">warn!</span>(
-                    <span class="string">&quot;dup3() is not supported for legacy descriptors (fd={})&quot;</span>,
-                    <span class="ident">old_fd</span>
-                );
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">nix::errno::Errno::ENOSYS</span>.<span class="ident">into</span>());
-            }
-        };
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">old_fd</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// from &#39;man 2 dup3&#39;: &quot;If oldfd equals newfd, then dup3() fails with the error EINVAL&quot;</span>
         <span class="kw">if</span> <span class="ident">old_fd</span> <span class="op">==</span> <span class="ident">new_fd</span> {
@@ -689,7 +625,7 @@
         };
 
         <span class="comment">// duplicate the descriptor</span>
-        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">flags</span>));
+        <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">flags</span>);
         <span class="kw">let</span> <span class="ident">replaced_desc</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor_with_fd</span>(<span class="ident">new_desc</span>, <span class="ident">new_fd</span>);
 
         <span class="comment">// close the replaced descriptor</span>
@@ -726,10 +662,10 @@
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation</span>
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
             <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist</span>
-            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-                <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>.<span class="ident">file</span>() {
+                <span class="ident">CompatFile::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>.<span class="ident">clone</span>(),
                 <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-                <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
+                <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return</span> <span class="kw">unsafe</span> {
                         <span class="ident">c::syscallhandler_read</span>(
                             <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -765,10 +701,10 @@
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation</span>
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
             <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist</span>
-            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-                <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>.<span class="ident">file</span>() {
+                <span class="ident">CompatFile::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>.<span class="ident">clone</span>(),
                 <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-                <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
+                <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return</span> <span class="kw">unsafe</span> {
                         <span class="ident">c::syscallhandler_pread64</span>(
                             <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -860,10 +796,10 @@
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation</span>
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
             <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist</span>
-            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-                <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>.<span class="ident">file</span>() {
+                <span class="ident">CompatFile::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>.<span class="ident">clone</span>(),
                 <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-                <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
+                <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return</span> <span class="kw">unsafe</span> {
                         <span class="ident">c::syscallhandler_write</span>(
                             <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -899,10 +835,10 @@
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation</span>
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
             <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist</span>
-            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-                <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>.<span class="ident">file</span>() {
+                <span class="ident">CompatFile::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>.<span class="ident">clone</span>(),
                 <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-                <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
+                <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return</span> <span class="kw">unsafe</span> {
                         <span class="ident">c::syscallhandler_pwrite64</span>(
                             <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
@@ -1032,20 +968,16 @@
         });
 
         <span class="comment">// file descriptors for the read and write file objects</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">OpenFile::new</span>(<span class="ident">File::Pipe</span>(<span class="ident">reader</span>)));
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">OpenFile::new</span>(<span class="ident">File::Pipe</span>(<span class="ident">writer</span>)));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">CompatFile::New</span>(<span class="ident">OpenFile::new</span>(<span class="ident">File::Pipe</span>(<span class="ident">reader</span>))));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer_desc</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">CompatFile::New</span>(<span class="ident">OpenFile::new</span>(<span class="ident">File::Pipe</span>(<span class="ident">writer</span>))));
 
         <span class="comment">// set the file descriptor flags</span>
         <span class="ident">reader_desc</span>.<span class="ident">set_flags</span>(<span class="ident">descriptor_flags</span>);
         <span class="ident">writer_desc</span>.<span class="ident">set_flags</span>(<span class="ident">descriptor_flags</span>);
 
         <span class="comment">// register the file descriptors</span>
-        <span class="kw">let</span> <span class="ident">read_fd</span> <span class="op">=</span> <span class="ident">ctx</span>
-            .<span class="ident">process</span>
-            .<span class="ident">register_descriptor</span>(<span class="ident">CompatDescriptor::New</span>(<span class="ident">reader_desc</span>));
-        <span class="kw">let</span> <span class="ident">write_fd</span> <span class="op">=</span> <span class="ident">ctx</span>
-            .<span class="ident">process</span>
-            .<span class="ident">register_descriptor</span>(<span class="ident">CompatDescriptor::New</span>(<span class="ident">writer_desc</span>));
+        <span class="kw">let</span> <span class="ident">read_fd</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor</span>(<span class="ident">reader_desc</span>);
+        <span class="kw">let</span> <span class="ident">write_fd</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">process</span>.<span class="ident">register_descriptor</span>(<span class="ident">writer_desc</span>);
 
         <span class="comment">// try to write them to the caller</span>
         <span class="kw">let</span> <span class="ident">fds</span> <span class="op">=</span> [

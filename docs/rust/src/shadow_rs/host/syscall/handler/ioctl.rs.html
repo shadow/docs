@@ -70,9 +70,13 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">CompatDescriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileStatus</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">CompatFile</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">FileStatus</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallArgs</span>, <span class="ident">SyscallResult</span>, <span class="ident">TypedPluginPtr</span>};
 
@@ -88,17 +92,7 @@
         <span class="macro">log::trace!</span>(<span class="string">&quot;Called ioctl() on fd {} with request {}&quot;</span>, <span class="ident">fd</span>, <span class="ident">request</span>);
 
         <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor_mut</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>,
-            <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
-                <span class="kw">return</span> <span class="ident">c::syscallhandler_ioctl</span>(
-                    <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
-                    <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">SysCallArgs</span>,
-                )
-                .<span class="ident">into</span>();
-            },
-        };
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_descriptor_mut</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// add the CLOEXEC flag</span>
         <span class="kw">if</span> <span class="ident">request</span> <span class="op">==</span> <span class="ident">libc::FIOCLEX</span> {
@@ -118,7 +112,21 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>.<span class="ident">into</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>().<span class="ident">clone</span>();
+        <span class="comment">// NOTE: anything past this point should only modify the file, not the descriptor</span>
+
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">file</span>() {
+            <span class="ident">CompatFile::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>,
+            <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
+            <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="kw">unsafe</span> {
+                <span class="kw">return</span> <span class="ident">c::syscallhandler_ioctl</span>(
+                    <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
+                    <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">SysCallArgs</span>,
+                )
+                .<span class="ident">into</span>();
+            },
+        };
+
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">inner_file</span>().<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">borrow_mut</span>();
 
         <span class="comment">// all file types that shadow implements should support non-blocking operation</span>

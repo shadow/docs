@@ -1083,6 +1083,57 @@
 <span id="1078">1078</span>
 <span id="1079">1079</span>
 <span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
@@ -1690,7 +1741,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Descriptor</span> {
     <span class="doccomment">/// The file that this descriptor points to.</span>
-    <span class="ident">file</span>: <span class="ident">OpenFile</span>,
+    <span class="ident">file</span>: <span class="ident">CompatFile</span>,
     <span class="doccomment">/// Descriptor flags.</span>
     <span class="ident">flags</span>: <span class="ident">DescriptorFlags</span>,
 }
@@ -1700,14 +1751,14 @@
 <span class="kw">impl</span> <span class="ident">IsSync</span> <span class="kw">for</span> <span class="ident">Descriptor</span> {}
 
 <span class="kw">impl</span> <span class="ident">Descriptor</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file</span>: <span class="ident">OpenFile</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">file</span>: <span class="ident">CompatFile</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">file</span>,
             <span class="ident">flags</span>: <span class="ident">DescriptorFlags::empty</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">OpenFile</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CompatFile</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">file</span>
     }
 
@@ -1719,8 +1770,13 @@
         <span class="self">self</span>.<span class="ident">flags</span> <span class="op">=</span> <span class="ident">flags</span>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>)
+    <span class="doccomment">/// Close the descriptor. The `host` option is a legacy option for legacy descriptors.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(
+        <span class="self">self</span>,
+        <span class="ident">host</span>: <span class="kw-2">*mut</span> <span class="ident">c::Host</span>,
+        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">host</span>, <span class="ident">event_queue</span>)
     }
 
     <span class="doccomment">/// Duplicate the descriptor, with both descriptors pointing to the same `OpenFile`. In</span>
@@ -1731,6 +1787,18 @@
             <span class="ident">file</span>: <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">clone</span>(),
             <span class="ident">flags</span>,
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">descriptor</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">*mut</span> <span class="self">Self</span> {
+        <span class="ident">Box::into_raw</span>(<span class="ident">descriptor</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">descriptor</span>: <span class="kw-2">*mut</span> <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">descriptor</span>.<span class="ident">is_null</span>() {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+
+        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Box::from_raw</span>(<span class="ident">descriptor</span>)) }
     }
 }
 
@@ -1752,6 +1820,14 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">std::clone::Clone</span> <span class="kw">for</span> <span class="ident">CountedLegacyDescriptorRef</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
+        <span class="comment">// ref the legacy descriptor object</span>
+        <span class="kw">unsafe</span> { <span class="ident">c::legacydesc_ref</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">core::ffi::c_void</span>) };
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0</span>)
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">CountedLegacyDescriptorRef</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// unref the legacy descriptor object</span>
@@ -1759,40 +1835,58 @@
     }
 }
 
-<span class="comment">// don&#39;t implement copy or clone without considering the legacy descriptor&#39;s ref count</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompatDescriptor</span> {
-    <span class="ident">New</span>(<span class="ident">Descriptor</span>),
-    <span class="ident">Legacy</span>(<span class="ident">CountedLegacyDescriptorRef</span>),
+<span class="doccomment">/// Used to track how many descriptors are open for a `LegacyDescriptor`. When the `close()` method</span>
+<span class="doccomment">/// is called, the legacy descriptor&#39;s `legacydesc_close()` will only be called if this is the last</span>
+<span class="doccomment">/// descriptor for that legacy descriptor. This is similar to an `OpenFile` object, but does not</span>
+<span class="doccomment">/// close the descriptor when dropped since we don&#39;t have a pointer to the host. If this counter is</span>
+<span class="doccomment">/// dropped before closing the legacy descriptor, the legacy descriptor will not be closed properly.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LegacyDescriptorCounter</span> {
+    <span class="ident">desc</span>: <span class="ident">CountedLegacyDescriptorRef</span>,
+    <span class="doccomment">/// A count of how many open descriptors there are with reference to this legacy descriptor.</span>
+    <span class="ident">open_count</span>: <span class="ident">Arc</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
 }
 
-<span class="comment">// will not compile if `CompatDescriptor` is not Send + Sync</span>
-<span class="kw">impl</span> <span class="ident">IsSend</span> <span class="kw">for</span> <span class="ident">CompatDescriptor</span> {}
-<span class="kw">impl</span> <span class="ident">IsSync</span> <span class="kw">for</span> <span class="ident">CompatDescriptor</span> {}
-
-<span class="kw">impl</span> <span class="ident">CompatDescriptor</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">descriptor</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">*mut</span> <span class="self">Self</span> {
-        <span class="ident">Box::into_raw</span>(<span class="ident">descriptor</span>)
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">descriptor</span>: <span class="kw-2">*mut</span> <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">descriptor</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="kw">impl</span> <span class="ident">LegacyDescriptorCounter</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">desc</span>: <span class="ident">CountedLegacyDescriptorRef</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">desc</span>,
+            <span class="ident">open_count</span>: <span class="ident">Arc::new</span>(()),
         }
-
-        <span class="kw">unsafe</span> { <span class="prelude-val">Some</span>(<span class="ident">Box::from_raw</span>(<span class="ident">descriptor</span>)) }
     }
 
-    <span class="doccomment">/// Close the descriptor. The `host` option is a legacy option for legacy descriptors.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c::LegacyDescriptor</span> {
+        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">desc</span>.<span class="ident">ptr</span>() }
+    }
+
+    <span class="doccomment">/// Close the descriptor, and if this is the last descriptor pointing to its legacy descriptor,</span>
+    <span class="doccomment">/// close the legacy descriptor as well.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">*mut</span> <span class="ident">c::Host</span>) {
+        <span class="comment">// this isn&#39;t subject to race conditions since we should never access descriptors</span>
+        <span class="comment">// from multiple threads at the same time</span>
+        <span class="kw">if</span> <span class="ident">Arc</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::strong_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">open_count</span>) <span class="op">==</span> <span class="number">1</span> {
+            <span class="kw">unsafe</span> { <span class="ident">c::legacydesc_close</span>(<span class="self">self</span>.<span class="ident">ptr</span>(), <span class="ident">host</span>) }
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompatFile</span> {
+    <span class="ident">New</span>(<span class="ident">OpenFile</span>),
+    <span class="ident">Legacy</span>(<span class="ident">LegacyDescriptorCounter</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">CompatFile</span> {
+    <span class="doccomment">/// Close the file. The `host` option is a legacy option for legacy descriptors.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">host</span>: <span class="kw-2">*mut</span> <span class="ident">c::Host</span>,
         <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::New</span>(<span class="ident">desc</span>) =&gt; <span class="ident">desc</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::Legacy</span>(<span class="ident">desc</span>) =&gt; {
-                <span class="kw">unsafe</span> { <span class="ident">c::legacydesc_close</span>(<span class="ident">desc</span>.<span class="ident">ptr</span>(), <span class="ident">host</span>) };
+            <span class="ident"><span class="self">Self</span>::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::Legacy</span>(<span class="ident">file</span>) =&gt; {
+                <span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">host</span>);
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(()))
             }
         }
@@ -1812,79 +1906,89 @@
 <span class="kw">mod</span> <span class="ident">export</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="doccomment">/// The new compat descriptor takes ownership of the reference to the legacy descriptor and</span>
-    <span class="doccomment">/// does not increment its ref count, but will decrement the ref count when this compat</span>
-    <span class="doccomment">/// descriptor is freed/dropped.</span>
+    <span class="doccomment">/// The new descriptor takes ownership of the reference to the legacy descriptor and does not</span>
+    <span class="doccomment">/// increment its ref count, but will decrement the ref count when this descriptor is</span>
+    <span class="doccomment">/// freed/dropped with `descriptor_free()`. The descriptor flags must be either 0 or</span>
+    <span class="doccomment">/// `O_CLOEXEC`.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_fromLegacy</span>(
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptor_fromLegacy</span>(
         <span class="ident">legacy_descriptor</span>: <span class="kw-2">*mut</span> <span class="ident">c::LegacyDescriptor</span>,
-    ) -&gt; <span class="kw-2">*mut</span> <span class="ident">CompatDescriptor</span> {
+        <span class="ident">descriptor_flags</span>: <span class="ident">libc::c_int</span>,
+    ) -&gt; <span class="kw-2">*mut</span> <span class="ident">Descriptor</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">legacy_descriptor</span>.<span class="ident">is_null</span>());
 
-        <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">CountedLegacyDescriptorRef::new</span>(
-            <span class="ident">HostTreePointer::new</span>(<span class="ident">legacy_descriptor</span>),
-        ));
-        <span class="ident">CompatDescriptor::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">descriptor</span>))
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="ident">Descriptor::new</span>(<span class="ident">CompatFile::Legacy</span>(<span class="ident">LegacyDescriptorCounter::new</span>(
+            <span class="ident">CountedLegacyDescriptorRef::new</span>(<span class="ident">HostTreePointer::new</span>(<span class="ident">legacy_descriptor</span>)),
+        )));
+
+        <span class="kw">let</span> <span class="ident">descriptor_flags</span> <span class="op">=</span> <span class="ident">OFlag::from_bits</span>(<span class="ident">descriptor_flags</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> (<span class="ident">descriptor_flags</span>, <span class="ident">remaining</span>) <span class="op">=</span> <span class="ident">DescriptorFlags::from_o_flags</span>(<span class="ident">descriptor_flags</span>);
+        <span class="macro">assert!</span>(<span class="ident">remaining</span>.<span class="ident">is_empty</span>());
+        <span class="ident">descriptor</span>.<span class="ident">set_flags</span>(<span class="ident">descriptor_flags</span>);
+
+        <span class="ident">Descriptor::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">descriptor</span>))
     }
 
-    <span class="doccomment">/// If the compat descriptor is a legacy descriptor, returns a pointer to the legacy</span>
-    <span class="doccomment">/// descriptor object. Otherwise returns NULL. The legacy descriptor&#39;s ref count is not</span>
-    <span class="doccomment">/// modified, so the pointer must not outlive the lifetime of the compat descriptor.</span>
+    <span class="doccomment">/// If the descriptor is a legacy descriptor, returns a pointer to the legacy descriptor object.</span>
+    <span class="doccomment">/// Otherwise returns NULL. The legacy descriptor&#39;s ref count is not modified, so the pointer</span>
+    <span class="doccomment">/// must not outlive the lifetime of the descriptor.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_asLegacy</span>(
-        <span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">CompatDescriptor</span>,
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptor_asLegacy</span>(
+        <span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">Descriptor</span>,
     ) -&gt; <span class="kw-2">*mut</span> <span class="ident">c::LegacyDescriptor</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">CompatDescriptor::Legacy</span>(<span class="ident">d</span>) <span class="op">=</span> <span class="ident">descriptor</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">CompatFile::Legacy</span>(<span class="ident">d</span>) <span class="op">=</span> <span class="ident">descriptor</span>.<span class="ident">file</span>() {
             <span class="kw">unsafe</span> { <span class="ident">d</span>.<span class="ident">ptr</span>() }
         } <span class="kw">else</span> {
             <span class="ident">std::ptr::null_mut</span>()
         }
     }
 
-    <span class="doccomment">/// When the compat descriptor is freed/dropped, it will decrement the legacy descriptor&#39;s ref</span>
-    <span class="doccomment">/// count.</span>
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_free</span>(<span class="ident">descriptor</span>: <span class="kw-2">*mut</span> <span class="ident">CompatDescriptor</span>) {
-        <span class="ident">CompatDescriptor::from_raw</span>(<span class="ident">descriptor</span>);
-    }
-
-    <span class="doccomment">/// If the compat descriptor is a new descriptor, returns a pointer to the reference-counted</span>
+    <span class="doccomment">/// If the descriptor is a new/rust descriptor, returns a pointer to the reference-counted</span>
     <span class="doccomment">/// `OpenFile` object. Otherwise returns NULL. The `OpenFile` object&#39;s ref count is not</span>
-    <span class="doccomment">/// modified, so the returned pointer must not outlive the lifetime of the compat descriptor.</span>
+    <span class="doccomment">/// modified, so the returned pointer must not outlive the lifetime of the descriptor.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_borrowOpenFile</span>(
-        <span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">CompatDescriptor</span>,
-    ) -&gt; <span class="kw-2">*const</span> <span class="ident">OpenFile</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptor_borrowOpenFile</span>(<span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">Descriptor</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">OpenFile</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
 
-        <span class="kw">match</span> <span class="ident">descriptor</span> {
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="ident">std::ptr::null_mut</span>(),
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>.<span class="ident">open_file</span>(),
+        <span class="kw">match</span> <span class="ident">descriptor</span>.<span class="ident">file</span>() {
+            <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="ident">std::ptr::null_mut</span>(),
+            <span class="ident">CompatFile::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
         }
     }
 
-    <span class="doccomment">/// If the compat descriptor is a new descriptor, returns a pointer to the reference-counted</span>
+    <span class="doccomment">/// If the descriptor is a new/rust descriptor, returns a pointer to the reference-counted</span>
     <span class="doccomment">/// `OpenFile` object. Otherwise returns NULL. The `OpenFile` object&#39;s ref count is incremented,</span>
     <span class="doccomment">/// so the returned pointer must always later be passed to `openfile_drop()`, otherwise the</span>
     <span class="doccomment">/// memory will leak.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_newRefOpenFile</span>(
-        <span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">CompatDescriptor</span>,
-    ) -&gt; <span class="kw-2">*const</span> <span class="ident">OpenFile</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptor_newRefOpenFile</span>(<span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">Descriptor</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">OpenFile</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
 
-        <span class="kw">match</span> <span class="ident">descriptor</span> {
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="ident">std::ptr::null_mut</span>(),
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">d</span>.<span class="ident">open_file</span>().<span class="ident">clone</span>())),
+        <span class="kw">match</span> <span class="ident">descriptor</span>.<span class="ident">file</span>() {
+            <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="ident">std::ptr::null_mut</span>(),
+            <span class="ident">CompatFile::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">d</span>.<span class="ident">clone</span>())),
         }
+    }
+
+    <span class="doccomment">/// The descriptor flags must be either 0 or `O_CLOEXEC`.</span>
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptor_setFlags</span>(<span class="ident">descriptor</span>: <span class="kw-2">*mut</span> <span class="ident">Descriptor</span>, <span class="ident">flags</span>: <span class="ident">libc::c_int</span>) {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
+
+        <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">descriptor</span> };
+        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">OFlag::from_bits</span>(<span class="ident">flags</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> (<span class="ident">flags</span>, <span class="ident">remaining_flags</span>) <span class="op">=</span> <span class="ident">DescriptorFlags::from_o_flags</span>(<span class="ident">flags</span>);
+        <span class="macro">assert!</span>(<span class="ident">remaining_flags</span>.<span class="ident">is_empty</span>());
+
+        <span class="ident">descriptor</span>.<span class="ident">set_flags</span>(<span class="ident">flags</span>);
     }
 
     <span class="doccomment">/// Decrement the ref count of the `OpenFile` object. The pointer must not be used after calling</span>
@@ -1951,20 +2055,18 @@
         <span class="ident">file</span>.<span class="ident">inner_file</span>().<span class="ident">canonical_handle</span>()
     }
 
-    <span class="doccomment">/// If the compat descriptor is a new descriptor, returns a pointer to the reference-counted</span>
+    <span class="doccomment">/// If the descriptor is a new/rust descriptor, returns a pointer to the reference-counted</span>
     <span class="doccomment">/// `File` object. Otherwise returns NULL. The `File` object&#39;s ref count is incremented, so the</span>
     <span class="doccomment">/// pointer must always later be passed to `file_drop()`, otherwise the memory will leak.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">compatdescriptor_newRefFile</span>(
-        <span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">CompatDescriptor</span>,
-    ) -&gt; <span class="kw-2">*const</span> <span class="ident">File</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">descriptor_newRefFile</span>(<span class="ident">descriptor</span>: <span class="kw-2">*const</span> <span class="ident">Descriptor</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">File</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_null</span>());
 
         <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">descriptor</span> };
 
-        <span class="kw">match</span> <span class="ident">descriptor</span> {
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="ident">std::ptr::null_mut</span>(),
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">d</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>().<span class="ident">clone</span>())),
+        <span class="kw">match</span> <span class="ident">descriptor</span>.<span class="ident">file</span>() {
+            <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="ident">std::ptr::null_mut</span>(),
+            <span class="ident">CompatFile::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">d</span>.<span class="ident">inner_file</span>().<span class="ident">clone</span>())),
         }
     }
 

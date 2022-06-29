@@ -141,9 +141,27 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">CompatDescriptor</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">File</span>, <span class="ident">FileStatus</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">CompatFile</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">File</span>, <span class="ident">FileStatus</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">SysCallArgs</span>, <span class="ident">SysCallReg</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
@@ -158,29 +176,42 @@
         <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">RawFd</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">0</span>].<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">cmd</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">1</span>].<span class="ident">into</span>();
 
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident"><span class="self">Self</span>::get_descriptor_mut</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span> {
-            <span class="ident">CompatDescriptor::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
-            <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
-            <span class="ident">CompatDescriptor::Legacy</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">return</span> <span class="kw">unsafe</span> {
-                    <span class="ident">cshadow::syscallhandler_fcntl</span>(
-                        <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
-                        <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">cshadow::SysCallArgs</span>,
-                    )
-                }
-                .<span class="ident">into</span>()
-            }
+        <span class="comment">// NOTE: this function should *not* run the C syscall handler if the cmd modifies the</span>
+        <span class="comment">// descriptor</span>
+
+        <span class="comment">// helper function to run the C syscall handler</span>
+        <span class="kw">let</span> <span class="ident">legacy_syscall_fn</span> <span class="op">=</span> <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ThreadContext</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span><span class="ident">SysCallArgs</span><span class="op">|</span> {
+            <span class="ident">SyscallResult::from</span>(<span class="kw">unsafe</span> {
+                <span class="ident">cshadow::syscallhandler_fcntl</span>(
+                    <span class="ident">ctx</span>.<span class="ident">thread</span>.<span class="ident">csyscallhandler</span>(),
+                    <span class="ident">args</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">cshadow::SysCallArgs</span>,
+                )
+            })
         };
+
+        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist</span>
+        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_descriptor_mut</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">cmd</span> {
             <span class="ident">libc::F_GETFL</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>().<span class="ident">borrow</span>();
+                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">file</span>() {
+                    <span class="ident">CompatFile::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
+                    <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
+                    <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">legacy_syscall_fn</span>(<span class="ident">ctx</span>, <span class="ident">args</span>),
+                };
+
+                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">inner_file</span>().<span class="ident">borrow</span>();
                 <span class="comment">// combine the file status and access mode flags</span>
                 <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">get_status</span>().<span class="ident">as_o_flags</span>() <span class="op">|</span> <span class="ident">file</span>.<span class="ident">mode</span>().<span class="ident">as_o_flags</span>();
                 <span class="ident">SysCallReg::from</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
             }
             <span class="ident">libc::F_SETFL</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">file</span>() {
+                    <span class="ident">CompatFile::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
+                    <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
+                    <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">legacy_syscall_fn</span>(<span class="ident">ctx</span>, <span class="ident">args</span>),
+                };
+
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">OFlag::from_bits</span>(<span class="ident">i32::from</span>(<span class="ident">args</span>.<span class="ident">args</span>[<span class="number">2</span>])).<span class="ident">ok_or</span>(<span class="ident">Errno::EINVAL</span>)<span class="question-mark">?</span>;
                 <span class="comment">// remove access mode flags</span>
                 <span class="ident">status</span>.<span class="ident">remove</span>(<span class="ident">OFlag::O_RDONLY</span> <span class="op">|</span> <span class="ident">OFlag::O_WRONLY</span> <span class="op">|</span> <span class="ident">OFlag::O_RDWR</span> <span class="op">|</span> <span class="ident">OFlag::O_PATH</span>);
@@ -196,7 +227,7 @@
                         <span class="op">|</span> <span class="ident">OFlag::O_TRUNC</span>,
                 );
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>().<span class="ident">borrow_mut</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">inner_file</span>().<span class="ident">borrow_mut</span>();
                 <span class="kw">let</span> <span class="ident">old_flags</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">get_status</span>().<span class="ident">as_o_flags</span>();
 
                 <span class="comment">// fcntl(2): &quot;On Linux, this command can change only the O_APPEND, O_ASYNC, O_DIRECT,</span>
@@ -250,7 +281,7 @@
                 <span class="kw">let</span> <span class="ident">min_fd</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">2</span>].<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">min_fd</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">min_fd</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">nix::errno::Errno::EINVAL</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>()));
+                <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::empty</span>());
                 <span class="kw">let</span> <span class="ident">new_fd</span> <span class="op">=</span> <span class="ident">ctx</span>
                     .<span class="ident">process</span>
                     .<span class="ident">register_descriptor_with_min_fd</span>(<span class="ident">new_desc</span>, <span class="ident">min_fd</span>);
@@ -260,16 +291,21 @@
                 <span class="kw">let</span> <span class="ident">min_fd</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">args</span>[<span class="number">2</span>].<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">min_fd</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">min_fd</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">nix::errno::Errno::EINVAL</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">CompatDescriptor::New</span>(<span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::CLOEXEC</span>));
+                <span class="kw">let</span> <span class="ident">new_desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">dup</span>(<span class="ident">DescriptorFlags::CLOEXEC</span>);
                 <span class="kw">let</span> <span class="ident">new_fd</span> <span class="op">=</span> <span class="ident">ctx</span>
                     .<span class="ident">process</span>
                     .<span class="ident">register_descriptor_with_min_fd</span>(<span class="ident">new_desc</span>, <span class="ident">min_fd</span>);
                 <span class="ident">SysCallReg::from</span>(<span class="ident">i32::try_from</span>(<span class="ident">new_fd</span>).<span class="ident">unwrap</span>())
             }
-            <span class="ident">libc::F_GETPIPE_SZ</span> =&gt;
-            {
+            <span class="ident">libc::F_GETPIPE_SZ</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">file</span>() {
+                    <span class="ident">CompatFile::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
+                    <span class="comment">// if it&#39;s a legacy descriptor, use the C syscall handler instead</span>
+                    <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="ident">legacy_syscall_fn</span>(<span class="ident">ctx</span>, <span class="ident">args</span>),
+                };
+
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">irrefutable_let_patterns</span>)]</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">File::Pipe</span>(<span class="ident">pipe</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">open_file</span>().<span class="ident">inner_file</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">File::Pipe</span>(<span class="ident">pipe</span>) <span class="op">=</span> <span class="ident">file</span>.<span class="ident">inner_file</span>() {
                     <span class="ident">SysCallReg::from</span>(<span class="ident">i32::try_from</span>(<span class="ident">pipe</span>.<span class="ident">borrow</span>().<span class="ident">max_size</span>()).<span class="ident">unwrap</span>())
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>());
