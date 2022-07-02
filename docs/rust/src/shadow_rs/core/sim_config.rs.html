@@ -434,7 +434,31 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::fs::MetadataExt</span>;
@@ -465,6 +489,9 @@
 
     <span class="comment">// routing information for paths between graph nodes</span>
     <span class="kw">pub</span> <span class="ident">routing_info</span>: <span class="ident">RoutingInfo</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+
+    <span class="comment">// bandwidths of hosts at ip addresses</span>
+    <span class="kw">pub</span> <span class="ident">host_bandwidths</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">std::net::IpAddr</span>, <span class="ident">Bandwidth</span><span class="op">&gt;</span>,
 
     <span class="comment">// a list of hosts and their processes</span>
     <span class="kw">pub</span> <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HostInfo</span><span class="op">&gt;</span>,
@@ -567,10 +594,25 @@
             <span class="ident">config</span>.<span class="ident">network</span>.<span class="ident">use_shortest_path</span>.<span class="ident">unwrap</span>(),
         )<span class="question-mark">?</span>;
 
+        <span class="comment">// get all host bandwidths</span>
+        <span class="kw">let</span> <span class="ident">host_bandwidths</span> <span class="op">=</span> <span class="ident">hosts</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">host</span><span class="op">|</span> {
+                <span class="comment">// we made sure above that every host has a bandwidth set</span>
+                <span class="kw">let</span> <span class="ident">bw</span> <span class="op">=</span> <span class="ident">Bandwidth</span> {
+                    <span class="ident">up_bytes</span>: <span class="ident">host</span>.<span class="ident">bandwidth_up_bits</span>.<span class="ident">unwrap</span>() <span class="op">/</span> <span class="number">8</span>,
+                    <span class="ident">down_bytes</span>: <span class="ident">host</span>.<span class="ident">bandwidth_down_bits</span>.<span class="ident">unwrap</span>() <span class="op">/</span> <span class="number">8</span>,
+                };
+
+                (<span class="ident">host</span>.<span class="ident">ip_addr</span>.<span class="ident">unwrap</span>(), <span class="ident">bw</span>)
+            })
+            .<span class="ident">collect</span>();
+
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
             <span class="ident">random</span>,
             <span class="ident">ip_assignment</span>,
             <span class="ident">routing_info</span>,
+            <span class="ident">host_bandwidths</span>,
             <span class="ident">hosts</span>,
         })
     }
@@ -609,6 +651,12 @@
     <span class="kw">pub</span> <span class="ident">stop_time</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">env</span>: <span class="ident">String</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bandwidth</span> {
+    <span class="kw">pub</span> <span class="ident">up_bytes</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span> <span class="ident">down_bytes</span>: <span class="ident">u64</span>,
 }
 
 <span class="doccomment">/// For a host entry in the configuration options, build a list of `HostInfo` objects.</span>

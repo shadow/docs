@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["HostInfo",""],["ProcessInfo",""],["SimConfig","The simulation configuration after processing the configuration options and network graph."]]});
+initSidebarItems({"struct":[["Bandwidth",""],["HostInfo",""],["ProcessInfo",""],["SimConfig","The simulation configuration after processing the configuration options and network graph."]]});
