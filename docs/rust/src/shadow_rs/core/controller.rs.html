@@ -526,9 +526,132 @@
 <span id="521">521</span>
 <span id="522">522</span>
 <span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi::CString</span>;
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
+<span class="kw">use</span> <span class="ident">std::sync::atomic::AtomicU32</span>;
 <span class="kw">use</span> <span class="ident">std::sync::RwLock</span>;
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
@@ -538,9 +661,12 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::sim_config</span>::{<span class="ident">Bandwidth</span>, <span class="ident">HostInfo</span>, <span class="ident">SimConfig</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::configuration::ConfigOptions</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::configuration::Flatten</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::emulated_time::EmulatedTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::simulation_time::SimulationTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::routing::network_graph</span>::{<span class="ident">IpAssignment</span>, <span class="ident">RoutingInfo</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::status_bar</span>::{<span class="ident">StatusBar</span>, <span class="ident">StatusBarState</span>, <span class="ident">StatusPrinter</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::time::TimeParts</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Controller</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="comment">// general options and user configuration for the simulation</span>
@@ -555,6 +681,12 @@
     <span class="ident">host_bandwidths</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">std::net::IpAddr</span>, <span class="ident">Bandwidth</span><span class="op">&gt;</span>,
     <span class="ident">dns</span>: <span class="kw-2">*mut</span> <span class="ident">c::DNS</span>,
     <span class="ident">is_runahead_dynamic</span>: <span class="ident">bool</span>,
+
+    <span class="comment">// number of plugins that failed with a non-zero exit code</span>
+    <span class="ident">num_plugin_errors</span>: <span class="ident">AtomicU32</span>,
+
+    <span class="comment">// logs the status of the simulation</span>
+    <span class="ident">status_logger</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatusLogger</span><span class="op">&lt;</span><span class="ident">ShadowStatusBarState</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HostInfo</span><span class="op">&gt;</span>,
     <span class="ident">scheduling_data</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">ControllerScheduling</span><span class="op">&gt;</span>,
@@ -576,6 +708,17 @@
         <span class="kw">let</span> <span class="ident">smallest_latency</span> <span class="op">=</span>
             <span class="ident">SimulationTime::from_nanos</span>(<span class="ident">sim_config</span>.<span class="ident">routing_info</span>.<span class="ident">get_smallest_latency_ns</span>().<span class="ident">unwrap</span>());
 
+        <span class="kw">let</span> <span class="ident">status_logger</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">progress</span>.<span class="ident">unwrap</span>().<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">ShadowStatusBarState::new</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">end_time</span>));
+
+            <span class="kw">if</span> <span class="ident">nix::unistd::isatty</span>(<span class="ident">libc::STDERR_FILENO</span>).<span class="ident">unwrap</span>() {
+                <span class="kw">let</span> <span class="ident">redraw_interval</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">1000</span>);
+                <span class="ident">StatusLogger::Bar</span>(<span class="ident">StatusBar::new</span>(<span class="ident">state</span>, <span class="ident">redraw_interval</span>))
+            } <span class="kw">else</span> {
+                <span class="ident">StatusLogger::Printer</span>(<span class="ident">StatusPrinter::new</span>(<span class="ident">state</span>))
+            }
+        });
+
         <span class="self">Self</span> {
             <span class="ident">is_runahead_dynamic</span>: <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_dynamic_runahead</span>.<span class="ident">unwrap</span>(),
             <span class="ident">config</span>,
@@ -585,6 +728,8 @@
             <span class="ident">routing_info</span>: <span class="ident">sim_config</span>.<span class="ident">routing_info</span>,
             <span class="ident">host_bandwidths</span>: <span class="ident">sim_config</span>.<span class="ident">host_bandwidths</span>,
             <span class="ident">dns</span>,
+            <span class="ident">num_plugin_errors</span>: <span class="ident">AtomicU32::new</span>(<span class="number">0</span>),
+            <span class="ident">status_logger</span>,
             <span class="ident">scheduling_data</span>: <span class="ident">RwLock::new</span>(<span class="ident">ControllerScheduling</span> {
                 <span class="ident">min_runahead_config</span>,
                 <span class="ident">smallest_latency</span>,
@@ -608,7 +753,7 @@
         <span class="kw">let</span> <span class="ident">_fake_ref_for_manager</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>;
 
         <span class="comment">// scope used to prevent manager from being accessed after it&#39;s freed</span>
-        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> {
+        {
             <span class="comment">// The controller will be responsible for distributing the actions to the managers so that</span>
             <span class="comment">// they all have a consistent view of the simulation, topology, etc.  For now we only have</span>
             <span class="comment">// one manager so send it everything.</span>
@@ -741,11 +886,16 @@
             <span class="kw">unsafe</span> { <span class="ident">c::manager_run</span>(<span class="ident">manager</span>) };
             <span class="macro">log::info!</span>(<span class="string">&quot;Finished simulation, cleaning up now&quot;</span>);
 
-            <span class="kw">unsafe</span> { <span class="ident">c::manager_free</span>(<span class="ident">manager</span>) }
-        };
+            <span class="kw">unsafe</span> { <span class="ident">c::manager_free</span>(<span class="ident">manager</span>) };
+        }
 
-        <span class="kw">if</span> <span class="ident">rv</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Manager exited with code {}&quot;</span>, <span class="ident">rv</span>));
+        <span class="kw">let</span> <span class="ident">num_plugin_errors</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">num_plugin_errors</span>
+            .<span class="ident">load</span>(<span class="ident">std::sync::atomic::Ordering::SeqCst</span>);
+        <span class="kw">if</span> <span class="ident">num_plugin_errors</span> <span class="op">&gt;</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
+                <span class="string">&quot;{num_plugin_errors} managed processes exited with a non-zero error code&quot;</span>
+            ));
         }
 
         <span class="comment">// access the immutable reference to make sure we haven&#39;t mutated self</span>
@@ -759,6 +909,9 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> { <span class="ident">c::dns_free</span>(<span class="self">self</span>.<span class="ident">dns</span>) };
         <span class="self">self</span>.<span class="ident">dns</span> <span class="op">=</span> <span class="ident">std::ptr::null_mut</span>();
+
+        <span class="comment">// stop and clear the status logger</span>
+        <span class="self">self</span>.<span class="ident">status_logger</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">stop</span>());
     }
 }
 
@@ -775,6 +928,7 @@
         <span class="ident">min_next_event_time</span>: <span class="ident">SimulationTime</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">SimulationTime</span>, <span class="ident">SimulationTime</span>)<span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">update_min_runahead</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">min_path_latency</span>: <span class="ident">SimulationTime</span>);
+    <span class="kw">fn</span> <span class="ident">increment_plugin_errors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">SimController</span> <span class="kw">for</span> <span class="ident">Controller</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
@@ -831,6 +985,15 @@
 
         <span class="kw">let</span> <span class="ident">scheduling_data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scheduling_data</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> (<span class="ident">new_start</span>, <span class="ident">new_end</span>) <span class="op">=</span> <span class="ident">scheduling_data</span>.<span class="ident">next_interval_window</span>(<span class="ident">min_next_event_time</span>);
+
+        <span class="comment">// update the status logger</span>
+        <span class="kw">let</span> <span class="ident">display_time</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">new_start</span>, <span class="ident">new_end</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status_logger</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">status_logger</span> {
+            <span class="kw">let</span> <span class="ident">display_time</span> <span class="op">=</span> <span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">display_time</span>);
+            <span class="ident">status_logger</span>.<span class="ident">mutate_state</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+                <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="ident">display_time</span>;
+            });
+        };
 
         <span class="kw">let</span> <span class="ident">continue_running</span> <span class="op">=</span> <span class="ident">new_start</span> <span class="op">&lt;</span> <span class="ident">new_end</span>;
         <span class="ident">continue_running</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> (<span class="ident">new_start</span>, <span class="ident">new_end</span>))
@@ -892,6 +1055,20 @@
             <span class="ident">min_runahead_config</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_nanos</span>())
         );
     }
+
+    <span class="kw">fn</span> <span class="ident">increment_plugin_errors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let</span> <span class="ident">old_count</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">num_plugin_errors</span>
+            .<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">std::sync::atomic::Ordering::SeqCst</span>);
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status_logger</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">status_logger</span> {
+            <span class="ident">status_logger</span>.<span class="ident">mutate_state</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+                <span class="comment">// there is a race condition here, so use the max</span>
+                <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="ident">old_count</span> <span class="op">+</span> <span class="number">1</span>;
+                <span class="ident">state</span>.<span class="ident">num_failed_processes</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">state</span>.<span class="ident">num_failed_processes</span>, <span class="ident">new_value</span>);
+            });
+        }
+    }
 }
 
 <span class="comment">// the min runahead time is updated by workers, so needs to be locked</span>
@@ -930,6 +1107,67 @@
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">end</span>, <span class="self">self</span>.<span class="ident">end_time</span>);
 
         (<span class="ident">start</span>, <span class="ident">end</span>)
+    }
+}
+
+<span class="kw">struct</span> <span class="ident">ShadowStatusBarState</span> {
+    <span class="ident">start</span>: <span class="ident">std::time::Instant</span>,
+    <span class="ident">current</span>: <span class="ident">EmulatedTime</span>,
+    <span class="ident">end</span>: <span class="ident">EmulatedTime</span>,
+    <span class="ident">num_failed_processes</span>: <span class="ident">u32</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">ShadowStatusBarState</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">sim_current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current</span>.<span class="ident">duration_since</span>(<span class="kw-2">&amp;</span><span class="ident">EmulatedTime::SIMULATION_START</span>);
+        <span class="kw">let</span> <span class="ident">sim_end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>.<span class="ident">duration_since</span>(<span class="kw-2">&amp;</span><span class="ident">EmulatedTime::SIMULATION_START</span>);
+        <span class="kw">let</span> <span class="ident">frac</span> <span class="op">=</span> <span class="ident">sim_current</span>.<span class="ident">as_millis</span>() <span class="kw">as</span> <span class="ident">f32</span> <span class="op">/</span> <span class="ident">sim_end</span>.<span class="ident">as_millis</span>() <span class="kw">as</span> <span class="ident">f32</span>;
+
+        <span class="kw">let</span> <span class="ident">sim_current</span> <span class="op">=</span> <span class="ident">TimeParts::from_nanos</span>(<span class="ident">sim_current</span>.<span class="ident">as_nanos</span>().<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">sim_end</span> <span class="op">=</span> <span class="ident">TimeParts::from_nanos</span>(<span class="ident">sim_end</span>.<span class="ident">as_nanos</span>().<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">realtime</span> <span class="op">=</span> <span class="ident">TimeParts::from_nanos</span>(<span class="self">self</span>.<span class="ident">start</span>.<span class="ident">elapsed</span>().<span class="ident">as_nanos</span>());
+
+        <span class="macro">write!</span>(
+            <span class="ident">f</span>,
+            <span class="string">&quot;{}% — simulated: {}/{}, realtime: {}, processes failed: {}&quot;</span>,
+            (<span class="ident">frac</span> <span class="op">*</span> <span class="number">100.0</span>).<span class="ident">round</span>() <span class="kw">as</span> <span class="ident">i8</span>,
+            <span class="ident">sim_current</span>.<span class="ident">fmt_hr_min_sec</span>(),
+            <span class="ident">sim_end</span>.<span class="ident">fmt_hr_min_sec</span>(),
+            <span class="ident">realtime</span>.<span class="ident">fmt_hr_min_sec</span>(),
+            <span class="self">self</span>.<span class="ident">num_failed_processes</span>,
+        )
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">ShadowStatusBarState</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">end</span>: <span class="ident">EmulatedTime</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">start</span>: <span class="ident">std::time::Instant::now</span>(),
+            <span class="ident">current</span>: <span class="ident">EmulatedTime::SIMULATION_START</span>,
+            <span class="ident">end</span>,
+            <span class="ident">num_failed_processes</span>: <span class="number">0</span>,
+        }
+    }
+}
+
+<span class="kw">enum</span> <span class="ident">StatusLogger</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">StatusBarState</span><span class="op">&gt;</span> {
+    <span class="ident">Printer</span>(<span class="ident">StatusPrinter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+    <span class="ident">Bar</span>(<span class="ident">StatusBar</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">StatusBarState</span><span class="op">&gt;</span> <span class="ident">StatusLogger</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mutate_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>)) {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Printer</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">mutate_state</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::Bar</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">mutate_state</span>(<span class="ident">f</span>),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Printer</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">stop</span>(),
+            <span class="ident"><span class="self">Self</span>::Bar</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">stop</span>(),
+        }
     }
 }
 
@@ -1047,6 +1285,12 @@
         <span class="kw">let</span> <span class="ident">min_path_latency</span> <span class="op">=</span> <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">min_path_latency</span>).<span class="ident">unwrap</span>();
 
         <span class="ident">controller</span>.<span class="ident">update_min_runahead</span>(<span class="ident">min_path_latency</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">controller_incrementPluginErrors</span>(<span class="ident">controller</span>: <span class="kw-2">*const</span> <span class="ident">Controller</span>) {
+        <span class="kw">let</span> <span class="ident">controller</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">controller</span>.<span class="ident">as_ref</span>() }.<span class="ident">unwrap</span>();
+        <span class="ident">controller</span>.<span class="ident">increment_plugin_errors</span>();
     }
 }
 </code></pre></div>
