@@ -98,6 +98,7 @@ sourcesIndex["test_busy_wait"] = {"name":"","files":["test_busy_wait.rs"]};
 sourcesIndex["test_connect"] = {"name":"","files":["test_connect.rs"]};
 sourcesIndex["test_dup"] = {"name":"","files":["test_dup.rs"]};
 sourcesIndex["test_env"] = {"name":"","files":["test_env.rs"]};
+sourcesIndex["test_epoll"] = {"name":"","files":["test_epoll.rs"]};
 sourcesIndex["test_eventfd"] = {"name":"","files":["test_eventfd.rs"]};
 sourcesIndex["test_exit"] = {"name":"","files":["test_exit.rs"]};
 sourcesIndex["test_exit_after_signal_sched"] = {"name":"","files":["test_exit_after_signal_sched.rs"]};

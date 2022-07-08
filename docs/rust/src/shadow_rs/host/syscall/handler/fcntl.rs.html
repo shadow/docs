@@ -159,11 +159,29 @@
 <span id="154">154</span>
 <span id="155">155</span>
 <span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::context::ThreadContext</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">CompatFile</span>, <span class="ident">DescriptorFlags</span>, <span class="ident">File</span>, <span class="ident">FileStatus</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::handler::SyscallHandler</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">SysCallArgs</span>, <span class="ident">SysCallReg</span>, <span class="ident">SyscallResult</span>};
+<span class="kw">use</span> <span class="ident">log::warn</span>;
 <span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 <span class="kw">use</span> <span class="ident">nix::fcntl::OFlag</span>;
 <span class="kw">use</span> <span class="ident">std::os::unix::prelude::RawFd</span>;
@@ -193,6 +211,22 @@
         <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_descriptor_mut</span>(<span class="ident">ctx</span>.<span class="ident">process</span>, <span class="ident">fd</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">cmd</span> {
+            <span class="ident">libc::F_SETLK</span>
+            <span class="op">|</span> <span class="ident">libc::F_SETLKW</span>
+            <span class="op">|</span> <span class="ident">libc::F_OFD_SETLKW</span>
+            <span class="op">|</span> <span class="ident">libc::F_GETLK</span>
+            <span class="op">|</span> <span class="ident">libc::F_OFD_GETLK</span> =&gt; {
+                <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">file</span>() {
+                    <span class="ident">CompatFile::New</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="macro">warn!</span>(<span class="string">&quot;fcntl({}) unimplemented for {:?}&quot;</span>, <span class="ident">cmd</span>, <span class="ident">desc</span>.<span class="ident">file</span>());
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ENOSYS</span>.<span class="ident">into</span>());
+                    }
+                    <span class="ident">CompatFile::Legacy</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="macro">warn!</span>(<span class="string">&quot;Using fcntl({}) implementation that assumes no lock contention. See https://github.com/shadow/shadow/issues/2258&quot;</span>, <span class="ident">cmd</span>);
+                        <span class="kw">return</span> <span class="ident">legacy_syscall_fn</span>(<span class="ident">ctx</span>, <span class="ident">args</span>);
+                    }
+                };
+            }
             <span class="ident">libc::F_GETFL</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">file</span>() {
                     <span class="ident">CompatFile::New</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
