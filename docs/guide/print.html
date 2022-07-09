@@ -2603,6 +2603,11 @@ process to generate a core file, and then use GDB to inspect it afterwards.</p>
 <pre><code># Enable core dumps.
 ulimit -c unlimited
 
+# Ensure core dumps are written to a file.
+# e.g. this is sometimes needed in Ubuntu to override the default behavior of
+# piping the core file to the system crash handler.
+echo core | sudo tee /proc/sys/kernel/core_pattern
+
 # Run the simulation in which a process is crashing.
 shadow shadow.yaml
 
@@ -2629,11 +2634,19 @@ $ shadow --debug-hosts client,server shadow.yaml &gt; shadow.log
 $ gdb --pid=1234
 </code></pre>
 <h3 id="debugging-with-gdb"><a class="header" href="#debugging-with-gdb">Debugging with GDB</a></h3>
-<pre><code># It's often useful to look at the stack backtrace:
-&gt; bt
-
-# Or for a multi-threaded process, to look at all of the threads' backtraces:
-&gt; thread apply all bt
+<p>In managed processes, Shadow uses <code>SIGSYS</code> and <code>SIGSEGV</code> to intercept system
+calls and some CPU instructions. By default, GDB stops every time these signals
+are raised. In most cases you'll want to override this behavior to silently
+continue executing instead:</p>
+<pre><code>(gdb) handle SIGSYS noprint
+(gdb) handle SIGSEGV noprint
+</code></pre>
+<p>Once you have reached a point of interest, it's often useful to look at the
+backtrace for the current stack:</p>
+<pre><code>(gdb) bt
+</code></pre>
+<p>In multi-threaded applications, you can get a backtrace for all stacks:</p>
+<pre><code>(gdb) thread apply all bt
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="profiling"><a class="header" href="#profiling">Profiling</a></h1>
 <h2 id="profiling-with-gprof"><a class="header" href="#profiling-with-gprof">Profiling with <code>gprof</code></a></h2>
