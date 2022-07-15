@@ -244,6 +244,8 @@
 <span id="239">239</span>
 <span id="240">240</span>
 <span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<span class="ident">FromRawFd</span>, <span class="ident">IntoRawFd</span>};
 
 <span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
@@ -458,12 +460,12 @@
         }
     }
 
-    <span class="doccomment">/// Get a temporary reference to a legacy descriptor.</span>
+    <span class="doccomment">/// Get a temporary reference to a legacy file.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">process_getRegisteredLegacyDescriptor</span>(
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">process_getRegisteredLegacyFile</span>(
         <span class="ident">proc</span>: <span class="kw-2">*mut</span> <span class="ident">cshadow::Process</span>,
         <span class="ident">handle</span>: <span class="ident">libc::c_int</span>,
-    ) -&gt; <span class="kw-2">*mut</span> <span class="ident">cshadow::LegacyDescriptor</span> {
+    ) -&gt; <span class="kw-2">*mut</span> <span class="ident">cshadow::LegacyFile</span> {
         <span class="kw">let</span> <span class="ident">proc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Process::borrow_from_c</span>(<span class="ident">proc</span>) };
 
         <span class="kw">let</span> <span class="ident">handle</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">try_into</span>() {
@@ -475,10 +477,12 @@
         };
 
         <span class="kw">match</span> <span class="ident">proc</span>.<span class="ident">get_descriptor</span>(<span class="ident">handle</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">file</span>()) {
-            <span class="prelude-val">Some</span>(<span class="ident">CompatFile::Legacy</span>(<span class="ident">desc</span>)) =&gt; <span class="kw">unsafe</span> { <span class="ident">desc</span>.<span class="ident">ptr</span>() },
+            <span class="prelude-val">Some</span>(<span class="ident">CompatFile::Legacy</span>(<span class="ident">file</span>)) =&gt; <span class="kw">unsafe</span> { <span class="ident">file</span>.<span class="ident">ptr</span>() },
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;A descriptor exists for fd={}, but it is not a legacy descriptor. Returning NULL.&quot;</span>,
-                           <span class="ident">handle</span>);
+                <span class="macro">log::warn!</span>(
+                    <span class="string">&quot;A descriptor exists for fd={}, but it is not a legacy file. Returning NULL.&quot;</span>,
+                    <span class="ident">handle</span>
+                );
                 <span class="ident">std::ptr::null_mut</span>()
             }
             <span class="prelude-val">None</span> =&gt; <span class="ident">std::ptr::null_mut</span>(),

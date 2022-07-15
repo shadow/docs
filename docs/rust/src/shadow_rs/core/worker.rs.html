@@ -556,24 +556,6 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
@@ -923,6 +905,17 @@
     <span class="ident">USE_OBJECT_COUNTERS</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">std::sync::atomic::Ordering::Relaxed</span>);
 }
 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_global_syscall_counter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Counter</span>) -&gt; <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
+    <span class="kw">let</span> <span class="ident">counter</span> <span class="op">=</span> <span class="ident">SYSCALL_COUNTER</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+    <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">counter</span>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_global_object_counters</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Counter</span>, <span class="kw-2">&amp;</span><span class="ident">Counter</span>) -&gt; <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
+    <span class="kw">let</span> <span class="ident">alloc_counter</span> <span class="op">=</span> <span class="ident">ALLOC_COUNTER</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">dealloc_counter</span> <span class="op">=</span> <span class="ident">DEALLOC_COUNTER</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+    <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">alloc_counter</span>, <span class="kw-2">&amp;</span><span class="ident">dealloc_counter</span>)
+}
+
 <span class="kw">mod</span> <span class="ident">export</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -1087,25 +1080,6 @@
         <span class="ident">Worker::is_alive</span>()
     }
 
-    <span class="doccomment">/// Add the global counters to the provided counters, and clear the global counters.</span>
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_addFromGlobalAllocCounters</span>(
-        <span class="ident">alloc_counter</span>: <span class="kw-2">*mut</span> <span class="ident">Counter</span>,
-        <span class="ident">dealloc_counter</span>: <span class="kw-2">*mut</span> <span class="ident">Counter</span>,
-    ) {
-        <span class="kw">let</span> <span class="ident">alloc_counter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">alloc_counter</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">dealloc_counter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">dealloc_counter</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global_alloc_counter</span> <span class="op">=</span> <span class="ident">ALLOC_COUNTER</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global_dealloc_counter</span> <span class="op">=</span> <span class="ident">DEALLOC_COUNTER</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-
-        <span class="ident">alloc_counter</span>.<span class="ident">add_counter</span>(<span class="kw-2">&amp;</span><span class="ident">global_alloc_counter</span>);
-        <span class="ident">dealloc_counter</span>.<span class="ident">add_counter</span>(<span class="kw-2">&amp;</span><span class="ident">global_dealloc_counter</span>);
-
-        <span class="kw-2">*</span><span class="ident">global_alloc_counter</span> <span class="op">=</span> <span class="ident">Counter::new</span>();
-        <span class="kw-2">*</span><span class="ident">global_dealloc_counter</span> <span class="op">=</span> <span class="ident">Counter::new</span>();
-    }
-
     <span class="doccomment">/// Add the counters to their global counterparts, and clear the provided counters.</span>
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_addToGlobalAllocCounters</span>(
@@ -1123,16 +1097,6 @@
 
         <span class="kw-2">*</span><span class="ident">alloc_counter</span> <span class="op">=</span> <span class="ident">Counter::new</span>();
         <span class="kw-2">*</span><span class="ident">dealloc_counter</span> <span class="op">=</span> <span class="ident">Counter::new</span>();
-    }
-
-    <span class="doccomment">/// Add the global counter to the provided counter, and clear the global counter.</span>
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_addFromGlobalSyscallCounter</span>(<span class="ident">syscall_counter</span>: <span class="kw-2">*mut</span> <span class="ident">Counter</span>) {
-        <span class="kw">let</span> <span class="ident">syscall_counter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">syscall_counter</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global_syscall_counter</span> <span class="op">=</span> <span class="ident">SYSCALL_COUNTER</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="ident">syscall_counter</span>.<span class="ident">add_counter</span>(<span class="kw-2">&amp;</span><span class="ident">global_syscall_counter</span>);
-        <span class="kw-2">*</span><span class="ident">global_syscall_counter</span> <span class="op">=</span> <span class="ident">Counter::new</span>();
     }
 
     <span class="doccomment">/// Add the counters to their global counterparts, and clear the provided counters.</span>

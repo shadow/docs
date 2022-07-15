@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Controller",""]]});
+initSidebarItems({"struct":[["Controller",""]],"trait":[["SimController","Controller methods that are accessed by the manager."]]});
