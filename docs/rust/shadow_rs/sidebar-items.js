@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["core",""],["cshadow",""],["host",""],["routing",""],["shmem",""],["utility",""]]});
+initSidebarItems({"mod":[["core",""],["cshadow",""],["host",""],["network",""],["utility",""]]});

@@ -282,6 +282,7 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow::Borrow</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">OsStr</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -296,7 +297,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::configuration</span>::{<span class="ident">CliOptions</span>, <span class="ident">ConfigFileOptions</span>, <span class="ident">ConfigOptions</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::worker</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::shmem::cleanup</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::shm_cleanup</span>;
 
 <span class="doccomment">/// Main entry point for the simulator.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run_shadow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">OsStr</span><span class="op">&gt;</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -333,7 +334,8 @@
 
     <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">shm_cleanup</span> {
         <span class="comment">// clean up any orphaned shared memory</span>
-        <span class="ident">cleanup::shm_cleanup</span>(<span class="ident">cleanup::SHM_DIR_PATH</span>).<span class="ident">context</span>(<span class="string">&quot;Cleaning shared memory files&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">shm_cleanup::shm_cleanup</span>(<span class="ident">shm_cleanup::SHM_DIR_PATH</span>)
+            .<span class="ident">context</span>(<span class="string">&quot;Cleaning shared memory files&quot;</span>)<span class="question-mark">?</span>;
         <span class="ident">std::process::exit</span>(<span class="number">0</span>);
     }
 
@@ -389,7 +391,7 @@
     }
 
     <span class="comment">// before we run the simulation, clean up any orphaned shared memory</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">cleanup::shm_cleanup</span>(<span class="ident">cleanup::SHM_DIR_PATH</span>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">shm_cleanup::shm_cleanup</span>(<span class="ident">shm_cleanup::SHM_DIR_PATH</span>) {
         <span class="macro">log::warn!</span>(<span class="string">&quot;Unable to clean up shared memory files: {:?}&quot;</span>, <span class="ident">e</span>);
     }
 

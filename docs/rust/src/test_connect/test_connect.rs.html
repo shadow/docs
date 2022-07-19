@@ -904,6 +904,43 @@
 <span id="899">899</span>
 <span id="900">900</span>
 <span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
 </pre><pre class="rust"><code><span class="comment">/*
  * The Shadow Simulator
  * See LICENSE for licensing information
@@ -983,7 +1020,7 @@
         ),
     ];
 
-    <span class="comment">// tests to repeat for different socket options</span>
+    <span class="comment">// inet-only tests</span>
     <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">sock_type</span> <span class="kw">in</span> [<span class="ident">libc::SOCK_STREAM</span>, <span class="ident">libc::SOCK_DGRAM</span>].<span class="ident">iter</span>() {
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">flag</span> <span class="kw">in</span> [<span class="number">0</span>, <span class="ident">libc::SOCK_NONBLOCK</span>, <span class="ident">libc::SOCK_CLOEXEC</span>].<span class="ident">iter</span>() {
             <span class="comment">// add details to the test names to avoid duplicates</span>
@@ -1045,6 +1082,20 @@
                     <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
                 ),
             ]);
+        }
+    }
+
+    <span class="comment">// unix-only tests</span>
+    <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">sock_type</span> <span class="kw">in</span> [<span class="ident">libc::SOCK_STREAM</span>, <span class="ident">libc::SOCK_DGRAM</span>, <span class="ident">libc::SOCK_SEQPACKET</span>].<span class="ident">iter</span>() {
+        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">flag</span> <span class="kw">in</span> [<span class="number">0</span>, <span class="ident">libc::SOCK_NONBLOCK</span>, <span class="ident">libc::SOCK_CLOEXEC</span>].<span class="ident">iter</span>() {
+            <span class="comment">// add details to the test names to avoid duplicates</span>
+            <span class="kw">let</span> <span class="ident">append_args</span> <span class="op">=</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{} &lt;type={},flag={}&gt;&quot;</span>, <span class="ident">s</span>, <span class="ident">sock_type</span>, <span class="ident">flag</span>);
+
+            <span class="ident">tests</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[<span class="ident">test_utils::ShadowTest::new</span>(
+                <span class="kw-2">&amp;</span><span class="ident">append_args</span>(<span class="string">&quot;test_non_existent_path&quot;</span>),
+                <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">test_non_existent_path</span>(<span class="ident">sock_type</span>, <span class="ident">flag</span>),
+                <span class="macro">set!</span>[<span class="ident">TestEnv::Libc</span>, <span class="ident">TestEnv::Shadow</span>],
+            )]);
         }
     }
 
@@ -1539,6 +1590,29 @@
 
         <span class="ident">check_connect_call</span>(<span class="kw-2">&amp;</span><span class="ident">args_2</span>, <span class="ident">expected_errno_2</span>)
     })
+}
+
+<span class="doccomment">/// Test connect() to a path that doesn&#39;t exist.</span>
+<span class="kw">fn</span> <span class="ident">test_non_existent_path</span>(<span class="ident">sock_type</span>: <span class="ident">libc::c_int</span>, <span class="ident">flag</span>: <span class="ident">libc::c_int</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::socket</span>(<span class="ident">libc::AF_UNIX</span>, <span class="ident">sock_type</span> <span class="op">|</span> <span class="ident">flag</span>, <span class="number">0</span>) };
+    <span class="macro">assert!</span>(<span class="ident">fd</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>);
+
+    <span class="kw">const</span> <span class="ident">NON_EXISTENT_PATH</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;/asdf/qwerty/y89pq234589oles.sock&quot;</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path</span> <span class="op">=</span> [<span class="number">0i8</span>; <span class="number">108</span>];
+    <span class="ident">path</span>[..<span class="ident">NON_EXISTENT_PATH</span>.<span class="ident">len</span>()].<span class="ident">copy_from_slice</span>(<span class="ident">test_utils::u8_to_i8_slice</span>(<span class="ident">NON_EXISTENT_PATH</span>));
+
+    <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">libc::sockaddr_un</span> {
+        <span class="ident">sun_family</span>: <span class="ident">libc::AF_UNIX</span> <span class="kw">as</span> <span class="ident">u16</span>,
+        <span class="ident">sun_path</span>: <span class="ident">path</span>,
+    };
+
+    <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">ConnectArguments</span> {
+        <span class="ident">fd</span>: <span class="ident">fd</span>,
+        <span class="ident">addr</span>: <span class="prelude-val">Some</span>(<span class="ident">SockAddr::Unix</span>(<span class="ident">addr</span>)),
+        <span class="ident">addr_len</span>: <span class="ident">std::mem::size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>) <span class="kw">as</span> <span class="ident">u32</span>,
+    };
+
+    <span class="ident">test_utils::run_and_close_fds</span>(<span class="kw-2">&amp;</span>[<span class="ident">fd</span>], <span class="op">|</span><span class="op">|</span> <span class="ident">check_connect_call</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="prelude-val">Some</span>(<span class="ident">libc::ENOENT</span>)))
 }
 
 <span class="doccomment">/// Test connect() when the server queue is full, and for blocking sockets that an accept() unblocks</span>

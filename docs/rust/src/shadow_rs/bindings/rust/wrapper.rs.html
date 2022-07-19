@@ -5070,6 +5070,60 @@
     <span class="ident">_unused</span>: [<span class="ident">u8</span>; <span class="number">0</span>],
 }
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ShimShmemHostLock</span> <span class="op">=</span> <span class="ident">_ShimHostProtectedSharedMem</span>;
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">_ShMemBlock</span> {
+    <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*mut</span> <span class="ident">::std::os::raw::c_void</span>,
+    <span class="kw">pub</span> <span class="ident">nbytes</span>: <span class="ident">size_t</span>,
+}
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">bindgen_test_layout__ShMemBlock</span>() {
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">::std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span>(),
+        <span class="number">16usize</span>,
+        <span class="macro">concat!</span>(<span class="string">&quot;Size of: &quot;</span>, <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>))
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">::std::mem::align_of</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span>(),
+        <span class="number">8usize</span>,
+        <span class="macro">concat!</span>(<span class="string">&quot;Alignment of &quot;</span>, <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>))
+    );
+    <span class="kw">fn</span> <span class="ident">test_field_p</span>() {
+        <span class="macro">assert_eq!</span>(
+            <span class="kw">unsafe</span> {
+                <span class="kw">let</span> <span class="ident">uninit</span> <span class="op">=</span> <span class="ident">::std::mem::MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
+                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">uninit</span>.<span class="ident">as_ptr</span>();
+                <span class="macro">::std::ptr::addr_of!</span>((<span class="kw-2">*</span><span class="ident">ptr</span>).<span class="ident">p</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>
+            },
+            <span class="number">0usize</span>,
+            <span class="macro">concat!</span>(
+                <span class="string">&quot;Offset of field: &quot;</span>,
+                <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>),
+                <span class="string">&quot;::&quot;</span>,
+                <span class="macro">stringify!</span>(<span class="ident">p</span>)
+            )
+        );
+    }
+    <span class="ident">test_field_p</span>();
+    <span class="kw">fn</span> <span class="ident">test_field_nbytes</span>() {
+        <span class="macro">assert_eq!</span>(
+            <span class="kw">unsafe</span> {
+                <span class="kw">let</span> <span class="ident">uninit</span> <span class="op">=</span> <span class="ident">::std::mem::MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
+                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">uninit</span>.<span class="ident">as_ptr</span>();
+                <span class="macro">::std::ptr::addr_of!</span>((<span class="kw-2">*</span><span class="ident">ptr</span>).<span class="ident">nbytes</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>
+            },
+            <span class="number">8usize</span>,
+            <span class="macro">concat!</span>(
+                <span class="string">&quot;Offset of field: &quot;</span>,
+                <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>),
+                <span class="string">&quot;::&quot;</span>,
+                <span class="macro">stringify!</span>(<span class="ident">nbytes</span>)
+            )
+        );
+    }
+    <span class="ident">test_field_nbytes</span>();
+}
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ShMemBlock</span> <span class="op">=</span> <span class="ident">_ShMemBlock</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PluginVirtualPtr</span> <span class="op">=</span> <span class="ident">_PluginVirtualPtr</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PluginPtr</span> <span class="op">=</span> <span class="ident">_PluginVirtualPtr</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PluginPhysicalPtr</span> <span class="op">=</span> <span class="ident">_PluginPhysicalPtr</span>;
@@ -5369,60 +5423,6 @@
     <span class="ident">test_field_restartable</span>();
 }
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SysCallReturn</span> <span class="op">=</span> <span class="ident">_SysCallReturn</span>;
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">_ShMemBlock</span> {
-    <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*mut</span> <span class="ident">::std::os::raw::c_void</span>,
-    <span class="kw">pub</span> <span class="ident">nbytes</span>: <span class="ident">size_t</span>,
-}
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">bindgen_test_layout__ShMemBlock</span>() {
-    <span class="macro">assert_eq!</span>(
-        <span class="ident">::std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span>(),
-        <span class="number">16usize</span>,
-        <span class="macro">concat!</span>(<span class="string">&quot;Size of: &quot;</span>, <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>))
-    );
-    <span class="macro">assert_eq!</span>(
-        <span class="ident">::std::mem::align_of</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span>(),
-        <span class="number">8usize</span>,
-        <span class="macro">concat!</span>(<span class="string">&quot;Alignment of &quot;</span>, <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>))
-    );
-    <span class="kw">fn</span> <span class="ident">test_field_p</span>() {
-        <span class="macro">assert_eq!</span>(
-            <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">uninit</span> <span class="op">=</span> <span class="ident">::std::mem::MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">uninit</span>.<span class="ident">as_ptr</span>();
-                <span class="macro">::std::ptr::addr_of!</span>((<span class="kw-2">*</span><span class="ident">ptr</span>).<span class="ident">p</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>
-            },
-            <span class="number">0usize</span>,
-            <span class="macro">concat!</span>(
-                <span class="string">&quot;Offset of field: &quot;</span>,
-                <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>),
-                <span class="string">&quot;::&quot;</span>,
-                <span class="macro">stringify!</span>(<span class="ident">p</span>)
-            )
-        );
-    }
-    <span class="ident">test_field_p</span>();
-    <span class="kw">fn</span> <span class="ident">test_field_nbytes</span>() {
-        <span class="macro">assert_eq!</span>(
-            <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">uninit</span> <span class="op">=</span> <span class="ident">::std::mem::MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">_ShMemBlock</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">uninit</span>.<span class="ident">as_ptr</span>();
-                <span class="macro">::std::ptr::addr_of!</span>((<span class="kw-2">*</span><span class="ident">ptr</span>).<span class="ident">nbytes</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>
-            },
-            <span class="number">8usize</span>,
-            <span class="macro">concat!</span>(
-                <span class="string">&quot;Offset of field: &quot;</span>,
-                <span class="macro">stringify!</span>(<span class="ident">_ShMemBlock</span>),
-                <span class="string">&quot;::&quot;</span>,
-                <span class="macro">stringify!</span>(<span class="ident">nbytes</span>)
-            )
-        );
-    }
-    <span class="ident">test_field_nbytes</span>();
-}
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ShMemBlock</span> <span class="op">=</span> <span class="ident">_ShMemBlock</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SysCallHandler</span> <span class="op">=</span> <span class="ident">_SysCallHandler</span>;
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
