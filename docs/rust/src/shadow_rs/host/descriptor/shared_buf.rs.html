@@ -274,18 +274,6 @@
 <span id="269">269</span>
 <span id="270">270</span>
 <span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::errno::Errno</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types::SyscallError</span>;
@@ -490,17 +478,11 @@
 
         <span class="comment">// listeners waiting for `NO_READERS` or `NO_WRITERS` status changes will never be notified</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_readers</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">num_writers</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="macro">log::warn!</span>(
+            <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging</span>
+            <span class="macro">debug_panic!</span>(
                 <span class="string">&quot;Dropping SharedBuf while it still has {} readers and {} writers.&quot;</span>,
                 <span class="self">self</span>.<span class="ident">num_readers</span>,
                 <span class="self">self</span>.<span class="ident">num_writers</span>,
-            );
-
-            <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-            <span class="macro">panic!</span>(
-                <span class="string">&quot;Dropping SharedBuf while it still has {} readers and {} writers.&quot;</span>,
-                <span class="self">self</span>.<span class="ident">num_readers</span>, <span class="self">self</span>.<span class="ident">num_writers</span>,
             );
         }
     }
@@ -541,14 +523,11 @@
             <span class="kw">return</span>;
         }
 
-        <span class="kw">const</span> <span class="ident">MSG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Dropping ReaderHandle without returning it to SharedBuf. \
-                           This likely indicates a bug in Shadow.&quot;</span>;
-
-        <span class="macro">log::warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">MSG</span>);
-
         <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">MSG</span>);
+        <span class="macro">debug_panic!</span>(
+            <span class="string">&quot;Dropping ReaderHandle without returning it to SharedBuf. \
+             This likely indicates a bug in Shadow.&quot;</span>
+        );
     }
 }
 
@@ -559,14 +538,11 @@
             <span class="kw">return</span>;
         }
 
-        <span class="kw">const</span> <span class="ident">MSG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Dropping WriterHandle without returning it to SharedBuf. \
-                           This likely indicates a bug in Shadow.&quot;</span>;
-
-        <span class="macro">log::warn!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">MSG</span>);
-
         <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">MSG</span>);
+        <span class="macro">debug_panic!</span>(
+            <span class="string">&quot;Dropping WriterHandle without returning it to SharedBuf. \
+                      This likely indicates a bug in Shadow.&quot;</span>
+        );
     }
 }
 </code></pre></div>

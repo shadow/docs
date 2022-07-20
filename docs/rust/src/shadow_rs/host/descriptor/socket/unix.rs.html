@@ -2211,6 +2211,9 @@
 <span id="2206">2206</span>
 <span id="2207">2207</span>
 <span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">LinkedList</span>, <span class="ident">VecDeque</span>};
 <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Weak</span>};
 
@@ -4074,16 +4077,19 @@
 
 <span class="kw">impl</span> <span class="ident">UnixSocketCommon</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::CLOSED</span>) {
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Attempting to close an already-closed unix socket&quot;</span>);
-        }
+        <span class="comment">// check that the CLOSED flag was set by the protocol state</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::CLOSED</span>) {
+            <span class="comment">// set the flag here since we missed doing it before</span>
+            <span class="comment">// do this before the below panic, otherwise rust gives us warnings</span>
+            <span class="self">self</span>.<span class="ident">copy_state</span>(
+                <span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(),
+                <span class="ident">FileState::CLOSED</span>,
+                <span class="ident">event_queue</span>,
+            );
 
-        <span class="comment">// set the closed flag and remove any other flags</span>
-        <span class="self">self</span>.<span class="ident">copy_state</span>(
-            <span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(),
-            <span class="ident">FileState::CLOSED</span>,
-            <span class="ident">event_queue</span>,
-        );
+            <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging</span>
+            <span class="macro">debug_panic!</span>(<span class="string">&quot;When closing a unix socket, the CLOSED flag was not set&quot;</span>);
+        }
 
         <span class="prelude-val">Ok</span>(())
     }
