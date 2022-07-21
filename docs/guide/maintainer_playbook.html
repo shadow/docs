@@ -153,24 +153,54 @@ numbers with the <a href="https://pypi.org/project/bumpversion/">bumpversion</a>
 <p>The following commands can be used to tag a new version of Shadow, after which
 an archive will be available on github's <a href="https://github.com/shadow/shadow/releases">releases
 page</a>.</p>
-<pre><code class="language-bash">git checkout main
-
-# Bump the patch, minor, or major version number, commit the change, and tag
-# that commit.
-bumpversion &lt;patch|minor|major&gt; --tag --commit
-
-# Get the new version number.
+<p>Install bumpversion if needed:</p>
+<pre><code>python3 -m venv bumpenv
+source bumpenv/bin/activate
+pip install -U pip
+pip install bumpversion
+</code></pre>
+<p>Make sure main is up to date:</p>
+<pre><code>git checkout main
+git pull
+</code></pre>
+<p>The bumpversion command is run like this (it is recommended to add
+<code>--dry-run --verbose</code> until you are confident in the result):</p>
+<pre><code>bumpversion --dry-run --verbose &lt;major|minor|patch|release|build&gt;
+</code></pre>
+<p>Decide which part of the version you are bumping. Our format is
+<code>{major}.{minor}.{patch}-{release}.{build}</code>. Bumping earlier parts of the
+version will cause later parts to get reset to 0 (or 'pre' for the release
+part). For example, if you are at <code>2.0.0</code>, going to <code>2.1.0-pre</code> is easy:</p>
+<pre><code>bumpversion minor --tag --commit
+</code></pre>
+<p>In the above case, we can just tag and commit immediately. But if you are going
+from <code>2.0.0</code> to <code>2.1.0</code>, you'll need to either run twice (first to bump the
+minor from 0 to 2, then to bump the release from 'pre' to the invisible
+'stable'):</p>
+<pre><code>bumpversion minor
+bumpversion --allow-dirty release --commit --tag
+</code></pre>
+<p>or use the serialize option to specify the intended format of the next version:</p>
+<pre><code>bumpversion minor --serialize '{major}.{minor}.{patch}'
+</code></pre>
+<p>Now check that things worked and get the new version number:</p>
+<pre><code>git log -1 --stat
+git describe --tags
 VERSION=`awk -F &quot;=&quot; '/current_version/ {print $2}' .bumpversion.cfg | tr -d ' '`
-
-# Update the Cargo lock files, then update the commit and tag
-(cd src/main &amp;&amp; cargo update --workspace)
-(cd src/test &amp;&amp; cargo update --workspace)
-git add src/main/Cargo.lock src/test/Cargo.lock
-git commit --amend --no-edit
+</code></pre>
+<p>Update the Cargo lock file, then ammend the commit and tag to include the update
+(closely check and update the <code>Bump version: from → to</code> messages as needed):</p>
+<pre><code>(cd src &amp;&amp; cargo update --workspace)
+git add src/Cargo.lock
+git commit --amend
 git tag -f -a &quot;v$VERSION&quot;
-
-# Push to GitHub.
-git push origin &quot;v$VERSION&quot;
+</code></pre>
+<p>Check again:</p>
+<pre><code>git log -1 --stat
+git describe --tags
+</code></pre>
+<p>Now if everything looks good, push to GitHub:</p>
+<pre><code>git push origin &quot;v$VERSION&quot;
 </code></pre>
 <p>Our releases will then be tagged off of the main branch.</p>
 
