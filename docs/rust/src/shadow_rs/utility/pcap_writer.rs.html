@@ -294,7 +294,6 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
-<span id="292">292</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Seek</span>, <span class="ident">SeekFrom</span>, <span class="ident">Write</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
@@ -494,8 +493,7 @@
 
         <span class="kw">let</span> <span class="ident">pcap</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">pcap</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">packet_len</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c::packet_getHeaderSize</span>(<span class="ident">packet</span>) }
-            <span class="op">+</span> <span class="kw">unsafe</span> { <span class="ident">c::packet_getPayloadLength</span>(<span class="ident">packet</span>) };
+        <span class="kw">let</span> <span class="ident">packet_len</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="kw">unsafe</span> { <span class="ident">c::packet_getTotalSize</span>(<span class="ident">packet</span>) }).<span class="ident">unwrap</span>();
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">pcap</span>.<span class="ident">write_packet_fmt</span>(<span class="ident">ts_sec</span>, <span class="ident">ts_usec</span>, <span class="ident">packet_len</span>, <span class="op">|</span><span class="ident">writer</span><span class="op">|</span> {
             <span class="ident">packet</span>.<span class="ident">display_bytes</span>(<span class="ident">writer</span>)
