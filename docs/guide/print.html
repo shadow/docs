@@ -902,6 +902,9 @@ the configuration options for those applications.</p>
 <p><code>shadow.yaml</code>:</p>
 <pre><code class="language-yaml">general:
   stop_time: 10m
+  # Needed to avoid deadlock in some configurations of tgen.
+  # See below.
+  model_unblocked_syscall_latency: true
 
 network:
   graph:
@@ -945,6 +948,8 @@ processes, which is why we specified <code>../../../tgen.server.graphml.xml</cod
 path to the TGen configuration in our Shadow configuration file
 (<code>./shadow.data/hosts/server/../../../tgen.server.graphml.xml</code> →
 <code>./tgen.server.graphml.xml</code>).</p>
+<p><code>model_unblocked_syscall_latency</code> is used to avoid deadlock in case tgen was
+compiled with <a href="compatibility_notes.html#libopenblas">libopenblas</a>.</p>
 <h3 id="configuring-tgen"><a class="header" href="#configuring-tgen">Configuring TGen</a></h3>
 <p>Each TGen process requires an action-dependency graph in order to configure the
 behavior of the clients and server. See the <a href="https://github.com/shadow/tgen/tree/main/doc">TGen
@@ -2194,8 +2199,8 @@ the second simulation on socket 1 and numa node 1.</p>
 <p>libopenblas is a fairly low-level library, and can get pulled in transitively
 via dependencies. e.g., <a href="https://github.com/shadow/tgen">tgen</a> uses libigraph,
 which links against liblapack, which links against blas.</p>
-<p>libopenblas, when compiled with pthread support, uses <a href="compatibility_notes.html#busy-loops">busy-loops</a>
-in its worker threads.</p>
+<p>libopenblas, when compiled with pthread support, uses
+<a href="limitations.html#busy-loops">busy-loops</a> in its worker threads.</p>
 <p>There are several known workarounds:</p>
 <ul>
 <li>
