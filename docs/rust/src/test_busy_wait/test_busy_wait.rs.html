@@ -25,7 +25,21 @@
 <span id="20">20</span>
 <span id="21">21</span>
 <span id="22">22</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::arch::x86_64::_rdtsc</span> <span class="kw">as</span> <span class="ident">rdtsc</span>;
+<span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 
 <span class="comment">// We&#39;ve found several real-world examples where the process does a busy wait</span>
 <span class="comment">// until either some timeout has passed, or work shows up to do. Having Shadow</span>
@@ -44,8 +58,20 @@
     }
 }
 
+<span class="comment">// Same idea as `test_wait_for_timeout`, but for a loop that makes *no* syscalls, only checking the</span>
+<span class="comment">// time directly via rdtsc. Regression test for</span>
+<span class="comment">// https://github.com/shadow/shadow/discussions/2299#discussioncomment-3198368</span>
+<span class="kw">fn</span> <span class="ident">test_wait_for_rdtsc_timeout</span>() {
+    <span class="kw">let</span> <span class="ident">t0</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">rdtsc</span>() };
+    <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">t0</span> <span class="op">+</span> <span class="number">1000</span>;
+    <span class="kw">while</span> <span class="kw">unsafe</span> { <span class="ident">rdtsc</span>() } <span class="op">&lt;</span> <span class="ident">target</span> {
+        <span class="comment">// wait</span>
+    }
+}
+
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="ident">test_wait_for_timeout</span>();
+    <span class="ident">test_wait_for_rdtsc_timeout</span>();
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="test_busy_wait" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>

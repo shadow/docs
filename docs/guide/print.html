@@ -2783,21 +2783,20 @@ integration tests are blocked from merging.</p>
 <p>We also have scripts for running the continuous integration tests locally,
 inside Docker containers. This can be useful for debugging and for quickly
 iterating on a test that's failing in GitHub's test runs.</p>
-<p>The <a href="../ci/run.sh"><code>run.sh</code></a> script builds a Docker images for all
-supported configurations, and runs our tests in them.</p>
-<p>On the first invocation you should tell the <code>run.sh</code> script to build the images
-using <code>-i</code>:</p>
-<pre><code class="language-{.bash}">sudo ci/run.sh -i
+<p>The <a href="../ci/run.sh"><code>run.sh</code></a> script builds shadow inside a Docker image, and
+runs our tests in it.</p>
+<p>By default, the script will attempt to use a Docker image with already shadow
+built, perform an incremental build on top of that, and then run shadow's tests.
+If you don't already have a local image, the script will implicitly try to pull
+from the <a href="https://hub.docker.com/r/shadowsim/shadow-ci">shadowsim/shadow-ci</a> on
+dockerhub. You can override this repo with <code>-r</code> or force the script to build a
+new image locally with <code>-i</code>.</p>
+<p>For example, to perform an incremental build and test on ubuntu 18.04,
+with the clang compiler in debug mode:</p>
+<pre><code class="language-{.bash}">ci/run.sh -c ubuntu:18.04 -C clang -b debug&quot;
 </code></pre>
-<p>If you wish to only check whether the tests pass or fail, future invocations
-can omit the <code>-i</code> option to use the existing image and build/test only the
-incremental changes. None of the test results will be saved in this case, but
-it is much quicker to build.</p>
-<p>Note that building all images locally typically takes hours. More often,
-you'll want to only run some smaller set of configurations locally.
-To run only the configurations you specify, use the <code>-o</code> flag:</p>
-<pre><code class="language-{.bash}">sudo ci/run.sh -i -o &quot;ubuntu:18.04;clang;debug fedora:35;gcc;release&quot;
-</code></pre>
+<p>If the tests fail, shadow's build directory, including test outputs, will be copied
+from the ephemeral Docker container into <code>ci/build</code>.</p>
 <p>For additional options, run <code>ci/run.sh -h</code>.</p>
 <h2 id="debugging-locally"><a class="header" href="#debugging-locally">Debugging locally</a></h2>
 <p>After a local run fails, you can use Docker to help debug it. If you previously
@@ -2806,12 +2805,12 @@ the Docker image(s). If Shadow was built successfully and the failure happened
 at the testing step, then the Docker image was built and tagged, and you can
 run an interactive shell in a container built from that image.</p>
 <p>e.g.:</p>
-<pre><code class="language-{.bash}">sudo docker run --shm-size=1g -it shadow:centos-8-clang-debug /bin/bash
+<pre><code class="language-{.bash}">docker run --shm-size=1g --security-opt=seccomp=unconfined -it shadowsim/shadow-ci:centos-8-clang-debug /bin/bash
 </code></pre>
 <p>If the failure happened in the middle of building the Docker image, you can do
 the same with the last intermediate layer that was built successfully. e.g.
 given the output:</p>
-<pre><code class="language-{.bash}">$ sudo ci/run.sh -i -o &quot;centos:8;clang;debug&quot;
+<pre><code class="language-{.bash}">$ ci/run.sh -i -c centos:8 -C clang -b debug
 &lt;snip&gt;
 Step 13/13 : RUN . ci/container_scripts/build_and_install.sh
  ---&gt; Running in a11c4a554ef8
@@ -2820,7 +2819,7 @@ Step 13/13 : RUN . ci/container_scripts/build_and_install.sh
 </code></pre>
 <p>You can start a container from the image where Docker tried (and failed) to run
 <code>ci/the build_and_install.sh</code> script was executed with:</p>
-<pre><code class="language-{.bash}">sudo docker run --shm-size=1g -it a11c4a554ef8 /bin/bash
+<pre><code class="language-{.bash}">docker run --shm-size=1g --security-opt=seccomp=unconfined -it a11c4a554ef8 /bin/bash
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="maintainer-playbook"><a class="header" href="#maintainer-playbook">Maintainer playbook</a></h1>
 <h2 id="tagging-shadow-releases"><a class="header" href="#tagging-shadow-releases">Tagging Shadow releases</a></h2>

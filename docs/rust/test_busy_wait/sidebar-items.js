@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["main",""],["test_wait_for_timeout",""]]});
+initSidebarItems({"fn":[["main",""],["test_wait_for_rdtsc_timeout",""],["test_wait_for_timeout",""]]});
