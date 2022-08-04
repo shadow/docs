@@ -767,12 +767,62 @@
 <span id="762">762</span>
 <span id="763">763</span>
 <span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
 </pre><pre class="rust"><code><span class="doccomment">/*!
 Values for working with a simulated duration. Use `EmulatedTime` to represent an instant in time.
 
 In Rust, use `EmulatedTime` to represent an instant in time, or
-[`std::time::Duration`] to represent a time interval. Use `SimulationTime` only
-when interacting with C APIs that use [`c::SimulationTime`].
+`SimulationTime` to represent a time interval. `SimulationTime` is meant to
+replace [`c::SimulationTime`] from the C APIs.
 
 This module contains some identically-named constants defined as C macros in
 `main/core/support/definitions.h`.
@@ -817,6 +867,10 @@ This module contains some identically-named constants defined as C macros in
         }
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_zero</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">==</span> <span class="number">0</span>
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_secs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="number">0</span> <span class="op">/</span> <span class="ident">SIMTIME_ONE_SECOND</span>
     }
@@ -833,21 +887,51 @@ This module contains some identically-named constants defined as C macros in
         (<span class="self">self</span>.<span class="number">0</span> <span class="op">/</span> <span class="ident">SIMTIME_ONE_NANOSECOND</span>).<span class="ident">into</span>()
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_nanos_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
+        <span class="self">self</span>.<span class="ident">as_nanos</span>() <span class="kw">as</span> <span class="ident">f64</span>
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_add</span>(<span class="ident">other</span>.<span class="number">0</span>) {
-            <span class="ident">s</span>
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        };
-        <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">sum</span>)
+        <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_add</span>(<span class="ident">other</span>.<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">sum</span>) =&gt; <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">sum</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_sub</span>(<span class="ident">other</span>.<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">difference</span>) =&gt; <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">difference</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_mul</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">product</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_mul</span>(<span class="ident">other</span>) {
-            <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">product</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
+        <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_mul</span>(<span class="ident">other</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">product</span>) =&gt; <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">product</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">checked_div</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_div</span>(<span class="ident">other</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">quotient</span>) =&gt; <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">quotient</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">saturating_add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_add</span>(<span class="ident">other</span>.<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="ident">SIMTIME_MAX</span>);
+        <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">sum</span>).<span class="ident">unwrap</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">saturating_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">difference</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_sub</span>(<span class="ident">other</span>.<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="ident">SIMTIME_MIN</span>);
+        <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">difference</span>).<span class="ident">unwrap</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">saturating_mul</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">product</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_mul</span>(<span class="ident">other</span>).<span class="ident">unwrap_or</span>(<span class="ident">SIMTIME_MAX</span>);
+        <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">product</span>).<span class="ident">unwrap</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_secs</span>(<span class="ident">s</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
@@ -895,6 +979,22 @@ This module contains some identically-named constants defined as C macros in
     }
 }
 
+<span class="kw">impl</span> <span class="ident">std::ops::Add</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SimulationTime</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">SimulationTime</span>;
+
+    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
+        <span class="self">self</span>.<span class="ident">checked_add</span>(<span class="ident">other</span>).<span class="ident">unwrap</span>()
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">std::ops::Sub</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SimulationTime</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">SimulationTime</span>;
+
+    <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
+        <span class="self">self</span>.<span class="ident">checked_sub</span>(<span class="ident">other</span>).<span class="ident">unwrap</span>()
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">std::ops::Mul</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SimulationTime</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">SimulationTime</span>;
 
@@ -903,11 +1003,11 @@ This module contains some identically-named constants defined as C macros in
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::ops::Add</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SimulationTime</span> {
+<span class="kw">impl</span> <span class="ident">std::ops::Div</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SimulationTime</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">SimulationTime</span>;
 
-    <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="self">self</span>.<span class="ident">checked_add</span>(<span class="ident">other</span>).<span class="ident">unwrap</span>()
+    <span class="kw">fn</span> <span class="ident">div</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">u64</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
+        <span class="self">self</span>.<span class="ident">checked_div</span>(<span class="ident">other</span>).<span class="ident">unwrap</span>()
     }
 }
 
