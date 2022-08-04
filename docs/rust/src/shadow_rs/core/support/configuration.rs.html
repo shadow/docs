@@ -1548,6 +1548,14 @@
 <span id="1543">1543</span>
 <span id="1544">1544</span>
 <span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
@@ -1635,8 +1643,8 @@
     <span class="kw">pub</span> <span class="ident">experimental</span>: <span class="ident">ExperimentalOptions</span>,
 
     <span class="comment">// we use a BTreeMap so that the hosts are sorted by their hostname (useful for determinism)</span>
-    <span class="comment">// note: serde &#39;with&#39; is incompatible with &#39;derive(JsonSchema)&#39;: https://github.com/GREsau/schemars/issues/89</span>
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">with</span> <span class="op">=</span> <span class="string">&quot;serde_with::rust::maps_duplicate_key_is_error&quot;</span>)]</span>
+    <span class="comment">// since shadow parses to a serde_yaml::Value initially, we don&#39;t need to worry about duplicate</span>
+    <span class="comment">// hostnames here</span>
     <span class="kw">pub</span> <span class="ident">hosts</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">HostOptions</span><span class="op">&gt;</span>,
 }
 
@@ -1999,6 +2007,13 @@
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;seconds&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;unblocked_vdso_latency&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
     <span class="kw">pub</span> <span class="ident">unblocked_vdso_latency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">units::Time</span><span class="op">&lt;</span><span class="ident">units::TimePrefix</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Enable extended YAML conventions (merge keys and extension fields). Can only be enabled on</span>
+    <span class="doccomment">/// the command line (enabling in the configuration file is a no-op).</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">hide_short_help</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;bool&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">help</span> <span class="op">=</span> <span class="ident">EXP_HELP</span>.<span class="ident">get</span>(<span class="string">&quot;use_extended_yaml&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>())]</span>
+    <span class="kw">pub</span> <span class="ident">use_extended_yaml</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ExperimentalOptions</span> {
@@ -2050,6 +2065,7 @@
             <span class="ident">host_heartbeat_log_info</span>: <span class="prelude-val">Some</span>(<span class="ident">IntoIterator::into_iter</span>([<span class="ident">LogInfoFlag::Node</span>]).<span class="ident">collect</span>()),
             <span class="ident">host_heartbeat_interval</span>: <span class="prelude-val">None</span>,
             <span class="ident">strace_logging_mode</span>: <span class="prelude-val">Some</span>(<span class="ident">StraceLoggingMode::Off</span>),
+            <span class="ident">use_extended_yaml</span>: <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
         }
     }
 }

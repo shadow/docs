@@ -345,6 +345,8 @@ in the Symposium on Network and Distributed System Security, 2012.</p>
 not ensure that Shadow successfully builds and passes tests on other platforms.
 However, we will review pull requests that allow Shadow to build and run on
 unsupported platforms.</p>
+<p>Our policy regarding supported platforms can be found in our <a href="semver.html">&quot;stability
+guarantees&quot;</a>.</p>
 <h2 id="docker"><a class="header" href="#docker">Docker</a></h2>
 <p>If you are installing Shadow within a Docker container, you must increase the
 size of the container's <code>/dev/shm</code> mount and disable the seccomp security
@@ -660,7 +662,7 @@ backwards-compatible.
 (<a href="shadow_config_spec.html#generaldata_directory"><code>general.data_directory</code></a>)
 will not change.</li>
 <li>The PID numbering (the values and their order) will not change.</li>
-<li>Any supported platforms will not be dropped.</li>
+<li>Any <a href="supported_platforms.html">supported platforms</a> will not be dropped.</li>
 </ul>
 <p>The following may change between ANY versions (MAJOR, MINOR, or PATCH):</p>
 <ul>
@@ -1127,6 +1129,66 @@ is invalid, but <code>30 Kbit</code> is valid).</p>
 <li>tebi / Ti</li>
 </ul>
 <p>Examples: <code>20 B</code>, <code>100 MB</code>, <code>100 megabyte</code>, <code>10 kibibytes</code>, <code>30 MiB</code>, <code>1024 Mbytes</code></p>
+<h2 id="yaml-extensions-experimental"><a class="header" href="#yaml-extensions-experimental">YAML Extensions (Experimental)</a></h2>
+<p>Shadow has experimental support for extended YAML conventions. These can be
+enabled using the <code>--use-extended-yaml true</code> command line option.</p>
+<h3 id="mergeoverride-mappings"><a class="header" href="#mergeoverride-mappings">Merge/Override Mappings</a></h3>
+<p>To help reduce repeated configuration options, Shadow supports the YAML <a href="https://yaml.org/type/merge.html">&quot;merge
+key (<code>&lt;&lt;</code>)&quot;</a> convention. This merges the keys
+of the child mapping into the parent mapping, and is useful when combined with
+<a href="https://yaml.org/spec/1.2.2/#692-node-anchors">YAML anchors (<code>&amp;</code> and <code>*</code>)</a>.</p>
+<p>Example:</p>
+<pre><code class="language-yaml">general:
+  # --snip--
+
+network:
+  # --snip--
+
+hosts:
+  server:
+    # --snip--
+  client-uk: &amp;client
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/curl
+      args: server --silent
+      start_time: 5
+  client-us:
+    network_node_id: 1
+    &lt;&lt;: *client
+</code></pre>
+<p>For a longer example, see
+https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/.</p>
+<h3 id="extension-fields"><a class="header" href="#extension-fields">Extension Fields</a></h3>
+<p>When using the &quot;merge key&quot; feature above, putting common options in a separate
+configuration fragment may help make the configuration more readable. Shadow
+supports the &quot;extension field&quot; convention used by <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/">Docker
+Compose</a>. Any
+top-level field containing a key that begins with <code>x-</code> will be ignored by
+Shadow.</p>
+<p>Example:</p>
+<pre><code class="language-yaml">x-client: &amp;client-defaults
+  processes:
+  - path: /usr/bin/curl
+    args: server --silent
+    start_time: 5
+
+general:
+  # --snip--
+
+network:
+  # --snip--
+
+hosts:
+  server:
+    # --snip--
+  client-uk:
+    network_node_id: 0
+    &lt;&lt;: *client-defaults
+  client-us:
+    network_node_id: 1
+    &lt;&lt;: *client-defaults
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="shadow-configuration-specification"><a class="header" href="#shadow-configuration-specification">Shadow Configuration Specification</a></h1>
 <p>Shadow uses the standard YAML format to accept configuration options from users.
 The following describes Shadow's YAML format and all of the options that Shadow
@@ -1208,6 +1270,7 @@ hosts:
 <li><a href="shadow_config_spec.html#experimentaluse_cpu_pinning"><code>experimental.use_cpu_pinning</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_dynamic_runahead"><code>experimental.use_dynamic_runahead</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_explicit_block_message"><code>experimental.use_explicit_block_message</code></a></li>
+<li><a href="shadow_config_spec.html#experimentaluse_extended_yaml"><code>experimental.use_extended_yaml</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_legacy_working_dir"><code>experimental.use_legacy_working_dir</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_libc_preload"><code>experimental.use_libc_preload</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_memory_manager"><code>experimental.use_memory_manager</code></a></li>
@@ -1474,6 +1537,11 @@ Type: Bool</p>
 Type: Bool</p>
 <p>Send message to managed process telling it to stop spinning when a syscall
 blocks.</p>
+<h4 id="experimentaluse_extended_yaml"><a class="header" href="#experimentaluse_extended_yaml"><code>experimental.use_extended_yaml</code></a></h4>
+<p>Default: false<br />
+Type: Bool</p>
+<p>Enable extended YAML conventions (merge keys and extension fields). Can only be
+enabled on the command line (enabling in the configuration file is a no-op).</p>
 <h4 id="experimentaluse_legacy_working_dir"><a class="header" href="#experimentaluse_legacy_working_dir"><code>experimental.use_legacy_working_dir</code></a></h4>
 <p>Default: false<br />
 Type: Bool</p>

@@ -211,6 +211,66 @@ is invalid, but <code>30 Kbit</code> is valid).</p>
 <li>tebi / Ti</li>
 </ul>
 <p>Examples: <code>20 B</code>, <code>100 MB</code>, <code>100 megabyte</code>, <code>10 kibibytes</code>, <code>30 MiB</code>, <code>1024 Mbytes</code></p>
+<h2 id="yaml-extensions-experimental"><a class="header" href="#yaml-extensions-experimental">YAML Extensions (Experimental)</a></h2>
+<p>Shadow has experimental support for extended YAML conventions. These can be
+enabled using the <code>--use-extended-yaml true</code> command line option.</p>
+<h3 id="mergeoverride-mappings"><a class="header" href="#mergeoverride-mappings">Merge/Override Mappings</a></h3>
+<p>To help reduce repeated configuration options, Shadow supports the YAML <a href="https://yaml.org/type/merge.html">&quot;merge
+key (<code>&lt;&lt;</code>)&quot;</a> convention. This merges the keys
+of the child mapping into the parent mapping, and is useful when combined with
+<a href="https://yaml.org/spec/1.2.2/#692-node-anchors">YAML anchors (<code>&amp;</code> and <code>*</code>)</a>.</p>
+<p>Example:</p>
+<pre><code class="language-yaml">general:
+  # --snip--
+
+network:
+  # --snip--
+
+hosts:
+  server:
+    # --snip--
+  client-uk: &amp;client
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/curl
+      args: server --silent
+      start_time: 5
+  client-us:
+    network_node_id: 1
+    &lt;&lt;: *client
+</code></pre>
+<p>For a longer example, see
+https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/.</p>
+<h3 id="extension-fields"><a class="header" href="#extension-fields">Extension Fields</a></h3>
+<p>When using the &quot;merge key&quot; feature above, putting common options in a separate
+configuration fragment may help make the configuration more readable. Shadow
+supports the &quot;extension field&quot; convention used by <a href="https://docs.docker.com/compose/compose-file/compose-file-v3/">Docker
+Compose</a>. Any
+top-level field containing a key that begins with <code>x-</code> will be ignored by
+Shadow.</p>
+<p>Example:</p>
+<pre><code class="language-yaml">x-client: &amp;client-defaults
+  processes:
+  - path: /usr/bin/curl
+    args: server --silent
+    start_time: 5
+
+general:
+  # --snip--
+
+network:
+  # --snip--
+
+hosts:
+  server:
+    # --snip--
+  client-uk:
+    network_node_id: 0
+    &lt;&lt;: *client-defaults
+  client-us:
+    network_node_id: 1
+    &lt;&lt;: *client-defaults
+</code></pre>
 
                     </main>
 
