@@ -297,7 +297,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::descriptor</span>::{<span class="ident">FileMode</span>, <span class="ident">FileState</span>, <span class="ident">FileStatus</span>, <span class="ident">SyscallResult</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SysCallReg</span>, <span class="ident">SyscallError</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue::EventQueue</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::callback_queue::CallbackQueue</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::HostTreePointer</span>;
 
 <span class="kw">use</span> <span class="ident">unix::UnixSocket</span>;
@@ -362,10 +362,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">UnixSocket::connect</span>(<span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">UnixSocket::connect</span>(<span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>),
         }
     }
 }
@@ -459,8 +459,8 @@
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), <span class="ident">Unix</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">supports_sa_restart</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">event_queue</span>), <span class="ident">Unix</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">cb_queue</span>), <span class="ident">Unix</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     );
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">status</span>), <span class="ident">Unix</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_status</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">status</span>: <span class="ident">FileStatus</span>)
@@ -475,13 +475,13 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>)
     );
 
-    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">bytes</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>), <span class="ident">Unix</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">W</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="ident">SyscallResult</span>
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">bytes</span>, <span class="ident">offset</span>, <span class="ident">cb_queue</span>), <span class="ident">Unix</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">W</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="ident">SyscallResult</span>
         <span class="kw">where</span> <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
     );
 
-    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">source</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>), <span class="ident">Unix</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="ident">SyscallResult</span>
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">source</span>, <span class="ident">offset</span>, <span class="ident">cb_queue</span>), <span class="ident">Unix</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="ident">SyscallResult</span>
         <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
     );
 }
@@ -508,29 +508,29 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">address_family</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">nix::sys::socket::AddressFamily</span>
     );
 
-    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">source</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>), <span class="ident">Unix</span>;
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">source</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>), <span class="ident">Unix</span>;
         <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sendto</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">R</span>, <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>)
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sendto</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">R</span>, <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>)
             -&gt; <span class="ident">SyscallResult</span>
         <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
     );
 
-    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">bytes</span>, <span class="ident">event_queue</span>), <span class="ident">Unix</span>;
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">bytes</span>, <span class="ident">cb_queue</span>), <span class="ident">Unix</span>;
         <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recvfrom</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">W</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>)
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recvfrom</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">W</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>)
             -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SysCallReg</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
     );
 
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">backlog</span>, <span class="ident">event_queue</span>), <span class="ident">Unix</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">backlog</span>: <span class="ident">i32</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">backlog</span>, <span class="ident">cb_queue</span>), <span class="ident">Unix</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">backlog</span>: <span class="ident">i32</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     );
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Socket</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Socket</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">socket</span>.<span class="ident">accept</span>(<span class="ident">event_queue</span>).<span class="ident">map</span>(<span class="ident">Socket::Unix</span>),
+            <span class="ident"><span class="self">Self</span>::Unix</span>(<span class="ident">socket</span>) =&gt; <span class="ident">socket</span>.<span class="ident">accept</span>(<span class="ident">cb_queue</span>).<span class="ident">map</span>(<span class="ident">Socket::Unix</span>),
         }
     }
 }

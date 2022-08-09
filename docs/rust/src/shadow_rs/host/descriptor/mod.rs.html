@@ -1123,7 +1123,6 @@
 <span id="1118">1118</span>
 <span id="1119">1119</span>
 <span id="1120">1120</span>
-<span id="1121">1121</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
@@ -1132,7 +1131,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::memory_manager::MemoryManager</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">PluginPtr</span>, <span class="ident">SyscallError</span>, <span class="ident">SyscallResult</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">EventSource</span>, <span class="ident">Handle</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::callback_queue</span>::{<span class="ident">CallbackQueue</span>, <span class="ident">EventSource</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility</span>::{<span class="ident">HostTreePointer</span>, <span class="ident">IsSend</span>, <span class="ident">IsSync</span>};
 
 <span class="kw">use</span> <span class="ident">socket</span>::{<span class="ident">Socket</span>, <span class="ident">SocketRef</span>, <span class="ident">SocketRefMut</span>};
@@ -1318,7 +1317,7 @@
         <span class="comment">// this will ref the pointer and unref it when the closure is dropped</span>
         <span class="kw">let</span> <span class="ident">ptr_wrapper</span> <span class="op">=</span> <span class="ident">LegacyListener::new</span>(<span class="ident">ptr</span>);
 
-        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">event_source</span>.<span class="ident">add_listener</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">state</span>, <span class="ident">changed</span>), <span class="ident">_event_queue</span><span class="op">|</span> <span class="kw">unsafe</span> {
+        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">event_source</span>.<span class="ident">add_listener</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">state</span>, <span class="ident">changed</span>), <span class="ident">_cb_queue</span><span class="op">|</span> <span class="kw">unsafe</span> {
             <span class="ident">c::statuslistener_onStatusChanged</span>(<span class="ident">ptr_wrapper</span>.<span class="ident">ptr</span>(), <span class="ident">state</span>.<span class="ident">into</span>(), <span class="ident">changed</span>.<span class="ident">into</span>())
         });
 
@@ -1352,32 +1351,31 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">monitoring</span>: <span class="ident">FileState</span>,
         <span class="ident">filter</span>: <span class="ident">StateListenerFilter</span>,
-        <span class="ident">notify_fn</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>, <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">notify_fn</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>, <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     ) -&gt; <span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>
-            .<span class="ident">add_listener</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">state</span>, <span class="ident">changed</span>), <span class="ident">event_queue</span><span class="op">|</span> {
-                <span class="comment">// true if any of the bits we&#39;re monitoring have changed</span>
-                <span class="kw">let</span> <span class="ident">flipped</span> <span class="op">=</span> <span class="ident">monitoring</span>.<span class="ident">intersects</span>(<span class="ident">changed</span>);
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">add_listener</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">state</span>, <span class="ident">changed</span>), <span class="ident">cb_queue</span><span class="op">|</span> {
+            <span class="comment">// true if any of the bits we&#39;re monitoring have changed</span>
+            <span class="kw">let</span> <span class="ident">flipped</span> <span class="op">=</span> <span class="ident">monitoring</span>.<span class="ident">intersects</span>(<span class="ident">changed</span>);
 
-                <span class="comment">// true if any of the bits we&#39;re monitoring are set</span>
-                <span class="kw">let</span> <span class="ident">on</span> <span class="op">=</span> <span class="ident">monitoring</span>.<span class="ident">intersects</span>(<span class="ident">state</span>);
+            <span class="comment">// true if any of the bits we&#39;re monitoring are set</span>
+            <span class="kw">let</span> <span class="ident">on</span> <span class="op">=</span> <span class="ident">monitoring</span>.<span class="ident">intersects</span>(<span class="ident">state</span>);
 
-                <span class="kw">let</span> <span class="ident">notify</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">filter</span> {
-                    <span class="comment">// at least one monitored bit is on, and at least one has changed</span>
-                    <span class="ident">StateListenerFilter::OffToOn</span> =&gt; <span class="ident">flipped</span> <span class="op">&amp;&amp;</span> <span class="ident">on</span>,
-                    <span class="comment">// all monitored bits are off, and at least one has changed</span>
-                    <span class="ident">StateListenerFilter::OnToOff</span> =&gt; <span class="ident">flipped</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">on</span>,
-                    <span class="comment">// at least one monitored bit has changed</span>
-                    <span class="ident">StateListenerFilter::Always</span> =&gt; <span class="ident">flipped</span>,
-                    <span class="ident">StateListenerFilter::Never</span> =&gt; <span class="bool-val">false</span>,
-                };
+            <span class="kw">let</span> <span class="ident">notify</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">filter</span> {
+                <span class="comment">// at least one monitored bit is on, and at least one has changed</span>
+                <span class="ident">StateListenerFilter::OffToOn</span> =&gt; <span class="ident">flipped</span> <span class="op">&amp;&amp;</span> <span class="ident">on</span>,
+                <span class="comment">// all monitored bits are off, and at least one has changed</span>
+                <span class="ident">StateListenerFilter::OnToOff</span> =&gt; <span class="ident">flipped</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">on</span>,
+                <span class="comment">// at least one monitored bit has changed</span>
+                <span class="ident">StateListenerFilter::Always</span> =&gt; <span class="ident">flipped</span>,
+                <span class="ident">StateListenerFilter::Never</span> =&gt; <span class="bool-val">false</span>,
+            };
 
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">notify</span> {
-                    <span class="kw">return</span>;
-                }
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">notify</span> {
+                <span class="kw">return</span>;
+            }
 
-                (<span class="ident">notify_fn</span>)(<span class="ident">state</span>, <span class="ident">changed</span>, <span class="ident">event_queue</span>)
-            })
+            (<span class="ident">notify_fn</span>)(<span class="ident">state</span>, <span class="ident">changed</span>, <span class="ident">cb_queue</span>)
+        })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">HostTreePointer</span><span class="op">&lt;</span><span class="ident">c::StatusListener</span><span class="op">&gt;</span>) {
@@ -1392,9 +1390,9 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">state</span>: <span class="ident">FileState</span>,
         <span class="ident">changed</span>: <span class="ident">FileState</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">notify_listeners</span>((<span class="ident">state</span>, <span class="ident">changed</span>), <span class="ident">event_queue</span>)
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">notify_listeners</span>((<span class="ident">state</span>, <span class="ident">changed</span>), <span class="ident">cb_queue</span>)
     }
 }
 
@@ -1522,8 +1520,8 @@
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">val</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_has_open_file</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <span class="ident">bool</span>)
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">event_queue</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">cb_queue</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     );
     <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (<span class="ident">status</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_status</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">status</span>: <span class="ident">FileStatus</span>)
@@ -1538,13 +1536,13 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_legacy_listener</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::StatusListener</span>)
     );
 
-    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">bytes</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">W</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="ident">SyscallResult</span>
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">bytes</span>, <span class="ident">offset</span>, <span class="ident">cb_queue</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">W</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="ident">SyscallResult</span>
         <span class="kw">where</span> <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
     );
 
-    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">source</span>, <span class="ident">offset</span>, <span class="ident">event_queue</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="ident">SyscallResult</span>
+    <span class="macro">enum_passthrough_generic!</span>(<span class="self">self</span>, (<span class="ident">source</span>, <span class="ident">offset</span>, <span class="ident">cb_queue</span>), <span class="ident">Pipe</span>, <span class="ident">EventFd</span>, <span class="ident">Socket</span>;
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="ident">R</span>, <span class="ident">offset</span>: <span class="ident">libc::off_t</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="ident">SyscallResult</span>
         <span class="kw">where</span> <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>
     );
 }
@@ -1636,7 +1634,7 @@
     <span class="doccomment">/// Will close the inner `File` object if this is the last `OpenFile` for that `File`. This</span>
     <span class="doccomment">/// behaviour is the same as simply dropping this `OpenFile` object, but allows you to pass an</span>
     <span class="doccomment">/// event queue and get the return value of the close operation.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">OpenFile</span> { <span class="ident">inner</span> } <span class="op">=</span> <span class="self">self</span>;
 
         <span class="comment">// note: There is a race-condition here in a multi-threaded context. Since shadow should</span>
@@ -1653,7 +1651,7 @@
 
         <span class="comment">// if this is the last reference, call close() on the file</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="ident">Arc::try_unwrap</span>(<span class="ident">inner</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">inner</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>))
+            <span class="prelude-val">Some</span>(<span class="ident">inner</span>.<span class="ident">close</span>(<span class="ident">cb_queue</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -1666,13 +1664,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">OpenFileInner</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">close_helper</span>(<span class="ident">event_queue</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">close_helper</span>(<span class="ident">cb_queue</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">close_helper</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">close_helper</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">take</span>() {
-            <span class="ident">file</span>.<span class="ident">borrow_mut</span>().<span class="ident">close</span>(<span class="ident">event_queue</span>)<span class="question-mark">?</span>;
+            <span class="ident">file</span>.<span class="ident">borrow_mut</span>().<span class="ident">close</span>(<span class="ident">cb_queue</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1681,7 +1679,7 @@
 <span class="kw">impl</span> <span class="ident">std::ops::Drop</span> <span class="kw">for</span> <span class="ident">OpenFileInner</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// ignore any return value</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">EventQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">close_helper</span>(<span class="ident">event_queue</span>));
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">CallbackQueue::queue_and_run</span>(<span class="op">|</span><span class="ident">cb_queue</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">close_helper</span>(<span class="ident">cb_queue</span>));
     }
 }
 
@@ -1756,9 +1754,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">host</span>: <span class="kw-2">*mut</span> <span class="ident">c::Host</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">host</span>, <span class="ident">event_queue</span>)
+        <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">host</span>, <span class="ident">cb_queue</span>)
     }
 
     <span class="doccomment">/// Duplicate the descriptor, with both descriptors pointing to the same `OpenFile`. In</span>
@@ -1863,10 +1861,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">host</span>: <span class="kw-2">*mut</span> <span class="ident">c::Host</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::New</span>(<span class="ident">file</span>) =&gt; <span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">cb_queue</span>),
             <span class="ident"><span class="self">Self</span>::Legacy</span>(<span class="ident">file</span>) =&gt; {
                 <span class="ident">file</span>.<span class="ident">close</span>(<span class="ident">host</span>);
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(()))

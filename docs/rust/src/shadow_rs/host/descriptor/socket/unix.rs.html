@@ -2178,42 +2178,6 @@
 <span id="2173">2173</span>
 <span id="2174">2174</span>
 <span id="2175">2175</span>
-<span id="2176">2176</span>
-<span id="2177">2177</span>
-<span id="2178">2178</span>
-<span id="2179">2179</span>
-<span id="2180">2180</span>
-<span id="2181">2181</span>
-<span id="2182">2182</span>
-<span id="2183">2183</span>
-<span id="2184">2184</span>
-<span id="2185">2185</span>
-<span id="2186">2186</span>
-<span id="2187">2187</span>
-<span id="2188">2188</span>
-<span id="2189">2189</span>
-<span id="2190">2190</span>
-<span id="2191">2191</span>
-<span id="2192">2192</span>
-<span id="2193">2193</span>
-<span id="2194">2194</span>
-<span id="2195">2195</span>
-<span id="2196">2196</span>
-<span id="2197">2197</span>
-<span id="2198">2198</span>
-<span id="2199">2199</span>
-<span id="2200">2200</span>
-<span id="2201">2201</span>
-<span id="2202">2202</span>
-<span id="2203">2203</span>
-<span id="2204">2204</span>
-<span id="2205">2205</span>
-<span id="2206">2206</span>
-<span id="2207">2207</span>
-<span id="2208">2208</span>
-<span id="2209">2209</span>
-<span id="2210">2210</span>
-<span id="2211">2211</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">LinkedList</span>, <span class="ident">VecDeque</span>};
 <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Weak</span>};
 
@@ -2233,7 +2197,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::Trigger</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_condition::SysCallCondition</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall_types</span>::{<span class="ident">Blocked</span>, <span class="ident">PluginPtr</span>, <span class="ident">SysCallReg</span>, <span class="ident">SyscallError</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::event_queue</span>::{<span class="ident">EventQueue</span>, <span class="ident">Handle</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::callback_queue</span>::{<span class="ident">CallbackQueue</span>, <span class="ident">Handle</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::stream_len::StreamLen</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::HostTreePointer</span>;
 
@@ -2332,18 +2296,18 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">common</span>.<span class="ident">recv_buffer</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">inform_bytes_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">u64</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">inform_bytes_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">num</span>: <span class="ident">u64</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="self">self</span>.<span class="ident">protocol_state</span>
-            .<span class="ident">inform_bytes_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">event_queue</span>);
+            .<span class="ident">inform_bytes_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">cb_queue</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">protocol_state</span>.<span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">event_queue</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">protocol_state</span>.<span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">cb_queue</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="self">self</span>.<span class="ident">protocol_state</span>
-            .<span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">event_queue</span>)
+            .<span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">cb_queue</span>)
     }
 
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
@@ -2363,7 +2327,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">_bytes</span>: <span class="ident">W</span>,
         <span class="ident">_offset</span>: <span class="ident">libc::off_t</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -2378,7 +2342,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">_bytes</span>: <span class="ident">R</span>,
         <span class="ident">_offset</span>: <span class="ident">libc::off_t</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -2395,13 +2359,13 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">bytes</span>: <span class="ident">R</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
         <span class="self">self</span>.<span class="ident">protocol_state</span>
-            .<span class="ident">sendto</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+            .<span class="ident">sendto</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
     }
 
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
@@ -2409,13 +2373,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recvfrom</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">bytes</span>: <span class="ident">W</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SysCallReg</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
         <span class="self">self</span>.<span class="ident">protocol_state</span>
-            .<span class="ident">recvfrom</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">event_queue</span>)
+            .<span class="ident">recvfrom</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">cb_queue</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ioctl</span>(
@@ -2431,10 +2395,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">backlog</span>: <span class="ident">i32</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">protocol_state</span>
-            .<span class="ident">listen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">event_queue</span>)
+            .<span class="ident">listen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">cb_queue</span>)
     }
 
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
@@ -2442,26 +2406,26 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(
         <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">socket_ref</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">socket</span>.<span class="ident">borrow_mut</span>();
         <span class="ident">socket_ref</span>
             .<span class="ident">protocol_state</span>
-            .<span class="ident">connect</span>(<span class="kw-2">&amp;mut</span> <span class="ident">socket_ref</span>.<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+            .<span class="ident">connect</span>(<span class="kw-2">&amp;mut</span> <span class="ident">socket_ref</span>.<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accept</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">protocol_state</span>.<span class="ident">accept</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">event_queue</span>)
+        <span class="self">self</span>.<span class="ident">protocol_state</span>.<span class="ident">accept</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">common</span>, <span class="ident">cb_queue</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pair</span>(
         <span class="ident">status</span>: <span class="ident">FileStatus</span>,
         <span class="ident">socket_type</span>: <span class="ident">UnixSocketType</span>,
         <span class="ident">namespace</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">AbstractUnixNamespace</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">socket_1</span> <span class="op">=</span> <span class="ident">UnixSocket::new</span>(<span class="ident">status</span>, <span class="ident">socket_type</span>, <span class="ident">namespace</span>);
         <span class="kw">let</span> <span class="ident">socket_2</span> <span class="op">=</span> <span class="ident">UnixSocket::new</span>(<span class="ident">status</span>, <span class="ident">socket_type</span>, <span class="ident">namespace</span>);
@@ -2474,7 +2438,7 @@
                     <span class="kw-2">&amp;mut</span> <span class="ident">socket_1_ref</span>.<span class="ident">common</span>,
                     <span class="kw-2">&amp;</span><span class="ident">socket_1</span>,
                     <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">socket_2</span>),
-                    <span class="ident">event_queue</span>,
+                    <span class="ident">cb_queue</span>,
                 )
                 .<span class="ident">unwrap</span>();
         }
@@ -2487,7 +2451,7 @@
                     <span class="kw-2">&amp;mut</span> <span class="ident">socket_2_ref</span>.<span class="ident">common</span>,
                     <span class="kw-2">&amp;</span><span class="ident">socket_2</span>,
                     <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">socket_1</span>),
-                    <span class="ident">event_queue</span>,
+                    <span class="ident">cb_queue</span>,
                 )
                 .<span class="ident">unwrap</span>();
         }
@@ -2499,7 +2463,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">monitoring</span>: <span class="ident">FileState</span>,
         <span class="ident">filter</span>: <span class="ident">StateListenerFilter</span>,
-        <span class="ident">notify_fn</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>, <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">notify_fn</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>, <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     ) -&gt; <span class="ident">Handle</span><span class="op">&lt;</span>(<span class="ident">FileState</span>, <span class="ident">FileState</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">common</span>
             .<span class="ident">event_source</span>
@@ -2600,20 +2564,20 @@
             }
             <span class="ident">UnixSocketType::Dgram</span> =&gt; {
                 <span class="comment">// this is a new socket and there are no listeners, so safe to use a temporary event queue</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event_queue</span> <span class="op">=</span> <span class="ident">EventQueue::new</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cb_queue</span> <span class="op">=</span> <span class="ident">CallbackQueue::new</span>();
 
                 <span class="comment">// dgram unix sockets are immediately able to receive data, so initialize the</span>
                 <span class="comment">// receive buffer</span>
 
                 <span class="comment">// increment the buffer&#39;s reader count</span>
-                <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">event_queue</span>);
+                <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cb_queue</span>);
 
                 <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Weak::clone</span>(<span class="ident">socket</span>);
                 <span class="kw">let</span> <span class="ident">recv_buffer_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
                     <span class="ident">BufferState::READABLE</span>,
-                    <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+                    <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">cb_queue</span><span class="op">|</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                            <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                            <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
                         }
                     },
                 );
@@ -2621,7 +2585,7 @@
                 <span class="comment">// make sure no events were generated since if there were events to run, they would</span>
                 <span class="comment">// probably not run correctly if the socket&#39;s Arc is not fully created yet (as in</span>
                 <span class="comment">// the case of `Arc::new_cyclic`)</span>
-                <span class="macro">assert!</span>(<span class="ident">event_queue</span>.<span class="ident">is_empty</span>());
+                <span class="macro">assert!</span>(<span class="ident">cb_queue</span>.<span class="ident">is_empty</span>());
 
                 <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="prelude-val">Some</span>(<span class="ident">ConnLessInitial</span> {
                     <span class="ident">this_socket</span>: <span class="ident">Weak::clone</span>(<span class="ident">socket</span>),
@@ -2658,37 +2622,35 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>)
             }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">new_state</span>, <span class="ident">rv</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">close</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
         };
 
         <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">new_state</span>;
@@ -2721,28 +2683,26 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">bytes</span>: <span class="ident">R</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">sendto</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>),
         }
     }
 
@@ -2752,24 +2712,18 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">bytes</span>: <span class="ident">W</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SysCallReg</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">recvfrom</span>(<span class="ident">common</span>, <span class="ident">bytes</span>, <span class="ident">cb_queue</span>),
         }
     }
 
@@ -2777,39 +2731,25 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">num</span>: <span class="ident">u64</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">cb_queue</span>)
             }
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">as_mut</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">event_queue</span>)
-            }
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">inform_bytes_read</span>(<span class="ident">common</span>, <span class="ident">num</span>, <span class="ident">cb_queue</span>),
         }
     }
 
@@ -2858,19 +2798,15 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">backlog</span>: <span class="ident">i32</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">new_state</span>, <span class="ident">rv</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">listen</span>(<span class="ident">common</span>, <span class="ident">backlog</span>, <span class="ident">cb_queue</span>),
         };
 
         <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">new_state</span>;
@@ -2884,25 +2820,23 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">new_state</span>, <span class="ident">rv</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
             <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
+                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>)
             }
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">connect</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">addr</span>, <span class="ident">cb_queue</span>),
         };
 
         <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">new_state</span>;
@@ -2914,39 +2848,33 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">peer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">new_state</span>, <span class="ident">rv</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">event_queue</span>)
-            }
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; {
-                <span class="ident">x</span>.<span class="ident">take</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">event_queue</span>)
-            }
+            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>
+                .<span class="ident">take</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>
+                .<span class="ident">take</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>
+                .<span class="ident">take</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>
+                .<span class="ident">take</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>
+                .<span class="ident">take</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>
+                .<span class="ident">take</span>()
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">connect_unnamed</span>(<span class="ident">common</span>, <span class="ident">socket</span>, <span class="ident">peer</span>, <span class="ident">cb_queue</span>),
         };
 
         <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">new_state</span>;
@@ -2956,15 +2884,15 @@
     <span class="kw">fn</span> <span class="ident">accept</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
-            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
+            <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">accept</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>),
         }
     }
 
@@ -2975,7 +2903,7 @@
         <span class="ident">from_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
         <span class="ident">peer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">child_send_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::ConnOrientedInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">queue_incoming_conn</span>(
@@ -2983,42 +2911,42 @@
                 <span class="ident">from_address</span>,
                 <span class="ident">peer</span>,
                 <span class="ident">child_send_buffer</span>,
-                <span class="ident">event_queue</span>,
+                <span class="ident">cb_queue</span>,
             ),
             <span class="ident"><span class="self">Self</span>::ConnOrientedListening</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">queue_incoming_conn</span>(
                 <span class="ident">common</span>,
                 <span class="ident">from_address</span>,
                 <span class="ident">peer</span>,
                 <span class="ident">child_send_buffer</span>,
-                <span class="ident">event_queue</span>,
+                <span class="ident">cb_queue</span>,
             ),
             <span class="ident"><span class="self">Self</span>::ConnOrientedConnected</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">queue_incoming_conn</span>(
                 <span class="ident">common</span>,
                 <span class="ident">from_address</span>,
                 <span class="ident">peer</span>,
                 <span class="ident">child_send_buffer</span>,
-                <span class="ident">event_queue</span>,
+                <span class="ident">cb_queue</span>,
             ),
             <span class="ident"><span class="self">Self</span>::ConnOrientedClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">queue_incoming_conn</span>(
                 <span class="ident">common</span>,
                 <span class="ident">from_address</span>,
                 <span class="ident">peer</span>,
                 <span class="ident">child_send_buffer</span>,
-                <span class="ident">event_queue</span>,
+                <span class="ident">cb_queue</span>,
             ),
             <span class="ident"><span class="self">Self</span>::ConnLessInitial</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">queue_incoming_conn</span>(
                 <span class="ident">common</span>,
                 <span class="ident">from_address</span>,
                 <span class="ident">peer</span>,
                 <span class="ident">child_send_buffer</span>,
-                <span class="ident">event_queue</span>,
+                <span class="ident">cb_queue</span>,
             ),
             <span class="ident"><span class="self">Self</span>::ConnLessClosed</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">queue_incoming_conn</span>(
                 <span class="ident">common</span>,
                 <span class="ident">from_address</span>,
                 <span class="ident">peer</span>,
                 <span class="ident">child_send_buffer</span>,
-                <span class="ident">event_queue</span>,
+                <span class="ident">cb_queue</span>,
             ),
         }
     }
@@ -3033,12 +2961,12 @@
 {
     <span class="kw">fn</span> <span class="ident">peer_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">bound_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>);
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>);
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="macro">log::warn!</span>(<span class="string">&quot;close() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         (<span class="self">self</span>.<span class="ident">into</span>(), <span class="prelude-val">Err</span>(<span class="ident">Errno::EOPNOTSUPP</span>.<span class="ident">into</span>()))
@@ -3064,7 +2992,7 @@
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_bytes</span>: <span class="ident">R</span>,
         <span class="ident">_addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -3079,7 +3007,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_bytes</span>: <span class="ident">W</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SysCallReg</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -3095,7 +3023,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_num</span>: <span class="ident">u64</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) {
         <span class="macro">panic!</span>(
             <span class="string">&quot;inform_bytes_read() while in state {}&quot;</span>,
@@ -3118,7 +3046,7 @@
         <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_backlog</span>: <span class="ident">i32</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="macro">log::warn!</span>(<span class="string">&quot;listen() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         (<span class="self">self</span>.<span class="ident">into</span>(), <span class="prelude-val">Err</span>(<span class="ident">Errno::EOPNOTSUPP</span>.<span class="ident">into</span>()))
@@ -3131,7 +3059,7 @@
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="macro">log::warn!</span>(<span class="string">&quot;connect() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         (<span class="self">self</span>.<span class="ident">into</span>(), <span class="prelude-val">Err</span>(<span class="ident">Errno::EOPNOTSUPP</span>.<span class="ident">into</span>()))
@@ -3142,7 +3070,7 @@
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_peer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="macro">log::warn!</span>(
             <span class="string">&quot;connect_unnamed() while in state {}&quot;</span>,
@@ -3154,7 +3082,7 @@
     <span class="kw">fn</span> <span class="ident">accept</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EOPNOTSUPP</span>.<span class="ident">into</span>())
@@ -3166,7 +3094,7 @@
         <span class="ident">_from_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
         <span class="ident">_peer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">_child_send_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(
             <span class="string">&quot;queue_incoming_conn() while in state {}&quot;</span>,
@@ -3185,22 +3113,22 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="ident">common</span>.<span class="ident">copy_state</span>(
             <span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(),
             <span class="ident">FileState::ACTIVE</span>,
-            <span class="ident">event_queue</span>,
+            <span class="ident">cb_queue</span>,
         );
     }
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedClosed</span> {};
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
-        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>))
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
+        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">cb_queue</span>))
     }
 
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
@@ -3228,7 +3156,7 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_bytes</span>: <span class="ident">R</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -3250,7 +3178,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_bytes</span>: <span class="ident">W</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SysCallReg</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -3279,7 +3207,7 @@
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">backlog</span>: <span class="ident">i32</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// it must have already been bound</span>
         <span class="kw">let</span> <span class="ident">bound_addr</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bound_addr</span> {
@@ -3294,7 +3222,7 @@
         };
 
         <span class="comment">// refresh the socket&#39;s file state</span>
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
     }
@@ -3306,7 +3234,7 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">addr</span> {
             <span class="ident">nix::sys::socket::SockAddr::Unix</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
@@ -3330,7 +3258,7 @@
             <span class="self">self</span>.<span class="ident">bound_addr</span>,
             <span class="ident">socket</span>,
             <span class="kw-2">&amp;</span><span class="ident">common</span>.<span class="ident">recv_buffer</span>,
-            <span class="ident">event_queue</span>,
+            <span class="ident">cb_queue</span>,
         ) {
             <span class="prelude-val">Ok</span>(<span class="ident">peer</span>) =&gt; <span class="ident">peer</span>,
             <span class="prelude-val">Err</span>(<span class="ident">IncomingConnError::NotSupported</span>) =&gt; {
@@ -3361,28 +3289,28 @@
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="ident">socket</span>);
         <span class="kw">let</span> <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
             <span class="ident">BufferState::WRITABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_READERS</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">cb_queue</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
                 }
             },
         );
 
         <span class="comment">// increment the buffer&#39;s writer count</span>
-        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
+        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">cb_queue</span>);
 
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="ident">socket</span>);
         <span class="kw">let</span> <span class="ident">recv_buffer_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
             <span class="ident">BufferState::READABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_WRITERS</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">cb_queue</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
                 }
             },
         );
 
         <span class="comment">// increment the buffer&#39;s reader count</span>
-        <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">event_queue</span>);
+        <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">cb_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedConnected</span> {
             <span class="ident">bound_addr</span>: <span class="self">self</span>.<span class="ident">bound_addr</span>,
@@ -3394,7 +3322,7 @@
             <span class="ident">_send_buffer_handle</span>: <span class="ident">send_buffer_handle</span>,
         };
 
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
     }
@@ -3404,7 +3332,7 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">peer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>.<span class="ident">is_none</span>());
 
@@ -3418,29 +3346,29 @@
             <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="ident">socket</span>);
             <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
                 <span class="ident">BufferState::WRITABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_READERS</span>,
-                <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+                <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">cb_queue</span><span class="op">|</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                        <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                        <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
                     }
                 },
             );
 
             <span class="comment">// increment the buffer&#39;s writer count</span>
-            <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
+            <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">cb_queue</span>);
         }
 
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="ident">socket</span>);
         <span class="kw">let</span> <span class="ident">recv_buffer_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
             <span class="ident">BufferState::READABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_WRITERS</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">cb_queue</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
                 }
             },
         );
 
         <span class="comment">// increment the buffer&#39;s reader count</span>
-        <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">event_queue</span>);
+        <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">cb_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedConnected</span> {
             <span class="ident">bound_addr</span>: <span class="prelude-val">None</span>,
@@ -3452,7 +3380,7 @@
             <span class="ident">_send_buffer_handle</span>: <span class="ident">send_buffer_handle</span>,
         };
 
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
     }
@@ -3460,7 +3388,7 @@
     <span class="kw">fn</span> <span class="ident">accept</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>())
@@ -3476,7 +3404,7 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">FileState::ACTIVE</span>;
 
         <span class="comment">// socket is readable if the queue is not empty</span>
@@ -3490,36 +3418,36 @@
         <span class="comment">// In practice this should be uncommon so we don&#39;t worry about it, and avoids requiring that</span>
         <span class="comment">// the server keep a list of all connecting clients.</span>
 
-        <span class="ident">common</span>.<span class="ident">copy_state</span>(<span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(), <span class="ident">new_state</span>, <span class="ident">event_queue</span>);
+        <span class="ident">common</span>.<span class="ident">copy_state</span>(<span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(), <span class="ident">new_state</span>, <span class="ident">cb_queue</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="kw">for</span> <span class="ident">sock</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">queue</span> {
             <span class="comment">// close all queued sockets</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">borrow_mut</span>().<span class="ident">close</span>(<span class="ident">event_queue</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">borrow_mut</span>().<span class="ident">close</span>(<span class="ident">cb_queue</span>) {
                 <span class="macro">log::warn!</span>(<span class="string">&quot;Unexpected error while closing queued unix socket: {:?}&quot;</span>, <span class="ident">e</span>);
             }
         }
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedClosed</span> {};
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
-        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>))
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
+        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">cb_queue</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">listen</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">backlog</span>: <span class="ident">i32</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">queue_limit</span> <span class="op">=</span> <span class="ident">backlog_to_queue_size</span>(<span class="ident">backlog</span>);
 
         <span class="comment">// refresh the socket&#39;s file state</span>
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         (<span class="self">self</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
     }
@@ -3527,7 +3455,7 @@
     <span class="kw">fn</span> <span class="ident">accept</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">child_socket</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
@@ -3535,7 +3463,7 @@
         };
 
         <span class="comment">// refresh the socket&#39;s file state</span>
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">child_socket</span>)
     }
@@ -3546,7 +3474,7 @@
         <span class="ident">from_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::UnixAddr</span><span class="op">&gt;</span>,
         <span class="ident">peer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">child_send_buffer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">SharedBuf</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">IncomingConnError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">queue_limit</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>() {
             <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">common</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::SOCKET_ALLOWING_CONNECT</span>));
@@ -3567,28 +3495,28 @@
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">child_socket</span>);
         <span class="kw">let</span> <span class="ident">send_buffer_handle</span> <span class="op">=</span> <span class="ident">child_send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
             <span class="ident">BufferState::WRITABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_READERS</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">cb_queue</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
                 }
             },
         );
 
         <span class="comment">// increment the buffer&#39;s writer count</span>
-        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">child_send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">event_queue</span>);
+        <span class="kw">let</span> <span class="ident">writer_handle</span> <span class="op">=</span> <span class="ident">child_send_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_writer</span>(<span class="ident">cb_queue</span>);
 
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">child_socket</span>);
         <span class="kw">let</span> <span class="ident">recv_buffer_handle</span> <span class="op">=</span> <span class="ident">child_recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_listener</span>(
             <span class="ident">BufferState::READABLE</span> <span class="op">|</span> <span class="ident">BufferState::NO_WRITERS</span>,
-            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">cb_queue</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                    <span class="ident">socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
                 }
             },
         );
 
         <span class="comment">// increment the buffer&#39;s reader count</span>
-        <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">child_recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">event_queue</span>);
+        <span class="kw">let</span> <span class="ident">reader_handle</span> <span class="op">=</span> <span class="ident">child_recv_buffer</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_reader</span>(<span class="ident">cb_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_child_state</span> <span class="op">=</span> <span class="ident">ConnOrientedConnected</span> {
             <span class="comment">// use the parent&#39;s bind address</span>
@@ -3606,9 +3534,9 @@
 
         <span class="comment">// defer refreshing the child socket&#39;s file-state until later</span>
         <span class="kw">let</span> <span class="ident">weak</span> <span class="op">=</span> <span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><span class="ident">child_socket</span>);
-        <span class="ident">event_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+        <span class="ident">cb_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cb_queue</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">child_socket</span>) <span class="op">=</span> <span class="ident">weak</span>.<span class="ident">upgrade</span>() {
-                <span class="ident">child_socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">event_queue</span>);
+                <span class="ident">child_socket</span>.<span class="ident">borrow_mut</span>().<span class="ident">refresh_file_state</span>(<span class="ident">cb_queue</span>);
             }
         });
 
@@ -3616,7 +3544,7 @@
         <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push_back</span>(<span class="ident">child_socket</span>);
 
         <span class="comment">// refresh the server socket&#39;s file state</span>
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         <span class="comment">// return a reference to the enqueued child socket</span>
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">back</span>().<span class="ident">unwrap</span>())
@@ -3636,7 +3564,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">FileState::ACTIVE</span>;
 
         {
@@ -3654,30 +3582,30 @@
             );
         }
 
-        <span class="ident">common</span>.<span class="ident">copy_state</span>(<span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(), <span class="ident">new_state</span>, <span class="ident">event_queue</span>);
+        <span class="ident">common</span>.<span class="ident">copy_state</span>(<span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(), <span class="ident">new_state</span>, <span class="ident">cb_queue</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// inform the buffer that there is one fewer readers</span>
         <span class="ident">common</span>
             .<span class="ident">recv_buffer</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">remove_reader</span>(<span class="self">self</span>.<span class="ident">reader_handle</span>, <span class="ident">event_queue</span>);
+            .<span class="ident">remove_reader</span>(<span class="self">self</span>.<span class="ident">reader_handle</span>, <span class="ident">cb_queue</span>);
 
         <span class="comment">// inform the buffer that there is one fewer writers</span>
         <span class="self">self</span>.<span class="ident">peer</span>
             .<span class="ident">borrow</span>()
             .<span class="ident">recv_buffer</span>()
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">remove_writer</span>(<span class="self">self</span>.<span class="ident">writer_handle</span>, <span class="ident">event_queue</span>);
+            .<span class="ident">remove_writer</span>(<span class="self">self</span>.<span class="ident">writer_handle</span>, <span class="ident">cb_queue</span>);
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnOrientedClosed</span> {};
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
-        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>))
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
+        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">cb_queue</span>))
     }
 
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
@@ -3687,15 +3615,15 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">bytes</span>: <span class="ident">R</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
         <span class="kw">let</span> <span class="ident">recv_socket</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">resolve_destination</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">peer</span>), <span class="ident">addr</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">sendto</span>(<span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="ident">recv_socket</span>, <span class="ident">event_queue</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">sendto</span>(<span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="ident">recv_socket</span>, <span class="ident">cb_queue</span>)<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">rv</span>.<span class="ident">into</span>())
     }
@@ -3706,24 +3634,24 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">bytes</span>: <span class="ident">W</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SysCallReg</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
-        <span class="kw">let</span> (<span class="ident">num_copied</span>, <span class="ident">num_removed_from_buf</span>) <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recvfrom</span>(<span class="ident">bytes</span>, <span class="ident">event_queue</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">num_copied</span>, <span class="ident">num_removed_from_buf</span>) <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recvfrom</span>(<span class="ident">bytes</span>, <span class="ident">cb_queue</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">num_removed_from_buf</span> <span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">num_removed_from_buf</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">if</span> <span class="ident">num_removed_from_buf</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="comment">// defer informing the peer until we&#39;re done processing the current socket</span>
             <span class="kw">let</span> <span class="ident">peer</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">peer</span>);
-            <span class="ident">event_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="ident">cb_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cb_queue</span><span class="op">|</span> {
                 <span class="ident">peer</span>.<span class="ident">borrow_mut</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">num_removed_from_buf</span>, <span class="ident">event_queue</span>);
+                    .<span class="ident">inform_bytes_read</span>(<span class="ident">num_removed_from_buf</span>, <span class="ident">cb_queue</span>);
             });
         }
 
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">num_copied</span>.<span class="ident">into</span>(),
@@ -3735,10 +3663,10 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">num</span>: <span class="ident">u64</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) {
         <span class="ident">common</span>.<span class="ident">sent_len</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">sent_len</span>.<span class="ident">checked_sub</span>(<span class="ident">num</span>).<span class="ident">unwrap</span>();
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">ioctl</span>(
@@ -3754,7 +3682,7 @@
     <span class="kw">fn</span> <span class="ident">accept</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>())
@@ -3774,18 +3702,18 @@
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EBADFD</span>.<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="ident">common</span>.<span class="ident">copy_state</span>(
             <span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(),
             <span class="ident">FileState::CLOSED</span>,
-            <span class="ident">event_queue</span>,
+            <span class="ident">cb_queue</span>,
         );
     }
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// why are we trying to close an already closed file? we probably want a bt here...</span>
         <span class="macro">panic!</span>(<span class="string">&quot;Trying to close an already closed socket&quot;</span>);
@@ -3795,7 +3723,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_num</span>: <span class="ident">u64</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) {
         <span class="comment">// do nothing since we&#39;re already closed</span>
     }
@@ -3817,7 +3745,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">FileState::ACTIVE</span>;
 
         {
@@ -3827,33 +3755,33 @@
             <span class="ident">new_state</span>.<span class="ident">set</span>(<span class="ident">FileState::WRITABLE</span>, <span class="ident">common</span>.<span class="ident">sent_len</span> <span class="op">&lt;</span> <span class="ident">common</span>.<span class="ident">send_limit</span>);
         }
 
-        <span class="ident">common</span>.<span class="ident">copy_state</span>(<span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(), <span class="ident">new_state</span>, <span class="ident">event_queue</span>);
+        <span class="ident">common</span>.<span class="ident">copy_state</span>(<span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(), <span class="ident">new_state</span>, <span class="ident">cb_queue</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// inform the buffer that there is one fewer readers</span>
         <span class="ident">common</span>
             .<span class="ident">recv_buffer</span>
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">remove_reader</span>(<span class="self">self</span>.<span class="ident">reader_handle</span>, <span class="ident">event_queue</span>);
+            .<span class="ident">remove_reader</span>(<span class="self">self</span>.<span class="ident">reader_handle</span>, <span class="ident">cb_queue</span>);
 
         <span class="kw">for</span> <span class="ident">byte_data</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">recv_data</span>.<span class="ident">into_iter</span>() {
             <span class="comment">// defer informing the senders until we&#39;re done processing the current socket</span>
-            <span class="ident">event_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+            <span class="ident">cb_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cb_queue</span><span class="op">|</span> {
                 <span class="ident">byte_data</span>
                     .<span class="ident">from_socket</span>
                     .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">inform_bytes_read</span>(<span class="ident">byte_data</span>.<span class="ident">num_bytes</span>, <span class="ident">event_queue</span>);
+                    .<span class="ident">inform_bytes_read</span>(<span class="ident">byte_data</span>.<span class="ident">num_bytes</span>, <span class="ident">cb_queue</span>);
             });
         }
 
         <span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">ConnLessClosed</span> {};
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
-        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">event_queue</span>))
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
+        (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="ident">common</span>.<span class="ident">close</span>(<span class="ident">cb_queue</span>))
     }
 
     <span class="comment">// https://github.com/shadow/shadow/issues/2093</span>
@@ -3881,13 +3809,13 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">bytes</span>: <span class="ident">R</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="ident">SyscallResult</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
         <span class="kw">let</span> <span class="ident">recv_socket</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">resolve_destination</span>(<span class="self">self</span>.<span class="ident">peer</span>.<span class="ident">as_ref</span>(), <span class="ident">addr</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">sendto</span>(<span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="ident">recv_socket</span>, <span class="ident">event_queue</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rv</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">sendto</span>(<span class="ident">bytes</span>, <span class="kw-2">&amp;</span><span class="ident">recv_socket</span>, <span class="ident">cb_queue</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">byte_data</span> <span class="op">=</span> <span class="ident">ByteData</span> {
             <span class="ident">from_socket</span>: <span class="self">self</span>.<span class="ident">this_socket</span>.<span class="ident">upgrade</span>().<span class="ident">unwrap</span>(),
@@ -3905,7 +3833,7 @@
             ),
         }
 
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">rv</span>.<span class="ident">into</span>())
     }
@@ -3916,26 +3844,26 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">bytes</span>: <span class="ident">W</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">SysCallReg</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nix::sys::socket::SockAddr</span><span class="op">&gt;</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     {
-        <span class="kw">let</span> (<span class="ident">num_copied</span>, <span class="ident">num_removed_from_buf</span>) <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recvfrom</span>(<span class="ident">bytes</span>, <span class="ident">event_queue</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">num_copied</span>, <span class="ident">num_removed_from_buf</span>) <span class="op">=</span> <span class="ident">common</span>.<span class="ident">recvfrom</span>(<span class="ident">bytes</span>, <span class="ident">cb_queue</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">num_removed_from_buf</span> <span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">num_removed_from_buf</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">byte_data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">recv_data</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>();
         <span class="macro">assert!</span>(<span class="ident">num_removed_from_buf</span> <span class="op">==</span> <span class="ident">byte_data</span>.<span class="ident">num_bytes</span>);
 
         <span class="comment">// defer informing the sender until we&#39;re done processing the current socket</span>
-        <span class="ident">event_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">event_queue</span><span class="op">|</span> {
+        <span class="ident">cb_queue</span>.<span class="ident">add</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cb_queue</span><span class="op">|</span> {
             <span class="ident">byte_data</span>
                 .<span class="ident">from_socket</span>
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">inform_bytes_read</span>(<span class="ident">byte_data</span>.<span class="ident">num_bytes</span>, <span class="ident">event_queue</span>);
+                .<span class="ident">inform_bytes_read</span>(<span class="ident">byte_data</span>.<span class="ident">num_bytes</span>, <span class="ident">cb_queue</span>);
         });
 
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">num_copied</span>.<span class="ident">into</span>(),
@@ -3947,10 +3875,10 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">num</span>: <span class="ident">u64</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) {
         <span class="ident">common</span>.<span class="ident">sent_len</span> <span class="op">=</span> <span class="ident">common</span>.<span class="ident">sent_len</span>.<span class="ident">checked_sub</span>(<span class="ident">num</span>).<span class="ident">unwrap</span>();
-        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">ioctl</span>(
@@ -3970,7 +3898,7 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="kw-2">&amp;</span><span class="ident">nix::sys::socket::SockAddr</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// TODO: support AF_UNSPEC to disassociate</span>
         <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">addr</span> {
@@ -3990,7 +3918,7 @@
             ..<span class="self">self</span>
         };
 
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
     }
@@ -4000,7 +3928,7 @@
         <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_socket</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">peer</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">peer_addr</span>.<span class="ident">is_none</span>());
         <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">bound_addr</span>.<span class="ident">is_none</span>());
@@ -4012,7 +3940,7 @@
             ..<span class="self">self</span>
         };
 
-        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">event_queue</span>);
+        <span class="ident">new_state</span>.<span class="ident">refresh_file_state</span>(<span class="ident">common</span>, <span class="ident">cb_queue</span>);
 
         (<span class="ident">new_state</span>.<span class="ident">into</span>(), <span class="prelude-val">Ok</span>(()))
     }
@@ -4031,18 +3959,18 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">refresh_file_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="ident">common</span>.<span class="ident">copy_state</span>(
             <span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(),
             <span class="ident">FileState::CLOSED</span>,
-            <span class="ident">event_queue</span>,
+            <span class="ident">cb_queue</span>,
         );
     }
 
     <span class="kw">fn</span> <span class="ident">close</span>(
         <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; (<span class="ident">ProtocolState</span>, <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span>) {
         <span class="comment">// why are we trying to close an already closed file? we probably want a bt here...</span>
         <span class="macro">panic!</span>(<span class="string">&quot;Trying to close an already closed socket&quot;</span>);
@@ -4052,7 +3980,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">_common</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixSocketCommon</span>,
         <span class="ident">_num</span>: <span class="ident">u64</span>,
-        <span class="ident">_event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">_cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) {
         <span class="comment">// do nothing since we&#39;re already closed</span>
     }
@@ -4076,7 +4004,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">UnixSocketCommon</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SyscallError</span><span class="op">&gt;</span> {
         <span class="comment">// check that the CLOSED flag was set by the protocol state</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">contains</span>(<span class="ident">FileState::CLOSED</span>) {
             <span class="comment">// set the flag here since we missed doing it before</span>
@@ -4084,7 +4012,7 @@
             <span class="self">self</span>.<span class="ident">copy_state</span>(
                 <span class="comment">/* mask= */</span> <span class="ident">FileState::all</span>(),
                 <span class="ident">FileState::CLOSED</span>,
-                <span class="ident">event_queue</span>,
+                <span class="ident">cb_queue</span>,
             );
 
             <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging</span>
@@ -4206,7 +4134,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">bytes</span>: <span class="ident">R</span>,
         <span class="ident">peer</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="ident">UnixSocket</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -4261,11 +4189,11 @@
                 <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="number">0</span>
                 } <span class="kw">else</span> {
-                    <span class="ident">send_buffer</span>.<span class="ident">write_stream</span>(<span class="ident">bytes</span>, <span class="ident">len</span>, <span class="ident">event_queue</span>)<span class="question-mark">?</span>
+                    <span class="ident">send_buffer</span>.<span class="ident">write_stream</span>(<span class="ident">bytes</span>, <span class="ident">len</span>, <span class="ident">cb_queue</span>)<span class="question-mark">?</span>
                 }
             }
             <span class="ident">UnixSocketType::Dgram</span> <span class="op">|</span> <span class="ident">UnixSocketType::SeqPacket</span> =&gt; {
-                <span class="ident">send_buffer</span>.<span class="ident">write_packet</span>(<span class="ident">bytes</span>, <span class="ident">len</span>, <span class="ident">event_queue</span>)<span class="question-mark">?</span>;
+                <span class="ident">send_buffer</span>.<span class="ident">write_packet</span>(<span class="ident">bytes</span>, <span class="ident">len</span>, <span class="ident">cb_queue</span>)<span class="question-mark">?</span>;
                 <span class="ident">len</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()
             }
         };
@@ -4281,7 +4209,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recvfrom</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">bytes</span>: <span class="ident">W</span>,
-        <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>,
+        <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>), <span class="ident">SyscallError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">W</span>: <span class="ident">std::io::Write</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
@@ -4299,7 +4227,7 @@
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EWOULDBLOCK</span>.<span class="ident">into</span>());
         }
 
-        <span class="kw">let</span> (<span class="ident">num_copied</span>, <span class="ident">num_removed_from_buf</span>) <span class="op">=</span> <span class="ident">recv_buffer</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>, <span class="ident">event_queue</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> (<span class="ident">num_copied</span>, <span class="ident">num_removed_from_buf</span>) <span class="op">=</span> <span class="ident">recv_buffer</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>, <span class="ident">cb_queue</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((<span class="ident">num_copied</span>, <span class="ident">num_removed_from_buf</span>))
     }
@@ -4317,17 +4245,17 @@
         <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>.<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">copy_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mask</span>: <span class="ident">FileState</span>, <span class="ident">state</span>: <span class="ident">FileState</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">copy_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">mask</span>: <span class="ident">FileState</span>, <span class="ident">state</span>: <span class="ident">FileState</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="kw">let</span> <span class="ident">old_state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>;
 
         <span class="comment">// remove the masked flags, then copy the masked flags</span>
         <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">remove</span>(<span class="ident">mask</span>);
         <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">insert</span>(<span class="ident">state</span> <span class="op">&amp;</span> <span class="ident">mask</span>);
 
-        <span class="self">self</span>.<span class="ident">handle_state_change</span>(<span class="ident">old_state</span>, <span class="ident">event_queue</span>);
+        <span class="self">self</span>.<span class="ident">handle_state_change</span>(<span class="ident">old_state</span>, <span class="ident">cb_queue</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_state_change</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">old_state</span>: <span class="ident">FileState</span>, <span class="ident">event_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventQueue</span>) {
+    <span class="kw">fn</span> <span class="ident">handle_state_change</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">old_state</span>: <span class="ident">FileState</span>, <span class="ident">cb_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">CallbackQueue</span>) {
         <span class="kw">let</span> <span class="ident">states_changed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">^</span> <span class="ident">old_state</span>;
 
         <span class="comment">// if nothing changed</span>
@@ -4336,7 +4264,7 @@
         }
 
         <span class="self">self</span>.<span class="ident">event_source</span>
-            .<span class="ident">notify_listeners</span>(<span class="self">self</span>.<span class="ident">state</span>, <span class="ident">states_changed</span>, <span class="ident">event_queue</span>);
+            .<span class="ident">notify_listeners</span>(<span class="self">self</span>.<span class="ident">state</span>, <span class="ident">states_changed</span>, <span class="ident">cb_queue</span>);
     }
 }
 

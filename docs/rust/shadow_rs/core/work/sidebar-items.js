@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["task",""]]});
+initSidebarItems({"mod":[["event",""],["task",""]]});

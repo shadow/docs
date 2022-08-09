@@ -522,39 +522,9 @@
 <span id="517">517</span>
 <span id="518">518</span>
 <span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
-<span class="kw">use</span> <span class="ident">std::sync::Mutex</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::emulated_time::EmulatedTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::simulation_time::SimulationTime</span>;
@@ -567,11 +537,11 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::thread</span>::{<span class="ident">CThread</span>, <span class="ident">Thread</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::counter::Counter</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::notnull</span>::<span class="kw-2">*</span>;
+
 <span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
 <span class="kw">use</span> <span class="ident">std::sync::atomic::AtomicBool</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::work::task::TaskRef</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Mutex</span>;
 
 <span class="kw">static</span> <span class="ident">USE_OBJECT_COUNTERS</span>: <span class="ident">AtomicBool</span> <span class="op">=</span> <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>);
 
@@ -773,34 +743,6 @@
 
     <span class="kw">fn</span> <span class="ident">set_last_event_time</span>(<span class="ident">t</span>: <span class="ident">EmulatedTime</span>) {
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">last</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_task_at_emulated_time</span>(
-        <span class="kw-2">mut</span> <span class="ident">task</span>: <span class="ident">TaskRef</span>,
-        <span class="ident">host</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Host</span>,
-        <span class="ident">t</span>: <span class="ident">EmulatedTime</span>,
-    ) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">cshadow::worker_scheduleTaskAtEmulatedTime</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">task</span>,
-                <span class="ident">host</span>.<span class="ident">chost</span>(),
-                <span class="ident">EmulatedTime::to_c_emutime</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>)),
-            )
-        };
-        <span class="comment">// Intentionally drop `task`. worker_scheduleTaskAtEmulatedTime clones.</span>
-        <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_task_with_delay</span>(<span class="kw-2">mut</span> <span class="ident">task</span>: <span class="ident">TaskRef</span>, <span class="ident">host</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Host</span>, <span class="ident">t</span>: <span class="ident">SimulationTime</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">cshadow::worker_scheduleTaskWithDelay</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">task</span>,
-                <span class="ident">host</span>.<span class="ident">chost</span>(),
-                <span class="ident">SimulationTime::to_c_simtime</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>)),
-            )
-        };
-        <span class="comment">// Intentionally drop `task`. worker_scheduleTaskAtEmulatedTime clones.</span>
-        <span class="ident">res</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_min_host_runahead</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
