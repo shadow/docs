@@ -1123,6 +1123,19 @@
 <span id="1118">1118</span>
 <span id="1119">1119</span>
 <span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
 <span class="kw">use</span> <span class="ident">atomic_refcell::AtomicRefCell</span>;
@@ -1875,11 +1888,20 @@
 
 <span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">c::SysCallReturn</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;SysCallReturn&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;retval&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">retval</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;cond&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">cond</span>)
-            .<span class="ident">finish</span>()
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ds</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;SysCallReturn&quot;</span>);
+        <span class="ident">ds</span>.<span class="ident">field</span>(<span class="string">&quot;state&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>);
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
+            <span class="ident">c::SysCallReturnState_SYSCALL_BLOCK</span> =&gt; {
+                <span class="ident">ds</span>.<span class="ident">field</span>(<span class="string">&quot;cond&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">u</span>.<span class="ident">blocked</span>.<span class="ident">cond</span> });
+                <span class="ident">ds</span>.<span class="ident">field</span>(<span class="string">&quot;restartable&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">u</span>.<span class="ident">blocked</span>.<span class="ident">restartable</span> });
+            }
+            <span class="ident">c::SysCallReturnState_SYSCALL_DONE</span> =&gt; {
+                <span class="ident">ds</span>.<span class="ident">field</span>(<span class="string">&quot;retval&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">u</span>.<span class="ident">done</span>.<span class="ident">retval</span> });
+                <span class="ident">ds</span>.<span class="ident">field</span>(<span class="string">&quot;restartable&quot;</span>, <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">u</span>.<span class="ident">done</span>.<span class="ident">restartable</span> });
+            }
+            <span class="kw">_</span> =&gt; {}
+        };
+        <span class="ident">ds</span>.<span class="ident">finish</span>()
     }
 }
 
@@ -2159,21 +2181,25 @@
         <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="macro">vec!</span>[
             <span class="ident">c::SysCallReturn</span> {
                 <span class="ident">state</span>: <span class="ident">c::SysCallReturnState_SYSCALL_DONE</span>,
-                <span class="ident">retval</span>: <span class="number">1</span>.<span class="ident">into</span>(),
-                <span class="ident">cond</span>: <span class="ident">std::ptr::null_mut</span>(),
-                <span class="ident">restartable</span>: <span class="bool-val">false</span>,
+                <span class="ident">u</span>: <span class="ident">c::SysCallReturnBody</span> {
+                    <span class="ident">done</span>: <span class="ident">c::SysCallReturnDone</span> {
+                        <span class="ident">retval</span>: <span class="number">1</span>.<span class="ident">into</span>(),
+                        <span class="ident">restartable</span>: <span class="bool-val">false</span>,
+                    },
+                },
             },
             <span class="ident">c::SysCallReturn</span> {
                 <span class="ident">state</span>: <span class="ident">c::SysCallReturnState_SYSCALL_BLOCK</span>,
-                <span class="ident">retval</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-                <span class="ident">cond</span>: <span class="ident">condition</span>.<span class="ident">into_inner</span>(),
-                <span class="ident">restartable</span>: <span class="bool-val">true</span>,
+                <span class="ident">u</span>: <span class="ident">c::SysCallReturnBody</span> {
+                    <span class="ident">blocked</span>: <span class="ident">c::SysCallReturnBlocked</span> {
+                        <span class="ident">cond</span>: <span class="ident">condition</span>.<span class="ident">into_inner</span>(),
+                        <span class="ident">restartable</span>: <span class="bool-val">true</span>,
+                    },
+                },
             },
             <span class="ident">c::SysCallReturn</span> {
                 <span class="ident">state</span>: <span class="ident">c::SysCallReturnState_SYSCALL_NATIVE</span>,
-                <span class="ident">retval</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-                <span class="ident">cond</span>: <span class="ident">std::ptr::null_mut</span>(),
-                <span class="ident">restartable</span>: <span class="bool-val">false</span>,
+                <span class="ident">u</span>: <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>::<span class="op">&lt;</span><span class="ident">c::SysCallReturnBody</span><span class="op">&gt;</span>() },
             },
         ]
         .<span class="ident">drain</span>(..)
