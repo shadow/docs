@@ -809,6 +809,7 @@
 <span id="804">804</span>
 <span id="805">805</span>
 <span id="806">806</span>
+<span id="807">807</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -823,6 +824,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::controller</span>::{<span class="ident">Controller</span>, <span class="ident">SimController</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::sim_config::HostInfo</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::configuration</span>::{<span class="ident">ConfigOptions</span>, <span class="ident">Flatten</span>, <span class="ident">LogLevel</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::emulated_time::EmulatedTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::simulation_time::SimulationTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::worker</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
@@ -837,7 +839,7 @@
     <span class="comment">// manager random source, init from controller random, used to init host randoms</span>
     <span class="ident">random</span>: <span class="ident">Xoshiro256PlusPlus</span>,
     <span class="ident">raw_frequency_khz</span>: <span class="ident">u64</span>,
-    <span class="ident">end_time</span>: <span class="ident">SimulationTime</span>,
+    <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>,
 
     <span class="ident">hosts_path</span>: <span class="ident">PathBuf</span>,
 
@@ -859,7 +861,7 @@
         <span class="ident">controller</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Controller</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ConfigOptions</span>,
         <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HostInfo</span><span class="op">&gt;</span>,
-        <span class="ident">end_time</span>: <span class="ident">SimulationTime</span>,
+        <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>,
         <span class="ident">random</span>: <span class="ident">Xoshiro256PlusPlus</span>,
     ) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="comment">// get the system&#39;s CPU frequency</span>
@@ -1029,7 +1031,10 @@
             <span class="comment">// events</span>
 
             <span class="comment">// the current simulation interval</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">window</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">SimulationTime::ZERO</span>, <span class="ident">SimulationTime::NANOSECOND</span>));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">window</span> <span class="op">=</span> <span class="prelude-val">Some</span>((
+                <span class="ident">EmulatedTime::SIMULATION_START</span>,
+                <span class="ident">EmulatedTime::SIMULATION_START</span> <span class="op">+</span> <span class="ident">SimulationTime::NANOSECOND</span>,
+            ));
 
             <span class="comment">// how often to log heartbeat messages</span>
             <span class="kw">let</span> <span class="ident">heartbeat_interval</span> <span class="op">=</span> <span class="self">self</span>
@@ -1039,7 +1044,7 @@
                 .<span class="ident">flatten</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">Duration::from</span>(<span class="ident">x</span>).<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_heartbeat</span> <span class="op">=</span> <span class="ident">SimulationTime::ZERO</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_heartbeat</span> <span class="op">=</span> <span class="ident">EmulatedTime::SIMULATION_START</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">time_of_last_usage_check</span> <span class="op">=</span> <span class="ident">std::time::Instant::now</span>();
 
             <span class="ident">scheduler</span>.<span class="ident">start</span>();
@@ -1065,15 +1070,14 @@
 
                 <span class="comment">// wait for the workers to finish processing nodes before we update the execution</span>
                 <span class="comment">// window</span>
-                <span class="kw">let</span> <span class="ident">min_next_event_time</span> <span class="op">=</span>
-                    <span class="ident">scheduler</span>.<span class="ident">await_next_round</span>().<span class="ident">unwrap_or</span>(<span class="ident">SimulationTime::MAX</span>);
+                <span class="kw">let</span> <span class="ident">min_next_event_time</span> <span class="op">=</span> <span class="ident">scheduler</span>.<span class="ident">await_next_round</span>().<span class="ident">unwrap_or</span>(<span class="ident">EmulatedTime::MAX</span>);
 
                 <span class="comment">// we are in control now, the workers are waiting for the next round</span>
                 <span class="macro">log::debug!</span>(
                     <span class="string">&quot;Finished execution window [{}--{}], next event at {}&quot;</span>,
-                    <span class="ident">window_start</span>.<span class="ident">as_nanos</span>(),
-                    <span class="ident">window_end</span>.<span class="ident">as_nanos</span>(),
-                    <span class="ident">min_next_event_time</span>.<span class="ident">as_nanos</span>(),
+                    (<span class="ident">window_start</span> <span class="op">-</span> <span class="ident">EmulatedTime::SIMULATION_START</span>).<span class="ident">as_nanos</span>(),
+                    (<span class="ident">window_end</span> <span class="op">-</span> <span class="ident">EmulatedTime::SIMULATION_START</span>).<span class="ident">as_nanos</span>(),
+                    (<span class="ident">min_next_event_time</span> <span class="op">-</span> <span class="ident">EmulatedTime::SIMULATION_START</span>).<span class="ident">as_nanos</span>(),
                 );
 
                 <span class="comment">// notify controller that we finished this round, and the time of our next event in</span>
@@ -1360,7 +1364,7 @@
             .<span class="ident">collect</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">log_heartbeat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">now</span>: <span class="ident">SimulationTime</span>) {
+    <span class="kw">fn</span> <span class="ident">log_heartbeat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">now</span>: <span class="ident">EmulatedTime</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resources</span>: <span class="ident">libc::rusage</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::zeroed</span>() };
         <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::getrusage</span>(<span class="ident">libc::RUSAGE_SELF</span>, <span class="kw-2">&amp;mut</span> <span class="ident">resources</span>) } <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">nix::errno::Errno::last</span>();
@@ -1384,7 +1388,7 @@
             ru_nvcsw={}, \
             ru_nivcsw={}, \
             _manager_heartbeat&quot;</span>, <span class="comment">// this is required for tornettools</span>
-            <span class="ident">now</span>.<span class="ident">as_nanos</span>(),
+            (<span class="ident">now</span> <span class="op">-</span> <span class="ident">EmulatedTime::SIMULATION_START</span>).<span class="ident">as_nanos</span>(),
             <span class="ident">max_memory</span>,
             <span class="ident">user_time_minutes</span>,
             <span class="ident">system_time_minutes</span>,
@@ -1481,7 +1485,7 @@
         <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ConfigOptions</span>,
         <span class="ident">num_workers</span>: <span class="ident">u32</span>,
         <span class="ident">scheduler_seed</span>: <span class="ident">u32</span>,
-        <span class="ident">end_time</span>: <span class="ident">SimulationTime</span>,
+        <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>,
     ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="kw">unsafe</span> {
@@ -1491,7 +1495,7 @@
                     <span class="ident">config</span>,
                     <span class="ident">num_workers</span>,
                     <span class="ident">scheduler_seed</span>,
-                    <span class="ident">end_time</span>.<span class="ident">into</span>(),
+                    <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">end_time</span>).<span class="ident">into</span>(),
                 )
             },
             <span class="ident">_phantom_controller</span>: <span class="ident">Default::default</span>(),
@@ -1523,19 +1527,17 @@
         <span class="kw">unsafe</span> { <span class="ident">c::scheduler_shutdown</span>(<span class="self">self</span>.<span class="ident">ptr</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">continue_next_round</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">window_start</span>: <span class="ident">SimulationTime</span>,
-        <span class="ident">window_end</span>: <span class="ident">SimulationTime</span>,
-    ) {
-        <span class="kw">let</span> <span class="ident">window_start</span> <span class="op">=</span> <span class="ident">window_start</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">window_end</span> <span class="op">=</span> <span class="ident">window_end</span>.<span class="ident">into</span>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">continue_next_round</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">window_start</span>: <span class="ident">EmulatedTime</span>, <span class="ident">window_end</span>: <span class="ident">EmulatedTime</span>) {
+        <span class="kw">let</span> <span class="ident">window_start</span> <span class="op">=</span> <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">window_start</span>).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">window_end</span> <span class="op">=</span> <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">window_end</span>).<span class="ident">into</span>();
         <span class="kw">unsafe</span> { <span class="ident">c::scheduler_continueNextRound</span>(<span class="self">self</span>.<span class="ident">ptr</span>, <span class="ident">window_start</span>, <span class="ident">window_end</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">await_next_round</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">await_next_round</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">min_next_event_time</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c::scheduler_awaitNextRound</span>(<span class="self">self</span>.<span class="ident">ptr</span>) };
-        <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">min_next_event_time</span>)
+        <span class="prelude-val">Some</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(
+            <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">min_next_event_time</span>)<span class="question-mark">?</span>,
+        ))
     }
 }
 

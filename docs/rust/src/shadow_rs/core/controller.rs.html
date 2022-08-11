@@ -508,6 +508,11 @@
 <span id="503">503</span>
 <span id="504">504</span>
 <span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::sync::atomic::AtomicU32</span>;
 <span class="kw">use</span> <span class="ident">std::sync::RwLock</span>;
@@ -561,6 +566,7 @@
 
         <span class="kw">let</span> <span class="ident">end_time</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">stop_time</span>.<span class="ident">unwrap</span>().<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">end_time</span>: <span class="ident">SimulationTime</span> <span class="op">=</span> <span class="ident">end_time</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">end_time</span> <span class="op">=</span> <span class="ident">EmulatedTime::SIMULATION_START</span> <span class="op">+</span> <span class="ident">end_time</span>;
 
         <span class="kw">let</span> <span class="ident">dns</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c::dns_new</span>() };
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">dns</span>.<span class="ident">is_null</span>());
@@ -569,7 +575,7 @@
             <span class="ident">SimulationTime::from_nanos</span>(<span class="ident">sim_config</span>.<span class="ident">routing_info</span>.<span class="ident">get_smallest_latency_ns</span>().<span class="ident">unwrap</span>());
 
         <span class="kw">let</span> <span class="ident">status_logger</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">progress</span>.<span class="ident">unwrap</span>().<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">ShadowStatusBarState::new</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">end_time</span>));
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">ShadowStatusBarState::new</span>(<span class="ident">end_time</span>);
 
             <span class="kw">if</span> <span class="ident">nix::unistd::isatty</span>(<span class="ident">libc::STDERR_FILENO</span>).<span class="ident">unwrap</span>() {
                 <span class="kw">let</span> <span class="ident">redraw_interval</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">1000</span>);
@@ -645,8 +651,8 @@
     <span class="kw">fn</span> <span class="ident">is_routable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="ident">std::net::IpAddr</span>, <span class="ident">dst</span>: <span class="ident">std::net::IpAddr</span>) -&gt; <span class="ident">bool</span>;
     <span class="kw">fn</span> <span class="ident">manager_finished_current_round</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">min_next_event_time</span>: <span class="ident">SimulationTime</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">SimulationTime</span>, <span class="ident">SimulationTime</span>)<span class="op">&gt;</span>;
+        <span class="ident">min_next_event_time</span>: <span class="ident">EmulatedTime</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">EmulatedTime</span>, <span class="ident">EmulatedTime</span>)<span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">update_min_runahead</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">min_path_latency</span>: <span class="ident">SimulationTime</span>);
     <span class="kw">fn</span> <span class="ident">increment_plugin_errors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
@@ -698,8 +704,8 @@
 
     <span class="kw">fn</span> <span class="ident">manager_finished_current_round</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">min_next_event_time</span>: <span class="ident">SimulationTime</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">SimulationTime</span>, <span class="ident">SimulationTime</span>)<span class="op">&gt;</span> {
+        <span class="ident">min_next_event_time</span>: <span class="ident">EmulatedTime</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">EmulatedTime</span>, <span class="ident">EmulatedTime</span>)<span class="op">&gt;</span> {
         <span class="comment">// TODO: once we get multiple managers, we have to block them here until they have all</span>
         <span class="comment">// notified us that they are finished</span>
 
@@ -709,7 +715,6 @@
         <span class="comment">// update the status logger</span>
         <span class="kw">let</span> <span class="ident">display_time</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">new_start</span>, <span class="ident">new_end</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">status_logger</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">status_logger</span> {
-            <span class="kw">let</span> <span class="ident">display_time</span> <span class="op">=</span> <span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">display_time</span>);
             <span class="ident">status_logger</span>.<span class="ident">mutate_state</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
                 <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="ident">display_time</span>;
             });
@@ -799,14 +804,14 @@
     <span class="comment">// minimum allowed runahead when sending events between nodes</span>
     <span class="ident">min_runahead</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span>,
     <span class="comment">// the simulator should attempt to end immediately after this time</span>
-    <span class="ident">end_time</span>: <span class="ident">SimulationTime</span>,
+    <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ControllerScheduling</span> {
     <span class="kw">fn</span> <span class="ident">next_interval_window</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">min_next_event_time</span>: <span class="ident">SimulationTime</span>,
-    ) -&gt; (<span class="ident">SimulationTime</span>, <span class="ident">SimulationTime</span>) {
+        <span class="ident">min_next_event_time</span>: <span class="ident">EmulatedTime</span>,
+    ) -&gt; (<span class="ident">EmulatedTime</span>, <span class="ident">EmulatedTime</span>) {
         <span class="comment">// If the min_runahead is None, we haven&#39;t yet been given a latency value to base our</span>
         <span class="comment">// runahead off of (or dynamic runahead is disabled). We use the smallest latency between</span>
         <span class="comment">// any in-use graph nodes to start.</span>
@@ -823,7 +828,7 @@
         <span class="comment">// run over the experiment end time</span>
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">min_next_event_time</span>
             .<span class="ident">checked_add</span>(<span class="ident">runahead</span>)
-            .<span class="ident">unwrap_or</span>(<span class="ident">SimulationTime::MAX</span>);
+            .<span class="ident">unwrap_or</span>(<span class="ident">EmulatedTime::MAX</span>);
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">end</span>, <span class="self">self</span>.<span class="ident">end_time</span>);
 
         (<span class="ident">start</span>, <span class="ident">end</span>)
@@ -984,12 +989,17 @@
         <span class="kw">let</span> <span class="ident">controller</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">controller</span>.<span class="ident">as_ref</span>() }.<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">execute_window_start</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">execute_window_start</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">execute_window_end</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">execute_window_end</span>.<span class="ident">as_mut</span>() }.<span class="ident">unwrap</span>();
+
         <span class="kw">let</span> <span class="ident">min_next_event_time</span> <span class="op">=</span> <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">min_next_event_time</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">min_next_event_time</span> <span class="op">=</span> <span class="ident">EmulatedTime::from_abs_simtime</span>(<span class="ident">min_next_event_time</span>);
 
         <span class="kw">let</span> (<span class="ident">start</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">controller</span>.<span class="ident">manager_finished_current_round</span>(<span class="ident">min_next_event_time</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
         };
+
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">start</span>);
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">end</span>);
 
         <span class="kw-2">*</span><span class="ident">execute_window_start</span> <span class="op">=</span> <span class="ident">SimulationTime::to_c_simtime</span>(<span class="prelude-val">Some</span>(<span class="ident">start</span>));
         <span class="kw-2">*</span><span class="ident">execute_window_end</span> <span class="op">=</span> <span class="ident">SimulationTime::to_c_simtime</span>(<span class="prelude-val">Some</span>(<span class="ident">end</span>));
