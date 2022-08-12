@@ -807,9 +807,6 @@
 <span id="802">802</span>
 <span id="803">803</span>
 <span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -1139,6 +1136,7 @@
                     <span class="comment">// the config only allows ipv4 addresses, so this shouldn&#39;t happen</span>
                     <span class="ident">std::net::IpAddr::V6</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;IPv6 not supported&quot;</span>),
                 },
+                <span class="ident">simEndTime</span>: <span class="ident">EmulatedTime::to_c_emutime</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">end_time</span>)),
                 <span class="ident">requestedBwDownBits</span>: <span class="ident">host</span>.<span class="ident">bandwidth_down_bits</span>.<span class="ident">unwrap</span>(),
                 <span class="ident">requestedBwUpBits</span>: <span class="ident">host</span>.<span class="ident">bandwidth_up_bits</span>.<span class="ident">unwrap</span>(),
                 <span class="ident">cpuThreshold</span>: <span class="ident">host</span>.<span class="ident">cpu_threshold</span>,
@@ -1178,6 +1176,7 @@
 
             <span class="kw">let</span> <span class="ident">c_host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c::host_new</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>) };
             <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">c_host</span>.<span class="ident">is_null</span>());
+
             <span class="kw">unsafe</span> {
                 <span class="ident">c::host_setup</span>(
                     <span class="ident">c_host</span>,
@@ -1523,10 +1522,6 @@
         <span class="kw">unsafe</span> { <span class="ident">c::scheduler_finish</span>(<span class="self">self</span>.<span class="ident">ptr</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> { <span class="ident">c::scheduler_shutdown</span>(<span class="self">self</span>.<span class="ident">ptr</span>) }
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">continue_next_round</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">window_start</span>: <span class="ident">EmulatedTime</span>, <span class="ident">window_end</span>: <span class="ident">EmulatedTime</span>) {
         <span class="kw">let</span> <span class="ident">window_start</span> <span class="op">=</span> <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">window_start</span>).<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">window_end</span> <span class="op">=</span> <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">window_end</span>).<span class="ident">into</span>();
@@ -1546,7 +1541,6 @@
         <span class="comment">// shadow requires that the work pool is properly shutdown before it&#39;s freed (will block</span>
         <span class="comment">// until worker threads are joined)</span>
         <span class="self">self</span>.<span class="ident">finish</span>();
-        <span class="self">self</span>.<span class="ident">shutdown</span>();
 
         <span class="kw">unsafe</span> { <span class="ident">c::scheduler_free</span>(<span class="self">self</span>.<span class="ident">ptr</span>) };
     }

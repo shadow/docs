@@ -511,17 +511,6 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
@@ -566,7 +555,6 @@
 
 <span class="kw">struct</span> <span class="ident">Clock</span> {
     <span class="ident">now</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span>,
-    <span class="ident">last</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span>,
     <span class="ident">barrier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span>,
 }
 
@@ -623,7 +611,6 @@
                 <span class="ident">active_thread_info</span>: <span class="prelude-val">None</span>,
                 <span class="ident">clock</span>: <span class="ident">Clock</span> {
                     <span class="ident">now</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">last</span>: <span class="prelude-val">None</span>,
                     <span class="ident">barrier</span>: <span class="prelude-val">None</span>,
                 },
                 <span class="ident">bootstrap_end_time</span>,
@@ -739,10 +726,6 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_time</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EmulatedTime</span><span class="op">&gt;</span> {
         <span class="ident">Worker::with</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">now</span>).<span class="ident">flatten</span>()
-    }
-
-    <span class="kw">fn</span> <span class="ident">set_last_event_time</span>(<span class="ident">t</span>: <span class="ident">EmulatedTime</span>) {
-        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">clock</span>.<span class="ident">last</span>.<span class="ident">replace</span>(<span class="ident">t</span>)).<span class="ident">unwrap</span>();
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_min_host_runahead</span>(<span class="ident">t</span>: <span class="ident">SimulationTime</span>) {
@@ -990,11 +973,6 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_updateMinHostRunahead</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
         <span class="ident">Worker::update_min_host_runahead</span>(<span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
-    }
-
-    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_setLastEventTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::EmulatedTime</span>) {
-        <span class="ident">Worker::set_last_event_time</span>(<span class="ident">EmulatedTime::from_c_emutime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>())
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>

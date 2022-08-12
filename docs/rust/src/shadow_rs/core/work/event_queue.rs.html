@@ -170,6 +170,19 @@
 <span id="165">165</span>
 <span id="166">166</span>
 <span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cmp::Reverse</span>;
 <span class="kw">use</span> <span class="ident">std::collections::binary_heap::BinaryHeap</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Mutex</span>;
@@ -267,8 +280,9 @@
 
 <span class="kw">mod</span> <span class="ident">export</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::simulation_time::SimulationTime</span>;
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
+
+    <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
     <span class="doccomment">/// A wrapper for [`EventQueue`] that uses interior mutability to make the ffi simpler.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ThreadSafeEventQueue</span> {
@@ -296,14 +310,27 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">eventqueue_new</span>() -&gt; <span class="kw-2">*mut</span> <span class="ident">ThreadSafeEventQueue</span> {
-        <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">ThreadSafeEventQueue::new</span>()))
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">eventqueue_new</span>() -&gt; <span class="kw-2">*const</span> <span class="ident">ThreadSafeEventQueue</span> {
+        <span class="ident">Arc::into_raw</span>(<span class="ident">Arc::new</span>(<span class="ident">ThreadSafeEventQueue::new</span>()))
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">eventqueue_free</span>(<span class="ident">queue</span>: <span class="kw-2">*mut</span> <span class="ident">ThreadSafeEventQueue</span>) {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">eventqueue_drop</span>(<span class="ident">queue</span>: <span class="kw-2">*const</span> <span class="ident">ThreadSafeEventQueue</span>) {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">queue</span>.<span class="ident">is_null</span>());
-        <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">queue</span>) };
+        <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<span class="ident">queue</span>) };
+    }
+
+    <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">eventqueue_cloneArc</span>(
+        <span class="ident">queue_ptr</span>: <span class="kw-2">*const</span> <span class="ident">ThreadSafeEventQueue</span>,
+    ) -&gt; <span class="kw-2">*const</span> <span class="ident">ThreadSafeEventQueue</span> {
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">queue_ptr</span>.<span class="ident">is_null</span>());
+
+        <span class="kw">let</span> <span class="ident">queue_arc</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Arc::from_raw</span>(<span class="ident">queue_ptr</span>) };
+        <span class="kw">let</span> <span class="ident">queue_dup</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">queue_arc</span>);
+
+        <span class="macro">assert_eq!</span>(<span class="ident">Arc::into_raw</span>(<span class="ident">queue_arc</span>), <span class="ident">queue_ptr</span>);
+        <span class="ident">Arc::into_raw</span>(<span class="ident">queue_dup</span>)
     }
 
     <span class="doccomment">/// Takes ownership of the event.</span>
@@ -331,10 +358,9 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">eventqueue_nextEventTime</span>(
         <span class="ident">queue</span>: <span class="kw-2">*const</span> <span class="ident">ThreadSafeEventQueue</span>,
-    ) -&gt; <span class="ident">c::SimulationTime</span> {
+    ) -&gt; <span class="ident">c::EmulatedTime</span> {
         <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">queue</span>.<span class="ident">as_ref</span>() }.<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">next_event_time</span>().<span class="ident">map</span>(<span class="ident">EmulatedTime::to_abs_simtime</span>);
-        <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">time</span>)
+        <span class="ident">EmulatedTime::to_c_emutime</span>(<span class="ident">queue</span>.<span class="ident">next_event_time</span>())
     }
 }
 </code></pre></div>

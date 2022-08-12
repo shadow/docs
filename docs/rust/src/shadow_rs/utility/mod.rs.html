@@ -329,6 +329,10 @@
 <span id="324">324</span>
 <span id="325">325</span>
 <span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
 </pre><pre class="rust"><code><span class="comment">// defines macros, so must be included first</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">enum_passthrough</span>;
@@ -353,6 +357,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syscall</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">time</span>;
 
+<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std::os::unix::fs</span>::{<span class="ident">DirBuilderExt</span>, <span class="ident">MetadataExt</span>};
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 
@@ -438,26 +443,32 @@
 <span class="doccomment">/// validates that the `Magic` is valid before running `Drop` implementations of</span>
 <span class="doccomment">/// the other fields.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// The MAGIC parameter should ideally be unique for each type. Consider e.g.</span>
-<span class="doccomment">/// `python3 -c &#39;import random; print(random.randint(0, 2**32))&#39;`</span>
+<span class="doccomment">/// T should be the type of the struct that contains the Magic.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">MAGIC</span>: <span class="ident">u32</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="ident">magic</span>: <span class="ident">u32</span>,
+    <span class="ident">magic</span>: <span class="ident">std::any::TypeId</span>,
+    <span class="comment">// The PhantomData docs recommend using `* const T` here to avoid a drop</span>
+    <span class="comment">// check, but that would incorrectly make this type !Send and !Sync. As long</span>
+    <span class="comment">// as the drop check doesn&#39;t cause issue (i.e. cause the borrow checker to</span>
+    <span class="comment">// fail), it should be fine to just use T here.</span>
+    <span class="comment">// https://doc.rust-lang.org/nomicon/dropck.html</span>
+    <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">MAGIC</span>: <span class="ident">u32</span><span class="op">&gt;</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="ident">MAGIC</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-            <span class="ident">magic</span>: <span class="ident">MAGIC</span>,
+            <span class="ident">magic</span>: <span class="ident">std::any::TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(),
+            <span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug_check</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         {
-            <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">std::ptr::read_volatile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">magic</span>) } <span class="op">!</span><span class="op">=</span> <span class="ident">MAGIC</span> {
+            <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">std::ptr::read_volatile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">magic</span>) } <span class="op">!</span><span class="op">=</span> <span class="ident">std::any::TypeId::of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
                 <span class="comment">// Do not pass Go; do not collect $200... and do not run Drop</span>
                 <span class="comment">// implementations etc. after learning that Rust&#39;s soundness</span>
                 <span class="comment">// requirements have likely been violated.</span>
@@ -469,23 +480,20 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">MAGIC</span>: <span class="ident">u32</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="ident">MAGIC</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">debug_check</span>();
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
         <span class="kw">unsafe</span> {
-            <span class="ident">std::ptr::write_volatile</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">magic</span>, <span class="number">0</span>)
+            <span class="ident">std::ptr::write_volatile</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">magic</span>, <span class="ident">std::any::TypeId::of</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>())
         };
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">MAGIC</span>: <span class="ident">u32</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="ident">MAGIC</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Magic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">debug_check</span>();
-        <span class="self">Self</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-            <span class="ident">magic</span>: <span class="self">self</span>.<span class="ident">magic</span>.<span class="ident">clone</span>(),
-        }
+        <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
 
