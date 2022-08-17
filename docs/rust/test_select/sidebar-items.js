@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["TEST_STR",""]],"enum":[["SelectFn",""]],"fn":[["fd_read_cmp",""],["fd_write",""],["get_select_args_test",""],["get_selectable_fd",""],["main",""],["test_pipe",""],["test_regular_file",""],["test_select_args_common",""]]});
+window.SIDEBAR_ITEMS = {"constant":[["TEST_STR",""]],"enum":[["SelectFn",""]],"fn":[["fd_read_cmp",""],["fd_write",""],["get_select_args_test",""],["get_selectable_fd",""],["main",""],["test_pipe",""],["test_regular_file",""],["test_select_args_common",""]]};

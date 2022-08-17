@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["NUM_SECONDS",""]],"fn":[["main",""]]});
+window.SIDEBAR_ITEMS = {"constant":[["NUM_SECONDS",""]],"fn":[["main",""]]};

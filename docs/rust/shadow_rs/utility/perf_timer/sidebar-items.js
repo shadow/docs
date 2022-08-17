@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PerfTimer","Intended as a drop-in-replacement for glib’s GTimer."]]});
+window.SIDEBAR_ITEMS = {"struct":[["PerfTimer","Intended as a drop-in-replacement for glib’s GTimer."]]};

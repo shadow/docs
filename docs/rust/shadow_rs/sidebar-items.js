@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["core",""],["cshadow",""],["host",""],["network",""],["utility",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["core",""],["cshadow",""],["host",""],["network",""],["utility",""]]};

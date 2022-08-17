@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Process",""],["ProcessId",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Process",""],["ProcessId",""]]};

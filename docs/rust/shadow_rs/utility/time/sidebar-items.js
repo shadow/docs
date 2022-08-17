@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TimeParts","Helper for formatting times."],["TimePartsFmtHrMinSec",""],["TimePartsFmtHrMinSecMilli",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["TimeParts","Helper for formatting times."],["TimePartsFmtHrMinSec",""],["TimePartsFmtHrMinSecMilli",""]]};

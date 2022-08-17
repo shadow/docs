@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["main","Regression test for #1623"]]});
+window.SIDEBAR_ITEMS = {"fn":[["main","Regression test for #1623"]]};

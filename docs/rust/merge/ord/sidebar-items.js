@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["max","Set left to the maximum of left and right."],["min","Set left to the minimum of left and right."]]});
+window.SIDEBAR_ITEMS = {"fn":[["max","Set left to the maximum of left and right."],["min","Set left to the minimum of left and right."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CThread","Wraps the C Thread struct."],["ThreadId",""]],"trait":[["Thread",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["CThread","Wraps the C Thread struct."],["ThreadId",""]],"trait":[["Thread",""]]};

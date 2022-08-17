@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error","Library errors."]],"type":[["Result","Library result alias."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Error","Library errors."]],"type":[["Result","Library result alias."]]};

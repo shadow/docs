@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["BindError",""]],"struct":[["AbstractUnixNamespace",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["BindError",""]],"struct":[["AbstractUnixNamespace",""]]};

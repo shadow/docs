@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["vsprintf","Prints a format string into a Rust string."],["vsprintf_raw","Prints a format string into a list of raw bytes that form a null-terminated C string."]],"type":[["Result","The result of a vsprintf call."]]});
+window.SIDEBAR_ITEMS = {"fn":[["vsprintf","Prints a format string into a Rust string."],["vsprintf_raw","Prints a format string into a list of raw bytes that form a null-terminated C string."]],"type":[["Result","The result of a vsprintf call."]]};

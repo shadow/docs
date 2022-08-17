@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["_tiocgwinsz",""]],"struct":[["StatusBar",""],["StatusPrinter",""]],"trait":[["StatusBarState",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["_tiocgwinsz",""]],"struct":[["StatusBar",""],["StatusPrinter",""]],"trait":[["StatusBarState",""]]};

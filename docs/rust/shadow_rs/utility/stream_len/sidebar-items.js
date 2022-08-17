@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["StreamLen",""]]});
+window.SIDEBAR_ITEMS = {"trait":[["StreamLen",""]]};

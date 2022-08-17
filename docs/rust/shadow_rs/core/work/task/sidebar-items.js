@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["export",""]],"struct":[["TaskRef","Mostly for interoperability with C APIs. In Rust code that doesn’t need to interact with C, it may make more sense to directly use a `Fn(&mut Host)` trait object."]]});
+window.SIDEBAR_ITEMS = {"mod":[["export",""]],"struct":[["TaskRef","Mostly for interoperability with C APIs. In Rust code that doesn’t need to interact with C, it may make more sense to directly use a `Fn(&mut Host)` trait object."]]};

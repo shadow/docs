@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["UnixSocketType",""]],"struct":[["UnixSocket","A unix socket. The `UnixSocket` is the public-facing API, which forwards API calls to the inner state object."],["UnixSocketTypeConversionError",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["UnixSocketType",""]],"struct":[["UnixSocket","A unix socket. The `UnixSocket` is the public-facing API, which forwards API calls to the inner state object."],["UnixSocketTypeConversionError",""]]};

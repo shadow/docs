@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["emutime_add_simtime",""],["emutime_sub_emutime",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["emutime_add_simtime",""],["emutime_sub_emutime",""]]};

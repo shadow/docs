@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["network_graph",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["network_graph",""]]};

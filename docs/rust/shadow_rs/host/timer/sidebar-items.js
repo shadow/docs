@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["export",""]],"struct":[["Timer",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["export",""]],"struct":[["Timer",""]]};

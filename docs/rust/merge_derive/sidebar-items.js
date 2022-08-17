@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["Merge",""]]});
+window.SIDEBAR_ITEMS = {"derive":[["Merge",""]]};

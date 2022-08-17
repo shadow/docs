@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["run_shadow","Main entry point for the simulator."]]});
+window.SIDEBAR_ITEMS = {"fn":[["run_shadow","Main entry point for the simulator."]]};

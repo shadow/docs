@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["EMUTIME_INVALID",""],["EMUTIME_MAX",""],["EMUTIME_MIN",""]],"mod":[["export",""]],"struct":[["EmulatedTime","An instant in time (analagous to std::time::Instant) in the Shadow simulation."]]});
+window.SIDEBAR_ITEMS = {"constant":[["EMUTIME_INVALID",""],["EMUTIME_MAX",""],["EMUTIME_MIN",""]],"mod":[["export",""]],"struct":[["EmulatedTime","An instant in time (analagous to std::time::Instant) in the Shadow simulation."]]};

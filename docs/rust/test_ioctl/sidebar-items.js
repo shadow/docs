@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_tests",""],["main",""],["test_tty","Test ioctl() using the tty-related ioctl requests."]]});
+window.SIDEBAR_ITEMS = {"fn":[["get_tests",""],["main",""],["test_tty","Test ioctl() using the tty-related ioctl requests."]]};

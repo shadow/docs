@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PcapWriter",""]],"trait":[["PacketDisplay",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["PcapWriter",""]],"trait":[["PacketDisplay",""]]};

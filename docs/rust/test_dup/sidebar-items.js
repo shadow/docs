@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["DupFn",""]],"fn":[["get_tests",""],["main",""],["test_dup",""],["test_dup2",""],["test_dup3",""],["test_dup_io",""],["test_fcntl",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["DupFn",""]],"fn":[["get_tests",""],["main",""],["test_dup",""],["test_dup2",""],["test_dup3",""],["test_dup_io",""],["test_fcntl",""]]};

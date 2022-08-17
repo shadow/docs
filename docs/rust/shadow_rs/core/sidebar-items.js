@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["controller",""],["logger",""],["logical_processor",""],["main",""],["manager",""],["sim_config",""],["support",""],["work",""],["worker",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["controller",""],["logger",""],["logical_processor",""],["main",""],["manager",""],["sim_config",""],["support",""],["work",""],["worker",""]]};

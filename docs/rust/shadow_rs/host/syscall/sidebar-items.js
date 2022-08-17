@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["format",""],["handler",""]],"struct":[["Trigger",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["format",""],["handler",""]],"struct":[["Trigger",""]]};

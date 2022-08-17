@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["do_epoll_wait",""],["main",""],["test_threads_edge",""],["test_threads_level",""]],"struct":[["WaiterResult",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["do_epoll_wait",""],["main",""],["test_threads_edge",""],["test_threads_level",""]],"struct":[["WaiterResult",""]]};

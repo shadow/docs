@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["main",""],["test_unaligned_read",""],["test_unaligned_write",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["main",""],["test_unaligned_read",""],["test_unaligned_write",""]]};

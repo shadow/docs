@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SyscallHandler",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["SyscallHandler",""]]};

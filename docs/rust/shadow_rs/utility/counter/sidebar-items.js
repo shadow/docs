@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Counter","The main counter object that maps individual keys to count values."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Counter","The main counter object that maps individual keys to count values."]]};
