@@ -805,6 +805,23 @@
 <span id="799">799</span>
 <span id="800">800</span>
 <span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -1048,6 +1065,15 @@
                 <span class="comment">// release the workers and run next round</span>
                 <span class="ident">scheduler</span>.<span class="ident">continue_next_round</span>(<span class="ident">window_start</span>, <span class="ident">window_end</span>);
 
+                <span class="comment">// update the status logger</span>
+                <span class="kw">let</span> <span class="ident">display_time</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">window_start</span>, <span class="ident">window_end</span>);
+                <span class="ident">worker::WORKER_SHARED</span>
+                    .<span class="ident">get</span>()
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">update_status_logger</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+                        <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="ident">display_time</span>;
+                    });
+
                 <span class="comment">// log a heartbeat message every &#39;heartbeat_interval&#39; amount of simulated time</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">heartbeat_interval</span>) <span class="op">=</span> <span class="ident">heartbeat_interval</span> {
                     <span class="kw">if</span> <span class="ident">window_start</span> <span class="op">&gt;</span> <span class="ident">last_heartbeat</span> <span class="op">+</span> <span class="ident">heartbeat_interval</span> {
@@ -1082,6 +1108,14 @@
                     .<span class="ident">manager_finished_current_round</span>(<span class="ident">min_next_event_time</span>);
             }
         }
+
+        <span class="comment">// simulation is finished, so update the status logger</span>
+        <span class="ident">worker::WORKER_SHARED</span>
+            .<span class="ident">get</span>()
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">update_status_logger</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+                <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">end_time</span>;
+            });
 
         <span class="comment">// since the scheduler was dropped, all workers should have completed and the global object</span>
         <span class="comment">// and syscall counters should have been updated</span>

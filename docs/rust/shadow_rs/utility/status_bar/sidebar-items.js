@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["_tiocgwinsz",""]],"struct":[["StatusBar",""],["StatusPrinter",""]],"trait":[["StatusBarState",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["_tiocgwinsz",""]],"struct":[["Status","The status bar’s internal state."],["StatusBar",""],["StatusPrinter",""]],"trait":[["StatusBarState",""]]};
