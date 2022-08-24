@@ -817,6 +817,8 @@
 <span id="811">811</span>
 <span id="812">812</span>
 <span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -1062,7 +1064,8 @@
                 <span class="comment">// update the status logger</span>
                 <span class="kw">let</span> <span class="ident">display_time</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">window_start</span>, <span class="ident">window_end</span>);
                 <span class="ident">worker::WORKER_SHARED</span>
-                    .<span class="ident">get</span>()
+                    .<span class="ident">borrow</span>()
+                    .<span class="ident">as_ref</span>()
                     .<span class="ident">unwrap</span>()
                     .<span class="ident">update_status_logger</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
                         <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="ident">display_time</span>;
@@ -1105,7 +1108,8 @@
 
         <span class="comment">// simulation is finished, so update the status logger</span>
         <span class="ident">worker::WORKER_SHARED</span>
-            .<span class="ident">get</span>()
+            .<span class="ident">borrow</span>()
+            .<span class="ident">as_ref</span>()
             .<span class="ident">unwrap</span>()
             .<span class="ident">update_status_logger</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
                 <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">end_time</span>;
@@ -1206,7 +1210,7 @@
             <span class="kw">unsafe</span> {
                 <span class="ident">c::host_setup</span>(
                     <span class="ident">c_host</span>,
-                    <span class="ident">worker::WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">dns</span>(),
+                    <span class="ident">worker::WORKER_SHARED</span>.<span class="ident">borrow</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">dns</span>(),
                     <span class="self">self</span>.<span class="ident">raw_frequency_khz</span>,
                     <span class="ident">hosts_path</span>.<span class="ident">as_ptr</span>(),
                 )

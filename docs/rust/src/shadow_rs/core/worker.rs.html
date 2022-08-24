@@ -681,7 +681,14 @@
 <span id="675">675</span>
 <span id="676">676</span>
 <span id="677">677</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">atomic_refcell</span>::{<span class="ident">AtomicRef</span>, <span class="ident">AtomicRefCell</span>};
+<span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::controller::ShadowStatusBarState</span>;
@@ -724,8 +731,10 @@
 }
 
 <span class="comment">// shared global state</span>
-<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">WORKER_SHARED</span>: <span class="ident">once_cell::sync::OnceCell</span><span class="op">&lt;</span><span class="ident">WorkerShared</span><span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">once_cell::sync::OnceCell::new</span>();
+<span class="comment">// Must not mutably borrow when the simulation is running. Worker threads should access it through</span>
+<span class="comment">// `Worker::shared`.</span>
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">WORKER_SHARED</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">AtomicRefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WorkerShared</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+    <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">AtomicRefCell::new</span>(<span class="prelude-val">None</span>));
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WorkerThreadID</span>(<span class="ident">u32</span>);
@@ -749,6 +758,9 @@
 <span class="doccomment">/// Worker context, containing &#39;global&#39; information for the current thread.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Worker</span> {
     <span class="ident">worker_id</span>: <span class="ident">WorkerThreadID</span>,
+
+    <span class="comment">// A shared reference to the state in `WORKER_SHARED`.</span>
+    <span class="ident">shared</span>: <span class="ident">AtomicRef</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">WorkerShared</span><span class="op">&gt;</span>,
 
     <span class="comment">// These store some information about the current Host, Process, and Thread,</span>
     <span class="comment">// when applicable. These are used to make this information available to</span>
@@ -788,6 +800,7 @@
         <span class="ident">WORKER</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">worker</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">worker</span>.<span class="ident">set</span>(<span class="ident">RefCell::new</span>(<span class="self">Self</span> {
                 <span class="ident">worker_id</span>,
+                <span class="ident">shared</span>: <span class="ident">AtomicRef::map</span>(<span class="ident">WORKER_SHARED</span>.<span class="ident">borrow</span>(), <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()),
                 <span class="ident">active_host_info</span>: <span class="prelude-val">None</span>,
                 <span class="ident">active_process_info</span>: <span class="prelude-val">None</span>,
                 <span class="ident">active_thread_info</span>: <span class="prelude-val">None</span>,
@@ -917,7 +930,7 @@
             <span class="kw">let</span> <span class="ident">min_latency_cache</span> <span class="op">=</span> <span class="ident">w</span>.<span class="ident">min_latency_cache</span>.<span class="ident">get</span>();
             <span class="kw">if</span> <span class="ident">min_latency_cache</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">t</span> <span class="op">&lt;</span> <span class="ident">min_latency_cache</span>.<span class="ident">unwrap</span>() {
                 <span class="ident">w</span>.<span class="ident">min_latency_cache</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>));
-                <span class="ident">WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">update_lowest_used_latency</span>(<span class="ident">t</span>);
+                <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">update_lowest_used_latency</span>(<span class="ident">t</span>);
             }
         })
         .<span class="ident">unwrap</span>();
@@ -1085,6 +1098,12 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">std::ops::Drop</span> <span class="kw">for</span> <span class="ident">WorkerShared</span> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="kw">unsafe</span> { <span class="ident">cshadow::dns_free</span>(<span class="self">self</span>.<span class="ident">dns</span>.<span class="ident">ptr</span>()) };
+    }
+}
+
 <span class="doccomment">/// Enable object counters. Should be called near the beginning of the program.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_object_counters</span>() {
     <span class="ident">USE_OBJECT_COUNTERS</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">std::sync::atomic::Ordering::Relaxed</span>);
@@ -1106,7 +1125,7 @@
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getDNS</span>() -&gt; <span class="kw-2">*mut</span> <span class="ident">cshadow::DNS</span> {
-        <span class="ident">WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">dns</span>()
+        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">dns</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -1117,7 +1136,8 @@
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">src</span>).<span class="ident">into</span>());
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">dst</span>).<span class="ident">into</span>());
 
-        <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">latency</span>(<span class="ident">src</span>, <span class="ident">dst</span>))
+        <span class="kw">let</span> <span class="ident">latency</span> <span class="op">=</span> <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">latency</span>(<span class="ident">src</span>, <span class="ident">dst</span>)).<span class="ident">unwrap</span>();
+        <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">latency</span>)
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -1128,24 +1148,19 @@
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">src</span>).<span class="ident">into</span>());
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">dst</span>).<span class="ident">into</span>());
 
-        <span class="ident">WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">reliability</span>(<span class="ident">src</span>, <span class="ident">dst</span>).<span class="ident">unwrap</span>()
+        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">reliability</span>(<span class="ident">src</span>, <span class="ident">dst</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getBandwidthDownBytes</span>(<span class="ident">ip</span>: <span class="ident">libc::in_addr_t</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">ip</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">ip</span>).<span class="ident">into</span>());
-        <span class="ident">WORKER_SHARED</span>
-            .<span class="ident">get</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">bandwidth</span>(<span class="ident">ip</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">down_bytes</span>
+        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">bandwidth</span>(<span class="ident">ip</span>).<span class="ident">unwrap</span>().<span class="ident">down_bytes</span>).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getBandwidthUpBytes</span>(<span class="ident">ip</span>: <span class="ident">libc::in_addr_t</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">ip</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">ip</span>).<span class="ident">into</span>());
-        <span class="ident">WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">bandwidth</span>(<span class="ident">ip</span>).<span class="ident">unwrap</span>().<span class="ident">up_bytes</span>
+        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">bandwidth</span>(<span class="ident">ip</span>).<span class="ident">unwrap</span>().<span class="ident">up_bytes</span>).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -1153,7 +1168,7 @@
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">src</span>).<span class="ident">into</span>());
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">dst</span>).<span class="ident">into</span>());
 
-        <span class="ident">WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">is_routable</span>(<span class="ident">src</span>, <span class="ident">dst</span>)
+        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">is_routable</span>(<span class="ident">src</span>, <span class="ident">dst</span>)).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
@@ -1161,15 +1176,12 @@
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">src</span>).<span class="ident">into</span>());
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">dst</span>).<span class="ident">into</span>());
 
-        <span class="ident">WORKER_SHARED</span>
-            .<span class="ident">get</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">increment_packet_count</span>(<span class="ident">src</span>, <span class="ident">dst</span>)
+        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">increment_packet_count</span>(<span class="ident">src</span>, <span class="ident">dst</span>)).<span class="ident">unwrap</span>()
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_incrementPluginErrors</span>() {
-        <span class="ident">WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">increment_plugin_error_count</span>();
+        <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">increment_plugin_error_count</span>()).<span class="ident">unwrap</span>()
     }
 
     <span class="doccomment">/// Initialize a Worker for this thread.</span>

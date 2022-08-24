@@ -207,6 +207,18 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::sync::atomic::AtomicU32</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
@@ -281,12 +293,12 @@
 
         <span class="comment">// set the simulation&#39;s global state</span>
         <span class="ident">worker::WORKER_SHARED</span>
-            .<span class="ident">set</span>(<span class="ident">worker::WorkerShared</span> {
+            .<span class="ident">borrow_mut</span>()
+            .<span class="ident">replace</span>(<span class="ident">worker::WorkerShared</span> {
                 <span class="ident">ip_assignment</span>: <span class="ident">sim_config</span>.<span class="ident">ip_assignment</span>,
                 <span class="ident">routing_info</span>: <span class="ident">sim_config</span>.<span class="ident">routing_info</span>,
                 <span class="ident">host_bandwidths</span>: <span class="ident">sim_config</span>.<span class="ident">host_bandwidths</span>,
-                <span class="comment">// safe since the DNS type has an internal mutex, and since global memory is leaked</span>
-                <span class="comment">// we don&#39;t ever need to free this</span>
+                <span class="comment">// safe since the DNS type has an internal mutex</span>
                 <span class="ident">dns</span>: <span class="kw">unsafe</span> { <span class="ident">SyncSendPointer::new</span>(<span class="ident">dns</span>) },
                 <span class="ident">num_plugin_errors</span>: <span class="ident">AtomicU32::new</span>(<span class="number">0</span>),
                 <span class="comment">// allow the status logger&#39;s state to be updated from anywhere</span>
@@ -296,8 +308,7 @@
                     <span class="ident">smallest_latency</span>,
                     <span class="ident">min_runahead_config</span>,
                 ),
-            })
-            .<span class="ident">expect</span>(<span class="string">&quot;The global state has already been set during the program&#39;s execution&quot;</span>);
+            });
 
         <span class="kw">let</span> <span class="ident">manager_hosts</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sim_config</span>.<span class="ident">hosts</span>);
         <span class="kw">let</span> <span class="ident">manager_rand</span> <span class="op">=</span> <span class="ident">Xoshiro256PlusPlus::seed_from_u64</span>(<span class="ident">sim_config</span>.<span class="ident">random</span>.<span class="ident">gen</span>());
@@ -314,12 +325,20 @@
         <span class="ident">manager</span>.<span class="ident">run</span>()<span class="question-mark">?</span>;
         <span class="macro">log::info!</span>(<span class="string">&quot;Finished simulation&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">num_plugin_errors</span> <span class="op">=</span> <span class="ident">worker::WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">plugin_error_count</span>();
+        <span class="kw">let</span> <span class="ident">num_plugin_errors</span> <span class="op">=</span> <span class="ident">worker::WORKER_SHARED</span>
+            .<span class="ident">borrow</span>()
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">plugin_error_count</span>();
+
         <span class="kw">if</span> <span class="ident">num_plugin_errors</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
                 <span class="string">&quot;{num_plugin_errors} managed processes exited with a non-zero error code&quot;</span>
             ));
         }
+
+        <span class="comment">// drop the simulation&#39;s global state</span>
+        <span class="ident">worker::WORKER_SHARED</span>.<span class="ident">borrow_mut</span>().<span class="ident">take</span>();
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -341,7 +360,12 @@
         <span class="comment">// TODO: once we get multiple managers, we have to block them here until they have all</span>
         <span class="comment">// notified us that they are finished</span>
 
-        <span class="kw">let</span> <span class="ident">runahead</span> <span class="op">=</span> <span class="ident">worker::WORKER_SHARED</span>.<span class="ident">get</span>().<span class="ident">unwrap</span>().<span class="ident">runahead</span>.<span class="ident">get</span>();
+        <span class="kw">let</span> <span class="ident">runahead</span> <span class="op">=</span> <span class="ident">worker::WORKER_SHARED</span>
+            .<span class="ident">borrow</span>()
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">runahead</span>
+            .<span class="ident">get</span>();
         <span class="macro">assert_ne!</span>(<span class="ident">runahead</span>, <span class="ident">SimulationTime::ZERO</span>);
 
         <span class="kw">let</span> <span class="ident">new_start</span> <span class="op">=</span> <span class="ident">min_next_event_time</span>;
