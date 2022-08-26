@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["EventQueue","A queue of [`Event`]s ordered by their times."]]};
+window.SIDEBAR_ITEMS = {"struct":[["EventQueue","A queue of [`Event`]s ordered by their times."],["ThreadSafeEventQueue","A wrapper for [`EventQueue`] that uses interior mutability to make the ffi simpler."]]};

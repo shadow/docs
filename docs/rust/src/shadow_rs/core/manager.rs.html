@@ -819,34 +819,110 @@
 <span id="813">813</span>
 <span id="814">814</span>
 <span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+<span class="kw">use</span> <span class="ident">std::sync::atomic::AtomicU32</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="self">self</span>, <span class="ident">Context</span>};
 <span class="kw">use</span> <span class="ident">rand::Rng</span>;
 <span class="kw">use</span> <span class="ident">rand_xoshiro::Xoshiro256PlusPlus</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::controller</span>::{<span class="ident">Controller</span>, <span class="ident">SimController</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::sim_config::HostInfo</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::controller</span>::{<span class="ident">Controller</span>, <span class="ident">ShadowStatusBarState</span>, <span class="ident">SimController</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::scheduler::runahead::Runahead</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::sim_config</span>::{<span class="ident">Bandwidth</span>, <span class="ident">HostInfo</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::configuration</span>::{<span class="ident">ConfigOptions</span>, <span class="ident">Flatten</span>, <span class="ident">LogLevel</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::emulated_time::EmulatedTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::simulation_time::SimulationTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::worker</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::host::Host</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::network::network_graph</span>::{<span class="ident">IpAssignment</span>, <span class="ident">RoutingInfo</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::childpid_watcher::ChildPidWatcher</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::status_bar::Status</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility</span>::{<span class="self">self</span>, <span class="ident">SyncSendPointer</span>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Manager</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">manager_config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ManagerConfig</span><span class="op">&gt;</span>,
     <span class="ident">controller</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Controller</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ConfigOptions</span>,
-    <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HostInfo</span><span class="op">&gt;</span>,
 
-    <span class="comment">// manager random source, init from controller random, used to init host randoms</span>
-    <span class="ident">random</span>: <span class="ident">Xoshiro256PlusPlus</span>,
     <span class="ident">raw_frequency_khz</span>: <span class="ident">u64</span>,
     <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>,
 
@@ -867,11 +943,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Manager</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">manager_config</span>: <span class="ident">ManagerConfig</span>,
         <span class="ident">controller</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Controller</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ConfigOptions</span>,
-        <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HostInfo</span><span class="op">&gt;</span>,
         <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>,
-        <span class="ident">random</span>: <span class="ident">Xoshiro256PlusPlus</span>,
     ) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="comment">// get the system&#39;s CPU frequency</span>
         <span class="kw">let</span> <span class="ident">raw_frequency_khz</span> <span class="op">=</span> <span class="ident">get_raw_cpu_frequency</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
@@ -995,10 +1070,9 @@
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
+            <span class="ident">manager_config</span>: <span class="prelude-val">Some</span>(<span class="ident">manager_config</span>),
             <span class="ident">controller</span>,
             <span class="ident">config</span>,
-            <span class="ident">hosts</span>,
-            <span class="ident">random</span>,
             <span class="ident">raw_frequency_khz</span>,
             <span class="ident">end_time</span>,
             <span class="ident">hosts_path</span>,
@@ -1011,28 +1085,92 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">status_logger_state</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Status</span><span class="op">&lt;</span><span class="ident">ShadowStatusBarState</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">manager_config</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">manager_config</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">min_runahead_config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">config</span>
+            .<span class="ident">experimental</span>
+            .<span class="ident">runahead</span>
+            .<span class="ident">flatten</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">min_runahead_config</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SimulationTime</span><span class="op">&gt;</span> <span class="op">=</span>
+            <span class="ident">min_runahead_config</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
+
+        <span class="kw">let</span> <span class="ident">bootstrap_end_time</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">general</span>.<span class="ident">bootstrap_end_time</span>.<span class="ident">unwrap</span>().<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">bootstrap_end_time</span>: <span class="ident">SimulationTime</span> <span class="op">=</span> <span class="ident">bootstrap_end_time</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">bootstrap_end_time</span> <span class="op">=</span> <span class="ident">EmulatedTime::SIMULATION_START</span> <span class="op">+</span> <span class="ident">bootstrap_end_time</span>;
+
+        <span class="kw">let</span> <span class="ident">smallest_latency</span> <span class="op">=</span> <span class="ident">SimulationTime::from_nanos</span>(
+            <span class="ident">manager_config</span>
+                .<span class="ident">routing_info</span>
+                .<span class="ident">get_smallest_latency_ns</span>()
+                .<span class="ident">unwrap</span>(),
+        );
+
+        <span class="kw">let</span> <span class="ident">dns</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c::dns_new</span>() };
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">dns</span>.<span class="ident">is_null</span>());
+
         <span class="kw">let</span> <span class="ident">num_workers</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">config</span>
             .<span class="ident">experimental</span>
             .<span class="ident">worker_threads</span>
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">u32::try_from</span>(<span class="self">self</span>.<span class="ident">hosts</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>().<span class="ident">try_into</span>().<span class="ident">unwrap</span>())
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">u32::try_from</span>(<span class="ident">manager_config</span>.<span class="ident">hosts</span>.<span class="ident">len</span>())
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">try_into</span>()
+                    .<span class="ident">unwrap</span>()
+            })
             .<span class="ident">get</span>();
+
+        <span class="comment">// note: there are several return points before we add these hosts to the scheduler and we</span>
+        <span class="comment">// would leak memory if we return before then, but not worrying about that since the issues</span>
+        <span class="comment">// will go away when we move the hosts to rust, and if we don&#39;t add them to the scheduler</span>
+        <span class="comment">// then it means there was an error and we&#39;re going to exit anyways</span>
+        <span class="kw">let</span> <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">manager_config</span>
+            .<span class="ident">hosts</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
+                <span class="self">self</span>.<span class="ident">build_host</span>(<span class="ident">x</span>, <span class="ident">dns</span>)
+                    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to build host &#39;{}&#39;&quot;</span>, <span class="ident">x</span>.<span class="ident">name</span>))
+            })
+            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+
+        <span class="comment">// set the simulation&#39;s global state</span>
+        <span class="ident">worker::WORKER_SHARED</span>
+            .<span class="ident">borrow_mut</span>()
+            .<span class="ident">replace</span>(<span class="ident">worker::WorkerShared</span> {
+                <span class="ident">ip_assignment</span>: <span class="ident">manager_config</span>.<span class="ident">ip_assignment</span>,
+                <span class="ident">routing_info</span>: <span class="ident">manager_config</span>.<span class="ident">routing_info</span>,
+                <span class="ident">host_bandwidths</span>: <span class="ident">manager_config</span>.<span class="ident">host_bandwidths</span>,
+                <span class="comment">// safe since the DNS type has an internal mutex</span>
+                <span class="ident">dns</span>: <span class="kw">unsafe</span> { <span class="ident">SyncSendPointer::new</span>(<span class="ident">dns</span>) },
+                <span class="ident">num_plugin_errors</span>: <span class="ident">AtomicU32::new</span>(<span class="number">0</span>),
+                <span class="comment">// allow the status logger&#39;s state to be updated from anywhere</span>
+                <span class="ident">status_logger_state</span>: <span class="ident">status_logger_state</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">Arc::clone</span>(<span class="ident">x</span>)),
+                <span class="ident">runahead</span>: <span class="ident">Runahead::new</span>(
+                    <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">use_dynamic_runahead</span>.<span class="ident">unwrap</span>(),
+                    <span class="ident">smallest_latency</span>,
+                    <span class="ident">min_runahead_config</span>,
+                ),
+                <span class="ident">child_pid_watcher</span>: <span class="ident">ChildPidWatcher::new</span>(),
+                <span class="ident">event_queues</span>: <span class="ident">hosts</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>.<span class="ident">id</span>(), <span class="ident">x</span>.<span class="ident">event_queue</span>())).<span class="ident">collect</span>(),
+                <span class="ident">bootstrap_end_time</span>,
+                <span class="ident">sim_end_time</span>: <span class="self">self</span>.<span class="ident">end_time</span>,
+            });
 
         <span class="comment">// scope used so that the scheduler is dropped before we log the global counters below</span>
         {
-            <span class="kw">let</span> <span class="ident">pid_watcher</span> <span class="op">=</span> <span class="ident">ChildPidWatcher::new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="ident">SchedulerWrapper::new</span>(
-                <span class="kw-2">&amp;</span><span class="ident">pid_watcher</span>,
-                <span class="self">self</span>.<span class="ident">config</span>,
-                <span class="ident">num_workers</span>,
-                <span class="self">self</span>.<span class="ident">random</span>.<span class="ident">gen</span>(),
-                <span class="self">self</span>.<span class="ident">end_time</span>,
-            );
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduler</span> <span class="op">=</span>
+                <span class="ident">SchedulerWrapper::new</span>(<span class="ident">num_workers</span>, <span class="ident">manager_config</span>.<span class="ident">random</span>.<span class="ident">gen</span>(), <span class="self">self</span>.<span class="ident">end_time</span>);
 
-            <span class="kw">for</span> <span class="ident">host</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">hosts</span>.<span class="ident">split_off</span>(<span class="number">0</span>) {
-                <span class="self">self</span>.<span class="ident">add_host</span>(<span class="kw-2">&amp;mut</span> <span class="ident">scheduler</span>, <span class="kw-2">&amp;</span><span class="ident">host</span>)
-                    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to add host &#39;{}&#39;&quot;</span>, <span class="ident">host</span>.<span class="ident">name</span>))<span class="question-mark">?</span>;
+            <span class="kw">for</span> <span class="ident">host</span> <span class="kw">in</span> <span class="ident">hosts</span>.<span class="ident">into_iter</span>() {
+                <span class="ident">scheduler</span>
+                    .<span class="ident">add_host</span>(<span class="ident">host</span>.<span class="ident">chost</span>())
+                    .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to add host &#39;{}&#39;&quot;</span>, <span class="ident">host</span>.<span class="ident">name</span>()))<span class="question-mark">?</span>;
             }
 
             <span class="comment">// we are the main thread, we manage the execution window updates while the workers run</span>
@@ -1115,6 +1253,16 @@
                 <span class="ident">state</span>.<span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">end_time</span>;
             });
 
+        <span class="kw">let</span> <span class="ident">num_plugin_errors</span> <span class="op">=</span> <span class="ident">worker::WORKER_SHARED</span>
+            .<span class="ident">borrow</span>()
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">plugin_error_count</span>();
+
+        <span class="comment">// drop the simulation&#39;s global state</span>
+        <span class="comment">// must drop before the allocation counters have been checked</span>
+        <span class="ident">worker::WORKER_SHARED</span>.<span class="ident">borrow_mut</span>().<span class="ident">take</span>();
+
         <span class="comment">// since the scheduler was dropped, all workers should have completed and the global object</span>
         <span class="comment">// and syscall counters should have been updated</span>
 
@@ -1140,10 +1288,10 @@
             });
         }
 
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(<span class="ident">num_plugin_errors</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">add_host</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">scheduler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SchedulerWrapper</span>, <span class="ident">host</span>: <span class="kw-2">&amp;</span><span class="ident">HostInfo</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">build_host</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">&amp;</span><span class="ident">HostInfo</span>, <span class="ident">dns</span>: <span class="kw-2">*mut</span> <span class="ident">c::DNS</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="ident">Host</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">hostname</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">host</span>.<span class="ident">name</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">pcap_dir</span> <span class="op">=</span> <span class="ident">host</span>
             .<span class="ident">pcap_dir</span>
@@ -1207,14 +1355,7 @@
             <span class="kw">let</span> <span class="ident">c_host</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">c::host_new</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>) };
             <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">c_host</span>.<span class="ident">is_null</span>());
 
-            <span class="kw">unsafe</span> {
-                <span class="ident">c::host_setup</span>(
-                    <span class="ident">c_host</span>,
-                    <span class="ident">worker::WORKER_SHARED</span>.<span class="ident">borrow</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">dns</span>(),
-                    <span class="self">self</span>.<span class="ident">raw_frequency_khz</span>,
-                    <span class="ident">hosts_path</span>.<span class="ident">as_ptr</span>(),
-                )
-            };
+            <span class="kw">unsafe</span> { <span class="ident">c::host_setup</span>(<span class="ident">c_host</span>, <span class="ident">dns</span>, <span class="self">self</span>.<span class="ident">raw_frequency_khz</span>, <span class="ident">hosts_path</span>.<span class="ident">as_ptr</span>()) };
 
             <span class="comment">// make sure we never accidentally drop the following objects before running the</span>
             <span class="comment">// unsafe code (will be a compile-time error if they were dropped)</span>
@@ -1289,7 +1430,7 @@
             }
         }
 
-        <span class="ident">scheduler</span>.<span class="ident">add_host</span>(<span class="ident">c_host</span>)
+        <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">Host::borrow_from_c</span>(<span class="ident">c_host</span>) })
     }
 
     <span class="comment">// assume that the provided env variables are UTF-8, since working with str instead of OsStr is</span>
@@ -1497,32 +1638,37 @@
     }
 }
 
-<span class="kw">struct</span> <span class="ident">SchedulerWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::Scheduler</span>,
-    <span class="ident">_phantom_pid_watcher</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ChildPidWatcher</span><span class="op">&gt;</span>,
-    <span class="ident">_phantom_config</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ConfigOptions</span><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ManagerConfig</span> {
+    <span class="comment">// deterministic source of randomness for this manager</span>
+    <span class="kw">pub</span> <span class="ident">random</span>: <span class="ident">Xoshiro256PlusPlus</span>,
+
+    <span class="comment">// map of ip addresses to graph nodes</span>
+    <span class="kw">pub</span> <span class="ident">ip_assignment</span>: <span class="ident">IpAssignment</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+
+    <span class="comment">// routing information for paths between graph nodes</span>
+    <span class="kw">pub</span> <span class="ident">routing_info</span>: <span class="ident">RoutingInfo</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+
+    <span class="comment">// bandwidths of hosts at ip addresses</span>
+    <span class="kw">pub</span> <span class="ident">host_bandwidths</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">std::net::IpAddr</span>, <span class="ident">Bandwidth</span><span class="op">&gt;</span>,
+
+    <span class="comment">// a list of hosts and their processes</span>
+    <span class="kw">pub</span> <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HostInfo</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">SchedulerWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">pid_watcher</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ChildPidWatcher</span>,
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ConfigOptions</span>,
-        <span class="ident">num_workers</span>: <span class="ident">u32</span>,
-        <span class="ident">scheduler_seed</span>: <span class="ident">u32</span>,
-        <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>,
-    ) -&gt; <span class="self">Self</span> {
+<span class="kw">struct</span> <span class="ident">SchedulerWrapper</span> {
+    <span class="kw">pub</span> <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c::Scheduler</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">SchedulerWrapper</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <span class="ident">u32</span>, <span class="ident">scheduler_seed</span>: <span class="ident">u32</span>, <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="kw">unsafe</span> {
                 <span class="ident">c::scheduler_new</span>(
-                    <span class="ident">pid_watcher</span>,
-                    <span class="ident">config</span>,
                     <span class="ident">num_workers</span>,
                     <span class="ident">scheduler_seed</span>,
                     <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">end_time</span>).<span class="ident">into</span>(),
                 )
             },
-            <span class="ident">_phantom_pid_watcher</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">_phantom_config</span>: <span class="ident">Default::default</span>(),
         }
     }
 
@@ -1559,7 +1705,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">std::ops::Drop</span> <span class="kw">for</span> <span class="ident">SchedulerWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">std::ops::Drop</span> <span class="kw">for</span> <span class="ident">SchedulerWrapper</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// shadow requires that the work pool is properly shutdown before it&#39;s freed (will block</span>
         <span class="comment">// until worker threads are joined)</span>
