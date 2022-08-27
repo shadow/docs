@@ -890,8 +890,6 @@
 <span id="884">884</span>
 <span id="885">885</span>
 <span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
@@ -901,7 +899,7 @@
 <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="self">self</span>, <span class="ident">Context</span>};
-<span class="kw">use</span> <span class="ident">rand::Rng</span>;
+<span class="kw">use</span> <span class="ident">rand::seq::SliceRandom</span>;
 <span class="kw">use</span> <span class="ident">rand_xoshiro::Xoshiro256PlusPlus</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::controller</span>::{<span class="ident">Controller</span>, <span class="ident">ShadowStatusBarState</span>, <span class="ident">SimController</span>};
@@ -1130,7 +1128,7 @@
         <span class="comment">// would leak memory if we return before then, but not worrying about that since the issues</span>
         <span class="comment">// will go away when we move the hosts to rust, and if we don&#39;t add them to the scheduler</span>
         <span class="comment">// then it means there was an error and we&#39;re going to exit anyways</span>
-        <span class="kw">let</span> <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">manager_config</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hosts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">manager_config</span>
             .<span class="ident">hosts</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
@@ -1138,6 +1136,9 @@
                     .<span class="ident">with_context</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to build host &#39;{}&#39;&quot;</span>, <span class="ident">x</span>.<span class="ident">name</span>))
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">anyhow::Result</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+
+        <span class="comment">// shuffle the list of hosts to make sure that they are randomly assigned by the scheduler</span>
+        <span class="ident">hosts</span>.<span class="ident">shuffle</span>(<span class="kw-2">&amp;mut</span> <span class="ident">manager_config</span>.<span class="ident">random</span>);
 
         <span class="comment">// set the simulation&#39;s global state</span>
         <span class="ident">worker::WORKER_SHARED</span>
@@ -1164,8 +1165,7 @@
 
         <span class="comment">// scope used so that the scheduler is dropped before we log the global counters below</span>
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduler</span> <span class="op">=</span>
-                <span class="ident">SchedulerWrapper::new</span>(<span class="ident">num_workers</span>, <span class="ident">manager_config</span>.<span class="ident">random</span>.<span class="ident">gen</span>(), <span class="self">self</span>.<span class="ident">end_time</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="ident">SchedulerWrapper::new</span>(<span class="ident">num_workers</span>, <span class="self">self</span>.<span class="ident">end_time</span>);
 
             <span class="kw">for</span> <span class="ident">host</span> <span class="kw">in</span> <span class="ident">hosts</span>.<span class="ident">into_iter</span>() {
                 <span class="ident">scheduler</span>
@@ -1660,14 +1660,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SchedulerWrapper</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <span class="ident">u32</span>, <span class="ident">scheduler_seed</span>: <span class="ident">u32</span>, <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_workers</span>: <span class="ident">u32</span>, <span class="ident">end_time</span>: <span class="ident">EmulatedTime</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="kw">unsafe</span> {
-                <span class="ident">c::scheduler_new</span>(
-                    <span class="ident">num_workers</span>,
-                    <span class="ident">scheduler_seed</span>,
-                    <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">end_time</span>).<span class="ident">into</span>(),
-                )
+                <span class="ident">c::scheduler_new</span>(<span class="ident">num_workers</span>, <span class="ident">EmulatedTime::to_abs_simtime</span>(<span class="ident">end_time</span>).<span class="ident">into</span>())
             },
         }
     }
