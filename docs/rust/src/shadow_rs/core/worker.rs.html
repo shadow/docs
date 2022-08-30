@@ -735,6 +735,9 @@
 <span id="729">729</span>
 <span id="730">730</span>
 <span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">atomic_refcell</span>::{<span class="ident">AtomicRef</span>, <span class="ident">AtomicRefCell</span>};
 <span class="kw">use</span> <span class="ident">nix::unistd::Pid</span>;
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
@@ -742,8 +745,6 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::controller::ShadowStatusBarState</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::scheduler::runahead::Runahead</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::sim_config::Bandwidth</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::emulated_time::EmulatedTime</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::support::simulation_time::SimulationTime</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::work::event::Event</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core::work::event_queue::ThreadSafeEventQueue</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span>;
@@ -756,6 +757,8 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::notnull</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::status_bar</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utility::SyncSendPointer</span>;
+<span class="kw">use</span> <span class="ident">shadow_shim_helper_rs::emulated_time::EmulatedTime</span>;
+<span class="kw">use</span> <span class="ident">shadow_shim_helper_rs::simulation_time::SimulationTime</span>;
 
 <span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
@@ -1182,6 +1185,9 @@
 <span class="kw">mod</span> <span class="ident">export</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
+    <span class="kw">use</span> <span class="ident">shadow_shim_helper_rs::emulated_time::CEmulatedTime</span>;
+    <span class="kw">use</span> <span class="ident">shadow_shim_helper_rs::simulation_time::CSimulationTime</span>;
+
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getDNS</span>() -&gt; <span class="kw-2">*mut</span> <span class="ident">cshadow::DNS</span> {
         <span class="ident">Worker::with_mut</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">w</span>.<span class="ident">shared</span>.<span class="ident">dns</span>()).<span class="ident">unwrap</span>()
@@ -1191,7 +1197,7 @@
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getLatency</span>(
         <span class="ident">src</span>: <span class="ident">libc::in_addr_t</span>,
         <span class="ident">dst</span>: <span class="ident">libc::in_addr_t</span>,
-    ) -&gt; <span class="ident">cshadow::SimulationTime</span> {
+    ) -&gt; <span class="ident">CSimulationTime</span> {
         <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">src</span>).<span class="ident">into</span>());
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">std::net::IpAddr::V4</span>(<span class="ident">u32::from_be</span>(<span class="ident">dst</span>).<span class="ident">into</span>());
 
@@ -1360,19 +1366,19 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setRoundEndTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::SimulationTime</span>) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setRoundEndTime</span>(<span class="ident">t</span>: <span class="ident">CSimulationTime</span>) {
         <span class="ident">Worker::set_round_end_time</span>(<span class="ident">EmulatedTime::from_abs_simtime</span>(
             <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>(),
         ));
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_getRoundEndTime</span>() -&gt; <span class="ident">cshadow::SimulationTime</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">_worker_getRoundEndTime</span>() -&gt; <span class="ident">CSimulationTime</span> {
         <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">Worker::round_end_time</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">to_abs_simtime</span>()))
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setCurrentEmulatedTime</span>(<span class="ident">t</span>: <span class="ident">cshadow::EmulatedTime</span>) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_setCurrentEmulatedTime</span>(<span class="ident">t</span>: <span class="ident">CEmulatedTime</span>) {
         <span class="ident">Worker::set_current_time</span>(<span class="ident">EmulatedTime::from_c_emutime</span>(<span class="ident">t</span>).<span class="ident">unwrap</span>());
     }
 
@@ -1382,17 +1388,17 @@
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentSimulationTime</span>() -&gt; <span class="ident">cshadow::SimulationTime</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentSimulationTime</span>() -&gt; <span class="ident">CSimulationTime</span> {
         <span class="ident">SimulationTime::to_c_simtime</span>(<span class="ident">Worker::current_time</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">to_abs_simtime</span>()))
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentEmulatedTime</span>() -&gt; <span class="ident">cshadow::EmulatedTime</span> {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_getCurrentEmulatedTime</span>() -&gt; <span class="ident">CEmulatedTime</span> {
         <span class="ident">EmulatedTime::to_c_emutime</span>(<span class="ident">Worker::current_time</span>())
     }
 
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_updateLowestUsedLatency</span>(<span class="ident">min_path_latency</span>: <span class="ident">cshadow::SimulationTime</span>) {
+    <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">worker_updateLowestUsedLatency</span>(<span class="ident">min_path_latency</span>: <span class="ident">CSimulationTime</span>) {
         <span class="kw">let</span> <span class="ident">min_path_latency</span> <span class="op">=</span> <span class="ident">SimulationTime::from_c_simtime</span>(<span class="ident">min_path_latency</span>).<span class="ident">unwrap</span>();
         <span class="ident">Worker::update_lowest_used_latency</span>(<span class="ident">min_path_latency</span>);
     }

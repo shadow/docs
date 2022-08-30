@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["configuration",""],["emulated_time","Deals with instances of time in a Shadow simulation."],["simulation_time","Values for working with a simulated duration. Use `EmulatedTime` to represent an instant in time."],["units","Types for parsing/deserializing unit values."]]};
+window.SIDEBAR_ITEMS = {"mod":[["configuration",""],["units","Types for parsing/deserializing unit values."]]};

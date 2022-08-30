@@ -1491,6 +1491,8 @@
 <span id="1485">1485</span>
 <span id="1486">1486</span>
 <span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashSet</span>};
 <span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
 <span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
@@ -1504,10 +1506,12 @@
 <span class="kw">use</span> <span class="ident">schemars</span>::{<span class="ident">schema_for</span>, <span class="ident">JsonSchema</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::simulation_time</span>::{<span class="ident">SIMTIME_INVALID</span>, <span class="ident">SIMTIME_ONE_NANOSECOND</span>, <span class="ident">SIMTIME_ONE_SECOND</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::units</span>::{<span class="self">self</span>, <span class="ident">Unit</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cshadow</span> <span class="kw">as</span> <span class="ident">c</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::host::syscall::format::StraceFmtMode</span>;
+<span class="kw">use</span> <span class="ident">shadow_shim_helper_rs::simulation_time</span>::{
+    <span class="ident">CSimulationTime</span>, <span class="ident">SIMTIME_INVALID</span>, <span class="ident">SIMTIME_ONE_NANOSECOND</span>, <span class="ident">SIMTIME_ONE_SECOND</span>,
+};
 
 <span class="kw">use</span> <span class="ident">log_bindings</span> <span class="kw">as</span> <span class="ident">c_log</span>;
 
@@ -2867,7 +2871,7 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUnblockedSyscallLatency</span>(
         <span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>,
-    ) -&gt; <span class="ident">c::SimulationTime</span> {
+    ) -&gt; <span class="ident">CSimulationTime</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">unblocked_syscall_latency</span> {
@@ -2880,7 +2884,7 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getUnblockedVdsoLatency</span>(
         <span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>,
-    ) -&gt; <span class="ident">c::SimulationTime</span> {
+    ) -&gt; <span class="ident">CSimulationTime</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">experimental</span>.<span class="ident">unblocked_vdso_latency</span> {
@@ -2955,7 +2959,7 @@
     <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
     <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">config_getHostHeartbeatInterval</span>(
         <span class="ident">config</span>: <span class="kw-2">*const</span> <span class="ident">ConfigOptions</span>,
-    ) -&gt; <span class="ident">c::SimulationTime</span> {
+    ) -&gt; <span class="ident">CSimulationTime</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">config</span>.<span class="ident">is_null</span>());
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">config</span> };
         <span class="ident">config</span>
