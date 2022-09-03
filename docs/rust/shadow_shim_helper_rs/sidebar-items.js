@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["emulated_time","Deals with instances of time in a Shadow simulation."],["signals",""],["simulation_time","Values for working with a simulated duration. Use `EmulatedTime` to represent an instant in time."]]};
+window.SIDEBAR_ITEMS = {"mod":[["emulated_time","Deals with instances of time in a Shadow simulation."],["scmutex",""],["signals",""],["simulation_time","Values for working with a simulated duration. Use `EmulatedTime` to represent an instant in time."]]};

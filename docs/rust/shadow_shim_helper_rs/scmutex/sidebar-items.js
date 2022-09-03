@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["SelfContainedMutex","Simple mutex that is suitable for use in shared memory:"],["SelfContainedMutexGuard",""]]};

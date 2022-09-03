@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["rkyv"] = [];
+implementors["shadow_shim_helper_rs"] = [{"text":"impl&lt;T&gt; <a class=\"trait\" href=\"rkyv/trait.Archive.html\" title=\"trait rkyv::Archive\">Archive</a> for <a class=\"struct\" href=\"shadow_shim_helper_rs/scmutex/struct.SelfContainedMutex.html\" title=\"struct shadow_shim_helper_rs::scmutex::SelfContainedMutex\">SelfContainedMutex</a>&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: <a class=\"trait\" href=\"rkyv/trait.Archive.html\" title=\"trait rkyv::Archive\">Archive</a>,&nbsp;</span>","synthetic":false,"types":["shadow_shim_helper_rs::scmutex::SelfContainedMutex"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
