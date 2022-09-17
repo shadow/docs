@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["LibcSemaphore","A libc semaphore that provides synchronization between threads. Any memory barrier/ordering properties are the same as provided by [`libc::sem_post`] and [`libc::sem_wait`]."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["build_count_down_latch","Build a latch counter and waiter. The counter and waiter can be cloned to create new counters and waiters."]],"struct":[["LatchCounter","A latch counter."],["LatchWaiter","A latch waiter."]]};
