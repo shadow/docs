@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["LogicalProcessor",""],["LogicalProcessors","A set of `n` logical processors"]]};

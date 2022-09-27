@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["runahead",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["HostIter","Supports iterating over all hosts assigned to this thread."],["Scheduler","A wrapper for different host schedulers. It would have been nice to make this a trait, but would require support for GATs."],["SchedulerScope",""]],"fn":[["core_affinity","Get the core affinity of the current thread, as set by the active scheduler."]],"mod":[["runahead",""]],"struct":[["ThreadPerHostSched","A host scheduler."]]};
