@@ -26,8 +26,11 @@ jobs:
     - name: Upgrade cargo/rust
       run: rustup update
     - name: Build rustdoc
-      # don't build docs for shadow's tests
-      run: cd shadow/src && cargo doc --workspace --exclude shadow-tests
+      run: |
+        # don't build docs for shadow's tests
+        (cd shadow/src && cargo doc --workspace --exclude shadow-tests)
+        # rebuild docs for main shadow crate, but with custom version string (shown at top-left of webpage)
+        (cd shadow/src/main && RUSTDOCFLAGS="--crate-version $(git rev-parse --short HEAD)" cargo rustdoc)
     - name: Copy rustdoc
       run: |
         rm -rf pages/docs
