@@ -1,0 +1,157 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Implement `vasi::VirtualAddressSpaceIndependent` for the annotated type. Requires all fields to implement `vasi::VirtualAddressSpaceIndependent`."><title>VirtualAddressSpaceIndependent in vasi_macro - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="vasi_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc derive"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../vasi_macro/index.html">vasi_macro</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Derive Macro <a href="index.html">vasi_macro</a>::<wbr><a class="derive" href="#">VirtualAddressSpaceIndependent</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/vasi_macro/lib.rs.html#191-199">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>#[derive(VirtualAddressSpaceIndependent)]
+{
+    // Attributes available to this derive:
+    #[unsafe_assume_virtual_address_space_independent]
+}
+</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Implement <code>vasi::VirtualAddressSpaceIndependent</code> for the annotated type.
+Requires all fields to implement <code>vasi::VirtualAddressSpaceIndependent</code>.</p>
+<p>An empty struct fails becase Rust doesn’t consider fieldless structs to be
+FFI-safe:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[derive(VirtualAddressSpaceIndependent)]
+#[repr(C)]
+</span><span class="kw">struct </span>Foo {}</code></pre></div>
+<p>FFI-safe structs containing only <code>VirtualAddressSpaceIndependent</code>
+fields qualify:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>Foo {
+  x: i32,
+}</code></pre></div>
+<p><code>#[repr(transparent)]</code> is OK too.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(transparent)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>Foo {
+  x: i32,
+}</code></pre></div>
+<p>A struct containing a <em>reference</em> doesn’t qualify:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>Foo&lt;<span class="lifetime">&#39;a</span>&gt; {
+  x: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>i32,
+}</code></pre></div>
+<p>A struct containing a <a href="https://doc.rust-lang.org/1.75.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a> doesn’t qualify:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>Foo {
+  x: Box&lt;i32&gt;,
+}</code></pre></div>
+<p>A struct containing a <em>pointer</em> doesn’t qualify:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>Foo {
+  x: <span class="kw-2">*const </span>i32,
+}</code></pre></div>
+<p>A field can be allow-listed with the attribute <code>unsafe_assume_virtual_address_space_independent</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>Foo {
+  <span class="comment">// SAFETY: we ensure the pointer isn&#39;t dereferenced
+  // outside of its original virtual address space.
+  </span><span class="attr">#[unsafe_assume_virtual_address_space_independent]
+  </span>x: <span class="kw-2">*const </span>i32,
+}</code></pre></div>
+<p>A union containing only <code>VirtualAddressSpaceIndependent</code> fields qualifies:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">union </span>Foo {
+  x: i32,
+  y: i32,
+}</code></pre></div>
+<p>A union containing a non-vasi member doesn’t qualify:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>Foo {
+  x: i32,
+  y: <span class="kw-2">*const </span>i32,
+}</code></pre></div>
+<p>An enum containing only <code>VirtualAddressSpaceIndependent</code> variants qualifies:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">enum </span>Foo {
+  Bar(i32),
+  Baz(i32),
+}</code></pre></div>
+<p>An enum containing a non-vasi variant doesn’t qualify:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">enum </span>Foo {
+  Bar(i32),
+  Baz(<span class="kw-2">*const </span>i32),
+}</code></pre></div>
+<p>A generic type <em>conditionally</em> implements VirtualAddressSpaceIndependent,
+if its type parameters do (as the derive macros in the std crate behave).</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>MyWrapper&lt;T&gt; {
+  val: T,
+}
+
+<span class="macro">static_assertions::assert_impl_all!</span>(MyWrapper&lt;i32&gt;: vasi::VirtualAddressSpaceIndependent);
+<span class="macro">static_assertions::assert_not_impl_all!</span>(MyWrapper&lt;* <span class="kw">const </span>i32&gt;: vasi::VirtualAddressSpaceIndependent);</code></pre></div>
+<p>Generic type with existing bounds are also supported.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>MyWrapper&lt;T: Copy&gt; {
+  val: T,
+}
+<span class="macro">static_assertions::assert_impl_all!</span>(MyWrapper&lt;i32&gt;: vasi::VirtualAddressSpaceIndependent);
+<span class="macro">static_assertions::assert_not_impl_all!</span>(MyWrapper&lt;* <span class="kw">const </span>i32&gt;: vasi::VirtualAddressSpaceIndependent);
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>MyWrapper2&lt;T&gt; <span class="kw">where </span>T: Copy {
+  val: T,
+}
+<span class="macro">static_assertions::assert_impl_all!</span>(MyWrapper2&lt;i32&gt;: vasi::VirtualAddressSpaceIndependent);
+<span class="macro">static_assertions::assert_not_impl_all!</span>(MyWrapper2&lt;* <span class="kw">const </span>i32&gt;: vasi::VirtualAddressSpaceIndependent);</code></pre></div>
+<p>As with e.g. Copy and Clone, a field that is dependent on a type parameter
+but still isn’t VirtualAddressSpaceIndependent will cause the macro not to
+compile:</p>
+
+<div class="example-wrap compile_fail"><a href="#" class="tooltip" title="This example deliberately fails to compile">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
+
+<span class="attr">#[repr(C)]
+#[derive(VirtualAddressSpaceIndependent)]
+</span><span class="kw">struct </span>MyWrapper&lt;T&gt; {
+  val: <span class="kw-2">*const </span>T,
+}</code></pre></div>
+</div></details></section></div></main></body></html>

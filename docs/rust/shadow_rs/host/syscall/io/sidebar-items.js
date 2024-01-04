@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["read_cstring_vec","read_iovecs","read_msghdr","read_sockaddr","update_msghdr","write_partial","write_sockaddr","write_sockaddr_and_len"],"struct":["IoVec","IoVecReader","IoVecWriter","MsgHdr"]};

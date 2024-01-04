@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["linux_new_utsname"],"type":["new_utsname"]};

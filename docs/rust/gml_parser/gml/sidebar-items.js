@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GmlItem","Value"],"struct":["Edge","Gml","Node"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["FmtOptions","StraceFmtMode"],"fn":["log_syscall_simple","write_syscall"],"struct":["NoArg","SyscallArgsFmt","SyscallResultFmt","SyscallVal"],"trait":["SyscallDisplay"]};

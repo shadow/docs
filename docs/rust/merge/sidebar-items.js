@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":["Merge"],"mod":["bool","num","ord","vec"],"trait":["Merge"]};

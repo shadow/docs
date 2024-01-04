@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["SyscallError","SyscallReturn"],"struct":["Blocked","Failed","ForeignArrayPtr","SyscallReturnBlocked","SyscallReturnDone"],"type":["SyscallResult"]};

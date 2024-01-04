@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Cmp","Part"],"fn":["compare","compare_to"],"struct":["Manifest","Version"]};

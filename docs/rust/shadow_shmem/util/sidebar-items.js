@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["PATH_MAX_NBYTES"]};

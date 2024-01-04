@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["shdeserialize","shfree","shmalloc"],"struct":["ShMemBlock","ShMemBlockAlias","ShMemBlockSerialized","SharedMemAllocator","SharedMemAllocatorDropGuard","SharedMemDeserializer"]};

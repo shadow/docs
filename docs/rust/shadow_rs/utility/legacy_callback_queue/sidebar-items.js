@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["with_global_cb_queue"],"type":["RootedRefCell_StateEventSource"]};

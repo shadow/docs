@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ARG_MAX","NAME_MAX","PATH_MAX"]};

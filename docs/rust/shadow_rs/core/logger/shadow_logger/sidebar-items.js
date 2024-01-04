@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["init","set_buffering_enabled"],"struct":["ShadowLogger"]};

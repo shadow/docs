@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Socket","SocketRef","SocketRefMut"],"mod":["abstract_unix_ns","inet","unix"],"struct":["RecvmsgArgs","RecvmsgReturn","SendmsgArgs"]};

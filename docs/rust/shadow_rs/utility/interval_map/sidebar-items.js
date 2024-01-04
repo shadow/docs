@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Mutation"],"struct":["IntervalMap","ItemIter","KeyIter"],"type":["Interval"]};

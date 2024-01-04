@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["EMUTIME_INVALID","EMUTIME_MAX","EMUTIME_MIN","EMUTIME_SIMULATION_START","EMUTIME_UNIX_EPOCH","SIMULATION_START_SEC"],"mod":["export"],"struct":["AtomicEmulatedTime","EmulatedTime"],"type":["CEmulatedTime"]};

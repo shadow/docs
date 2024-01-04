@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["time"],"struct":["DebugFormatter","SendPointer","SyncSendPointer"],"trait":["NoTypeInference"]};

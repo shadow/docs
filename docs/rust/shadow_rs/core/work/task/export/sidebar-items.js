@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["taskref_drop","taskref_new_bound","taskref_new_unbound"],"type":["TaskArgumentFreeFunc","TaskCallbackFunc","TaskObjectFreeFunc"]};

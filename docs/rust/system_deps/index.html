@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`system-deps` lets you write system dependencies in `Cargo.toml` metadata, rather than programmatically in `build.rs`. This makes those dependencies declarative, so other tools can read them as well."><title>system_deps - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="system_deps" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../system_deps/index.html">system_deps</a><span class="version">6.2.0</span></h2></div><div class="sidebar-elems"><ul class="block">
+            <li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">system_deps</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/system_deps/lib.rs.html#1-1261">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>system-deps</code> lets you write system dependencies in <code>Cargo.toml</code> metadata,
+rather than programmatically in <code>build.rs</code>. This makes those dependencies
+declarative, so other tools can read them as well.</p>
+<h2 id="usage"><a href="#usage">Usage</a></h2>
+<p>In your <code>Cargo.toml</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[build-dependencies]
+system-deps = &quot;2.0&quot;
+</code></pre></div>
+<p>Then, to declare a dependency on <code>testlib &gt;= 1.2</code>
+add the following section:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package.metadata.system-deps]
+testlib = &quot;1.2&quot;
+</code></pre></div>
+<p>Finally, in your <code>build.rs</code>, add:</p>
+
+<div class="example-wrap should_panic"><a href="#" class="tooltip" title="This example panics">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() {
+    system_deps::Config::new().probe().unwrap();
+}</code></pre></div>
+<h2 id="version-format"><a href="#version-format">Version format</a></h2>
+<p>Versions can be expressed in the following formats</p>
+<ul>
+<li>“1.2” or “&gt;= 1.2”: At least version 1.2</li>
+<li>“&gt;= 1.2, &lt; 2.0”: At least version 1.2 but less than version 2.0</li>
+</ul>
+<p>In the future more complicated version expressions might be supported.</p>
+<p>Note that these versions are not interpreted according to the semver rules, but based on the
+rules defined by pkg-config.</p>
+<h2 id="feature-specific-dependency"><a href="#feature-specific-dependency">Feature-specific dependency</a></h2>
+<p>You can easily declare an optional system dependency by associating it with a feature:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package.metadata.system-deps]
+testdata = { version = &quot;4.5&quot;, feature = &quot;use-testdata&quot; }
+</code></pre></div>
+<p><code>system-deps</code> will check for <code>testdata</code> only if the <code>use-testdata</code> feature has been enabled.</p>
+<h2 id="optional-dependency"><a href="#optional-dependency">Optional dependency</a></h2>
+<p>Another option is to use the <code>optional</code> setting, which can also be used using <a href="#feature-versions">features versions</a>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package.metadata.system-deps]
+test-data = { version = &quot;4.5&quot;, optional = true }
+testmore = { version = &quot;2&quot;, v3 = { version = &quot;3.0&quot;, optional = true }}
+</code></pre></div>
+<p><code>system-deps</code> will automatically export for each dependency a feature <code>system_deps_have_$DEP</code> where <code>$DEP</code>
+is the <code>toml</code> key defining the dependency in <a href="https://en.wikipedia.org/wiki/Snake_case">snake_case</a>.
+This can be used to check if an optional dependency has been found or not:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[cfg(system_deps_have_testdata)]
+</span><span class="macro">println!</span>(<span class="string">&quot;found test-data&quot;</span>);</code></pre></div>
+<h2 id="overriding-library-name"><a href="#overriding-library-name">Overriding library name</a></h2>
+<p><code>toml</code> keys cannot contain dot characters so if your library name does, you can define it using the <code>name</code> field:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package.metadata.system-deps]
+glib = { name = &quot;glib-2.0&quot;, version = &quot;2.64&quot; }
+</code></pre></div><h2 id="fallback-library-names"><a href="#fallback-library-names">Fallback library names</a></h2>
+<p>Some libraries may be available under different names on different platforms or distributions.
+To allow for this, you can define fallback names to search for if the main library name does not work.</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package.metadata.system-deps]
+aravis = { fallback-names = [&quot;aravis-0.8&quot;] }
+</code></pre></div>
+<p>You may also specify different fallback names for different versions:</p>
+<p>[package.metadata.system-deps.libfoo]
+version = “0.1”
+fallback-names = [“libfoo-0.1”]
+v1 = { version = “1.0”, fallback-names = [“libfoo1”] }
+v2 = { version = “2.0”, fallback-names = [“libfoo2”] }</p>
+<h2 id="feature-versions"><a href="#feature-versions">Feature versions</a></h2>
+<p><code>-sys</code> crates willing to support various versions of their underlying system libraries
+can use features to control the version of the dependency required.
+<code>system-deps</code> will pick the highest version among enabled features.
+Such version features must use the pattern <code>v1_0</code>, <code>v1_2</code>, etc.</p>
+<div class="example-wrap"><pre class="language-toml"><code>[features]
+v1_2 = []
+v1_4 = [&quot;v1_2&quot;]
+v1_6 = [&quot;v1_4&quot;]
+
+[package.metadata.system-deps.gstreamer_1_0]
+name = &quot;gstreamer-1.0&quot;
+version = &quot;1.0&quot;
+v1_2 = { version = &quot;1.2&quot; }
+v1_4 = { version = &quot;1.4&quot; }
+v1_6 = { version = &quot;1.6&quot; }
+</code></pre></div>
+<p>The same mechanism can be used to require a different library name depending on the version:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package.metadata.system-deps.gst_gl]
+name = &quot;gstreamer-gl-1.0&quot;
+version = &quot;1.14&quot;
+v1_18 = { version = &quot;1.18&quot;, name = &quot;gstreamer-gl-egl-1.0&quot; }
+</code></pre></div><h2 id="target-specific-dependencies"><a href="#target-specific-dependencies">Target specific dependencies</a></h2>
+<p>You can define target specific dependencies:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package.metadata.system-deps.&#39;cfg(target_os = &quot;linux&quot;)&#39;]
+testdata = &quot;1&quot;
+[package.metadata.system-deps.&#39;cfg(not(target_os = &quot;macos&quot;))&#39;]
+testlib = &quot;1&quot;
+[package.metadata.system-deps.&#39;cfg(unix)&#39;]
+testanotherlib = { version = &quot;1&quot;, optional = true }
+</code></pre></div>
+<p>See <a href="https://doc.rust-lang.org/reference/conditional-compilation.html">the Rust documentation</a>
+for the exact syntax.
+Currently, those keys are supported:</p>
+<ul>
+<li><code>target_arch</code></li>
+<li><code>target_endian</code></li>
+<li><code>target_env</code></li>
+<li><code>target_family</code></li>
+<li><code>target_os</code></li>
+<li><code>target_pointer_width</code></li>
+<li><code>target_vendor</code></li>
+<li><code>unix</code> and <code>windows</code></li>
+</ul>
+<h2 id="overriding-build-flags"><a href="#overriding-build-flags">Overriding build flags</a></h2>
+<p>By default <code>system-deps</code> automatically defines the required build flags for each dependency using the information fetched from <code>pkg-config</code>.
+These flags can be overridden using environment variables if needed:</p>
+<ul>
+<li><code>SYSTEM_DEPS_$NAME_SEARCH_NATIVE</code> to override the <a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html#cargorustc-link-searchkindpath"><code>cargo:rustc-link-search=native</code></a> flag;</li>
+<li><code>SYSTEM_DEPS_$NAME_SEARCH_FRAMEWORK</code> to override the <a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html#cargorustc-link-searchkindpath"><code>cargo:rustc-link-search=framework</code></a> flag;</li>
+<li><code>SYSTEM_DEPS_$NAME_LIB</code> to override the <a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-link-lib"><code>cargo:rustc-link-lib</code></a> flag;</li>
+<li><code>SYSTEM_DEPS_$NAME_LIB_FRAMEWORK</code> to override the <a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-link-lib"><code>cargo:rustc-link-lib=framework</code></a> flag;</li>
+<li><code>SYSTEM_DEPS_$NAME_INCLUDE</code> to override the <a href="https://kornel.ski/rust-sys-crate#headers"><code>cargo:include</code></a> flag.</li>
+</ul>
+<p>With <code>$NAME</code> being the upper case name of the key defining the dependency in <code>Cargo.toml</code>.
+For example <code>SYSTEM_DEPS_TESTLIB_SEARCH_NATIVE=/opt/lib</code> could be used to override a dependency named <code>testlib</code>.</p>
+<p>One can also define the environment variable <code>SYSTEM_DEPS_$NAME_NO_PKG_CONFIG</code> to fully disable <code>pkg-config</code> lookup
+for the given dependency. In this case at least SYSTEM_DEPS_$NAME_LIB or SYSTEM_DEPS_$NAME_LIB_FRAMEWORK should be defined as well.</p>
+<h2 id="internally-build-system-libraries"><a href="#internally-build-system-libraries">Internally build system libraries</a></h2>
+<p><code>-sys</code> crates can provide support for building and statically link their underlying system library as part of their build process.
+Here is how to do this in your <code>build.rs</code>:</p>
+
+<div class="example-wrap should_panic"><a href="#" class="tooltip" title="This example panics">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() {
+    system_deps::Config::new()
+        .add_build_internal(<span class="string">&quot;testlib&quot;</span>, |lib, version| {
+            <span class="comment">// Actually build the library here that fulfills the passed in version requirements
+            </span>system_deps::Library::from_internal_pkg_config(<span class="string">&quot;build/path-to-pc-file&quot;</span>, lib, <span class="string">&quot;1.2.4&quot;</span>)
+         })
+        .probe()
+        .unwrap();
+}</code></pre></div>
+<p>This feature can be controlled using the <code>SYSTEM_DEPS_$NAME_BUILD_INTERNAL</code> environment variable
+which can have the following values:</p>
+<ul>
+<li><code>auto</code>: build the dependency only if the required version has not been found by <code>pkg-config</code>;</li>
+<li><code>always</code>: always build the dependency, ignoring any version which may be installed on the system;</li>
+<li><code>never</code>: (default) never build the dependency, <code>system-deps</code> will fail if the required version is not found on the system.</li>
+</ul>
+<p>You can also use the <code>SYSTEM_DEPS_BUILD_INTERNAL</code> environment variable with the same values
+defining the behavior for all the dependencies which don’t have <code>SYSTEM_DEPS_$NAME_BUILD_INTERNAL</code> defined.</p>
+<h2 id="static-linking"><a href="#static-linking">Static linking</a></h2>
+<p>By default all libraries are dynamically linked, except when build internally as <a href="#internally-build-system-libraries">described above</a>.
+Libraries can be statically linked by defining the environment variable <code>SYSTEM_DEPS_$NAME_LINK=static</code>.
+You can also use <code>SYSTEM_DEPS_LINK=static</code> to statically link all the libraries.</p>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Config.html" title="struct system_deps::Config">Config</a></div><div class="desc docblock-short">Structure used to configure <code>metadata</code> before starting to probe for dependencies</div></li><li><div class="item-name"><a class="struct" href="struct.Dependencies.html" title="struct system_deps::Dependencies">Dependencies</a></div><div class="desc docblock-short">All the system dependencies retrieved by <a href="struct.Config.html#method.probe" title="method system_deps::Config::probe">Config::probe</a>.</div></li><li><div class="item-name"><a class="struct" href="struct.InternalLib.html" title="struct system_deps::InternalLib">InternalLib</a></div><div class="desc docblock-short">Internal library name and if a static library is available on the system</div></li><li><div class="item-name"><a class="struct" href="struct.Library.html" title="struct system_deps::Library">Library</a></div><div class="desc docblock-short">A system dependency</div></li></ul><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.BuildInternalClosureError.html" title="enum system_deps::BuildInternalClosureError">BuildInternalClosureError</a></div><div class="desc docblock-short">Error used in return value of <code>Config::add_build_internal</code> closures</div></li><li><div class="item-name"><a class="enum" href="enum.Error.html" title="enum system_deps::Error">Error</a></div><div class="desc docblock-short">system-deps errors</div></li><li><div class="item-name"><a class="enum" href="enum.Source.html" title="enum system_deps::Source">Source</a></div><div class="desc docblock-short">From where the library settings have been retrieved</div></li></ul></section></div></main></body></html>

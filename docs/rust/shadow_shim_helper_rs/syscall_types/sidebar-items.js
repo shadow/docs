@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ForeignPtr","ManagedPhysicalMemoryAddr","SysCallArgs"],"type":["UntypedForeignPtr"],"union":["SysCallReg"]};

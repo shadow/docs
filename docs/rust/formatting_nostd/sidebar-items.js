@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["utf8"],"struct":["BorrowedFdWriter","FormatBuffer"]};

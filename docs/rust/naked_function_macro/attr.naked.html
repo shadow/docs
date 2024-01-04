@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An attribute to define a function written entirely in assembly."><title>naked in naked_function_macro - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="naked_function_macro" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../naked_function_macro/index.html">naked_function_macro</a><span class="version">0.1.5</span></h2></div><div class="sidebar-elems"></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Attribute Macro <a href="index.html">naked_function_macro</a>::<wbr><a class="attr" href="#">naked</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/naked_function_macro/lib.rs.html#90-102">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>#[naked]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An attribute to define a function written entirely in assembly.</p>
+<p>A naked function must contain only a single <code>asm!</code> statement: the contents
+of this <code>asm!</code> becomes the body of the function, with no prologue or
+epilogue. This means that the assembly code is responsible for including
+the necessary instructions to return from a function.</p>
+<p>The primary use of naked function is to implement functions that use a
+custom calling convention that is not directly supported by rustc. Examples
+include hardware exception handlers, functions called from assembly code
+and customizing unwinding metadata.</p>
+<h3 id="example"><a href="#example">Example</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// The SYSV64 calling convention used on x86_64 Linux passes the first
+// 2 integer arguments in EDI/ESI.
+</span><span class="attr">#[naked_function::naked]
+</span><span class="kw">pub unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>add(a: i32, b: i32) -&gt; i32 {
+    <span class="macro">asm!</span>(
+        <span class="string">&quot;lea eax, [edi + esi]&quot;</span>,
+        <span class="string">&quot;ret&quot;</span>,
+    );
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>main() {
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{ add(<span class="number">1</span>, <span class="number">2</span>) };
+    <span class="macro">assert_eq!</span>(ret, <span class="number">3</span>);
+}</code></pre></div>
+<h3 id="asm-restrictions"><a href="#asm-restrictions"><code>asm!</code> restrictions</a></h3>
+<p>The <code>asm!</code> is further restricted in that:</p>
+<ul>
+<li>Only <code>sym</code> and <code>const</code> operands are allowed.</li>
+<li><code>clobber_abi</code> cannot be used.</li>
+<li>Only the <code>raw</code> and <code>att_syntax</code> options can be used.</li>
+</ul>
+<p>These are the same set of operands accepted by <code>global_asm!</code>, which this
+attribute lowers the functions into.</p>
+<h3 id="accessing-function-arguments"><a href="#accessing-function-arguments">Accessing function arguments.</a></h3>
+<p>The function signature is indicative only: it is merely there to allow
+Rust code to reference and call the naked function.</p>
+<p>Function arguments cannot be referenced from the function body directly,
+instead you should access these from the expected register/stack slot as
+per the function ABI.</p>
+<p>Similarly, you are responsible for placing function return values in the
+appropriate registers or stack slot for the calling convention used.</p>
+<h3 id="abi-and-attributes"><a href="#abi-and-attributes">ABI and attributes</a></h3>
+<p>Naked functions must be marked as <code>unsafe</code>.</p>
+<p>The function must have one of the following whitelisted ABIs:</p>
+<ul>
+<li><code>&quot;C&quot;</code></li>
+<li><code>&quot;C-unwind&quot;</code></li>
+</ul>
+<p>Only the following attributes are supported on naked functions:</p>
+<ul>
+<li><code>#[export_name]</code></li>
+<li><code>#[no_mangle]</code></li>
+<li><code>#[link_section]</code></li>
+<li><code>#[cfg]</code></li>
+<li><code>#[doc]</code> or <code>///</code> doc comments</li>
+</ul>
+</div></details></section></div></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BYTES_PER_THREAD"],"enum":["Mode"],"struct":["ShimTlsVar","ThreadLocalStorage","ThreadLocalStorageKey","TlsOneThreadStorageAllocation","TlsVarRef"]};

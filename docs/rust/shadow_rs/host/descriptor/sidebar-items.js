@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CompatFile","File","FileRef","FileRefMut"],"mod":["descriptor_table","epoll","eventfd","listener","pipe","shared_buf","socket","timerfd"],"struct":["CountedLegacyFileRef","Descriptor","FileMode","FileSignals","FileState","FileStatus","LegacyFileCounter","OpenFile"]};

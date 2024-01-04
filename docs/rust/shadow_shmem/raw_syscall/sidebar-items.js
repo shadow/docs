@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["S_IRGRP","S_IRUSR","S_IWGRP","S_IWUSR"],"fn":["clock_monotonic_gettime","close","fsync","ftruncate","getpid","gettid","kill","mmap","munmap","open","tgkill","unlink","write"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["BufferState","ReaderHandle","SharedBuf","WriterHandle"],"type":["BufferHandle"]};

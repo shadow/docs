@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["condition","formatter","handler","io","type_formatting","types"],"struct":["Trigger"]};

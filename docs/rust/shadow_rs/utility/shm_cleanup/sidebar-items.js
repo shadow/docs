@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SHM_DIR_PATH"],"fn":["shm_cleanup"]};
