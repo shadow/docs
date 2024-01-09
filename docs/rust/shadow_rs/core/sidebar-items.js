@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["configuration","controller","cpu","logger","manager","resource_usage","scheduler","sim_config","sim_stats","work","worker"]};
+window.SIDEBAR_ITEMS = {"mod":["configuration","controller","cpu","logger","manager","resource_usage","runahead","sim_config","sim_stats","work","worker"]};

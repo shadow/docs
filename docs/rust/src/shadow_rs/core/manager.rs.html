@@ -849,7 +849,17 @@
 <a href="#849" id="849">849</a>
 <a href="#850" id="850">850</a>
 <a href="#851" id="851">851</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::ffi::{CStr, CString, OsStr, OsString};
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 <span class="kw">use </span>std::path::PathBuf;
@@ -862,6 +872,7 @@
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>rand::seq::SliceRandom;
 <span class="kw">use </span>rand_xoshiro::Xoshiro256PlusPlus;
+<span class="kw">use </span>scheduler::{HostIter, Scheduler, ThreadPerCoreSched, ThreadPerHostSched};
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::ManagerShmem;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
@@ -873,8 +884,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::controller::{Controller, ShadowStatusBarState, SimController};
 <span class="kw">use </span><span class="kw">crate</span>::core::cpu;
 <span class="kw">use </span><span class="kw">crate</span>::core::resource_usage;
-<span class="kw">use </span><span class="kw">crate</span>::core::scheduler::runahead::Runahead;
-<span class="kw">use </span><span class="kw">crate</span>::core::scheduler::{HostIter, Scheduler, ThreadPerCoreSched, ThreadPerHostSched};
+<span class="kw">use </span><span class="kw">crate</span>::core::runahead::Runahead;
 <span class="kw">use </span><span class="kw">crate</span>::core::sim_config::{Bandwidth, HostInfo};
 <span class="kw">use </span><span class="kw">crate</span>::core::sim_stats;
 <span class="kw">use </span><span class="kw">crate</span>::core::worker;
@@ -1175,7 +1185,15 @@
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>scheduler = <span class="kw">match </span><span class="self">self</span>.config.experimental.scheduler.unwrap() {
                 configuration::Scheduler::ThreadPerHost =&gt; {
-                    Scheduler::ThreadPerHost(ThreadPerHostSched::new(<span class="kw-2">&amp;</span>cpus, hosts))
+                    <span class="macro">std::thread_local! </span>{
+                        <span class="doccomment">/// A thread-local required by the thread-per-host scheduler.
+                        </span><span class="kw">static </span>SCHED_HOST_STORAGE: RefCell&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;Host&gt;&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+                    }
+                    Scheduler::ThreadPerHost(ThreadPerHostSched::new(
+                        <span class="kw-2">&amp;</span>cpus,
+                        <span class="kw-2">&amp;</span>SCHED_HOST_STORAGE,
+                        hosts,
+                    ))
                 }
                 configuration::Scheduler::ThreadPerCore =&gt; {
                     Scheduler::ThreadPerCore(ThreadPerCoreSched::new(
@@ -1651,7 +1669,7 @@
 }
 
 <span class="doccomment">/// Helper function to initialize the global [`Host`] before running the closure.
-</span><span class="kw">fn </span>for_each_host(host_iter: <span class="kw-2">&amp;mut </span>HostIter, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>Host)) {
+</span><span class="kw">fn </span>for_each_host(host_iter: <span class="kw-2">&amp;mut </span>HostIter&lt;Box&lt;Host&gt;&gt;, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>Host)) {
     host_iter.for_each(|host| {
         worker::Worker::set_active_host(host);
         worker::Worker::with_active_host(|host| {

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["ParallelismBoundedThreadPool","SharedState","TaskData","TaskRunner","ThreadScheduling"]};

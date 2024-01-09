@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["build_count_down_latch"],"struct":["LatchCounter","LatchWaiter"]};
