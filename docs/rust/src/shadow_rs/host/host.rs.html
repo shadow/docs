@@ -1452,7 +1452,6 @@
 <a href="#1452" id="1452">1452</a>
 <a href="#1453" id="1453">1453</a>
 <a href="#1454" id="1454">1454</a>
-<a href="#1455" id="1455">1455</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut, UnsafeCell};
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::ffi::{CStr, CString, OsString};
@@ -1493,6 +1492,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::cshadow;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::abstract_unix_ns::AbstractUnixNamespace;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
+<span class="kw">use </span><span class="kw">crate</span>::host::futex_table::FutexTable;
 <span class="kw">use </span><span class="kw">crate</span>::host::network::interface::{FifoPacketPriority, NetworkInterface, PcapOptions};
 <span class="kw">use </span><span class="kw">crate</span>::host::network::namespace::NetworkNamespace;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::Process;
@@ -1589,7 +1589,7 @@
     </span>tracker: RefCell&lt;<span class="prelude-ty">Option</span>&lt;SyncSendPointer&lt;cshadow::Tracker&gt;&gt;&gt;,
 
     <span class="comment">// map address to futex objects
-    </span>futex_table: RefCell&lt;SyncSendPointer&lt;cshadow::FutexTable&gt;&gt;,
+    </span>futex_table: RefCell&lt;FutexTable&gt;,
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
     </span>execution_timer: RefCell&lt;PerfTimer&gt;,
@@ -1773,7 +1773,7 @@
             relay_inet_in: Arc::new(relay_inet_in),
             relay_loopback: Arc::new(relay_loopback),
             tracker: RefCell::new(<span class="prelude-val">None</span>),
-            futex_table: RefCell::new(<span class="kw">unsafe </span>{ SyncSendPointer::new(cshadow::futextable_new()) }),
+            futex_table: RefCell::new(FutexTable::new()),
             random,
             shim_shmem,
             shim_shmem_lock: RefCell::new(<span class="prelude-val">None</span>),
@@ -2094,9 +2094,13 @@
     }
 
     <span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>futextable_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = cshadow::FutexTable&gt; + <span class="lifetime">&#39;_ </span>{
-        <span class="kw">let </span>futex_table_ref = <span class="self">self</span>.futex_table.borrow_mut();
-        RefMut::map(futex_table_ref, |r| <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>r.ptr() })
+    </span><span class="kw">pub fn </span>futextable_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = FutexTable&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.futex_table.borrow()
+    }
+
+    <span class="attr">#[track_caller]
+    </span><span class="kw">pub fn </span>futextable_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = FutexTable&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.futex_table.borrow_mut()
     }
 
     <span class="attr">#[allow(non_snake_case)]
@@ -2473,10 +2477,6 @@
             <span class="kw">unsafe </span>{ cshadow::tracker_free(tracker.ptr()) };
         };
 
-        <span class="kw">let </span>futex_table = <span class="self">self</span>.futex_table.borrow_mut().ptr();
-        <span class="macro">debug_assert!</span>(!futex_table.is_null());
-        <span class="kw">unsafe </span>{ cshadow::futextable_unref(futex_table) };
-
         <span class="comment">// Validate that the shmem lock isn&#39;t held, which would potentially
         // violate the SAFETY argument in `lock_shmem`. (AFAIK Rust makes no formal
         // guarantee about the order in which fields are dropped)
@@ -2697,9 +2697,7 @@
     /// and is invalidated when the Host is no longer accessible to the current
     /// thread, or something else accesses its FutexTable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>host_getFutexTable(
-        hostrc: <span class="kw-2">*const </span>Host,
-    ) -&gt; <span class="kw-2">*mut </span>cshadow::FutexTable {
+    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>host_getFutexTable(hostrc: <span class="kw-2">*const </span>Host) -&gt; <span class="kw-2">*mut </span>FutexTable {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         <span class="kw-2">&amp;mut *</span>hostrc.futextable_borrow_mut()
     }

@@ -2255,9 +2255,6 @@
 <a href="#2255" id="2255">2255</a>
 <a href="#2256" id="2256">2256</a>
 <a href="#2257" id="2257">2257</a>
-<a href="#2258" id="2258">2258</a>
-<a href="#2259" id="2259">2259</a>
-<a href="#2260" id="2260">2260</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut};
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::ffi::{c_char, c_void, CStr, CString};
@@ -2591,16 +2588,13 @@
                 .unwrap();
 
             <span class="comment">// Wake the corresponding futex.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>futexes = host.futextable_borrow_mut();
-            <span class="kw">let </span>futex = <span class="kw">unsafe </span>{
-                cshadow::futextable_get(
-                    <span class="kw-2">&amp;mut *</span>futexes,
-                    <span class="self">self</span>.common
-                        .physical_address(clear_child_tid_pvp.cast::&lt;()&gt;()),
-                )
-            };
-            <span class="kw">if </span>!futex.is_null() {
-                <span class="kw">unsafe </span>{ cshadow::futex_wake(futex, <span class="number">1</span>) };
+            </span><span class="kw">let </span>futexes = host.futextable_borrow();
+            <span class="kw">let </span>addr = <span class="self">self
+                </span>.common
+                .physical_address(clear_child_tid_pvp.cast::&lt;()&gt;());
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(futex) = futexes.get(addr) {
+                futex.wake(<span class="number">1</span>);
             }
         }
 
