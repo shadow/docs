@@ -809,6 +809,14 @@
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
 <a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::signal::{sigaction, siginfo_t, sigset_t, stack_t, Signal};
 <span class="kw">use </span>shadow_shmem::allocator::{ShMemBlock, ShMemBlockSerialized};
 <span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
@@ -1039,6 +1047,14 @@
     <span class="kw">pub fn </span>set_pending_standard_siginfo(<span class="kw-2">&amp;mut </span><span class="self">self</span>, signal: Signal, info: <span class="kw-2">&amp;</span>siginfo_t) {
         <span class="macro">assert!</span>(<span class="self">self</span>.pending_signals.has(signal));
         <span class="self">self</span>.pending_standard_siginfos[signal_idx(signal)] = <span class="kw-2">*</span>info;
+    }
+
+    <span class="doccomment">/// # Safety
+    ///
+    /// Only valid if pointers in `src` sigactions are valid in `self`&#39;s address
+    /// space (e.g. `src` is a parent that just forked this process).
+    </span><span class="kw">pub unsafe fn </span>clone_signal_actions(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+        <span class="self">self</span>.signal_actions = src.signal_actions
     }
 
     <span class="doccomment">/// # Safety

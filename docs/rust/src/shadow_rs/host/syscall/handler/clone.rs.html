@@ -382,6 +382,31 @@
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::posix_types::kernel_pid_t;
 <span class="kw">use </span>linux_api::sched::CloneFlags;
@@ -556,6 +581,19 @@
         </span><span class="kw">let </span>do_child_cleartid = flags.contains(CloneFlags::CLONE_CHILD_CLEARTID);
         handled_flags.insert(CloneFlags::CLONE_CHILD_CLEARTID);
 
+        <span class="kw">let </span>do_copy_sighandlers = <span class="kw">if </span>flags.contains(CloneFlags::CLONE_CLEAR_SIGHAND) {
+            <span class="comment">// clone(2): Specifying this flag together with CLONE_SIGHAND is
+            // nonsensical and disallowed.
+            </span><span class="kw">if </span>flags.contains(CloneFlags::CLONE_SIGHAND) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            }
+            <span class="bool-val">false
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// We only need to copy if they&#39;re not shared.
+            </span>!flags.contains(CloneFlags::CLONE_SIGHAND)
+        };
+        handled_flags.insert(CloneFlags::CLONE_CLEAR_SIGHAND);
+
         <span class="kw">if </span>flags.contains(CloneFlags::CLONE_PARENT) {
             <span class="comment">// Handled in `new_forked_process` when creating a new process.
             // No-op when not creating a new process.
@@ -643,6 +681,18 @@
             <span class="kw">let </span>childrc = child_process.thread_borrow(child_tid).unwrap();
             <span class="kw">let </span>child = childrc.borrow(ctx.objs.host.root());
             child.set_tid_address(ctid);
+        }
+
+        <span class="kw">if </span>do_copy_sighandlers {
+            <span class="kw">let </span>shmem_lock = ctx.objs.host.shim_shmem_lock_borrow_mut().unwrap();
+
+            <span class="kw">let </span>parent_shmem = ctx.objs.process.shmem();
+            <span class="kw">let </span>parent_shmem_prot = parent_shmem.protected.borrow(<span class="kw-2">&amp;</span>shmem_lock.root);
+
+            <span class="kw">let </span>child_shmem = child_process_borrow.as_ref().unwrap().shmem();
+            <span class="kw">let </span><span class="kw-2">mut </span>child_shmem_prot = child_shmem.protected.borrow_mut(<span class="kw-2">&amp;</span>shmem_lock.root);
+            <span class="comment">// Safety: pointers in the parent are valid in the child.
+            </span><span class="kw">unsafe </span>{ child_shmem_prot.clone_signal_actions(<span class="kw-2">&amp;</span>parent_shmem_prot) };
         }
 
         drop(child_process_borrow);
