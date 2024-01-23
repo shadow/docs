@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["run_shadow"]};
+window.SIDEBAR_ITEMS = {"fn":["run_shadow","version"]};
