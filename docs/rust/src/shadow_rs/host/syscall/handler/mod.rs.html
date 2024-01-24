@@ -938,6 +938,8 @@
 <a href="#938" id="938">938</a>
 <a href="#939" id="939">939</a>
 <a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::collections::HashSet;
 <span class="kw">use </span>std::sync::RwLock;
@@ -1526,12 +1528,14 @@
                     .unwrap_or(<span class="bool-val">false</span>);
 
                 <span class="kw">if </span>!has_already_warned {
-                    <span class="comment">// `insert()` returns `false` if the syscall num was already in the set
-                    </span><span class="macro">assert!</span>(WARNED_SET
+                    <span class="comment">// `insert()` returns `false` if the syscall num was already in the set.
+                    // This can happen if another thread added the syscall after we released
+                    // the read-lock, above, and took the write lock, below.
+                    </span>WARNED_SET
                         .write()
                         .unwrap()
                         .get_or_insert_with(HashSet::new)
-                        .insert(syscall));
+                        .insert(syscall);
                 }
 
                 <span class="kw">let </span>level = <span class="kw">if </span>has_already_warned {
