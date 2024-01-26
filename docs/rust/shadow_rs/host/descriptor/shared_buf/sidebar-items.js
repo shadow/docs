@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["BufferState","ReaderHandle","SharedBuf","WriterHandle"],"type":["BufferHandle"]};
+window.SIDEBAR_ITEMS = {"struct":["BufferSignals","BufferState","ReaderHandle","SharedBuf","WriterHandle"],"type":["BufferHandle"]};

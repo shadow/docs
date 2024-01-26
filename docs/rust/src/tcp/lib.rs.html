@@ -766,6 +766,9 @@
 <a href="#766" id="766">766</a>
 <a href="#767" id="767">767</a>
 <a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A TCP implementation with a somewhat-BSD-like socket API. A [dependencies](Dependencies) object
 //! must be be provided to support setting timers and getting the current time. The TCP state object
 //! should probably be used with a reference-counting wrapper so that a reference to the state
@@ -973,11 +976,14 @@
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(RecvError::InvalidState))
     }
 
-    <span class="kw">fn </span>push_packet(
+    <span class="doccomment">/// Returns the number of bytes added to the TCP state&#39;s receive buffer. This may be
+    /// smaller (ex: duplicate packet) or larger (ex: there is a non-empty reassembly queue)
+    /// than the packet payload length.
+    </span><span class="kw">fn </span>push_packet(
         <span class="self">self</span>,
         _header: <span class="kw-2">&amp;</span>TcpHeader,
         _payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(PushPacketError::InvalidState))
     }
 
@@ -1069,7 +1075,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt; {
         <span class="self">self</span>.with_state(|state| state.push_packet(header, payload))
     }
 

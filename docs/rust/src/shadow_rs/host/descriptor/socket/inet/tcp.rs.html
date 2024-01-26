@@ -1100,6 +1100,21 @@
 <a href="#1100" id="1100">1100</a>
 <a href="#1101" id="1101">1101</a>
 <a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::{Arc, Weak};
 
@@ -1206,11 +1221,19 @@
         <span class="self">self</span>.has_open_file = val;
     }
 
-    <span class="doccomment">/// Update the current tcp state. The tcp state should only ever be updated through this method.
-    </span><span class="kw">fn </span>with_tcp_state&lt;T&gt;(
+    <span class="kw">fn </span>with_tcp_state&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>tcp::TcpState&lt;TcpDeps&gt;) -&gt; T,
+    ) -&gt; T {
+        <span class="self">self</span>.with_tcp_state_and_signal(cb_queue, |state| (f(state), FileSignals::empty()))
+    }
+
+    <span class="doccomment">/// Update the current tcp state. The tcp state should only ever be updated through this method.
+    </span><span class="kw">fn </span>with_tcp_state_and_signal&lt;T&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>tcp::TcpState&lt;TcpDeps&gt;) -&gt; (T, FileSignals),
     ) -&gt; T {
         <span class="kw">let </span>rv = f(<span class="kw-2">&amp;mut </span><span class="self">self</span>.tcp_state);
 
@@ -1273,7 +1296,7 @@
         </span><span class="self">self</span>.update_state(
             FileState::READABLE | FileState::WRITABLE,
             read_write_flags,
-            FileSignals::empty(),
+            rv.<span class="number">1</span>,
             cb_queue,
         );
 
@@ -1285,8 +1308,8 @@
             // has closed (with `close()`), not that the tcp state has closed
         </span>}
 
-        rv
-    }
+        rv.<span class="number">0
+    </span>}
 
     <span class="kw">pub fn </span>push_in_packet(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -1314,8 +1337,15 @@
         <span class="macro">assert_eq!</span>(num_bytes_copied, packet.payload_size());
         <span class="kw">let </span>payload = tcp::Payload(<span class="macro">vec!</span>[payload.freeze()]);
 
-        <span class="self">self</span>.with_tcp_state(cb_queue, |s| s.push_packet(<span class="kw-2">&amp;</span>header, payload))
-            .unwrap();
+        <span class="self">self</span>.with_tcp_state_and_signal(cb_queue, |s| {
+            <span class="kw">let </span>pushed_len = s.push_packet(<span class="kw-2">&amp;</span>header, payload).unwrap();
+            <span class="kw">let </span>signals = <span class="kw">if </span>pushed_len &gt; <span class="number">0 </span>{
+                FileSignals::READ_BUFFER_GREW
+            } <span class="kw">else </span>{
+                FileSignals::empty()
+            };
+            ((), signals)
+        });
 
         packet.add_status(PacketStatus::RcvSocketBuffered);
     }

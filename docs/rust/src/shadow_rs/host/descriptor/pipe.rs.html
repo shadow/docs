@@ -412,6 +412,16 @@
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
@@ -422,7 +432,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::listener::{StateEventSource, StateListenHandle, StateListenerFilter};
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::shared_buf::{
-    BufferHandle, BufferState, ReaderHandle, SharedBuf, WriterHandle,
+    BufferHandle, BufferSignals, BufferState, ReaderHandle, SharedBuf, WriterHandle,
 };
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{FileMode, FileSignals, FileState, FileStatus};
 <span class="kw">use </span><span class="kw">crate</span>::host::memory_manager::MemoryManager;
@@ -691,31 +701,32 @@
         }
 
         <span class="comment">// buffer state changes that we want to receive events for
-        </span><span class="kw">let </span><span class="kw-2">mut </span>monitoring = BufferState::empty();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>monitoring_state = BufferState::empty();
 
         <span class="comment">// if the file is open for reading, watch for the buffer to become readable or have no
         // writers
         </span><span class="kw">if </span>pipe.mode.contains(FileMode::READ) {
-            monitoring.insert(BufferState::READABLE);
-            monitoring.insert(BufferState::NO_WRITERS);
+            monitoring_state.insert(BufferState::READABLE);
+            monitoring_state.insert(BufferState::NO_WRITERS);
         }
 
         <span class="comment">// if the file is open for writing, watch for the buffer to become writable or have no
         // readers
         </span><span class="kw">if </span>pipe.mode.contains(FileMode::WRITE) {
-            monitoring.insert(BufferState::WRITABLE);
-            monitoring.insert(BufferState::NO_READERS);
+            monitoring_state.insert(BufferState::WRITABLE);
+            monitoring_state.insert(BufferState::NO_READERS);
         }
 
         <span class="kw">let </span>handle = pipe.buffer.as_ref().unwrap().borrow_mut().add_listener(
-            monitoring,
-            <span class="kw">move </span>|buffer_state, cb_queue| {
+            monitoring_state,
+            BufferSignals::BUFFER_GREW,
+            <span class="kw">move </span>|buffer_state, buffer_signals, cb_queue| {
                 <span class="comment">// if the file hasn&#39;t been dropped
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pipe) = weak.upgrade() {
                     <span class="kw">let </span><span class="kw-2">mut </span>pipe = pipe.borrow_mut();
 
                     <span class="comment">// update the pipe file&#39;s state to align with the buffer&#39;s current state
-                    </span>pipe.align_state_to_buffer(buffer_state, cb_queue);
+                    </span>pipe.align_state_to_buffer(buffer_state, buffer_signals, cb_queue);
                 }
             },
         );
@@ -724,7 +735,7 @@
 
         <span class="comment">// update the pipe file&#39;s initial state to align with the buffer&#39;s current state
         </span><span class="kw">let </span>buffer_state = pipe.buffer.as_ref().unwrap().borrow().state();
-        pipe.align_state_to_buffer(buffer_state, cb_queue);
+        pipe.align_state_to_buffer(buffer_state, BufferSignals::empty(), cb_queue);
     }
 
     <span class="kw">pub fn </span>add_listener(
@@ -756,9 +767,15 @@
     <span class="doccomment">/// Align the pipe&#39;s state to the buffer state. For example if the buffer is both `READABLE` and
     /// `WRITABLE`, and the pipe is only open in `READ` mode, the pipe&#39;s `READABLE` state will be
     /// set and the `WRITABLE` state will be unchanged.
-    </span><span class="kw">fn </span>align_state_to_buffer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer_state: BufferState, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) {
+    </span><span class="kw">fn </span>align_state_to_buffer(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        buffer_state: BufferState,
+        buffer_signals: BufferSignals,
+        cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
+    ) {
         <span class="kw">let </span><span class="kw-2">mut </span>mask = FileState::empty();
         <span class="kw">let </span><span class="kw-2">mut </span>file_state = FileState::empty();
+        <span class="kw">let </span><span class="kw-2">mut </span>file_signals = FileSignals::empty();
 
         <span class="comment">// if the pipe is already closed, do nothing
         </span><span class="kw">if </span><span class="self">self</span>.state.contains(FileState::CLOSED) {
@@ -772,6 +789,9 @@
             </span><span class="kw">if </span>buffer_state.intersects(BufferState::READABLE | BufferState::NO_WRITERS) {
                 file_state.insert(FileState::READABLE);
             }
+            <span class="kw">if </span>buffer_signals.intersects(BufferSignals::BUFFER_GREW) {
+                file_signals.insert(FileSignals::READ_BUFFER_GREW);
+            }
         }
 
         <span class="comment">// only update the writable state if the file is open for writing
@@ -784,7 +804,7 @@
         }
 
         <span class="comment">// update the file&#39;s state
-        </span><span class="self">self</span>.update_state(mask, file_state, FileSignals::empty(), cb_queue);
+        </span><span class="self">self</span>.update_state(mask, file_state, file_signals, cb_queue);
     }
 
     <span class="kw">fn </span>update_state(

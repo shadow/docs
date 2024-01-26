@@ -2323,6 +2323,15 @@
 <a href="#2323" id="2323">2323</a>
 <a href="#2324" id="2324">2324</a>
 <a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
+<a href="#2328" id="2328">2328</a>
+<a href="#2329" id="2329">2329</a>
+<a href="#2330" id="2330">2330</a>
+<a href="#2331" id="2331">2331</a>
+<a href="#2332" id="2332">2332</a>
+<a href="#2333" id="2333">2333</a>
+<a href="#2334" id="2334">2334</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, LinkedList};
 <span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::net::SocketAddrV4;
@@ -2925,7 +2934,7 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// In Linux there is conceptually the syn queue and the accept queue. When the application
         // calls `listen()`, it passes a `backlog` argument. The question is: does this backlog
         // apply to the syn queue, accept queue, or both? Some references[1] and the listen(2)[2]
@@ -2961,7 +2970,7 @@
 
         <span class="comment">// if either queue is full, drop all SYN packets
         </span><span class="kw">if </span>header.flags.contains(TcpFlags::SYN) &amp;&amp; (accept_queue_full || syn_queue_full) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
         <span class="kw">let </span>conn_addrs = RemoteLocalPair::new(header.src(), header.dst());
@@ -2974,7 +2983,7 @@
                 &amp;&amp; header.flags.contains(TcpFlags::ACK)
                 &amp;&amp; accept_queue_full
             {
-                <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+                <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
             }
 
             <span class="comment">// forward the packet to the child state
@@ -2992,13 +3001,13 @@
         </span><span class="kw">if </span>!header.flags.contains(TcpFlags::SYN) {
             <span class="comment">// it&#39;s either for an old child that no longer exists, or is for the listener and
             // doesn&#39;t have the SYN flag for some reason
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
         <span class="comment">// we received a SYN packet, so register a new child in the &quot;syn-received&quot; state
         </span><span class="self">self</span>.register_child(header, payload);
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -3142,16 +3151,17 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -3160,24 +3170,24 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received SYN and ACK (active open), move to the &quot;established&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_syn() &amp;&amp; <span class="self">self</span>.connection.syn_was_acked() {
             <span class="kw">let </span>new_state = EstablishedState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received SYN and no ACK (simultaneous open), move to the &quot;syn-received&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_syn() {
             <span class="kw">let </span>new_state = SynReceivedState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// TODO: unsure what to do otherwise; just dropping the packet
 
-        </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -3300,18 +3310,19 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// waiting for the ACK for our SYN
 
         // make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -3320,16 +3331,16 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received ACK, move to the &quot;established&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.syn_was_acked() {
             <span class="kw">let </span>new_state = EstablishedState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -3440,16 +3451,17 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -3458,16 +3470,16 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received FIN, move to the &quot;close-wait&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() {
             <span class="kw">let </span>new_state = CloseWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -3570,16 +3582,17 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -3588,28 +3601,28 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received FIN and ACK, move to the &quot;time-wait&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() &amp;&amp; <span class="self">self</span>.connection.fin_was_acked() {
             <span class="kw">let </span>new_state = TimeWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received FIN, move to the &quot;closing&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() {
             <span class="kw">let </span>new_state = ClosingState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received ACK, move to the &quot;fin-wait-two&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.fin_was_acked() {
             <span class="kw">let </span>new_state = FinWaitTwoState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -3712,16 +3725,17 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -3730,16 +3744,16 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received FIN, move to the &quot;time-wait&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() {
             <span class="kw">let </span>new_state = TimeWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -3849,16 +3863,17 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -3867,18 +3882,18 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received ACK, move to the &quot;time-wait&quot; state
         </span><span class="kw">if </span><span class="self">self</span>.connection.fin_was_acked() {
             <span class="kw">let </span>new_state = TimeWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// drop all other packets
 
-        </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -4005,17 +4020,18 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
         <span class="comment">// TODO: send RST for all packets?
-        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        </span><span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -4024,10 +4040,10 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -4155,16 +4171,17 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -4173,10 +4190,10 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -4288,16 +4305,17 @@
         <span class="kw-2">mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// make sure that the packet src/dst addresses are valid for this connection
         </span><span class="kw">if </span>!<span class="self">self</span>.connection.packet_addrs_match(header) {
             <span class="comment">// must drop the packet
-            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()));
+            </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.connection.push_packet(header, payload) {
-            <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e));
-        }
+        <span class="kw">let </span>pushed_len = <span class="kw">match </span><span class="self">self</span>.connection.push_packet(header, payload) {
+            <span class="prelude-val">Ok</span>(v) =&gt; v,
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(e)),
+        };
 
         <span class="comment">// if the connection was reset
         </span><span class="kw">if </span><span class="self">self</span>.connection.is_reset() {
@@ -4306,7 +4324,7 @@
             }
 
             <span class="kw">let </span>new_state = connection_was_reset(<span class="self">self</span>.common, <span class="self">self</span>.connection);
-            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
         <span class="comment">// if received ACK, move to the &quot;closed&quot; state
@@ -4314,10 +4332,10 @@
             <span class="kw">let </span>recv_buffer = <span class="self">self</span>.connection.into_recv_buffer();
             <span class="kw">let </span>new_state =
                 ClosedState::new(<span class="self">self</span>.common, recv_buffer, <span class="comment">/* was_connected= */ </span><span class="bool-val">true</span>);
-            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(()));
+            <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(pushed_len))
     }
 
     <span class="kw">fn </span>pop_packet(
@@ -4433,9 +4451,9 @@
         <span class="self">self</span>,
         _header: <span class="kw-2">&amp;</span>TcpHeader,
         _payload: Payload,
-    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt;) {
+    ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt;) {
         <span class="comment">// do nothing; drop all packets received in this state
-        </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
+        </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>))
     }
 
     <span class="kw">fn </span>pop_packet(

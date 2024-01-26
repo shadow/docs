@@ -450,7 +450,7 @@
 <span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
-<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::CompatFile;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{CompatFile, FileState};
 <span class="kw">use </span><span class="kw">crate</span>::host::memory_manager::AllocdMem;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler, ThreadContext};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
@@ -630,7 +630,7 @@
 
             <span class="macro">assert!</span>(!file.is_null());
 
-            <span class="kw">if unsafe </span>{ c::legacyfile_getStatus(file) } &amp; c::_Status_STATUS_FILE_CLOSED != <span class="number">0 </span>{
+            <span class="kw">if unsafe </span>{ c::legacyfile_getStatus(file) }.contains(FileState::CLOSED) {
                 <span class="comment">// A file that is referenced in the descriptor table should never be a closed file.
                 // File handles (fds) are handles to open files, so if we have a file handle to a
                 // closed file, then there&#39;s an error somewhere in Shadow. Shadow&#39;s TCP sockets do

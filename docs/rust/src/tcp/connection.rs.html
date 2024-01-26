@@ -1099,6 +1099,8 @@
 <a href="#1099" id="1099">1099</a>
 <a href="#1100" id="1100">1100</a>
 <a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bytes::{Buf, Bytes};
 <span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::net::SocketAddrV4;
@@ -1221,7 +1223,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         header: <span class="kw-2">&amp;</span>TcpHeader,
         payload: Payload,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), PushPacketError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_reset {
             <span class="macro">panic!</span>(
                 <span class="string">&quot;The connection has already been reset, so why are we being given more packets?&quot;
@@ -1239,7 +1241,7 @@
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(recv_window) = recv_window <span class="kw">else </span>{
                 <span class="comment">// we haven&#39;t received a SYN yet, so we&#39;ll trust the RST
                 </span><span class="self">self</span>.is_reset = <span class="bool-val">true</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
             };
 
             <span class="comment">// RFC 9293 3.10.7.4.:
@@ -1252,7 +1254,7 @@
                 // &gt; manner prescribed below according to the connection state.
 
                 </span><span class="self">self</span>.is_reset = <span class="bool-val">true</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
             }
 
             <span class="kw">if </span>recv_window.contains(seq) {
@@ -1273,14 +1275,14 @@
                 // send another RST packet based on the ACK value we send.
 
                 </span><span class="self">self</span>.need_to_ack = <span class="bool-val">true</span>;
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
             }
 
             <span class="comment">// RFC 9293 3.10.7.4.:
             // &gt; If the RST bit is set and the sequence number is outside the current receive
             // &gt; window, silently drop the segment.
 
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
         <span class="comment">// process the first SYN packet
@@ -1312,20 +1314,20 @@
             // must drop the packet and send an ACK
 
             </span><span class="self">self</span>.need_to_ack = <span class="bool-val">true</span>;
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         };
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(recv) = <span class="self">self</span>.recv.as_mut() <span class="kw">else </span>{
             <span class="comment">// we received a non-SYN packet before the first SYN packet
             </span><span class="self">self</span>.send_rst();
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         };
 
         <span class="comment">// if we&#39;ve been told to send a RST when we receive new payload data, and we did receive new
         // payload data
         </span><span class="kw">if </span><span class="self">self</span>.send_rst_if_recv_payload &amp;&amp; !payload.is_empty() {
             <span class="self">self</span>.send_rst();
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
         <span class="comment">// if we&#39;ve previously received a FIN packet, and now we&#39;ve received a payload/SYN/FIN
@@ -1334,9 +1336,10 @@
             &amp;&amp; (!payload.is_empty() || header.flags.intersects(TcpFlags::SYN | TcpFlags::FIN))
         {
             <span class="self">self</span>.send_rst();
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
+        <span class="kw">let </span><span class="kw-2">mut </span>pushed_len = <span class="number">0</span>;
         <span class="comment">// the receive buffer&#39;s initial next sequence number; useful so we can check if we need to
         // acknowledge or not
         </span><span class="kw">let </span>initial_seq = recv.buffer.next_seq();
@@ -1350,7 +1353,7 @@
                     // should send an RST and move to the &quot;closed&quot; state.
 
                     </span><span class="self">self</span>.send_rst();
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
                 }
 
                 recv.buffer.add_syn();
@@ -1371,6 +1374,7 @@
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(payload_seq) = payload_seq {
                 <span class="kw">if </span>payload_seq == recv.buffer.next_seq() {
+                    pushed_len += payload.len();
                     <span class="kw">for </span>chunk <span class="kw">in </span>payload.<span class="number">0 </span>{
                         recv.buffer.add(chunk);
                     }
@@ -1421,7 +1425,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(pushed_len)
     }
 
     <span class="kw">pub fn </span>pop_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: I) -&gt; <span class="prelude-ty">Result</span>&lt;(TcpHeader, Payload), PopPacketError&gt; {
