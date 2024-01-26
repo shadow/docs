@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["HostIter","Scheduler","SchedulerScope"],"fn":["core_affinity"],"struct":["ThreadPerCoreSched","ThreadPerHostSched"],"trait":["Host"]};
+window.SIDEBAR_ITEMS = {"enum":["HostIter","Scheduler","SchedulerScope"],"fn":["core_affinity"],"mod":["thread_per_core","thread_per_host"],"trait":["Host"]};

@@ -1600,7 +1600,32 @@
 <a href="#1600" id="1600">1600</a>
 <a href="#1601" id="1601">1601</a>
 <a href="#1602" id="1602">1602</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{BTreeMap, HashSet};
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
+<a href="#1609" id="1609">1609</a>
+<a href="#1610" id="1610">1610</a>
+<a href="#1611" id="1611">1611</a>
+<a href="#1612" id="1612">1612</a>
+<a href="#1613" id="1613">1613</a>
+<a href="#1614" id="1614">1614</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Shadow&#39;s configuration and cli parsing code using [serde] and [clap]. This contains all of
+//! Shadow&#39;s configuration options, some of which are also exposed as CLI options.
+//!
+//! Shadow uses [schemars] to get the option description (its doc comment) and default value so that
+//! it can be shown in the CLI help text.
+//!
+//! This code should be careful about validating or interpreting values. It should be focused on
+//! parsing and checking that the format is correct, and not validating the values. For example for
+//! options that take paths, this code should not verify that the path actually exists or perform
+//! any path canonicalization. That should be left to other code outside of this module. This is so
+//! that the configuration parsing does not become environment-dependent. If a configuration file
+//! parses on one system, it should parse successfully on other systems as well.
+
+</span><span class="kw">use </span>std::collections::{BTreeMap, HashSet};
 <span class="kw">use </span>std::ffi::{CStr, CString, OsStr, OsString};
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 <span class="kw">use </span>std::str::FromStr;
@@ -2237,8 +2262,7 @@
     </span><span class="attr">#[serde(default = <span class="string">&quot;default_args_empty&quot;</span>)]
     </span><span class="kw">pub </span>args: ProcessArgs,
 
-    <span class="doccomment">/// Environment variables passed when executing this process. Multiple variables can be
-    /// specified by using a semicolon separator (ex: `ENV_A=1;ENV_B=2`)
+    <span class="doccomment">/// Environment variables passed when executing this process
     </span><span class="attr">#[serde(default)]
     </span><span class="kw">pub </span>environment: BTreeMap&lt;EnvName, String&gt;,
 
@@ -2251,7 +2275,7 @@
     </span><span class="kw">pub </span>shutdown_time: <span class="prelude-ty">Option</span>&lt;units::Time&lt;units::TimePrefix&gt;&gt;,
 
     <span class="doccomment">/// The signal that will be sent to the process at `shutdown_time`
-    </span><span class="attr">#[serde(default = <span class="string">&quot;default_shutdown_signal&quot;</span>)]
+    </span><span class="attr">#[serde(default = <span class="string">&quot;default_sigterm&quot;</span>)]
     </span><span class="kw">pub </span>shutdown_signal: Signal,
 
     <span class="doccomment">/// The expected final state of the process. Shadow will report an error
@@ -2902,8 +2926,8 @@
     ProcessArgs::Str(<span class="string">&quot;&quot;</span>.to_string())
 }
 
-<span class="doccomment">/// Helper function for serde default `shutdown_signal`.
-</span><span class="kw">fn </span>default_shutdown_signal() -&gt; Signal {
+<span class="doccomment">/// Helper function for serde default `Signal(Signal::SIGTERM)` values.
+</span><span class="kw">fn </span>default_sigterm() -&gt; Signal {
     Signal(nix::sys::signal::Signal::SIGTERM)
 }
 

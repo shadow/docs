@@ -49,17 +49,29 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
-</pre></div><pre class="rust"><code><span class="comment">/*
- * The Shadow Simulator
- * See LICENSE for licensing information
- */
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! The Shadow network simulator.
+//!
+//! Shadow is a discrete-event network simulator that directly executes real application code,
+//! enabling you to simulate distributed systems with thousands of network-connected processes in
+//! realistic and scalable private network experiments using your laptop, desktop, or server running
+//! Linux.
 
-// https://github.com/rust-lang/rfcs/blob/master/text/2585-unsafe-block-in-unsafe-fn.md
+</span><span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/2585-unsafe-block-in-unsafe-fn.md
 </span><span class="attr">#![deny(unsafe_op_in_unsafe_fn)]
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
 #![allow(clippy::enum_variant_names)]
 #![allow(clippy::too_many_arguments)]
 
+</span><span class="comment">// we make all of the modules public so that rustdoc will generate documentation for them, even
+// though it doesn&#39;t really make sense for them to be public
+
+// this must be exactly &quot;cbindgen:ignore&quot;; you cannot add any other text to the doc string
 </span><span class="doccomment">/// cbindgen:ignore
 </span><span class="kw">pub mod </span>cshadow {
     <span class="attr">#![allow(non_upper_case_globals)]
@@ -71,20 +83,6 @@
     #![allow(clippy::all)]
     </span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/cshadow.rs&quot;</span>));
 }
-
-<span class="comment">// shadow re-exports this definition from /usr/include/linux/tcp.h
-// TODO: Provide this via the linux-api crate instead.
-</span><span class="kw">unsafe impl </span>shadow_pod::Pod <span class="kw">for </span><span class="kw">crate</span>::cshadow::tcp_info {}
-
-<span class="comment">// check that the size and alignment of `CompatUntypedForeignPtr` and `ForeignPtr&lt;()&gt;` are the same`
-</span><span class="macro">static_assertions::assert_eq_size!</span>(
-    cshadow::CompatUntypedForeignPtr,
-    shadow_shim_helper_rs::syscall_types::UntypedForeignPtr,
-);
-<span class="macro">static_assertions::assert_eq_align!</span>(
-    cshadow::CompatUntypedForeignPtr,
-    shadow_shim_helper_rs::syscall_types::UntypedForeignPtr,
-);
 
 <span class="comment">// modules with macros must be included before other modules
 </span><span class="attr">#[macro_use]
@@ -100,4 +98,18 @@
 // https://github.com/rust-lang/cargo/issues/9391
 </span><span class="kw">extern crate </span>shadow_shmem;
 <span class="kw">extern crate </span>shadow_tsc;
+
+<span class="comment">// shadow re-exports this definition from /usr/include/linux/tcp.h
+// TODO: Provide this via the linux-api crate instead.
+</span><span class="kw">unsafe impl </span>shadow_pod::Pod <span class="kw">for </span><span class="kw">crate</span>::cshadow::tcp_info {}
+
+<span class="comment">// check that the size and alignment of `CompatUntypedForeignPtr` and `ForeignPtr&lt;()&gt;` are the same`
+</span><span class="macro">static_assertions::assert_eq_size!</span>(
+    cshadow::CompatUntypedForeignPtr,
+    shadow_shim_helper_rs::syscall_types::UntypedForeignPtr,
+);
+<span class="macro">static_assertions::assert_eq_align!</span>(
+    cshadow::CompatUntypedForeignPtr,
+    shadow_shim_helper_rs::syscall_types::UntypedForeignPtr,
+);
 </code></pre></div></section></main></body></html>

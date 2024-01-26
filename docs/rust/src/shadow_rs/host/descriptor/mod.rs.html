@@ -1054,7 +1054,21 @@
 <a href="#1054" id="1054">1054</a>
 <a href="#1055" id="1055">1055</a>
 <a href="#1056" id="1056">1056</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Linux file descriptors and file descriptions (equivalent to Linux `struct file`s).
+
+</span><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>linux_api::fcntl::{DescriptorFlags, OFlag};
@@ -1140,8 +1154,8 @@
         }
     }
 
-    <span class="doccomment">/// Returns a tuple of the `FileMode` and any remaining flags, or an empty `Err` if
-    /// the flags aren&#39;t valid (for example specifying both `O_RDWR` and `O_WRONLY`).
+    <span class="doccomment">/// Returns a tuple of the [`FileMode`] and any remaining flags, or an empty `Err` if the flags
+    /// aren&#39;t valid (for example specifying both `O_RDWR` and `O_WRONLY`).
     </span><span class="attr">#[allow(clippy::result_unit_err)]
     </span><span class="kw">pub fn </span>from_o_flags(flags: OFlag) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>, OFlag), ()&gt; {
         <span class="comment">// apply the access mode mask (the O_PATH flag is not contained within the access
@@ -1163,14 +1177,19 @@
 }
 
 <span class="macro">bitflags::bitflags! </span>{
-    <span class="attr">#[derive(Default, Copy, Clone, Debug)]
+    <span class="doccomment">/// Flags representing the state of a file. Listeners can subscribe to state changes using
+    /// [`FileRefMut::add_listener`] (or similar methods on [`SocketRefMut`][socket::SocketRefMut],
+    /// [`Pipe`][pipe::Pipe], etc).
+    </span><span class="attr">#[derive(Default, Copy, Clone, Debug)]
     #[repr(transparent)]
     </span><span class="kw">pub struct </span>FileState: u16 {
         <span class="comment">// remove this when the last reference to `FileState_NONE` has been removed from the C code
         </span><span class="attr">#[deprecated(note = <span class="string">&quot;use `FileState::empty()`&quot;</span>)]
         </span><span class="kw">const </span>NONE = <span class="number">0</span>;
         <span class="doccomment">/// Has been initialized and it is now OK to unblock any plugin waiting on a particular
-        /// state. (This is a legacy C state and should be considered deprecated.)
+        /// state.
+        ///
+        /// This is a legacy C state and is deprecated.
         </span><span class="kw">const </span>ACTIVE = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
         <span class="doccomment">/// Can be read, i.e. there is data waiting for user.
         </span><span class="kw">const </span>READABLE = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
@@ -1193,7 +1212,7 @@
     </span><span class="attr">#[derive(Default, Copy, Clone, Debug)]
     #[repr(transparent)]
     </span><span class="kw">pub struct </span>FileSignals: u32 {
-        <span class="doccomment">/// The read buffer grew.
+        <span class="doccomment">/// The read buffer now has additional data available to read.
         </span><span class="kw">const </span>READ_BUFFER_GREW = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
     }
 }
@@ -1284,7 +1303,8 @@
     }
 }
 
-<span class="kw">pub enum </span>FileRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="doccomment">/// Wraps an immutably borrowed [`File`]. Created from [`File::borrow`] or [`File::try_borrow`].
+</span><span class="kw">pub enum </span>FileRef&lt;<span class="lifetime">&#39;a</span>&gt; {
     Pipe(atomic_refcell::AtomicRef&lt;<span class="lifetime">&#39;a</span>, pipe::Pipe&gt;),
     EventFd(atomic_refcell::AtomicRef&lt;<span class="lifetime">&#39;a</span>, eventfd::EventFd&gt;),
     Socket(SocketRef&lt;<span class="lifetime">&#39;a</span>&gt;),
@@ -1292,7 +1312,9 @@
     Epoll(atomic_refcell::AtomicRef&lt;<span class="lifetime">&#39;a</span>, epoll::Epoll&gt;),
 }
 
-<span class="kw">pub enum </span>FileRefMut&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="doccomment">/// Wraps a mutably borrowed [`File`]. Created from [`File::borrow_mut`] or
+/// [`File::try_borrow_mut`].
+</span><span class="kw">pub enum </span>FileRefMut&lt;<span class="lifetime">&#39;a</span>&gt; {
     Pipe(atomic_refcell::AtomicRefMut&lt;<span class="lifetime">&#39;a</span>, pipe::Pipe&gt;),
     EventFd(atomic_refcell::AtomicRefMut&lt;<span class="lifetime">&#39;a</span>, eventfd::EventFd&gt;),
     Socket(SocketRefMut&lt;<span class="lifetime">&#39;a</span>&gt;),
@@ -1404,12 +1426,12 @@
 }
 
 <span class="doccomment">/// Represents a POSIX file description, or a Linux `struct file`. An `OpenFile` wraps a reference
-/// to a `File`. Once there are no more `OpenFile` objects for a given `File`, the `File` will be
+/// to a [`File`]. Once there are no more `OpenFile` objects for a given `File`, the `File` will be
 /// closed. Typically this means that holding an `OpenFile` will ensure that the file remains open
-/// (the file&#39;s status will not become `FileStatus::CLOSED`), but the underlying file may close
+/// (the file&#39;s status will not become [`FileState::CLOSED`]), but the underlying file may close
 /// itself in extenuating circumstances (for example if the file has an internal error).
 ///
-/// **Safety:** If an `OpenFile` for a specific file already exists, it is an error to create a new
+/// **Warning:** If an `OpenFile` for a specific file already exists, it is an error to create a new
 /// `OpenFile` for that file. You must clone the existing `OpenFile` object. A new `OpenFile` object
 /// should probably only ever be created for a newly created file object. Otherwise for existing
 /// file objects, it won&#39;t be clear if there are already-existing `OpenFile` objects for that file.
@@ -1642,9 +1664,10 @@
     }
 }
 
-<span class="doccomment">/// Used to track how many descriptors are open for a `LegacyFile`. When the `close()` method is
-/// called, the legacy file&#39;s `legacyfile_close()` will only be called if this is the last
-/// descriptor for that legacy file. This is similar to an `OpenFile` object.
+<span class="doccomment">/// Used to track how many descriptors are open for a [`LegacyFile`][c::LegacyFile]. When the
+/// `close()` method is called, the legacy file&#39;s `legacyfile_close()` will only be called if this
+/// is the last descriptor for that legacy file. This is similar to an [`OpenFile`] object, but for
+/// C files.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>LegacyFileCounter {
     file: <span class="prelude-ty">Option</span>&lt;CountedLegacyFileRef&gt;,
@@ -1688,7 +1711,8 @@
     }
 }
 
-<span class="attr">#[derive(Clone, Debug)]
+<span class="doccomment">/// A compatibility wrapper around an [`OpenFile`] or [`LegacyFileCounter`].
+</span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>CompatFile {
     New(OpenFile),
     Legacy(LegacyFileCounter),

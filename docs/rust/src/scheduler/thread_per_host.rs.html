@@ -303,7 +303,17 @@
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! A thread-per-host host scheduler.
+
+</span><span class="comment">// unsafe code should be isolated to the thread pool
+</span><span class="attr">#![forbid(unsafe_code)]
+
+</span><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::sync::Mutex;
 <span class="kw">use </span>std::thread::LocalKey;
@@ -410,24 +420,24 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType&gt; {
-    <span class="doccomment">/// See [`crate::core::scheduler::SchedulerScope::run`].
+    <span class="doccomment">/// See [`crate::SchedulerScope::run`].
     </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize) + Sync + Send + <span class="lifetime">&#39;scope</span>) {
         <span class="self">self</span>.runner.run(<span class="kw">move </span>|task_context| {
             <span class="comment">// update the thread-local core affinity
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cpu_id) = task_context.cpu_id {
-                CORE_AFFINITY.with(|x| <span class="kw-2">*</span>x.borrow_mut() = <span class="prelude-val">Some</span>(cpu_id));
+                CORE_AFFINITY.with(|x| x.set(<span class="prelude-val">Some</span>(cpu_id)));
             }
 
             (f)(task_context.thread_idx)
         });
     }
 
-    <span class="doccomment">/// See [`crate::core::scheduler::SchedulerScope::run_with_hosts`].
+    <span class="doccomment">/// See [`crate::SchedulerScope::run_with_hosts`].
     </span><span class="kw">pub fn </span>run_with_hosts(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;) + Send + Sync + <span class="lifetime">&#39;scope</span>) {
         <span class="self">self</span>.runner.run(<span class="kw">move </span>|task_context| {
             <span class="comment">// update the thread-local core affinity
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cpu_id) = task_context.cpu_id {
-                CORE_AFFINITY.with(|x| <span class="kw-2">*</span>x.borrow_mut() = <span class="prelude-val">Some</span>(cpu_id));
+                CORE_AFFINITY.with(|x| x.set(<span class="prelude-val">Some</span>(cpu_id)));
             }
 
             <span class="self">self</span>.host_storage.with(|host| {
@@ -442,7 +452,7 @@
         });
     }
 
-    <span class="doccomment">/// See [`crate::core::scheduler::SchedulerScope::run_with_data`].
+    <span class="doccomment">/// See [`crate::SchedulerScope::run_with_data`].
     </span><span class="kw">pub fn </span>run_with_data&lt;T&gt;(
         <span class="self">self</span>,
         data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span>[T],
@@ -453,7 +463,7 @@
         <span class="self">self</span>.runner.run(<span class="kw">move </span>|task_context| {
             <span class="comment">// update the thread-local core affinity
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cpu_id) = task_context.cpu_id {
-                CORE_AFFINITY.with(|x| <span class="kw-2">*</span>x.borrow_mut() = <span class="prelude-val">Some</span>(cpu_id));
+                CORE_AFFINITY.with(|x| x.set(<span class="prelude-val">Some</span>(cpu_id)));
             }
 
             <span class="kw">let </span>this_elem = <span class="kw-2">&amp;</span>data[task_context.processor_idx];
@@ -478,7 +488,7 @@
 }
 
 <span class="kw">impl</span>&lt;HostType: Host&gt; HostIter&lt;HostType&gt; {
-    <span class="doccomment">/// See [`crate::core::scheduler::HostIter::for_each`].
+    <span class="doccomment">/// See [`crate::HostIter::for_each`].
     </span><span class="kw">pub fn </span>for_each&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F)
     <span class="kw">where
         </span>F: FnMut(HostType) -&gt; HostType,
