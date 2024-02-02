@@ -407,12 +407,17 @@
 <a href="#407" id="407">407</a>
 <a href="#408" id="408">408</a>
 <a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::posix_types::kernel_pid_t;
 <span class="kw">use </span>linux_api::sched::CloneFlags;
 <span class="kw">use </span>linux_api::signal::Signal;
 <span class="kw">use </span>log::{debug, trace, warn};
-<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDrop;
+<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::{ExplicitDrop, ExplicitDropper};
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
@@ -524,6 +529,9 @@
                 .clone();
             RootedRc::new(root, RootedRefCell::new(root, table))
         };
+        <span class="kw">let </span>desc_table = ExplicitDropper::new(desc_table, |desc_table| {
+            desc_table.explicit_drop(ctx.objs.host.root())
+        });
         handled_flags.insert(CloneFlags::CLONE_FILES);
 
         <span class="kw">if </span>flags.contains(CloneFlags::CLONE_SETTLS) {
@@ -625,32 +633,39 @@
         <span class="kw">let </span>child_thread = Thread::wrap_mthread(
             ctx.objs.host,
             child_mthread,
-            desc_table,
+            desc_table.into_value(),
             child_pid,
             child_tid,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>childrc = RootedRc::new(
-            ctx.objs.host.root(),
-            RootedRefCell::new(ctx.objs.host.root(), child_thread),
+        <span class="kw">let </span>childrc = ExplicitDropper::new(
+            RootedRc::new(
+                ctx.objs.host.root(),
+                RootedRefCell::new(ctx.objs.host.root(), child_thread),
+            ),
+            |childrc| childrc.explicit_drop(ctx.objs.host.root()),
         );
 
         <span class="kw">let </span>child_process_rc;
         <span class="kw">let </span>child_process_borrow;
         <span class="kw">let </span>child_process;
         <span class="kw">if </span>flags.contains(CloneFlags::CLONE_THREAD) {
-            child_process_rc = <span class="prelude-val">None</span>;
             child_process_borrow = <span class="prelude-val">None</span>;
             child_process = ctx.objs.process;
-            ctx.objs.process.add_thread(ctx.objs.host, childrc);
+            ctx.objs
+                .process
+                .add_thread(ctx.objs.host, childrc.into_value());
         } <span class="kw">else </span>{
             <span class="kw">let </span>process = ctx
                 .objs
                 .process
                 .borrow_as_runnable()
                 .unwrap()
-                .new_forked_process(ctx.objs.host, flags, exit_signal, childrc);
-            child_process_rc = <span class="prelude-val">Some</span>(process.clone(ctx.objs.host.root()));
+                .new_forked_process(ctx.objs.host, flags, exit_signal, childrc.into_value());
+            child_process_rc = <span class="prelude-val">Some</span>(ExplicitDropper::new(
+                process.clone(ctx.objs.host.root()),
+                |x| x.explicit_drop(ctx.objs.host.root()),
+            ));
             child_process_borrow = <span class="prelude-val">Some</span>(
                 child_process_rc
                     .as_ref()
@@ -695,11 +710,6 @@
             </span><span class="kw">unsafe </span>{ child_shmem_prot.clone_signal_actions(<span class="kw-2">&amp;</span>parent_shmem_prot) };
         }
 
-        drop(child_process_borrow);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = child_process_rc {
-            c.explicit_drop(ctx.objs.host.root())
-        }
-
         <span class="prelude-val">Ok</span>(kernel_pid_t::from(child_tid))
     }
 
@@ -707,7 +717,7 @@
     // See &quot;C library/kernel differences&quot; in clone(2).
     </span><span class="attr">#[log_syscall(
         <span class="comment">/* rv */</span>kernel_pid_t,
-        <span class="comment">/* flags */</span>i32,
+        <span class="comment">/* flags */</span>CloneFlags,
         <span class="comment">/* child_stack */</span><span class="kw-2">*const </span>std::ffi::c_void,
         <span class="comment">/* ptid */</span><span class="kw-2">*const </span>kernel_pid_t,
         <span class="comment">/* ctid */</span><span class="kw-2">*const </span>kernel_pid_t,
@@ -743,7 +753,7 @@
 
     <span class="attr">#[log_syscall(
         <span class="comment">/* rv */</span>kernel_pid_t,
-        <span class="comment">/* args*/</span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* args*/</span><span class="kw-2">*const </span>linux_api::sched::clone_args,
         <span class="comment">/* args_size*/</span>usize)]
     </span><span class="kw">pub fn </span>clone3(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,

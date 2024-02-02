@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["ExplicitDrop"]};
+window.SIDEBAR_ITEMS = {"struct":["ExplicitDropper"],"trait":["ExplicitDrop"]};
