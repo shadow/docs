@@ -412,12 +412,16 @@
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::posix_types::kernel_pid_t;
 <span class="kw">use </span>linux_api::sched::CloneFlags;
 <span class="kw">use </span>linux_api::signal::Signal;
 <span class="kw">use </span>log::{debug, trace, warn};
-<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::{ExplicitDrop, ExplicitDropper};
+<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDropper;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
@@ -530,7 +534,7 @@
             RootedRc::new(root, RootedRefCell::new(root, table))
         };
         <span class="kw">let </span>desc_table = ExplicitDropper::new(desc_table, |desc_table| {
-            desc_table.explicit_drop(ctx.objs.host.root())
+            desc_table.explicit_drop_recursive(ctx.objs.host.root(), ctx.objs.host);
         });
         handled_flags.insert(CloneFlags::CLONE_FILES);
 
@@ -643,7 +647,9 @@
                 ctx.objs.host.root(),
                 RootedRefCell::new(ctx.objs.host.root(), child_thread),
             ),
-            |childrc| childrc.explicit_drop(ctx.objs.host.root()),
+            |childrc| {
+                childrc.explicit_drop_recursive(ctx.objs.host.root(), ctx.objs.host);
+            },
         );
 
         <span class="kw">let </span>child_process_rc;
@@ -664,7 +670,9 @@
                 .new_forked_process(ctx.objs.host, flags, exit_signal, childrc.into_value());
             child_process_rc = <span class="prelude-val">Some</span>(ExplicitDropper::new(
                 process.clone(ctx.objs.host.root()),
-                |x| x.explicit_drop(ctx.objs.host.root()),
+                |x| {
+                    x.explicit_drop_recursive(ctx.objs.host.root(), ctx.objs.host);
+                },
             ));
             child_process_borrow = <span class="prelude-val">Some</span>(
                 child_process_rc

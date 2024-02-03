@@ -151,8 +151,6 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module provides several *Context* structs, intended to bundle together
 //! current relevant objects in the hierarchy. These are meant to replace
 //! `worker_getActiveThread`, etc. Passing around the current context explicitly
@@ -188,8 +186,6 @@
 //! their internal references simultaneously.
 
 </span><span class="kw">use </span>std::ops::Deref;
-
-<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDrop;
 
 <span class="kw">use </span><span class="kw">super</span>::managed_thread::ManagedThread;
 <span class="kw">use </span><span class="kw">super</span>::process::ProcessId;
@@ -301,10 +297,10 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>ctx = ThreadContext::new(<span class="self">self</span>.host, <span class="kw-2">&amp;</span>process, <span class="kw-2">&amp;</span>thread);
                 f(<span class="kw-2">&amp;mut </span>ctx)
             };
-            threadrc.explicit_drop(<span class="self">self</span>.host.root());
+            threadrc.explicit_drop_recursive(<span class="self">self</span>.host.root(), <span class="self">self</span>.host);
             res
         };
-        processrc.explicit_drop(<span class="self">self</span>.host.root());
+        processrc.explicit_drop_recursive(<span class="self">self</span>.host.root(), <span class="self">self</span>.host);
         res
     }
 }

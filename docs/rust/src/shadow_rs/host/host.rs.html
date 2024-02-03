@@ -1438,6 +1438,7 @@
 <a href="#1438" id="1438">1438</a>
 <a href="#1439" id="1439">1439</a>
 <a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut, UnsafeCell};
@@ -1458,7 +1459,7 @@
 <span class="kw">use </span>rand::SeedableRng;
 <span class="kw">use </span>rand_xoshiro::Xoshiro256PlusPlus;
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
-<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDrop;
+<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDropper;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::cell::RootedCell;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
@@ -1919,6 +1920,9 @@
             <span class="macro">trace!</span>(<span class="string">&quot;{pid:?} doesn&#39;t exist&quot;</span>);
             <span class="kw">return</span>;
         };
+        <span class="kw">let </span>processrc = ExplicitDropper::new(processrc, |p| {
+            p.explicit_drop_recursive(<span class="kw-2">&amp;</span><span class="self">self</span>.root, <span class="self">self</span>);
+        });
         <span class="kw">let </span>died;
         <span class="kw">let </span>is_orphan;
         {
@@ -1935,7 +1939,6 @@
                 is_orphan = <span class="bool-val">false</span>;
             }
         };
-        RootedRc::explicit_drop(processrc, <span class="kw-2">&amp;</span><span class="self">self</span>.root);
 
         <span class="kw">if </span>!died {
             <span class="kw">return</span>;
@@ -1978,7 +1981,7 @@
         <span class="kw">for </span>pid <span class="kw">in </span>orphaned_zombie_pids {
             <span class="macro">trace!</span>(<span class="string">&quot;Dropping orphan zombie process {pid:?}&quot;</span>);
             <span class="kw">let </span>processrc = processes.remove(<span class="kw-2">&amp;</span>pid).unwrap();
-            RootedRc::explicit_drop(processrc, <span class="kw-2">&amp;</span><span class="self">self</span>.root)
+            RootedRc::explicit_drop_recursive(processrc, <span class="kw-2">&amp;</span><span class="self">self</span>.root, <span class="self">self</span>);
         }
     }
 
@@ -2231,17 +2234,16 @@
         <span class="macro">trace!</span>(<span class="string">&quot;start freeing applications for host &#39;{}&#39;&quot;</span>, <span class="self">self</span>.name());
         <span class="kw">let </span>processes = std::mem::take(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.processes.borrow_mut());
         <span class="kw">for </span>(_id, processrc) <span class="kw">in </span>processes.into_iter() {
-            {
-                Worker::set_active_process(<span class="kw-2">&amp;</span>processrc);
-                <span class="kw">let </span>process = processrc.borrow(<span class="self">self</span>.root());
-                process.stop(<span class="self">self</span>);
-                Worker::clear_active_process();
-                <span class="comment">// Reparent to Shadow/INIT, since the original parent is or is
-                // about to be dead.
-                </span>process.set_parent_id(ProcessId::INIT);
-            }
-
-            processrc.explicit_drop(<span class="self">self</span>.root());
+            <span class="kw">let </span>processrc = ExplicitDropper::new(processrc, |p| {
+                p.explicit_drop_recursive(<span class="self">self</span>.root(), <span class="self">self</span>);
+            });
+            Worker::set_active_process(<span class="kw-2">&amp;</span>processrc);
+            <span class="kw">let </span>process = processrc.borrow(<span class="self">self</span>.root());
+            process.stop(<span class="self">self</span>);
+            Worker::clear_active_process();
+            <span class="comment">// Reparent to Shadow/INIT, since the original parent is or is
+            // about to be dead.
+            </span>process.set_parent_id(ProcessId::INIT);
         }
         <span class="macro">trace!</span>(<span class="string">&quot;done freeing application for host &#39;{}&#39;&quot;</span>, <span class="self">self</span>.name());
     }

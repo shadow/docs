@@ -2245,6 +2245,45 @@
 <a href="#2245" id="2245">2245</a>
 <a href="#2246" id="2246">2246</a>
 <a href="#2247" id="2247">2247</a>
+<a href="#2248" id="2248">2248</a>
+<a href="#2249" id="2249">2249</a>
+<a href="#2250" id="2250">2250</a>
+<a href="#2251" id="2251">2251</a>
+<a href="#2252" id="2252">2252</a>
+<a href="#2253" id="2253">2253</a>
+<a href="#2254" id="2254">2254</a>
+<a href="#2255" id="2255">2255</a>
+<a href="#2256" id="2256">2256</a>
+<a href="#2257" id="2257">2257</a>
+<a href="#2258" id="2258">2258</a>
+<a href="#2259" id="2259">2259</a>
+<a href="#2260" id="2260">2260</a>
+<a href="#2261" id="2261">2261</a>
+<a href="#2262" id="2262">2262</a>
+<a href="#2263" id="2263">2263</a>
+<a href="#2264" id="2264">2264</a>
+<a href="#2265" id="2265">2265</a>
+<a href="#2266" id="2266">2266</a>
+<a href="#2267" id="2267">2267</a>
+<a href="#2268" id="2268">2268</a>
+<a href="#2269" id="2269">2269</a>
+<a href="#2270" id="2270">2270</a>
+<a href="#2271" id="2271">2271</a>
+<a href="#2272" id="2272">2272</a>
+<a href="#2273" id="2273">2273</a>
+<a href="#2274" id="2274">2274</a>
+<a href="#2275" id="2275">2275</a>
+<a href="#2276" id="2276">2276</a>
+<a href="#2277" id="2277">2277</a>
+<a href="#2278" id="2278">2278</a>
+<a href="#2279" id="2279">2279</a>
+<a href="#2280" id="2280">2280</a>
+<a href="#2281" id="2281">2281</a>
+<a href="#2282" id="2282">2282</a>
+<a href="#2283" id="2283">2283</a>
+<a href="#2284" id="2284">2284</a>
+<a href="#2285" id="2285">2285</a>
+<a href="#2286" id="2286">2286</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux process.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut};
@@ -2271,6 +2310,7 @@
 <span class="kw">use </span>nix::sys::signal <span class="kw">as </span>nixsignal;
 <span class="kw">use </span>nix::sys::stat::Mode;
 <span class="kw">use </span>nix::unistd::Pid;
+<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::{ExplicitDrop, ExplicitDropper};
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::Root;
@@ -2564,6 +2604,9 @@
 
     <span class="doccomment">/// Call after a thread has exited. Removes the thread and does corresponding cleanup and notifications.
     </span><span class="kw">fn </span>reap_thread(<span class="kw-2">&amp;</span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host, threadrc: RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;) {
+        <span class="kw">let </span>threadrc = ExplicitDropper::new(threadrc, |t| {
+            t.explicit_drop_recursive(host.root(), host);
+        });
         <span class="kw">let </span>thread = threadrc.borrow(host.root());
 
         <span class="macro">assert!</span>(!thread.is_running());
@@ -2589,9 +2632,6 @@
                 futex.wake(<span class="number">1</span>);
             }
         }
-
-        drop(thread);
-        threadrc.explicit_drop_recursive(host.root(), host);
     }
 
     <span class="doccomment">/// This cleans up memory references left over from legacy C code; usually
@@ -2932,6 +2972,18 @@
     }
 }
 
+<span class="kw">impl </span>ExplicitDrop <span class="kw">for </span>RunnableProcess {
+    <span class="kw">type </span>ExplicitDropParam = Host;
+    <span class="kw">type </span>ExplicitDropResult = ();
+
+    <span class="kw">fn </span>explicit_drop(<span class="kw-2">mut </span><span class="self">self</span>, host: <span class="kw-2">&amp;</span><span class="self">Self</span>::ExplicitDropParam) -&gt; <span class="self">Self</span>::ExplicitDropResult {
+        <span class="kw">let </span>threads = std::mem::take(<span class="self">self</span>.threads.get_mut());
+        <span class="kw">for </span>thread <span class="kw">in </span>threads.into_values() {
+            thread.explicit_drop_recursive(host.root(), host);
+        }
+    }
+}
+
 <span class="doccomment">/// A process that has exited.
 </span><span class="kw">pub struct </span>ZombieProcess {
     common: Common,
@@ -3087,6 +3139,18 @@
         <span class="kw">match </span><span class="self">self </span>{
             ProcessState::Runnable(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             ProcessState::Zombie(z) =&gt; <span class="prelude-val">Some</span>(z),
+        }
+    }
+}
+
+<span class="kw">impl </span>ExplicitDrop <span class="kw">for </span>ProcessState {
+    <span class="kw">type </span>ExplicitDropParam = Host;
+    <span class="kw">type </span>ExplicitDropResult = ();
+
+    <span class="kw">fn </span>explicit_drop(<span class="self">self</span>, host: <span class="kw-2">&amp;</span><span class="self">Self</span>::ExplicitDropParam) -&gt; <span class="self">Self</span>::ExplicitDropResult {
+        <span class="kw">match </span><span class="self">self </span>{
+            ProcessState::Runnable(r) =&gt; r.explicit_drop(host),
+            ProcessState::Zombie(<span class="kw">_</span>) =&gt; (),
         }
     }
 }
@@ -3427,6 +3491,9 @@
             // borrowed reference to the thread list while running the thread.
             </span>thread.clone(host.root())
         };
+        <span class="kw">let </span>threadrc = ExplicitDropper::new(threadrc, |t| {
+            t.explicit_drop_recursive(host.root(), host);
+        });
         <span class="kw">let </span>thread = threadrc.borrow(host.root());
 
         Worker::set_active_thread(<span class="kw-2">&amp;</span>threadrc);
@@ -3446,8 +3513,6 @@
 
         <span class="kw">let </span>ctx = ProcessContext::new(host, <span class="self">self</span>);
         <span class="kw">let </span>res = thread.resume(<span class="kw-2">&amp;</span>ctx);
-        drop(thread);
-        threadrc.explicit_drop_recursive(host.root(), host);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
         </span>{
@@ -3950,8 +4015,21 @@
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>Process {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// Should only be dropped in the zombie state.
-        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.as_zombie().is_some());
+        <span class="comment">// Should have been explicitly dropped.
+        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.state.borrow().is_none());
+    }
+}
+
+<span class="kw">impl </span>ExplicitDrop <span class="kw">for </span>Process {
+    <span class="kw">type </span>ExplicitDropParam = Host;
+    <span class="kw">type </span>ExplicitDropResult = ();
+
+    <span class="kw">fn </span>explicit_drop(<span class="kw-2">mut </span><span class="self">self</span>, host: <span class="kw-2">&amp;</span><span class="self">Self</span>::ExplicitDropParam) -&gt; <span class="self">Self</span>::ExplicitDropResult {
+        <span class="comment">// Should normally only be dropped in the zombie state.
+        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.as_zombie().is_some() || std::thread::panicking());
+
+        <span class="kw">let </span>state = <span class="self">self</span>.state.get_mut().take().unwrap();
+        state.explicit_drop(host);
     }
 }
 

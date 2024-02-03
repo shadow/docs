@@ -799,6 +799,7 @@
 <a href="#799" id="799">799</a>
 <a href="#800" id="800">800</a>
 <a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicU32};
@@ -808,7 +809,6 @@
 <span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>rand::Rng;
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
-<span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDrop;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
@@ -1007,7 +1007,9 @@
     </span><span class="kw">pub fn </span>clear_active_process() {
         Worker::with(|w| {
             <span class="kw">let </span>old = w.active_process.borrow_mut().take().unwrap();
-            old.explicit_drop(w.active_host.borrow().as_ref().unwrap().root());
+            <span class="kw">let </span>host = w.active_host.borrow();
+            <span class="kw">let </span>host = host.as_ref().unwrap();
+            old.explicit_drop_recursive(host.root(), host);
         })
         .unwrap();
     }
