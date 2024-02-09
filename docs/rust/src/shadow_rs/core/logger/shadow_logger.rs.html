@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/core/logger/shadow_logger.rs`."><title>shadow_logger.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/core/logger/shadow_logger.rs`."><title>shadow_logger.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -480,7 +481,7 @@
 <span class="doccomment">/// Performs a *synchronous* flush when this many lines are queued.  i.e. if
 /// after reaching the `ASYNC_FLUSH_QD_LINES_THRESHOLD`, log lines are still
 /// coming in faster than they can actually be flushed, when we reach this limit
-/// we&#39;ll pause and let it finish flushing rather than letting the queue
+/// we'll pause and let it finish flushing rather than letting the queue
 /// continue growing.
 </span><span class="kw">const </span>SYNC_FLUSH_QD_LINES_THRESHOLD: usize = <span class="number">10 </span>* ASYNC_FLUSH_QD_LINES_THRESHOLD;
 
@@ -496,13 +497,13 @@
 
     log::set_logger(<span class="kw-2">&amp;*</span>SHADOW_LOGGER)<span class="question-mark">?</span>;
 
-    <span class="comment">// Shadow&#39;s logger has its own logic for deciding the max level (see `ShadowLogger::enabled`),
+    <span class="comment">// Shadow's logger has its own logic for deciding the max level (see `ShadowLogger::enabled`),
     // so the log crate should give us all log messages and we can decide whether to show it or not.
     </span>log::set_max_level(log::LevelFilter::Trace);
 
     <span class="comment">// Start the thread that will receive log records and flush them to output.
     </span>std::thread::Builder::new()
-        .name(<span class="string">&quot;shadow-logger&quot;</span>.to_string())
+        .name(<span class="string">"shadow-logger"</span>.to_string())
         .spawn(<span class="kw">move </span>|| SHADOW_LOGGER.logger_thread_fn())
         .unwrap();
 
@@ -522,25 +523,25 @@
 }
 
 <span class="doccomment">/// A logger specialized for Shadow. It attaches simulation context to log
-/// entries (e.g. sim time, running process, etc.). It&#39;s also designed for
+/// entries (e.g. sim time, running process, etc.). It's also designed for
 /// high performance to accomodate heavy logging from multiple threads.
 </span><span class="kw">pub struct </span>ShadowLogger {
-    <span class="comment">// Channel used to send commands to the logger&#39;s thread.
+    <span class="comment">// Channel used to send commands to the logger's thread.
     //
-    // The Sender half of a channel isn&#39;t Sync, so we must protect it with a
+    // The Sender half of a channel isn't Sync, so we must protect it with a
     // Mutex to make ShadowLogger be Sync. This is only accessed once per
     // thread, though, to clone into the thread-local SENDER.
     </span>command_sender: Mutex&lt;Sender&lt;LoggerCommand&gt;&gt;,
 
     <span class="comment">// Like the sender, needs a Mutex for ShadowLogger to be Sync.
     // The Mutex is only locked once though by the logger thread, which keeps
-    // it locked for as long as it&#39;s running.
+    // it locked for as long as it's running.
     </span>command_receiver: Mutex&lt;Receiver&lt;LoggerCommand&gt;&gt;,
 
-    <span class="comment">// A lock-free queue for individual log records. We don&#39;t put the records
-    // themselves in the `command_sender`, because `Sender` doesn&#39;t support
-    // getting the queue length. Conversely we don&#39;t put commands in this queue
-    // because it doesn&#39;t support blocking operations.
+    <span class="comment">// A lock-free queue for individual log records. We don't put the records
+    // themselves in the `command_sender`, because `Sender` doesn't support
+    // getting the queue length. Conversely we don't put commands in this queue
+    // because it doesn't support blocking operations.
     //
     // The size is roughly SYNC_FLUSH_QD_LINES_THRESHOLD *
     // size_of&lt;ShadowLogRecord&gt;; we might want to consider SegQueue (which grows
@@ -575,16 +576,16 @@
         )
     };
     <span class="comment">// The most likely cause of failure is a bug in the caller.
-    </span><span class="macro">debug_assert_eq!</span>(res, <span class="number">0</span>, <span class="string">&quot;pthread_getname_np: {}&quot;</span>, nix::errno::from_i32(res));
+    </span><span class="macro">debug_assert_eq!</span>(res, <span class="number">0</span>, <span class="string">"pthread_getname_np: {}"</span>, nix::errno::from_i32(res));
     <span class="kw">if </span>res == <span class="number">0 </span>{
         <span class="comment">// SAFETY: We just initialized the input buffer `thread_name`, and
-        // `thread_name_cstr` won&#39;t outlive it.
+        // `thread_name_cstr` won't outlive it.
         </span><span class="kw">let </span>thread_name_cstr = <span class="kw">unsafe </span>{ std::ffi::CStr::from_ptr(thread_name.as_ptr()) };
         <span class="kw">return </span>thread_name_cstr.to_owned().to_string_lossy().to_string();
     }
 
-    <span class="comment">// Another potential reason for failure is if it couldn&#39;t open
-    // /proc/self/task/[tid]/comm. We&#39;re probably in a bad state anyway if that
+    <span class="comment">// Another potential reason for failure is if it couldn't open
+    // /proc/self/task/[tid]/comm. We're probably in a bad state anyway if that
     // happens, but try to recover anyway.
 
     // Empty string
@@ -605,7 +606,7 @@
         }
     }
 
-    <span class="comment">// Function executed by the logger&#39;s helper thread, onto which we offload as
+    <span class="comment">// Function executed by the logger's helper thread, onto which we offload as
     // much work as we can.
     </span><span class="kw">fn </span>logger_thread_fn(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>command_receiver = <span class="self">self</span>.command_receiver.lock().unwrap();
@@ -618,21 +619,21 @@
                     <span class="comment">// Flush
                     </span><span class="self">self</span>.flush_records(<span class="prelude-val">None</span>).unwrap();
                 }
-                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected error {}&quot;</span>, e),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected error {}"</span>, e),
             }
         }
     }
 
-    <span class="comment">// Function called by the logger&#39;s helper thread to flush the contents of
-    // self.records. If `done_sender` is provided, it&#39;s notified after the flush
+    <span class="comment">// Function called by the logger's helper thread to flush the contents of
+    // self.records. If `done_sender` is provided, it's notified after the flush
     // has completed.
     </span><span class="kw">fn </span>flush_records(<span class="kw-2">&amp;</span><span class="self">self</span>, done_sender: <span class="prelude-ty">Option</span>&lt;Sender&lt;()&gt;&gt;) -&gt; std::io::Result&lt;()&gt; {
         <span class="kw">use </span>std::io::Write;
 
         <span class="comment">// Only flush records that are already in the queue, not ones that
-        // arrive while we&#39;re flushing. Otherwise callers who perform a
+        // arrive while we're flushing. Otherwise callers who perform a
         // synchronous flush (whether this flush operation or another one that
-        // arrives while we&#39;re flushing) will be left waiting longer than
+        // arrives while we're flushing) will be left waiting longer than
         // necessary. Also keeps us from holding the stdout lock indefinitely.
         </span><span class="kw">let </span><span class="kw-2">mut </span>toflush = <span class="self">self</span>.records.len();
 
@@ -658,21 +659,21 @@
                 <span class="kw">let </span>stderr_locked = stderr_unlocked.lock();
                 <span class="kw">let </span><span class="kw-2">mut </span>stderr = std::io::BufWriter::new(stderr_locked);
 
-                <span class="kw">let </span>line = <span class="macro">format!</span>(<span class="string">&quot;{record}&quot;</span>);
-                <span class="macro">write!</span>(stdout, <span class="string">&quot;{line}&quot;</span>)<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(stderr, <span class="string">&quot;{line}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">let </span>line = <span class="macro">format!</span>(<span class="string">"{record}"</span>);
+                <span class="macro">write!</span>(stdout, <span class="string">"{line}"</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(stderr, <span class="string">"{line}"</span>)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
-                <span class="macro">write!</span>(stdout, <span class="string">&quot;{record}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(stdout, <span class="string">"{record}"</span>)<span class="question-mark">?</span>;
             }
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(done_sender) = done_sender {
-            <span class="comment">// We can&#39;t log from this thread without risking deadlock, so in the
+            <span class="comment">// We can't log from this thread without risking deadlock, so in the
             // unlikely case that the calling thread has gone away, just print
             // directly.
             </span>done_sender.send(()).unwrap_or_else(|e| {
                 <span class="macro">println!</span>(
-                    <span class="string">&quot;WARNING: Logger couldn&#39;t notify
-                calling thread: {:?}&quot;</span>,
+                    <span class="string">"WARNING: Logger couldn't notify
+                calling thread: {:?}"</span>,
                     e
                 )
             });
@@ -681,7 +682,7 @@
     }
 
     <span class="doccomment">/// When disabled, the logger thread is notified to write each record as
-    /// soon as it&#39;s created.  The calling thread still isn&#39;t blocked on the
+    /// soon as it's created.  The calling thread still isn't blocked on the
     /// record actually being written, though.
     </span><span class="kw">pub fn </span>set_buffering_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, buffering_enabled: bool) {
         <span class="kw">let </span><span class="kw-2">mut </span>writer = <span class="self">self</span>.buffering_enabled.write().unwrap();
@@ -715,7 +716,7 @@
         <span class="self">self</span>.send_command(LoggerCommand::Flush(notify_done))
     }
 
-    <span class="comment">// Send a flush command to the logger thread and block until it&#39;s completed.
+    <span class="comment">// Send a flush command to the logger thread and block until it's completed.
     </span><span class="kw">fn </span>flush_sync(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>(done_sender, done_receiver) = std::sync::mpsc::channel();
         <span class="self">self</span>.flush_impl(<span class="prelude-val">Some</span>(done_sender));
@@ -741,12 +742,12 @@
                     .unwrap()
                     .send(cmd)
                     .unwrap_or_else(|e| {
-                        <span class="macro">println!</span>(<span class="string">&quot;WARNING: Couldn&#39;t send command to logger thread: {:?}&quot;</span>, e);
+                        <span class="macro">println!</span>(<span class="string">"WARNING: Couldn't send command to logger thread: {:?}"</span>, e);
                     });
             })
             .unwrap_or_else(|e| {
                 <span class="macro">println!</span>(
-                    <span class="string">&quot;WARNING: Couldn&#39;t get sender channel to logger thread: {:?}&quot;</span>,
+                    <span class="string">"WARNING: Couldn't get sender channel to logger thread: {:?}"</span>,
                     e
                 );
             });
@@ -803,11 +804,11 @@
         }
 
         <span class="kw">if </span>record.level() == Level::Error {
-            <span class="comment">// Unlike in Shadow&#39;s C code, we don&#39;t abort the program on Error
+            <span class="comment">// Unlike in Shadow's C code, we don't abort the program on Error
             // logs. In Rust the same purpose is filled with `panic` and
             // `unwrap`. C callers will still exit or abort via the lib/logger wrapper.
             //
-            // Flush *synchronously*, since we&#39;re likely about to crash one way or another.
+            // Flush *synchronously*, since we're likely about to crash one way or another.
             </span><span class="self">self</span>.flush_sync();
         } <span class="kw">else if </span><span class="self">self</span>.records.len() &gt; ASYNC_FLUSH_QD_LINES_THRESHOLD
             || !<span class="kw-2">*</span><span class="self">self</span>.buffering_enabled.read().unwrap()
@@ -823,8 +824,8 @@
 
 <span class="kw">struct </span>ShadowLogRecord {
     level: Level,
-    file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
-    module_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+    file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+    module_path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
     line: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     message: String,
     wall_time: Duration,
@@ -836,62 +837,62 @@
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>ShadowLogRecord {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         {
             <span class="kw">let </span>parts = TimeParts::from_nanos(<span class="self">self</span>.wall_time.as_nanos());
             <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot;{:02}:{:02}:{:02}.{:06}&quot;</span>,
+                <span class="string">"{:02}:{:02}:{:02}.{:06}"</span>,
                 parts.hours,
                 parts.mins,
                 parts.secs,
                 parts.nanos / <span class="number">1000
             </span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(f, <span class="string">&quot; [{}:{}]&quot;</span>, <span class="self">self</span>.thread_id, <span class="self">self</span>.thread_name)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">" [{}:{}]"</span>, <span class="self">self</span>.thread_id, <span class="self">self</span>.thread_name)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(emu_time) = <span class="self">self</span>.emu_time {
             <span class="kw">let </span>sim_time = emu_time.duration_since(<span class="kw-2">&amp;</span>EmulatedTime::SIMULATION_START);
             <span class="kw">let </span>parts = TimeParts::from_nanos(sim_time.as_nanos());
             <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot; {:02}:{:02}:{:02}.{:09}&quot;</span>,
+                <span class="string">" {:02}:{:02}:{:02}.{:09}"</span>,
                 parts.hours, parts.mins, parts.secs, parts.nanos
             )<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot; n/a&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">" n/a"</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(f, <span class="string">&quot; [{level}]&quot;</span>, level = <span class="self">self</span>.level)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">" [{level}]"</span>, level = <span class="self">self</span>.level)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(host) = <span class="kw-2">&amp;</span><span class="self">self</span>.host_info {
             <span class="macro">write!</span>(
                 f,
-                <span class="string">&quot; [{hostname}:{ip}]&quot;</span>,
+                <span class="string">" [{hostname}:{ip}]"</span>,
                 hostname = host.name,
                 ip = host.default_ip,
             )<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot; [n/a]&quot;</span>,)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">" [n/a]"</span>,)<span class="question-mark">?</span>;
         }
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot; [{file}:&quot;</span>,
+            <span class="string">" [{file}:"</span>,
             file = <span class="self">self
                 </span>.file
-                .map(|f| <span class="kw">if let </span><span class="prelude-val">Some</span>(sep_pos) = f.rfind(<span class="string">&#39;/&#39;</span>) {
+                .map(|f| <span class="kw">if let </span><span class="prelude-val">Some</span>(sep_pos) = f.rfind(<span class="string">'/'</span>) {
                     <span class="kw-2">&amp;</span>f[(sep_pos + <span class="number">1</span>)..]
                 } <span class="kw">else </span>{
                     f
                 })
-                .unwrap_or(<span class="string">&quot;n/a&quot;</span>),
+                .unwrap_or(<span class="string">"n/a"</span>),
         )<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(line) = <span class="self">self</span>.line {
-            <span class="macro">write!</span>(f, <span class="string">&quot;{line}&quot;</span>, line = line)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{line}"</span>, line = line)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;n/a&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"n/a"</span>)<span class="question-mark">?</span>;
         }
         <span class="macro">writeln!</span>(
             f,
-            <span class="string">&quot;] [{module}] {msg}&quot;</span>,
-            module = <span class="self">self</span>.module_path.unwrap_or(<span class="string">&quot;n/a&quot;</span>),
+            <span class="string">"] [{module}] {msg}"</span>,
+            module = <span class="self">self</span>.module_path.unwrap_or(<span class="string">"n/a"</span>),
             msg = <span class="self">self</span>.message
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -911,10 +912,10 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// When disabled, the logger thread is notified to write each record as
-    /// soon as it&#39;s created.  The calling thread still isn&#39;t blocked on the
+    /// soon as it's created.  The calling thread still isn't blocked on the
     /// record actually being written, though.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shadow_logger_setEnableBuffering(buffering_enabled: i32) {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shadow_logger_setEnableBuffering(buffering_enabled: i32) {
         set_buffering_enabled(buffering_enabled != <span class="number">0</span>)
     }
 }

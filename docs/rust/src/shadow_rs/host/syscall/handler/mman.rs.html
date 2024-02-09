@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/mman.rs`."><title>mman.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/mman.rs`."><title>mman.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -491,7 +492,7 @@
         <span class="comment">// check for truncated flag bits (use u32 instead of i32 to prevent sign extension when
         // casting from signed to unsigned)
         </span><span class="kw">if </span>flags <span class="kw">as </span>u32 <span class="kw">as </span>u64 != flags {
-            <span class="macro">warn_once_then_trace!</span>(<span class="string">&quot;Ignoring truncated flags from mremap: {flags}&quot;</span>);
+            <span class="macro">warn_once_then_trace!</span>(<span class="string">"Ignoring truncated flags from mremap: {flags}"</span>);
         }
 
         <span class="kw">let </span>flags = flags <span class="kw">as </span>i32;
@@ -540,7 +541,7 @@
         <span class="comment">// check for truncated flag bits (use u32 instead of i32 to prevent sign extension when
         // casting from signed to unsigned)
         </span><span class="kw">if </span>prot <span class="kw">as </span>u32 <span class="kw">as </span>u64 != prot {
-            <span class="macro">warn_once_then_trace!</span>(<span class="string">&quot;Ignoring truncated prot flags from mprotect: {prot}&quot;</span>);
+            <span class="macro">warn_once_then_trace!</span>(<span class="string">"Ignoring truncated prot flags from mprotect: {prot}"</span>);
         }
 
         <span class="kw">let </span>prot = prot <span class="kw">as </span>i32;
@@ -569,7 +570,7 @@
         fd: std::ffi::c_ulong,
         offset: std::ffi::c_ulong,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ForeignPtr&lt;u8&gt;, SyscallError&gt; {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;mmap called on fd {fd} for {len} bytes&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"mmap called on fd {fd} for {len} bytes"</span>);
 
         <span class="kw">let </span>addr: usize = addr.try_into().unwrap();
         <span class="kw">let </span>addr = ForeignPtr::&lt;()&gt;::from(addr).cast::&lt;u8&gt;();
@@ -581,7 +582,7 @@
         <span class="comment">// check for truncated flag bits (use u32 instead of i32 to prevent sign extension when
         // casting from signed to unsigned)
         </span><span class="kw">if </span>prot <span class="kw">as </span>u32 <span class="kw">as </span>u64 != prot {
-            <span class="macro">warn_once_then_trace!</span>(<span class="string">&quot;Ignoring truncated prot flags from mmap: {prot}&quot;</span>);
+            <span class="macro">warn_once_then_trace!</span>(<span class="string">"Ignoring truncated prot flags from mmap: {prot}"</span>);
         }
 
         <span class="kw">let </span>prot = prot <span class="kw">as </span>i32;
@@ -589,7 +590,7 @@
         <span class="kw">let </span>flags = <span class="kw">match </span>MapFlags::from_bits(flags) {
             <span class="prelude-val">Some</span>(x) =&gt; x,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="macro">warn_once_then_debug!</span>(<span class="string">&quot;Invalid mmap flags: {flags}&quot;</span>);
+                <span class="macro">warn_once_then_debug!</span>(<span class="string">"Invalid mmap flags: {flags}"</span>);
                 MapFlags::from_bits_truncate(flags)
             }
         };
@@ -600,23 +601,23 @@
 
         <span class="comment">// need non-zero len, and at least one of the above options
         </span><span class="kw">if </span>len == <span class="number">0 </span>|| !required_flags.intersects(flags) {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Invalid len ({len}), prot ({prot}), or flags ({flags:?})&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Invalid len ({len}), prot ({prot}), or flags ({flags:?})"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
         <span class="comment">// we ignore the fd on anonymous mappings, otherwise it must refer to a regular file
         // TODO: why does this fd &lt;= 2 exist?
         </span><span class="kw">if </span>fd &lt;= <span class="number">2 </span>&amp;&amp; !flags.contains(MapFlags::MAP_ANONYMOUS) {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Invalid fd {fd} and MAP_ANONYMOUS is not set in flags {flags:?}&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Invalid fd {fd} and MAP_ANONYMOUS is not set in flags {flags:?}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
         }
 
-        <span class="comment">// we only need a file if it&#39;s not an anonymous mapping
+        <span class="comment">// we only need a file if it's not an anonymous mapping
         </span><span class="kw">let </span>file = <span class="kw">if </span>flags.contains(MapFlags::MAP_ANONYMOUS) {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span>file = {
-                <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+                <span class="comment">// get the descriptor, or return early if it doesn't exist
                 </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
@@ -633,15 +634,15 @@
             <span class="kw">if unsafe </span>{ c::legacyfile_getStatus(file) }.contains(FileState::CLOSED) {
                 <span class="comment">// A file that is referenced in the descriptor table should never be a closed file.
                 // File handles (fds) are handles to open files, so if we have a file handle to a
-                // closed file, then there&#39;s an error somewhere in Shadow. Shadow&#39;s TCP sockets do
+                // closed file, then there's an error somewhere in Shadow. Shadow's TCP sockets do
                 // close themselves even if there are still file handles (see
-                // `_tcp_endOfFileSignalled`), so we can&#39;t make this a panic.
-                </span><span class="macro">log::warn!</span>(<span class="string">&quot;File {file:p} (fd={fd}) is closed&quot;</span>);
+                // `_tcp_endOfFileSignalled`), so we can't make this a panic.
+                </span><span class="macro">log::warn!</span>(<span class="string">"File {file:p} (fd={fd}) is closed"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
             }
 
             <span class="kw">if unsafe </span>{ c::legacyfile_getType(file) } != c::_LegacyFileType_DT_FILE {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;Descriptor exists for fd {fd}, but is not a regular file type&quot;</span>);
+                <span class="macro">log::debug!</span>(<span class="string">"Descriptor exists for fd {fd}, but is not a regular file type"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EACCES.into());
             }
 
@@ -655,7 +656,7 @@
 
         <span class="comment">// the file is None for an anonymous mapping, or a non-null Some otherwise
         </span><span class="kw">let </span><span class="prelude-val">Ok</span>(plugin_fd) = plugin_fd.transpose() <span class="kw">else </span>{
-            <span class="macro">log::warn!</span>(<span class="string">&quot;mmap on fd {fd} for {len} bytes failed&quot;</span>);
+            <span class="macro">log::warn!</span>(<span class="string">"mmap on fd {fd} for {len} bytes failed"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EACCES.into());
         };
 
@@ -664,7 +665,7 @@
         <span class="comment">// check for truncated flag bits (use u32 instead of i32 to prevent sign extension when
         // casting from signed to unsigned)
         </span><span class="kw">if </span>flags <span class="kw">as </span>u32 <span class="kw">as </span>u64 != flags {
-            <span class="macro">warn_once_then_trace!</span>(<span class="string">&quot;Ignoring truncated flags from mmap: {flags}&quot;</span>);
+            <span class="macro">warn_once_then_trace!</span>(<span class="string">"Ignoring truncated flags from mmap: {flags}"</span>);
         }
 
         <span class="kw">let </span>flags = flags <span class="kw">as </span>i32;
@@ -681,13 +682,13 @@
             offset,
         );
 
-        <span class="comment">// we should have already run the mmap natively above, and it wouldn&#39;t make sense to return
+        <span class="comment">// we should have already run the mmap natively above, and it wouldn't make sense to return
         // `SyscallError::Native` here
         </span><span class="macro">assert!</span>(!<span class="macro">matches!</span>(mmap_result, <span class="prelude-val">Err</span>(SyscallError::Native)));
 
         <span class="macro">log::trace!</span>(
-            <span class="string">&quot;Plugin-native mmap syscall at plugin addr {addr:p} with plugin fd {fd} for \
-            {len} bytes returned {mmap_result:?}&quot;
+            <span class="string">"Plugin-native mmap syscall at plugin addr {addr:p} with plugin fd {fd} for \
+            {len} bytes returned {mmap_result:?}"
         </span>);
 
         <span class="comment">// close the file we asked them to open
@@ -705,16 +706,16 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, ()&gt; {
         <span class="macro">assert!</span>(!file.is_null());
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Trying to open file {fd} in the plugin&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"Trying to open file {fd} in the plugin"</span>);
 
-        <span class="comment">// Make sure we don&#39;t open special files like `/dev/urandom` in the plugin via mmap. We
+        <span class="comment">// Make sure we don't open special files like `/dev/urandom` in the plugin via mmap. We
         // allow `/etc/localtime`, which should have been swapped with `/usr/share/zoneinfo/Etc/UTC`
         // in `regularfile_openat`.
         </span><span class="kw">let </span>file_type = <span class="kw">unsafe </span>{ c::regularfile_getType(file) };
         <span class="kw">if </span>file_type != c::_FileType_FILE_TYPE_REGULAR
             &amp;&amp; file_type != c::_FileType_FILE_TYPE_LOCALTIME
         {
-            <span class="macro">warn_once_then_debug!</span>(<span class="string">&quot;Tried to mmap a non-regular non-localtime file&quot;</span>);
+            <span class="macro">warn_once_then_debug!</span>(<span class="string">"Tried to mmap a non-regular non-localtime file"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(());
         }
 
@@ -722,7 +723,7 @@
 
         <span class="comment">// the file is in the shadow process, and we want to open it in the plugin
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(path) = <span class="self">Self</span>::create_persistent_mmap_path(native_fd) <span class="kw">else </span>{
-            <span class="macro">log::trace!</span>(<span class="string">&quot;RegularFile {fd} has a NULL path&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"RegularFile {fd} has a NULL path"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(());
         };
 
@@ -737,7 +738,7 @@
 
         <span class="kw">let </span>path_bytes = <span class="kw-2">&amp;</span>path_bytes[..path_len];
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Opening path &#39;{}&#39; in plugin&quot;</span>, path.display());
+        <span class="macro">log::trace!</span>(<span class="string">"Opening path '{}' in plugin"</span>, path.display());
 
         <span class="comment">// get some memory in the plugin to write the path of the file to open (an extra 1 for NUL);
         // must free this, but will panic if borrowing the memory manager
@@ -748,7 +749,7 @@
 
             <span class="comment">// write the path to the plugin
             </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = mem.copy_to_ptr(plugin_buffer.ptr().slice(..path_len), path_bytes) {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;Unable to write string to allocated buffer: {e}&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"Unable to write string to allocated buffer: {e}"</span>);
                 std::mem::drop(mem);
                 plugin_buffer.free(ctx);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(());
@@ -756,7 +757,7 @@
 
             <span class="comment">// write the NUL to the plugin
             </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = mem.copy_to_ptr(plugin_buffer.ptr().slice(path_len..), <span class="kw-2">&amp;</span>[<span class="number">0</span>]) {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;Unable to write NUL to allocated buffer: {e}&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"Unable to write NUL to allocated buffer: {e}"</span>);
                 std::mem::drop(mem);
                 plugin_buffer.free(ctx);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(());
@@ -786,13 +787,13 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>flags = OFlag::from_bits_retain(<span class="kw">unsafe </span>{ c::regularfile_getFlagsAtOpen(file) });
         <span class="comment">// use only the file creation flags, except O_CLOEXEC
         </span>flags &amp;= creation_flags &amp; !OFlag::O_CLOEXEC;
-        <span class="comment">// add any file access mode and file status flags that shadow doesn&#39;t implement
+        <span class="comment">// add any file access mode and file status flags that shadow doesn't implement
         </span>flags |= native_flags &amp; !OFlag::from_bits_retain(<span class="kw">unsafe </span>{ c::SHADOW_FLAG_MASK });
         <span class="comment">// add any flags that shadow implements
         </span>flags |= OFlag::from_bits_retain(<span class="kw">unsafe </span>{ c::regularfile_getShadowFlags(file) });
         <span class="comment">// be careful not to try re-creating or truncating it
         </span>flags &amp;= !(OFlag::O_CREAT | OFlag::O_EXCL | OFlag::O_TMPFILE | OFlag::O_TRUNC);
-        <span class="comment">// don&#39;t use O_NOFOLLOW since it will prevent the plugin from opening the
+        <span class="comment">// don't use O_NOFOLLOW since it will prevent the plugin from opening the
         // /proc/&lt;shadow-pid&gt;/fd/&lt;linux-fd&gt; file, which is a symbolic link
         </span>flags &amp;= !OFlag::O_NOFOLLOW;
 
@@ -813,7 +814,7 @@
             <span class="prelude-val">Ok</span>(x) =&gt; x,
             <span class="prelude-val">Err</span>(e) =&gt; {
                 <span class="macro">log::trace!</span>(
-                    <span class="string">&quot;Failed to open path &#39;{}&#39; in plugin, error {e}&quot;</span>,
+                    <span class="string">"Failed to open path '{}' in plugin, error {e}"</span>,
                     path.display()
                 );
                 <span class="kw">return </span><span class="prelude-val">Err</span>(());
@@ -821,7 +822,7 @@
         };
 
         <span class="macro">log::trace!</span>(
-            <span class="string">&quot;Successfully opened path &#39;{}&#39; in plugin, got plugin fd {open_result}&quot;</span>,
+            <span class="string">"Successfully opened path '{}' in plugin, got plugin fd {open_result}"</span>,
             path.display(),
         );
 
@@ -834,9 +835,9 @@
         <span class="kw">let </span>result = thread.native_close(<span class="kw-2">&amp;</span>ctx, plugin_fd);
 
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = result {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Failed to close file at fd {plugin_fd} in plugin, error {e}&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Failed to close file at fd {plugin_fd} in plugin, error {e}"</span>);
         } <span class="kw">else </span>{
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Successfully closed file at fd {plugin_fd} in plugin&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Successfully closed file at fd {plugin_fd} in plugin"</span>);
         }
     }
 
@@ -862,20 +863,20 @@
 
         <span class="comment">// We do not use the original file path here, because that path could have been re-linked to
         // a different file since this file was opened.
-        </span><span class="kw">let </span>path: PathBuf = [<span class="string">&quot;/proc&quot;</span>, <span class="kw-2">&amp;</span>pid_string, <span class="string">&quot;fd&quot;</span>, <span class="kw-2">&amp;</span>native_fd_string]
+        </span><span class="kw">let </span>path: PathBuf = [<span class="string">"/proc"</span>, <span class="kw-2">&amp;</span>pid_string, <span class="string">"fd"</span>, <span class="kw-2">&amp;</span>native_fd_string]
             .iter()
             .collect();
 
         <span class="comment">// make sure the path is accessible
         </span><span class="kw">if </span>!path.exists() {
             <span class="macro">log::warn!</span>(
-                <span class="string">&quot;Unable to produce a persistent mmap path for file (linux file {native_fd})&quot;
+                <span class="string">"Unable to produce a persistent mmap path for file (linux file {native_fd})"
             </span>);
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
         <span class="macro">log::trace!</span>(
-            <span class="string">&quot;RegularFile (linux file {native_fd}) is persistent in procfs at {}&quot;</span>,
+            <span class="string">"RegularFile (linux file {native_fd}) is persistent in procfs at {}"</span>,
             path.display()
         );
 

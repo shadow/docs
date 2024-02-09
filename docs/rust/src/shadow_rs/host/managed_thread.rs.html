@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/managed_thread.rs`."><title>managed_thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/managed_thread.rs`."><title>managed_thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -826,7 +827,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallReturn};
 <span class="kw">use </span><span class="kw">crate</span>::utility::{inject_preloads, syscall, verify_plugin_path, VerifyPluginPathError};
 
-<span class="doccomment">/// The ManagedThread&#39;s state after having been allowed to execute some code.
+<span class="doccomment">/// The ManagedThread's state after having been allowed to execute some code.
 </span><span class="attr">#[derive(Debug)]
 #[must_use]
 </span><span class="kw">pub enum </span>ResumeResult {
@@ -834,12 +835,12 @@
     </span>Blocked(SysCallCondition),
     <span class="doccomment">/// The native thread has exited with the given code.
     </span>ExitedThread(i32),
-    <span class="doccomment">/// The thread&#39;s process has exited.
+    <span class="doccomment">/// The thread's process has exited.
     </span>ExitedProcess,
 }
 
 <span class="kw">pub struct </span>ManagedThread {
-    ipc_shmem: Arc&lt;ShMemBlock&lt;<span class="lifetime">&#39;static</span>, IPCData&gt;&gt;,
+    ipc_shmem: Arc&lt;ShMemBlock&lt;<span class="lifetime">'static</span>, IPCData&gt;&gt;,
     is_running: Cell&lt;bool&gt;,
     return_code: Cell&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt;,
 
@@ -880,7 +881,7 @@
             <span class="kw-2">&amp;</span>ShimEventToShim::Syscall(ShimEventSyscall { syscall_args }),
         ) {
             ShimEventToShadow::SyscallComplete(res) =&gt; res.retval,
-            other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected response from plugin: {other:?}&quot;</span>),
+            other =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected response from plugin: {other:?}"</span>),
         }
     }
 
@@ -892,11 +893,11 @@
         log_file: <span class="kw-2">&amp;</span>std::fs::File,
         injected_preloads: <span class="kw-2">&amp;</span>[PathBuf],
     ) -&gt; nix::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;spawning new mthread &#39;{plugin_path:?}&#39; with environment &#39;{envv:?}&#39;, arguments &#39;{argv:?}&#39;&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"spawning new mthread '{plugin_path:?}' with environment '{envv:?}', arguments '{argv:?}'"</span>);
 
         <span class="kw">let </span>envv = inject_preloads(envv, injected_preloads);
 
-        <span class="macro">debug!</span>(<span class="string">&quot;env after preload injection: {envv:?}&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"env after preload injection: {envv:?}"</span>);
 
         <span class="kw">let </span>ipc_shmem = Arc::new(shadow_shmem::allocator::shmalloc(IPCData::new()));
 
@@ -920,7 +921,7 @@
         };
 
         <span class="macro">trace!</span>(
-            <span class="string">&quot;waiting for start event from shim with native pid {}&quot;</span>,
+            <span class="string">"waiting for start event from shim with native pid {}"</span>,
             native_pid
         );
         <span class="kw">let </span>start_req = ipc_shmem.from_plugin().receive().unwrap();
@@ -940,7 +941,7 @@
                         // &gt; housekeeping steps described below, or fails to
                         // &gt; execute the desired file, it exits with a status of
                         // &gt; 127.
-                        </span><span class="macro">debug!</span>(<span class="string">&quot;posix_spawn failed to exec the process&quot;</span>);
+                        </span><span class="macro">debug!</span>(<span class="string">"posix_spawn failed to exec the process"</span>);
                         <span class="comment">// Assume that execve failed, and return a plausible reason
                         // why it might have done so.
                         // TODO: replace our usage of posix_spawn with a custom
@@ -958,11 +959,11 @@
                         // the managed process exit normally. e.g. when this happens
                         // as part of an emulated `execve`, we might want to continue
                         // the simulation.
-                        </span><span class="macro">panic!</span>(<span class="string">&quot;Child process died unexpectedly before initialization: {other:?}&quot;</span>);
+                        </span><span class="macro">panic!</span>(<span class="string">"Child process died unexpectedly before initialization: {other:?}"</span>);
                     }
                 }
             }
-            other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result from shim: {other:?}&quot;</span>),
+            other =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected result from shim: {other:?}"</span>),
         };
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
@@ -1030,7 +1031,7 @@
                     }
 
                     <span class="comment">// send the message to the shim to call main().
-                    </span><span class="macro">trace!</span>(<span class="string">&quot;sending start event code to shim&quot;</span>);
+                    </span><span class="macro">trace!</span>(<span class="string">"sending start event code to shim"</span>);
                     <span class="self">self</span>.continue_plugin(ctx.host, <span class="kw-2">&amp;</span>ShimEventToShim::StartRes)
                 }
                 ShimEventToShadow::ProcessDeath =&gt; {
@@ -1042,8 +1043,8 @@
                 ShimEventToShadow::Syscall(syscall) =&gt; {
                     <span class="comment">// Emulate the given syscall.
 
-                    // `exit` is tricky since it only exits the *mthread*, and we don&#39;t have a way
-                    // to be notified that the mthread has exited. We have to &quot;fire and forget&quot;
+                    // `exit` is tricky since it only exits the *mthread*, and we don't have a way
+                    // to be notified that the mthread has exited. We have to "fire and forget"
                     // the command to execute the syscall natively.
                     //
                     // TODO: We could use a tid futex in shared memory, as set by
@@ -1051,12 +1052,12 @@
                     // actually exited.
                     </span><span class="kw">if </span>syscall.syscall_args.number == libc::SYS_exit {
                         <span class="kw">let </span>return_code = syscall.syscall_args.args[<span class="number">0</span>].into();
-                        <span class="macro">debug!</span>(<span class="string">&quot;Short-circuiting syscall exit({return_code})&quot;</span>);
+                        <span class="macro">debug!</span>(<span class="string">"Short-circuiting syscall exit({return_code})"</span>);
                         <span class="self">self</span>.return_code.set(<span class="prelude-val">Some</span>(return_code));
                         <span class="comment">// Tell mthread to go ahead and make the exit syscall itself.
-                        // We *don&#39;t* call `_managedthread_continuePlugin` here,
-                        // since that&#39;d release the ShimSharedMemHostLock, and we
-                        // aren&#39;t going to get a message back to know when it&#39;d be
+                        // We *don't* call `_managedthread_continuePlugin` here,
+                        // since that'd release the ShimSharedMemHostLock, and we
+                        // aren't going to get a message back to know when it'd be
                         // safe to take it again.
                         </span><span class="self">self</span>.ipc_shmem
                             .to_plugin()
@@ -1067,7 +1068,7 @@
 
                     <span class="kw">let </span>scr = syscall_handler.syscall(ctx, <span class="kw-2">&amp;</span>syscall.syscall_args).into();
 
-                    <span class="comment">// remove the mthread&#39;s old syscall condition since it&#39;s no longer needed
+                    <span class="comment">// remove the mthread's old syscall condition since it's no longer needed
                     </span>ctx.thread.cleanup_syscall_condition();
 
                     <span class="macro">assert!</span>(<span class="self">self</span>.is_running());
@@ -1109,7 +1110,7 @@
                         }),
                     )
                 }
-                e @ ShimEventToShadow::SyscallComplete(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected event: {e:?}&quot;</span>),
+                e @ ShimEventToShadow::SyscallComplete(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected event: {e:?}"</span>),
             };
             <span class="macro">assert!</span>(<span class="self">self</span>.is_running());
         }
@@ -1164,20 +1165,20 @@
             }),
         ) {
             ShimEventToShadow::AddThreadRes(ShimEventAddThreadRes { clone_res }) =&gt; clone_res,
-            r =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {r:?}&quot;</span>),
+            r =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected result: {r:?}"</span>),
         };
         <span class="kw">let </span>clone_res: SysCallReg = syscall::raw_return_value_to_result(clone_res)<span class="question-mark">?</span>;
         <span class="kw">let </span>child_native_tid = libc::pid_t::from(clone_res);
-        <span class="macro">trace!</span>(<span class="string">&quot;native clone treated tid {child_native_tid}&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">"native clone treated tid {child_native_tid}"</span>);
 
         <span class="macro">trace!</span>(
-            <span class="string">&quot;waiting for start event from shim with native tid {}&quot;</span>,
+            <span class="string">"waiting for start event from shim with native tid {}"</span>,
             child_native_tid
         );
         <span class="kw">let </span>start_req = child_ipc_shmem.from_plugin().receive().unwrap();
         <span class="kw">match </span><span class="kw-2">&amp;</span>start_req {
             ShimEventToShadow::StartReq(<span class="kw">_</span>) =&gt; (),
-            other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result from shim: {other:?}&quot;</span>),
+            other =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected result from shim: {other:?}"</span>),
         };
 
         <span class="kw">let </span>native_pid = <span class="kw">if </span>flags.contains(CloneFlags::CLONE_THREAD) {
@@ -1196,7 +1197,7 @@
                 .register_pid(native_pid);
         }
 
-        <span class="comment">// Register the child thread&#39;s IPC block with the ChildPidWatcher.
+        <span class="comment">// Register the child thread's IPC block with the ChildPidWatcher.
         </span>{
             <span class="kw">let </span>child_ipc_shmem = child_ipc_shmem.clone();
             WORKER_SHARED
@@ -1216,7 +1217,7 @@
             current_event: RefCell::new(start_req),
             native_pid,
             native_tid: nix::unistd::Pid::from_raw(child_native_tid),
-            <span class="comment">// TODO: can we assume it&#39;s inherited from the current thread affinity?
+            <span class="comment">// TODO: can we assume it's inherited from the current thread affinity?
             </span>affinity: Cell::new(cshadow::AFFINITY_UNINIT),
         })
     }
@@ -1250,7 +1251,7 @@
             <span class="kw">let </span>worker_time = Worker::current_time().unwrap();
             <span class="kw">if </span>shim_time != worker_time {
                 <span class="macro">trace!</span>(
-                    <span class="string">&quot;Updating time from {worker_time:?} to {shim_time:?} (+{:?})&quot;</span>,
+                    <span class="string">"Updating time from {worker_time:?} to {shim_time:?} (+{:?})"</span>,
                     shim_time - worker_time
                 );
             }
@@ -1267,7 +1268,7 @@
             <span class="kw">return</span>;
         }
         <span class="self">self</span>.wait_for_native_exit();
-        <span class="macro">trace!</span>(<span class="string">&quot;child {:?} exited&quot;</span>, <span class="self">self</span>.native_tid());
+        <span class="macro">trace!</span>(<span class="string">"child {:?} exited"</span>, <span class="self">self</span>.native_tid());
         <span class="self">self</span>.is_running.set(<span class="bool-val">false</span>);
     }
 
@@ -1277,12 +1278,12 @@
         <span class="kw">let </span>native_tid = <span class="self">self</span>.native_tid();
 
         <span class="comment">// We use `tgkill` and `/proc/x/stat` to detect whether the thread is still running,
-        // looping until it doesn&#39;t.
+        // looping until it doesn't.
         //
         // Alternatively we could use `set_tid_address` or `set_robust_list` to
         // be notified on a futex. Those are a bit underdocumented and fragile,
-        // though. In practice this shouldn&#39;t have to loop significantly.
-        </span><span class="macro">trace!</span>(<span class="string">&quot;Waiting for native thread {native_pid}.{native_tid} to exit&quot;</span>);
+        // though. In practice this shouldn't have to loop significantly.
+        </span><span class="macro">trace!</span>(<span class="string">"Waiting for native thread {native_pid}.{native_tid} to exit"</span>);
         <span class="kw">loop </span>{
             <span class="kw">if </span><span class="self">self</span>.ipc_shmem.from_plugin().writer_is_closed() {
                 <span class="comment">// This indicates that the whole process has stopped executing;
@@ -1291,27 +1292,27 @@
             }
             <span class="kw">match </span>tgkill(native_pid, native_tid, <span class="prelude-val">None</span>) {
                 <span class="prelude-val">Err</span>(Errno::ESRCH) =&gt; {
-                    <span class="macro">trace!</span>(<span class="string">&quot;Thread is done exiting; proceeding with cleanup&quot;</span>);
+                    <span class="macro">trace!</span>(<span class="string">"Thread is done exiting; proceeding with cleanup"</span>);
                     <span class="kw">break</span>;
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; {
-                    <span class="macro">error!</span>(<span class="string">&quot;Unexpected tgkill error: {:?}&quot;</span>, e);
+                    <span class="macro">error!</span>(<span class="string">"Unexpected tgkill error: {:?}"</span>, e);
                     <span class="kw">break</span>;
                 }
                 <span class="prelude-val">Ok</span>(()) <span class="kw">if </span>native_pid == native_tid =&gt; {
                     <span class="comment">// Thread leader could be in a zombie state waiting for
                     // the other threads to exit.
-                    </span><span class="kw">let </span>filename = <span class="macro">format!</span>(<span class="string">&quot;/proc/{native_pid}/stat&quot;</span>);
+                    </span><span class="kw">let </span>filename = <span class="macro">format!</span>(<span class="string">"/proc/{native_pid}/stat"</span>);
                     <span class="kw">let </span>stat = <span class="kw">match </span>std::fs::read_to_string(filename) {
                         <span class="prelude-val">Err</span>(e) =&gt; {
                             <span class="macro">assert!</span>(e.kind() == std::io::ErrorKind::NotFound);
-                            <span class="macro">trace!</span>(<span class="string">&quot;tgl {native_pid} is fully dead&quot;</span>);
+                            <span class="macro">trace!</span>(<span class="string">"tgl {native_pid} is fully dead"</span>);
                             <span class="kw">break</span>;
                         }
                         <span class="prelude-val">Ok</span>(s) =&gt; s,
                     };
-                    <span class="kw">if </span>stat.contains(<span class="string">&quot;) Z&quot;</span>) {
-                        <span class="macro">trace!</span>(<span class="string">&quot;tgl {native_pid} is a zombie&quot;</span>);
+                    <span class="kw">if </span>stat.contains(<span class="string">") Z"</span>) {
+                        <span class="macro">trace!</span>(<span class="string">"tgl {native_pid} is a zombie"</span>);
                         <span class="kw">break</span>;
                     }
                     <span class="comment">// Still alive and in a non-zombie state; continue
@@ -1346,14 +1347,14 @@
         shmem_block: <span class="kw-2">&amp;</span>ShMemBlock&lt;IPCData&gt;,
     ) -&gt; nix::Result&lt;nix::unistd::Pid&gt; {
         <span class="comment">// Preemptively check for likely reasons that execve might fail.
-        // In particular we want to ensure that we  don&#39;t launch a statically
-        // linked executable, since we&#39;d then deadlock the whole simulation
+        // In particular we want to ensure that we  don't launch a statically
+        // linked executable, since we'd then deadlock the whole simulation
         // waiting for the plugin to initialize.
         //
-        // This is also helpful since we can&#39;t retrieve specific `execve` errors
+        // This is also helpful since we can't retrieve specific `execve` errors
         // through `posix_spawn`.
         </span>verify_plugin_path(std::ffi::OsStr::from_bytes(plugin_path.to_bytes())).map_err(|e| {
-            <span class="macro">debug!</span>(<span class="string">&quot;Failed to verify path {plugin_path:?}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Failed to verify path {plugin_path:?}"</span>);
             <span class="kw">match </span>e {
                 <span class="comment">// execve(2): ENOENT The file pathname [...] does not exist.
                 </span>VerifyPluginPathError::NotFound =&gt; Errno::ENOENT,
@@ -1377,9 +1378,9 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// posix_spawn is documented as taking pointers to *mutable* char for argv and
-        // envv. It *probably* doesn&#39;t actually mutate them, but we
-        // conservatively give it what it asks for. We have to &quot;reconstitute&quot;
-        // the CString&#39;s after the fork + exec to deallocate them.
+        // envv. It *probably* doesn't actually mutate them, but we
+        // conservatively give it what it asks for. We have to "reconstitute"
+        // the CString's after the fork + exec to deallocate them.
         </span><span class="kw">let </span>argv_ptrs: Vec&lt;<span class="kw-2">*mut </span>i8&gt; = argv
             .into_iter()
             .map(CString::into_raw)
@@ -1408,7 +1409,7 @@
         })
         .unwrap();
 
-        <span class="comment">// Dup straceFd; the dup&#39;d descriptor won&#39;t have O_CLOEXEC set.
+        <span class="comment">// Dup straceFd; the dup'd descriptor won't have O_CLOEXEC set.
         //
         // Since dup2 is a no-op when the new and old file descriptors are equal, we have
         // to arrange to call dup2 twice - first to a temporary descriptor, and then back
@@ -1420,7 +1421,7 @@
         // Once we drop support for platforms with glibc older than 2.29, we *could*
         // consider taking advantage of a new feature that would let us just use a
         // single `posix_spawn_file_actions_adddup2` call with equal descriptors.
-        // OTOH it&#39;s a non-standard extension, and I think ultimately uses the same
+        // OTOH it's a non-standard extension, and I think ultimately uses the same
         // number of syscalls, so it might be better to continue using this slightly
         // more awkward method anyway.
         // https://github.com/bminor/glibc/commit/805334b26c7e6e83557234f2008497c72176a6cd
@@ -1466,7 +1467,7 @@
         Errno::result(<span class="kw">unsafe </span>{ libc::posix_spawnattr_init(<span class="kw-2">&amp;mut </span>spawn_attr) }).unwrap();
 
         <span class="comment">// In versions of glibc before 2.24, we need this to tell posix_spawn
-        // to use vfork instead of fork. In later versions it&#39;s a no-op.
+        // to use vfork instead of fork. In later versions it's a no-op.
         </span>Errno::result(<span class="kw">unsafe </span>{
             libc::posix_spawnattr_setflags(
                 <span class="kw-2">&amp;mut </span>spawn_attr,
@@ -1494,9 +1495,9 @@
         // buffer should be large enough that we can write it all without having
         // to wait for data to be read.
         </span><span class="kw">if </span>child_pid_res.is_ok() {
-            <span class="comment">// we avoid using the nix write wrapper here, since we can&#39;t guarantee
+            <span class="comment">// we avoid using the nix write wrapper here, since we can't guarantee
             // that all bytes of the serialized shmem block are initd, and hence
-            // can&#39;t safely construct the &amp;[u8] that the nix wrapper wants.
+            // can't safely construct the &amp;[u8] that the nix wrapper wants.
             </span><span class="kw">let </span>serialized = shmem_block.serialize();
             <span class="kw">let </span>serialized_bytes = shadow_pod::as_u8_slice(<span class="kw-2">&amp;</span>serialized);
             <span class="kw">let </span>written = nix::errno::Errno::result(<span class="kw">unsafe </span>{
@@ -1507,7 +1508,7 @@
                 )
             })
             .unwrap();
-            <span class="comment">// TODO: loop if needed. Shouldn&#39;t be in practice, though.
+            <span class="comment">// TODO: loop if needed. Shouldn't be in practice, though.
             </span><span class="macro">assert_eq!</span>(written, isize::try_from(serialized_bytes.len()).unwrap());
             nix::unistd::close(stdin_writer).unwrap();
             nix::unistd::close(stdin_reader).unwrap();
@@ -1532,7 +1533,7 @@
         );
 
         <span class="macro">debug!</span>(
-            <span class="string">&quot;starting process {}, result: {child_pid_res:?}&quot;</span>,
+            <span class="string">"starting process {}, result: {child_pid_res:?}"</span>,
             plugin_path.to_str().unwrap()
         );
 
@@ -1550,7 +1551,7 @@
             nix::sys::signal::kill(<span class="self">self</span>.native_pid(), nix::sys::signal::Signal::SIGKILL)
         {
             <span class="macro">log::warn!</span>(
-                <span class="string">&quot;Couldn&#39;t kill managed process {}. kill: {:?}&quot;</span>,
+                <span class="string">"Couldn't kill managed process {}. kill: {:?}"</span>,
                 <span class="self">self</span>.native_pid(),
                 err
             );

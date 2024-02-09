@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -257,7 +258,7 @@
 //! must occur in parallel with minimal overhead. With a typical thread pool you might create a new
 //! task for each host and run all of the tasks on the thread pool, but this is too slow for Shadow
 //! and results in a huge runtime performance loss (simulation run time increases by over 10x). Most
-//! thread pools also don&#39;t have a method of specifying which task (and therefore which host) runs
+//! thread pools also don't have a method of specifying which task (and therefore which host) runs
 //! on which CPU core, which is an important performance optimization on NUMA architectures.
 //!
 //! The scheduler in this library uses a thread pool optimized for running the same task across all
@@ -268,9 +269,9 @@
 //! switched out.
 //!
 //! The [`Scheduler`] provides a simple wrapper to make it easier to support both schedulers, which
-//! is useful if you want to choose one at runtime. The schedulers use a &quot;[scoped
-//! threads][std::thread::scope]&quot; design to simplify the calling code. This helps the calling code
-//! share data with the scheduler without requiring the caller to use locking or &quot;unsafe&quot; to do so.
+//! is useful if you want to choose one at runtime. The schedulers use a "[scoped
+//! threads][std::thread::scope]" design to simplify the calling code. This helps the calling code
+//! share data with the scheduler without requiring the caller to use locking or "unsafe" to do so.
 //!
 //! ```
 //! # use scheduler::thread_per_core::ThreadPerCoreSched;
@@ -290,15 +291,15 @@
 //!     ThreadPerCoreSched::new(&amp;[None, None], hosts, false);
 //!
 //! // the counter is owned by this main thread with a non-static lifetime, but
-//! // because of the &quot;scoped threads&quot; design it can be accessed by the task in
-//! // the scheduler&#39;s threads
+//! // because of the "scoped threads" design it can be accessed by the task in
+//! // the scheduler's threads
 //! let counter = AtomicU32::new(0);
 //!
 //! // run one round of the scheduler
 //! sched.scope(|s| {
 //!     s.run_with_hosts(|thread_idx, hosts| {
 //!         hosts.for_each(|mut host| {
-//!             println!(&quot;Running host {} on thread {thread_idx}&quot;, host.id());
+//!             println!("Running host {} on thread {thread_idx}", host.id());
 //!             host.run_events();
 //!             counter.fetch_add(1, Ordering::Relaxed);
 //!             host
@@ -307,15 +308,15 @@
 //!
 //!     // we can do other processing here in the main thread while we wait for the
 //!     // above task to finish running
-//!     println!(&quot;Waiting for the task to finish on all threads&quot;);
+//!     println!("Waiting for the task to finish on all threads");
 //! });
 //!
-//! println!(&quot;Finished processing the hosts&quot;);
+//! println!("Finished processing the hosts");
 //!
 //! // the `counter.fetch_add(1)` was run once for each host
 //! assert_eq!(counter.load(Ordering::Relaxed), 3);
 //!
-//! // we&#39;re done with the scheduler, so join all of its threads
+//! // we're done with the scheduler, so join all of its threads
 //! sched.join();
 //! ```
 //!
@@ -323,12 +324,12 @@
 //! [`ThreadPerHostSched`] scheduler. If no one finds a situation where the `ThreadPerHostSched` is
 //! faster, then it should probably be removed sometime in the future.
 //!
-//! It&#39;s probably good to [`box`][Box] the host since the schedulers move the host frequently, and it&#39;s
+//! It's probably good to [`box`][Box] the host since the schedulers move the host frequently, and it's
 //! faster to move a pointer than the entire host object.
 //!
 //! Unsafe code should only be written in the thread pools. The schedulers themselves should be
 //! written in only safe code using the safe interfaces provided by the thread pools. If new
-//! features are needed in the scheduler, it&#39;s recommended to try to add them to the scheduler
+//! features are needed in the scheduler, it's recommended to try to add them to the scheduler
 //! itself and not modify any of the thread pools. The thread pools are complicated and have
 //! delicate lifetime [sub-typing/variance][variance] handling, which is easy to break and would
 //! enable the user of the scheduler to invoke undefined behaviour.
@@ -390,9 +391,9 @@
 
     <span class="doccomment">/// Create a scope for any task run on the scheduler. The current thread will block at the end
     /// of the scope until the task has completed.
-    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">&#39;scope</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span><span class="kw-2">mut </span><span class="self">self</span>,
-        f: <span class="kw">impl for</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; FnOnce(SchedulerScope&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="lifetime">&#39;scope</span>, HostType&gt;) + <span class="lifetime">&#39;scope</span>,
+    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">'scope</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'scope </span><span class="kw-2">mut </span><span class="self">self</span>,
+        f: <span class="kw">impl for</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; FnOnce(SchedulerScope&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, <span class="lifetime">'scope</span>, HostType&gt;) + <span class="lifetime">'scope</span>,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::ThreadPerHost(sched) =&gt; sched.scope(<span class="kw">move </span>|s| f(SchedulerScope::ThreadPerHost(s))),
@@ -410,15 +411,15 @@
 }
 
 <span class="doccomment">/// A scope for any task run on the scheduler.
-</span><span class="kw">pub enum </span>SchedulerScope&lt;<span class="lifetime">&#39;sched</span>, <span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType: Host&gt; {
-    ThreadPerHost(thread_per_host::SchedulerScope&lt;<span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType&gt;),
-    ThreadPerCore(thread_per_core::SchedulerScope&lt;<span class="lifetime">&#39;sched</span>, <span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType&gt;),
+</span><span class="kw">pub enum </span>SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; {
+    ThreadPerHost(thread_per_host::SchedulerScope&lt;<span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt;),
+    ThreadPerCore(thread_per_core::SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;sched</span>, <span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">&#39;sched</span>, <span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt; {
     <span class="doccomment">/// Run the closure on all threads. The closure is given an index of the currently running
     /// thread.
-    </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize) + Sync + Send + <span class="lifetime">&#39;scope</span>) {
+    </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize) + Sync + Send + <span class="lifetime">'scope</span>) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::ThreadPerHost(scope) =&gt; scope.run(f),
             <span class="self">Self</span>::ThreadPerCore(scope) =&gt; scope.run(f),
@@ -431,7 +432,7 @@
     /// The closure must iterate over the provided `HostIter` to completion (until `next()` returns
     /// `None`), otherwise this may panic. The host iterator is not a real [`std::iter::Iterator`],
     /// but rather a fake iterator that behaves like a streaming iterator.
-    </span><span class="kw">pub fn </span>run_with_hosts(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;) + Send + Sync + <span class="lifetime">&#39;scope</span>) {
+    </span><span class="kw">pub fn </span>run_with_hosts(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;) + Send + Sync + <span class="lifetime">'scope</span>) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::ThreadPerHost(scope) =&gt; scope.run_with_hosts(<span class="kw">move </span>|idx, iter| {
                 <span class="kw">let </span><span class="kw-2">mut </span>iter = HostIter::ThreadPerHost(iter);
@@ -460,8 +461,8 @@
     /// time.
     </span><span class="kw">pub fn </span>run_with_data&lt;T&gt;(
         <span class="self">self</span>,
-        data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span>[T],
-        f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;, <span class="kw-2">&amp;</span>T) + Send + Sync + <span class="lifetime">&#39;scope</span>,
+        data: <span class="kw-2">&amp;</span><span class="lifetime">'scope </span>[T],
+        f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;, <span class="kw-2">&amp;</span>T) + Send + Sync + <span class="lifetime">'scope</span>,
     ) <span class="kw">where
         </span>T: Sync,
     {
@@ -479,12 +480,12 @@
 }
 
 <span class="doccomment">/// Supports iterating over all hosts assigned to this thread.
-</span><span class="kw">pub enum </span>HostIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, HostType: Host&gt; {
-    ThreadPerHost(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>thread_per_host::HostIter&lt;HostType&gt;),
-    ThreadPerCore(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>thread_per_core::HostIter&lt;<span class="lifetime">&#39;b</span>, HostType&gt;),
+</span><span class="kw">pub enum </span>HostIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, HostType: Host&gt; {
+    ThreadPerHost(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>thread_per_host::HostIter&lt;HostType&gt;),
+    ThreadPerCore(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>thread_per_core::HostIter&lt;<span class="lifetime">'b</span>, HostType&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, HostType: Host&gt; HostIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, HostType&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, HostType: Host&gt; HostIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, HostType&gt; {
     <span class="doccomment">/// For each [`Host`], calls `f` with each `Host`. The `Host` must be returned by the closure.
     </span><span class="kw">pub fn </span>for_each&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F)
     <span class="kw">where

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/socket.rs`."><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/socket.rs`."><title>socket.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1078,15 +1079,15 @@
                 <span class="kw">let </span>socket_type = <span class="kw">match </span>UnixSocketType::try_from(socket_type) {
                     <span class="prelude-val">Ok</span>(x) =&gt; x,
                     <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, e);
+                        <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
                     }
                 };
 
-                <span class="comment">// unix sockets don&#39;t support any protocols
+                <span class="comment">// unix sockets don't support any protocols
                 </span><span class="kw">if </span>protocol != <span class="number">0 </span>{
                     <span class="macro">warn!</span>(
-                        <span class="string">&quot;Unsupported socket protocol {}, we only support default protocol 0&quot;</span>,
+                        <span class="string">"Unsupported socket protocol {}, we only support default protocol 0"</span>,
                         protocol
                     );
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
@@ -1101,7 +1102,7 @@
             libc::AF_INET =&gt; <span class="kw">match </span>socket_type {
                 libc::SOCK_STREAM =&gt; {
                     <span class="kw">if </span>protocol != <span class="number">0 </span>&amp;&amp; protocol != libc::IPPROTO_TCP {
-                        <span class="macro">log::debug!</span>(<span class="string">&quot;Unsupported inet stream socket protocol {protocol}&quot;</span>);
+                        <span class="macro">log::debug!</span>(<span class="string">"Unsupported inet stream socket protocol {protocol}"</span>);
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
                     }
 
@@ -1116,7 +1117,7 @@
                 }
                 libc::SOCK_DGRAM =&gt; {
                     <span class="kw">if </span>protocol != <span class="number">0 </span>&amp;&amp; protocol != libc::IPPROTO_UDP {
-                        <span class="macro">log::debug!</span>(<span class="string">&quot;Unsupported inet dgram socket protocol {protocol}&quot;</span>);
+                        <span class="macro">log::debug!</span>(<span class="string">"Unsupported inet dgram socket protocol {protocol}"</span>);
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
                     }
                     <span class="kw">let </span>send_buf_size = ctx.objs.host.params.init_sock_send_buf_size;
@@ -1142,7 +1143,7 @@
             .register_descriptor(desc)
             .or(<span class="prelude-val">Err</span>(Errno::ENFILE))<span class="question-mark">?</span>;
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Created socket fd {}&quot;</span>, fd);
+        <span class="macro">log::trace!</span>(<span class="string">"Created socket fd {}"</span>, fd);
 
         <span class="prelude-val">Ok</span>(fd.val().into())
     }
@@ -1156,12 +1157,12 @@
         addr_len: libc::socklen_t,
     ) -&gt; SyscallResult {
         <span class="kw">let </span>file = {
-            <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+            <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
             <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
-                <span class="comment">// we don&#39;t have any C socket objects
+                <span class="comment">// we don't have any C socket objects
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
             };
 
@@ -1174,7 +1175,7 @@
 
         <span class="kw">let </span>addr = io::read_sockaddr(<span class="kw-2">&amp;</span>ctx.objs.process.memory_borrow(), addr_ptr, addr_len)<span class="question-mark">?</span>;
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Attempting to bind fd {} to {:?}&quot;</span>, fd, addr);
+        <span class="macro">log::trace!</span>(<span class="string">"Attempting to bind fd {} to {:?}"</span>, fd, addr);
 
         <span class="kw">let </span><span class="kw-2">mut </span>rng = ctx.objs.host.random_mut();
         <span class="kw">let </span>net_ns = ctx.objs.host.network_namespace_borrow();
@@ -1201,17 +1202,17 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">let </span>CompatFile::New(file) = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() <span class="kw">else </span>{
-                    <span class="comment">// we don&#39;t have any C socket objects
+                    <span class="comment">// we don't have any C socket objects
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
                 };
                 file.clone()
@@ -1228,7 +1229,7 @@
 
         <span class="kw">let </span>addr = io::read_sockaddr(<span class="kw-2">&amp;</span>mem, addr_ptr, addr_len)<span class="question-mark">?</span>;
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Attempting to send {} bytes to {:?}&quot;</span>, buf_len, addr);
+        <span class="macro">log::trace!</span>(<span class="string">"Attempting to send {} bytes to {:?}"</span>, buf_len, addr);
 
         <span class="kw">let </span>iov = IoVec {
             base: buf_ptr,
@@ -1242,7 +1243,7 @@
             flags,
         };
 
-        <span class="comment">// call the socket&#39;s sendmsg(), and run any resulting events
+        <span class="comment">// call the socket's sendmsg(), and run any resulting events
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
             CallbackQueue::queue_and_run(|cb_queue| {
                 Socket::sendmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
@@ -1274,13 +1275,13 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">match </span><span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() {
@@ -1306,11 +1307,11 @@
             addr: io::read_sockaddr(<span class="kw-2">&amp;</span>mem, msg.name, msg.name_len)<span class="question-mark">?</span>,
             iovs: <span class="kw-2">&amp;</span>msg.iovs,
             control_ptr: ForeignArrayPtr::new(msg.control, msg.control_len),
-            <span class="comment">// note: &quot;the msg_flags field is ignored&quot; for sendmsg; see send(2)
+            <span class="comment">// note: "the msg_flags field is ignored" for sendmsg; see send(2)
             </span>flags,
         };
 
-        <span class="comment">// call the socket&#39;s sendmsg(), and run any resulting events
+        <span class="comment">// call the socket's sendmsg(), and run any resulting events
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
             CallbackQueue::queue_and_run(|cb_queue| {
                 Socket::sendmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
@@ -1346,17 +1347,17 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">let </span>CompatFile::New(file) = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() <span class="kw">else </span>{
-                    <span class="comment">// we don&#39;t have any C socket objects
+                    <span class="comment">// we don't have any C socket objects
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
                 };
                 file.clone()
@@ -1369,7 +1370,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>mem = ctx.objs.process.memory_borrow_mut();
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Attempting to recv {} bytes&quot;</span>, buf_len);
+        <span class="macro">log::trace!</span>(<span class="string">"Attempting to recv {} bytes"</span>, buf_len);
 
         <span class="kw">let </span>iov = IoVec {
             base: buf_ptr,
@@ -1382,7 +1383,7 @@
             flags,
         };
 
-        <span class="comment">// call the socket&#39;s recvmsg(), and run any resulting events
+        <span class="comment">// call the socket's recvmsg(), and run any resulting events
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
             CallbackQueue::queue_and_run(|cb_queue| {
                 Socket::recvmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, cb_queue)
@@ -1423,13 +1424,13 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">match </span><span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() {
@@ -1455,7 +1456,7 @@
             flags,
         };
 
-        <span class="comment">// call the socket&#39;s recvmsg(), and run any resulting events
+        <span class="comment">// call the socket's recvmsg(), and run any resulting events
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
             CallbackQueue::queue_and_run(|cb_queue| {
                 Socket::recvmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, cb_queue)
@@ -1499,12 +1500,12 @@
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
     ) -&gt; SyscallResult {
         <span class="kw">let </span>addr_to_write: <span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt; = {
-            <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+            <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
             <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
-                <span class="comment">// we don&#39;t have any C socket objects
+                <span class="comment">// we don't have any C socket objects
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
             };
 
@@ -1521,7 +1522,7 @@
             socket.getsockname()<span class="question-mark">?
         </span>};
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Returning socket address of {:?}&quot;</span>, addr_to_write);
+        <span class="macro">debug!</span>(<span class="string">"Returning socket address of {:?}"</span>, addr_to_write);
         io::write_sockaddr_and_len(
             <span class="kw-2">&amp;mut </span>ctx.objs.process.memory_borrow_mut(),
             addr_to_write.as_ref(),
@@ -1541,12 +1542,12 @@
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
     ) -&gt; SyscallResult {
         <span class="kw">let </span>addr_to_write = {
-            <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+            <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
             <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
-                <span class="comment">// we don&#39;t have any C socket objects
+                <span class="comment">// we don't have any C socket objects
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
             };
 
@@ -1565,7 +1566,7 @@
             addr_to_write
         };
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Returning peer address of {:?}&quot;</span>, addr_to_write);
+        <span class="macro">debug!</span>(<span class="string">"Returning peer address of {:?}"</span>, addr_to_write);
         io::write_sockaddr_and_len(
             <span class="kw-2">&amp;mut </span>ctx.objs.process.memory_borrow_mut(),
             addr_to_write.as_ref(),
@@ -1582,12 +1583,12 @@
         fd: std::ffi::c_int,
         backlog: std::ffi::c_int,
     ) -&gt; SyscallResult {
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+        <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
-            <span class="comment">// we don&#39;t have any C socket objects
+            <span class="comment">// we don't have any C socket objects
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 
@@ -1622,17 +1623,17 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">let </span>CompatFile::New(file) = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() <span class="kw">else </span>{
-                    <span class="comment">// we don&#39;t have any C socket objects
+                    <span class="comment">// we don't have any C socket objects
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
                 };
                 file.clone()
@@ -1666,17 +1667,17 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">let </span>CompatFile::New(file) = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() <span class="kw">else </span>{
-                    <span class="comment">// we don&#39;t have any C socket objects
+                    <span class="comment">// we don't have any C socket objects
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
                 };
                 file.clone()
@@ -1710,8 +1711,8 @@
         </span><span class="kw">let </span>flags = <span class="kw">match </span>SockFlag::from_bits(flags) {
             <span class="prelude-val">Some</span>(x) =&gt; x,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="comment">// linux doesn&#39;t return an error if there are unexpected flags
-                </span><span class="macro">warn!</span>(<span class="string">&quot;Invalid recvfrom flags: {}&quot;</span>, flags);
+                <span class="comment">// linux doesn't return an error if there are unexpected flags
+                </span><span class="macro">warn!</span>(<span class="string">"Invalid recvfrom flags: {}"</span>, flags);
                 SockFlag::from_bits_truncate(flags)
             }
         };
@@ -1727,7 +1728,7 @@
 
         <span class="kw">let </span>file_status = socket.borrow().status();
 
-        <span class="comment">// if the syscall would block and it&#39;s a blocking descriptor
+        <span class="comment">// if the syscall would block and it's a blocking descriptor
         </span><span class="kw">if </span>result.as_ref().err() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Errno::EWOULDBLOCK.into())
             &amp;&amp; !file_status.contains(FileStatus::NONBLOCK)
         {
@@ -1742,7 +1743,7 @@
 
         <span class="kw">let </span>from_addr = {
             <span class="kw">let </span>File::Socket(new_socket) = new_socket.inner_file() <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;Accepted file should be a socket&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"Accepted file should be a socket"</span>);
             };
             new_socket.borrow().getpeername().unwrap()
         };
@@ -1793,17 +1794,17 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">let </span>CompatFile::New(file) = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() <span class="kw">else </span>{
-                    <span class="comment">// we don&#39;t have any C socket objects
+                    <span class="comment">// we don't have any C socket objects
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
                 };
                 file.clone()
@@ -1844,12 +1845,12 @@
         fd: std::ffi::c_int,
         how: std::ffi::c_int,
     ) -&gt; SyscallResult {
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+        <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
-            <span class="comment">// we don&#39;t have any C socket objects
+            <span class="comment">// we don't have any C socket objects
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 
@@ -1887,22 +1888,22 @@
 
         <span class="comment">// only AF_UNIX (AF_LOCAL) is supported on Linux (and technically AF_TIPC)
         </span><span class="kw">if </span>domain != libc::AF_UNIX {
-            <span class="macro">warn!</span>(<span class="string">&quot;Domain {} is not supported for socketpair()&quot;</span>, domain);
+            <span class="macro">warn!</span>(<span class="string">"Domain {} is not supported for socketpair()"</span>, domain);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into());
         }
 
         <span class="kw">let </span>socket_type = <span class="kw">match </span>UnixSocketType::try_from(socket_type) {
             <span class="prelude-val">Ok</span>(x) =&gt; x,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;{}&quot;</span>, e);
+                <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
             }
         };
 
-        <span class="comment">// unix sockets don&#39;t support any protocols
+        <span class="comment">// unix sockets don't support any protocols
         </span><span class="kw">if </span>protocol != <span class="number">0 </span>{
             <span class="macro">warn!</span>(
-                <span class="string">&quot;Unsupported socket protocol {}, we only support default protocol 0&quot;</span>,
+                <span class="string">"Unsupported socket protocol {}, we only support default protocol 0"</span>,
                 protocol
             );
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
@@ -1942,7 +1943,7 @@
 
         <span class="comment">// register the file descriptors
         </span><span class="kw">let </span><span class="kw-2">mut </span>dt = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
-        <span class="comment">// unwrap here since the error handling would be messy (need to deregister) and we shouldn&#39;t
+        <span class="comment">// unwrap here since the error handling would be messy (need to deregister) and we shouldn't
         // ever need to worry about this in practice
         </span><span class="kw">let </span>fd_1 = dt.register_descriptor(desc_1).unwrap();
         <span class="kw">let </span>fd_2 = dt.register_descriptor(desc_2).unwrap();
@@ -1980,12 +1981,12 @@
         optval_ptr: ForeignPtr&lt;()&gt;,
         optlen_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
     ) -&gt; SyscallResult {
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+        <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
-            <span class="comment">// we don&#39;t have any C socket objects
+            <span class="comment">// we don't have any C socket objects
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 
@@ -2007,9 +2008,9 @@
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span>optlen_new &gt; optlen {
-            <span class="comment">// this is probably a bug in the socket&#39;s getsockopt implementation
+            <span class="comment">// this is probably a bug in the socket's getsockopt implementation
             </span><span class="macro">log::warn!</span>(
-                <span class="string">&quot;Attempting to return an optlen {} that&#39;s greater than the provided optlen {}&quot;</span>,
+                <span class="string">"Attempting to return an optlen {} that's greater than the provided optlen {}"</span>,
                 optlen_new,
                 optlen
             );
@@ -2033,12 +2034,12 @@
         optval_ptr: ForeignPtr&lt;()&gt;,
         optlen: libc::socklen_t,
     ) -&gt; SyscallResult {
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+        <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
-            <span class="comment">// we don&#39;t have any C socket objects
+            <span class="comment">// we don't have any C socket objects
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 

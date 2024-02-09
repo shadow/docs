@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/unistd.rs`."><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/unistd.rs`."><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -907,12 +908,12 @@
 <span class="kw">impl </span>SyscallHandler {
     <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* fd */ </span>std::ffi::c_int)]
     </span><span class="kw">pub fn </span>close(ctx: <span class="kw-2">&amp;mut </span>SyscallContext, fd: std::ffi::c_int) -&gt; SyscallResult {
-        <span class="macro">trace!</span>(<span class="string">&quot;Trying to close fd {}&quot;</span>, fd);
+        <span class="macro">trace!</span>(<span class="string">"Trying to close fd {}"</span>, fd);
 
         <span class="kw">let </span>fd = fd.try_into().or(<span class="prelude-val">Err</span>(linux_api::errno::Errno::EBADF))<span class="question-mark">?</span>;
 
-        <span class="comment">// according to &quot;man 2 close&quot;, in Linux any errors that may occur will happen after the fd is
-        // released, so we should always deregister the descriptor even if there&#39;s an error while
+        <span class="comment">// according to "man 2 close", in Linux any errors that may occur will happen after the fd is
+        // released, so we should always deregister the descriptor even if there's an error while
         // closing
         </span><span class="kw">let </span>desc = ctx
             .objs
@@ -932,7 +933,7 @@
 
     <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* oldfd */ </span>std::ffi::c_int)]
     </span><span class="kw">pub fn </span>dup(ctx: <span class="kw-2">&amp;mut </span>SyscallContext, fd: std::ffi::c_int) -&gt; SyscallResult {
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+        <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span><span class="kw-2">mut </span>desc_table = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
@@ -952,12 +953,12 @@
         old_fd: std::ffi::c_int,
         new_fd: std::ffi::c_int,
     ) -&gt; SyscallResult {
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+        <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span><span class="kw-2">mut </span>desc_table = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, old_fd)<span class="question-mark">?</span>;
 
-        <span class="comment">// from &#39;man 2 dup2&#39;: &quot;If oldfd is a valid file descriptor, and newfd has the same
-        // value as oldfd, then dup2() does nothing, and returns newfd&quot;
+        <span class="comment">// from 'man 2 dup2': "If oldfd is a valid file descriptor, and newfd has the same
+        // value as oldfd, then dup2() does nothing, and returns newfd"
         </span><span class="kw">if </span>old_fd == new_fd {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(new_fd.into());
         }
@@ -970,8 +971,8 @@
 
         <span class="comment">// close the replaced descriptor
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replaced_desc) = replaced_desc {
-            <span class="comment">// from &#39;man 2 dup2&#39;: &quot;If newfd was open, any errors that would have been reported at
-            // close(2) time are lost&quot;
+            <span class="comment">// from 'man 2 dup2': "If newfd was open, any errors that would have been reported at
+            // close(2) time are lost"
             </span>CallbackQueue::queue_and_run(|cb_queue| replaced_desc.close(ctx.objs.host, cb_queue));
         }
 
@@ -987,11 +988,11 @@
         new_fd: std::ffi::c_int,
         flags: std::ffi::c_int,
     ) -&gt; SyscallResult {
-        <span class="comment">// get the descriptor, or return early if it doesn&#39;t exist
+        <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span><span class="kw-2">mut </span>desc_table = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, old_fd)<span class="question-mark">?</span>;
 
-        <span class="comment">// from &#39;man 2 dup3&#39;: &quot;If oldfd equals newfd, then dup3() fails with the error EINVAL&quot;
+        <span class="comment">// from 'man 2 dup3': "If oldfd equals newfd, then dup3() fails with the error EINVAL"
         </span><span class="kw">if </span>old_fd == new_fd {
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::EINVAL.into());
         }
@@ -999,7 +1000,7 @@
         <span class="kw">let </span>new_fd = new_fd.try_into().or(<span class="prelude-val">Err</span>(linux_api::errno::Errno::EBADF))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = OFlag::from_bits(flags) <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;Invalid flags: {flags}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Invalid flags: {flags}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::EINVAL.into());
         };
 
@@ -1010,10 +1011,10 @@
             <span class="kw">match </span>flag {
                 OFlag::O_CLOEXEC =&gt; descriptor_flags.insert(DescriptorFlags::FD_CLOEXEC),
                 x <span class="kw">if </span>x == OFlag::empty() =&gt; {
-                    <span class="comment">// The &quot;empty&quot; flag is always present. Ignore.
+                    <span class="comment">// The "empty" flag is always present. Ignore.
                 </span>}
                 <span class="kw">_ </span>=&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;Invalid flags for dup3: {flags:?}&quot;</span>);
+                    <span class="macro">debug!</span>(<span class="string">"Invalid flags for dup3: {flags:?}"</span>);
                     <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::EINVAL.into());
                 }
             }
@@ -1025,8 +1026,8 @@
 
         <span class="comment">// close the replaced descriptor
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replaced_desc) = replaced_desc {
-            <span class="comment">// from &#39;man 2 dup3&#39;: &quot;If newfd was open, any errors that would have been reported at
-            // close(2) time are lost&quot;
+            <span class="comment">// from 'man 2 dup3': "If newfd was open, any errors that would have been reported at
+            // close(2) time are lost"
             </span>CallbackQueue::queue_and_run(|cb_queue| replaced_desc.close(ctx.objs.host, cb_queue));
         }
 
@@ -1048,18 +1049,18 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">match </span><span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() {
                     CompatFile::New(file) =&gt; file.clone(),
-                    <span class="comment">// if it&#39;s a legacy file, use the C syscall handler instead
+                    <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
                         <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_read, ctx).map(Into::into);
@@ -1096,18 +1097,18 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">match </span><span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() {
                     CompatFile::New(file) =&gt; file.clone(),
-                    <span class="comment">// if it&#39;s a legacy file, use the C syscall handler instead
+                    <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
                         <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_pread64, ctx)
@@ -1158,18 +1159,18 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">match </span><span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() {
                     CompatFile::New(file) =&gt; file.clone(),
-                    <span class="comment">// if it&#39;s a legacy file, use the C syscall handler instead
+                    <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
                         <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_write, ctx).map(Into::into);
@@ -1207,18 +1208,18 @@
             .objs
             .thread
             .syscall_condition()
-            <span class="comment">// if this was for a C descriptor, then there won&#39;t be an active file object
+            <span class="comment">// if this was for a C descriptor, then there won't be an active file object
             </span>.and_then(|x| x.active_file().cloned());
 
         <span class="kw">let </span>file = <span class="kw">match </span>file {
             <span class="comment">// we were previously blocked, so re-use the file from the previous syscall invocation
             </span><span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="comment">// get the file from the descriptor table, or return early if it doesn&#39;t exist
+            <span class="comment">// get the file from the descriptor table, or return early if it doesn't exist
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
                 <span class="kw">match </span><span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() {
                     CompatFile::New(file) =&gt; file.clone(),
-                    <span class="comment">// if it&#39;s a legacy file, use the C syscall handler instead
+                    <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
                         <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_pwrite64, ctx)
@@ -1279,13 +1280,13 @@
         fd_ptr: ForeignPtr&lt;[std::ffi::c_int; <span class="number">2</span>]&gt;,
         flags: i32,
     ) -&gt; SyscallResult {
-        <span class="comment">// make sure they didn&#39;t pass a NULL pointer
+        <span class="comment">// make sure they didn't pass a NULL pointer
         </span><span class="kw">if </span>fd_ptr.is_null() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::EFAULT.into());
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = OFlag::from_bits(flags) <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;Invalid flags: {flags}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Invalid flags: {flags}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -1298,11 +1299,11 @@
                 OFlag::O_DIRECT =&gt; file_flags.insert(FileStatus::DIRECT),
                 OFlag::O_CLOEXEC =&gt; descriptor_flags.insert(DescriptorFlags::FD_CLOEXEC),
                 x <span class="kw">if </span>x == OFlag::empty() =&gt; {
-                    <span class="comment">// The &quot;empty&quot; flag is always present. Ignore.
+                    <span class="comment">// The "empty" flag is always present. Ignore.
                 </span>}
                 unhandled =&gt; {
                     <span class="comment">// TODO: return an error and change this to `warn_once_then_debug`?
-                    </span><span class="macro">warn!</span>(<span class="string">&quot;Ignoring pipe flag {unhandled:?}&quot;</span>);
+                    </span><span class="macro">warn!</span>(<span class="string">"Ignoring pipe flag {unhandled:?}"</span>);
                 }
             }
         }
@@ -1335,7 +1336,7 @@
 
         <span class="comment">// register the file descriptors
         </span><span class="kw">let </span><span class="kw-2">mut </span>dt = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
-        <span class="comment">// unwrap here since the error handling would be messy (need to deregister) and we shouldn&#39;t
+        <span class="comment">// unwrap here since the error handling would be messy (need to deregister) and we shouldn't
         // ever need to worry about this in practice
         </span><span class="kw">let </span>read_fd = dt.register_descriptor(reader_desc).unwrap();
         <span class="kw">let </span>write_fd = dt.register_descriptor(writer_desc).unwrap();
@@ -1529,7 +1530,7 @@
 
         <span class="kw">let </span>_abs_path_storage: <span class="prelude-ty">Option</span>&lt;CString&gt;;
         <span class="kw">let </span>abs_path: <span class="kw-2">&amp;</span>CStr;
-        <span class="kw">if </span>path_bytes_with_nul[<span class="number">0</span>] != <span class="string">b&#39;/&#39; </span>{
+        <span class="kw">if </span>path_bytes_with_nul[<span class="number">0</span>] != <span class="string">b'/' </span>{
             <span class="kw">let </span>base_dir_bytes = base_dir.to_bytes();
 
             <span class="comment">// Maybe TODO: this could be done in place without allocating
@@ -1538,7 +1539,7 @@
                 base_dir_bytes.len() + path_bytes_with_nul.len() + <span class="comment">/*separator*/</span><span class="number">1</span>,
             );
             tmp.extend(base_dir_bytes);
-            tmp.push(<span class="string">b&#39;/&#39;</span>);
+            tmp.push(<span class="string">b'/'</span>);
             tmp.extend(path_bytes_with_nul);
 
             _abs_path_storage = <span class="prelude-val">Some</span>(CString::from_vec_with_nul(tmp).unwrap());
@@ -1576,23 +1577,23 @@
             .map_err(|e| Errno::try_from(e <span class="kw">as </span>i32).unwrap())<span class="question-mark">?</span>;
 
         <span class="comment">// If we get this far, then we should be able to ultimately succeed.
-        // We need a mutable reference to the Process to update it, though, which we can&#39;t
-        // get from here since it&#39;s already borrowed immutably.
+        // We need a mutable reference to the Process to update it, though, which we can't
+        // get from here since it's already borrowed immutably.
         //
-        // So, we return a &quot;blocking&quot; result from this syscall handler, and
+        // So, we return a "blocking" result from this syscall handler, and
         // schedule an event to update the `Process` and resume execution.
         //
-        // It&#39;s possible that other events may affect the `Process` before this one runs.
+        // It's possible that other events may affect the `Process` before this one runs.
         // We try to handle this gracefully; e.g. if the `Process` has exited before this
-        // event runs, we kill and drop the exec&#39;d `ManagedThread` and carry on.
+        // event runs, we kill and drop the exec'd `ManagedThread` and carry on.
         //
-        // TODO: There may be other interactions that aren&#39;t handled correctly.
-        // e.g. if the exec&#39;ing thread ends up handling a signal in the meantime.
-        // * We could add a new state &quot;`Execing`&quot; to `Process`, and force any
+        // TODO: There may be other interactions that aren't handled correctly.
+        // e.g. if the exec'ing thread ends up handling a signal in the meantime.
+        // * We could add a new state "`Execing`" to `Process`, and force any
         // such events to decide how to deal with it. e.g. signal delivery
         // events could reschedule themselves to run after the exec has
         // completed. This seems a bit heavy-weight, though.
-        // * We could add more interior mutability s.t. we don&#39;t need mutable
+        // * We could add more interior mutability s.t. we don't need mutable
         // references to the Thread and Process in order to do the necessary
         // updates. This is a fair bit of extra interior mutability to add
         // though, and has a side-effect of further complicating read-accesses
@@ -1602,14 +1603,14 @@
         // the updates synchronously here. This is currently blocked by the
         // usage of `worker_getCurrentProcess` and `worker_getCurrentThread`,
         // which will panic with incompatible borrow errors if those are
-        // borrowed mutably.  There aren&#39;t many references left to those though,
+        // borrowed mutably.  There aren't many references left to those though,
         // maybe we can eliminate them.
         </span>{
             <span class="kw">let </span>pid = ctx.objs.process.id();
             <span class="kw">let </span>tid = ctx.objs.thread.id();
 
             <span class="comment">// Tasks are currently required to be `Sync` and to implement `Fn`, not just `FnOnce`.
-            // Since `mthread` isn&#39;t `Sync`, we need to wrap it in a `RootedRefCell`.
+            // Since `mthread` isn't `Sync`, we need to wrap it in a `RootedRefCell`.
             // Since we need to consume it, we need to also wrap it in an
             // `Option` and fail at runtime if this actually gets executed
             // multiple times.
@@ -1618,17 +1619,17 @@
             ctx.objs.host.schedule_task_with_delay(
                 TaskRef::new(<span class="kw">move </span>|host| {
                     <span class="comment">// Take the `mthread` out of the captured wrapper.
-                    // This task shouldn&#39;t run multiple times, so this should be
+                    // This task shouldn't run multiple times, so this should be
                     // infallible.
                     </span><span class="kw">let </span>mthread = mthread.borrow_mut(host.root()).take().unwrap();
-                    <span class="comment">// The exec&#39;ing thread&#39;s ID is changed to match the pid, since it&#39;s
+                    <span class="comment">// The exec'ing thread's ID is changed to match the pid, since it's
                     // the new thread-group-leader.
                     </span><span class="kw">let </span>new_tglid = {
                         <span class="kw">let </span><span class="prelude-val">Some</span>(processrc) = host.process_borrow(pid) <span class="kw">else </span>{
                             <span class="comment">// Can happen if another event runs before this one
                             // and causes the Process to exit (e.g. exit_group
                             // called from anothe Thread).
-                            </span><span class="macro">log::debug!</span>(<span class="string">&quot;Process {pid:?} disappeared before exec could complete&quot;</span>);
+                            </span><span class="macro">log::debug!</span>(<span class="string">"Process {pid:?} disappeared before exec could complete"</span>);
                             mthread.kill_and_drop();
                             <span class="kw">return</span>;
                         };
@@ -1701,7 +1702,7 @@
         _ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         error_code: std::ffi::c_int,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Exit group with exit code {error_code}&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"Exit group with exit code {error_code}"</span>);
         <span class="prelude-val">Err</span>(SyscallError::Native)
     }
 
@@ -1735,10 +1736,10 @@
 
         <span class="kw">let </span>nodename = u8_to_i8_slice(ctx.objs.host.info().name.as_bytes());
 
-        <span class="kw">let </span>sysname = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b&quot;shadowsys&quot;</span>[..]);
-        <span class="kw">let </span>release = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b&quot;shadowrelease&quot;</span>[..]);
-        <span class="kw">let </span>version = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b&quot;shadowversion&quot;</span>[..]);
-        <span class="kw">let </span>machine = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b&quot;shadowmachine&quot;</span>[..]);
+        <span class="kw">let </span>sysname = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b"shadowsys"</span>[..]);
+        <span class="kw">let </span>release = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b"shadowrelease"</span>[..]);
+        <span class="kw">let </span>version = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b"shadowversion"</span>[..]);
+        <span class="kw">let </span>machine = u8_to_i8_slice(<span class="kw-2">&amp;</span><span class="string">b"shadowmachine"</span>[..]);
 
         name.sysname[..sysname.len()].copy_from_slice(sysname);
         name.nodename[..nodename.len()].copy_from_slice(nodename);

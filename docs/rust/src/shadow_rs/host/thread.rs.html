@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/thread.rs`."><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/thread.rs`."><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -858,7 +859,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 <span class="kw">use </span><span class="kw">crate</span>::utility::{syscall, IsSend, ObjectCounter};
 
-<span class="doccomment">/// The thread&#39;s state after having been allowed to execute some code.
+<span class="doccomment">/// The thread's state after having been allowed to execute some code.
 </span><span class="attr">#[derive(Debug)]
 #[must_use]
 </span><span class="kw">pub enum </span>ResumeResult {
@@ -879,12 +880,12 @@
     <span class="comment">// If non-NULL, this address should be cleared and futex-awoken on thread exit.
     // See set_tid_address(2).
     </span>tid_address: Cell&lt;ForeignPtr&lt;libc::pid_t&gt;&gt;,
-    shim_shared_memory: ShMemBlock&lt;<span class="lifetime">&#39;static</span>, ThreadShmem&gt;,
+    shim_shared_memory: ShMemBlock&lt;<span class="lifetime">'static</span>, ThreadShmem&gt;,
     syscallhandler: RootedRefCell&lt;SyscallHandler&gt;,
     <span class="doccomment">/// Descriptor table; potentially shared with other threads and processes.
     </span><span class="comment">// TODO: Consider using an Arc instead of RootedRc, particularly if this
     // continues to be the only RootedRc member. Cloning this object currently
-    // only done when creating a child process or thread, and if we don&#39;t have
+    // only done when creating a child process or thread, and if we don't have
     // any RootedRc members we could get rid of the requirement to explicitly
     // drop Thread.
     </span>desc_table: <span class="prelude-ty">Option</span>&lt;RootedRc&lt;RootedRefCell&lt;DescriptorTable&gt;&gt;&gt;,
@@ -900,7 +901,7 @@
 
 <span class="kw">impl </span>Thread {
     <span class="doccomment">/// Minimal wrapper around the native managed thread.
-    </span><span class="kw">pub fn </span>mthread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = ManagedThread&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>mthread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = ManagedThread&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.mthread.borrow()
     }
 
@@ -913,7 +914,7 @@
 
         <span class="comment">// Update shmem
         </span>{
-            <span class="comment">// We potentially need to update the thread-id. It doesn&#39;t currently
+            <span class="comment">// We potentially need to update the thread-id. It doesn't currently
             // have interior mutability, and since mutating it is rare, it seems
             // nicer to get a mutable copy of the current  shared memory, update
             // it, and alloc a new block, vs. adding another layer of interior
@@ -973,13 +974,13 @@
 
             CallbackQueue::queue_and_run(|q| {
                 <span class="kw">for </span>handle <span class="kw">in </span>to_close {
-                    <span class="macro">log::trace!</span>(<span class="string">&quot;Unregistering FD_CLOEXEC descriptor {handle:?}&quot;</span>);
+                    <span class="macro">log::trace!</span>(<span class="string">"Unregistering FD_CLOEXEC descriptor {handle:?}"</span>);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) = desc_table
                         .deregister_descriptor(handle)
                         .unwrap()
                         .close(host, q)
                     {
-                        <span class="macro">log::debug!</span>(<span class="string">&quot;Error closing {handle:?}: {e:?}&quot;</span>);
+                        <span class="macro">log::debug!</span>(<span class="string">"Error closing {handle:?}: {e:?}"</span>);
                     };
                 }
             });
@@ -1050,8 +1051,8 @@
 
     <span class="kw">pub fn </span>syscall_condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SysCallConditionRef&gt; {
         <span class="comment">// We check the for null explicitly here instead of using `as_mut` to
-        // construct and match an `Option&lt;&amp;mut c::SysCallCondition&gt;`, since it&#39;s
-        // difficult to ensure we&#39;re not breaking any Rust aliasing rules when
+        // construct and match an `Option&lt;&amp;mut c::SysCallCondition&gt;`, since it's
+        // difficult to ensure we're not breaking any Rust aliasing rules when
         // constructing a mutable reference.
         </span><span class="kw">let </span>c = <span class="self">self</span>.cond.get().ptr();
         <span class="kw">if </span>c.is_null() {
@@ -1062,8 +1063,8 @@
     }
 
     <span class="kw">pub fn </span>syscall_condition_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SysCallConditionRefMut&gt; {
-        <span class="comment">// We can&#39;t safely use `as_mut` here, since that would construct a mutable reference,
-        // and we can&#39;t prove no other reference exists.
+        <span class="comment">// We can't safely use `as_mut` here, since that would construct a mutable reference,
+        // and we can't prove no other reference exists.
         </span><span class="kw">let </span>c = <span class="self">self</span>.cond.get().ptr();
         <span class="kw">if </span>c.is_null() {
             <span class="prelude-val">None
@@ -1089,18 +1090,18 @@
     }
 
     <span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>descriptor_table_borrow&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        host: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Host,
-    ) -&gt; <span class="kw">impl </span>Deref&lt;Target = DescriptorTable&gt; + <span class="lifetime">&#39;a </span>{
+    </span><span class="kw">pub fn </span>descriptor_table_borrow&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+        host: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Host,
+    ) -&gt; <span class="kw">impl </span>Deref&lt;Target = DescriptorTable&gt; + <span class="lifetime">'a </span>{
         <span class="self">self</span>.desc_table.as_ref().unwrap().borrow(host.root())
     }
 
     <span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>descriptor_table_borrow_mut&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        host: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Host,
-    ) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = DescriptorTable&gt; + <span class="lifetime">&#39;a </span>{
+    </span><span class="kw">pub fn </span>descriptor_table_borrow_mut&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+        host: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Host,
+    ) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = DescriptorTable&gt; + <span class="lifetime">'a </span>{
         <span class="self">self</span>.desc_table.as_ref().unwrap().borrow_mut(host.root())
     }
 
@@ -1223,14 +1224,14 @@
         <span class="prelude-val">Ok</span>(ForeignPtr::from(res))
     }
 
-    <span class="doccomment">/// Allocates some space in the plugin&#39;s memory. Use `get_writeable_ptr` to write to it, and
-    /// `flush` to ensure that the write is flushed to the plugin&#39;s memory.
+    <span class="doccomment">/// Allocates some space in the plugin's memory. Use `get_writeable_ptr` to write to it, and
+    /// `flush` to ensure that the write is flushed to the plugin's memory.
     </span><span class="kw">pub fn </span>malloc_foreign_ptr(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>ProcessContext,
         size: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ForeignPtr&lt;u8&gt;, Errno&gt; {
-        <span class="comment">// SAFETY: No pointer specified; can&#39;t pass a bad one.
+        <span class="comment">// SAFETY: No pointer specified; can't pass a bad one.
         </span><span class="self">self</span>.native_mmap(
             ctx,
             ForeignPtr::null(),
@@ -1278,7 +1279,7 @@
                 tid.into(),
             )),
             desc_table: <span class="prelude-val">Some</span>(desc_table),
-            _counter: ObjectCounter::new(<span class="string">&quot;Thread&quot;</span>),
+            _counter: ObjectCounter::new(<span class="string">"Thread"</span>),
         };
         <span class="prelude-val">Ok</span>(child)
     }
@@ -1289,7 +1290,7 @@
     }
 
     <span class="kw">pub fn </span>resume(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>ProcessContext) -&gt; ResumeResult {
-        <span class="comment">// Ensure the condition isn&#39;t triggered again, but don&#39;t clear it yet.
+        <span class="comment">// Ensure the condition isn't triggered again, but don't clear it yet.
         // Syscall handler can still access.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(c) = <span class="kw">unsafe </span>{ <span class="self">self</span>.cond.get().ptr().as_mut() } {
             <span class="kw">unsafe </span>{ c::syscallcondition_cancel(c) };
@@ -1302,7 +1303,7 @@
             .borrow()
             .resume(<span class="kw-2">&amp;</span>ctx.with_thread(<span class="self">self</span>), <span class="kw-2">&amp;mut </span>syscall_handler);
 
-        <span class="comment">// Now we&#39;re done with old condition.
+        <span class="comment">// Now we're done with old condition.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(c) = <span class="kw">unsafe </span>{
             <span class="self">self</span>.cond
                 .replace(SendPointer::new(std::ptr::null_mut()))
@@ -1421,7 +1422,7 @@
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>ThreadId {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
@@ -1447,12 +1448,12 @@
     /// The return value is the value returned by the syscall *instruction*.
     /// You can map to a corresponding errno value with syscall_rawReturnValueToErrno.
     </span><span class="comment">//
-    // Rust doesn&#39;t support declaring a function with varargs (...), but this
+    // Rust doesn't support declaring a function with varargs (...), but this
     // declaration is ABI compatible with a caller who sees this function declared
     // with arguments `Thread* thread, long n, ...`. We manually generate that declartion
     // in our bindings.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_nativeSyscall(
+    </span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_nativeSyscall(
         thread: <span class="kw-2">*const </span>Thread,
         n: libc::c_long,
         arg1: SysCallReg,
@@ -1477,14 +1478,14 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getID(thread: <span class="kw-2">*const </span>Thread) -&gt; libc::pid_t {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getID(thread: <span class="kw-2">*const </span>Thread) -&gt; libc::pid_t {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         thread.id().into()
     }
 
     <span class="doccomment">/// Gets the `clear_child_tid` attribute, as set by `thread_setTidAddress`.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getTidAddress(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getTidAddress(
         thread: <span class="kw-2">*const </span>Thread,
     ) -&gt; UntypedForeignPtr {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
@@ -1494,7 +1495,7 @@
     <span class="doccomment">/// Returns a typed pointer to memory shared with the shim (which is backed by
     /// the block returned by thread_getShMBlock).
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_sharedMem(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_sharedMem(
         thread: <span class="kw-2">*const </span>Thread,
     ) -&gt; <span class="kw-2">*const </span>ShimShmemThread {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
@@ -1502,28 +1503,28 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getProcess(thread: <span class="kw-2">*const </span>Thread) -&gt; <span class="kw-2">*const </span>Process {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getProcess(thread: <span class="kw-2">*const </span>Thread) -&gt; <span class="kw-2">*const </span>Process {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         Worker::with_active_host(|host| {
             <span class="kw">let </span>process = host.process_borrow(thread.process_id).unwrap();
             <span class="kw">let </span>p: <span class="kw-2">&amp;</span>Process = <span class="kw-2">&amp;</span>process.borrow(host.root());
-            p <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_
-        </span>})
+            std::ptr::from_ref(p)
+        })
         .unwrap()
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getHost(thread: <span class="kw-2">*const </span>Thread) -&gt; <span class="kw-2">*const </span>Host {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getHost(thread: <span class="kw-2">*const </span>Thread) -&gt; <span class="kw-2">*const </span>Host {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         Worker::with_active_host(|host| {
             <span class="macro">assert_eq!</span>(host.id(), thread.host_id());
-            host <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_
-        </span>})
+            std::ptr::from_ref(host)
+        })
         .unwrap()
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getSysCallCondition(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getSysCallCondition(
         thread: <span class="kw-2">*const </span>Thread,
     ) -&gt; <span class="kw-2">*mut </span>c::SysCallCondition {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
@@ -1531,7 +1532,7 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_clearSysCallCondition(thread: <span class="kw-2">*const </span>Thread) {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_clearSysCallCondition(thread: <span class="kw-2">*const </span>Thread) {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         thread.cleanup_syscall_condition();
     }
@@ -1539,7 +1540,7 @@
     <span class="doccomment">/// Returns true iff there is an unblocked, unignored signal pending for this
     /// thread (or its process).
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_unblockedSignalPending(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_unblockedSignalPending(
         thread: <span class="kw-2">*const </span>Thread,
         host_lock: <span class="kw-2">*const </span>ShimShmemHostLock,
     ) -&gt; bool {
@@ -1557,7 +1558,7 @@
     <span class="doccomment">/// Register a `Descriptor`. This takes ownership of the descriptor and you must not access it
     /// after.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_registerDescriptor(
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_registerDescriptor(
         thread: <span class="kw-2">*const </span>Thread,
         desc: <span class="kw-2">*mut </span>Descriptor,
     ) -&gt; libc::c_int {
@@ -1576,7 +1577,7 @@
 
     <span class="doccomment">/// Get a temporary reference to a descriptor.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getRegisteredDescriptor(
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getRegisteredDescriptor(
         thread: <span class="kw-2">*const </span>Thread,
         handle: libc::c_int,
     ) -&gt; <span class="kw-2">*const </span>Descriptor {
@@ -1585,14 +1586,14 @@
         <span class="kw">let </span>handle = <span class="kw">match </span>handle.try_into() {
             <span class="prelude-val">Ok</span>(i) =&gt; i,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;Attempted to get a descriptor with handle {}&quot;</span>, handle);
+                <span class="macro">log::debug!</span>(<span class="string">"Attempted to get a descriptor with handle {}"</span>, handle);
                 <span class="kw">return </span>std::ptr::null();
             }
         };
 
         Worker::with_active_host(
             |host| <span class="kw">match </span>thread.descriptor_table_borrow(host).get(handle) {
-                <span class="prelude-val">Some</span>(d) =&gt; d <span class="kw">as </span><span class="kw-2">*const </span>Descriptor,
+                <span class="prelude-val">Some</span>(d) =&gt; std::ptr::from_ref(d),
                 <span class="prelude-val">None </span>=&gt; std::ptr::null(),
             },
         )
@@ -1601,7 +1602,7 @@
 
     <span class="doccomment">/// Get a temporary mutable reference to a descriptor.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getRegisteredDescriptorMut(
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getRegisteredDescriptorMut(
         thread: <span class="kw-2">*const </span>Thread,
         handle: libc::c_int,
     ) -&gt; <span class="kw-2">*mut </span>Descriptor {
@@ -1610,7 +1611,7 @@
         <span class="kw">let </span>handle = <span class="kw">match </span>handle.try_into() {
             <span class="prelude-val">Ok</span>(i) =&gt; i,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;Attempted to get a descriptor with handle {}&quot;</span>, handle);
+                <span class="macro">log::debug!</span>(<span class="string">"Attempted to get a descriptor with handle {}"</span>, handle);
                 <span class="kw">return </span>std::ptr::null_mut();
             }
         };
@@ -1626,7 +1627,7 @@
 
     <span class="doccomment">/// Get a temporary reference to a legacy file.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>thread_getRegisteredLegacyFile(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getRegisteredLegacyFile(
         thread: <span class="kw-2">*const </span>Thread,
         handle: libc::c_int,
     ) -&gt; <span class="kw-2">*mut </span>c::LegacyFile {
@@ -1635,7 +1636,7 @@
         <span class="kw">let </span>handle = <span class="kw">match </span>handle.try_into() {
             <span class="prelude-val">Ok</span>(i) =&gt; i,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;Attempted to get a descriptor with handle {}&quot;</span>, handle);
+                <span class="macro">log::debug!</span>(<span class="string">"Attempted to get a descriptor with handle {}"</span>, handle);
                 <span class="kw">return </span>std::ptr::null_mut();
             }
         };
@@ -1649,7 +1650,7 @@
                     tcp.borrow().as_legacy_file()
                 } <span class="kw">else </span>{
                     <span class="macro">log::warn!</span>(
-                        <span class="string">&quot;A descriptor exists for fd={}, but it is not a legacy file. Returning NULL.&quot;</span>,
+                        <span class="string">"A descriptor exists for fd={}, but it is not a legacy file. Returning NULL."</span>,
                         handle
                     );
                     std::ptr::null_mut()

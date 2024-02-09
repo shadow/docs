@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/formatter.rs`."><title>formatter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/formatter.rs`."><title>formatter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -377,7 +378,7 @@
 <span class="kw">pub trait </span>SyscallDisplay {
     <span class="kw">fn </span>fmt(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;,
+        f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;,
         options: FmtOptions,
         mem: <span class="kw-2">&amp;</span>MemoryManager,
     ) -&gt; std::fmt::Result;
@@ -385,20 +386,20 @@
 
 <span class="doccomment">/// A syscall argument or return value. It implements [`Display`], and only reads memory and
 /// converts types when being formatted.
-</span><span class="kw">pub struct </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+</span><span class="kw">pub struct </span>SyscallVal&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">pub </span>reg: SysCallReg,
     <span class="kw">pub </span>args: [SysCallReg; <span class="number">6</span>],
     options: FmtOptions,
-    mem: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MemoryManager,
+    mem: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>MemoryManager,
     _phantom: PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; SyscallVal&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; SyscallVal&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">pub fn </span>new(
         reg: SysCallReg,
         args: [SysCallReg; <span class="number">6</span>],
         options: FmtOptions,
-        mem: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MemoryManager,
+        mem: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>MemoryManager,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             reg,
@@ -410,11 +411,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Display <span class="kw">for </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Display <span class="kw">for </span>SyscallVal&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
-    </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, T&gt;: SyscallDisplay,
+    </span>SyscallVal&lt;<span class="lifetime">'a</span>, T&gt;: SyscallDisplay,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         SyscallDisplay::fmt(<span class="self">self</span>, f, <span class="self">self</span>.options, <span class="self">self</span>.mem)
     }
 }
@@ -423,37 +424,37 @@
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>NoArg {}
 
-<span class="kw">impl </span>SyscallDisplay <span class="kw">for </span>SyscallVal&lt;<span class="lifetime">&#39;_</span>, NoArg&gt; {
+<span class="kw">impl </span>SyscallDisplay <span class="kw">for </span>SyscallVal&lt;<span class="lifetime">'_</span>, NoArg&gt; {
     <span class="kw">fn </span>fmt(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;,
         _options: FmtOptions,
         _mem: <span class="kw-2">&amp;</span>MemoryManager,
     ) -&gt; std::fmt::Result {
-        <span class="macro">panic!</span>(<span class="string">&quot;We shouldn&#39;t ever try to format this.&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"We shouldn't ever try to format this."</span>);
     }
 }
 
 <span class="doccomment">/// A formatting wrapper for six syscall arguments.
-</span><span class="kw">pub struct </span>SyscallArgsFmt&lt;<span class="lifetime">&#39;a</span>, A = NoArg, B = NoArg, C = NoArg, D = NoArg, E = NoArg, F = NoArg&gt; {
-    a: SyscallVal&lt;<span class="lifetime">&#39;a</span>, A&gt;,
-    b: SyscallVal&lt;<span class="lifetime">&#39;a</span>, B&gt;,
-    c: SyscallVal&lt;<span class="lifetime">&#39;a</span>, C&gt;,
-    d: SyscallVal&lt;<span class="lifetime">&#39;a</span>, D&gt;,
-    e: SyscallVal&lt;<span class="lifetime">&#39;a</span>, E&gt;,
-    f: SyscallVal&lt;<span class="lifetime">&#39;a</span>, F&gt;,
+</span><span class="kw">pub struct </span>SyscallArgsFmt&lt;<span class="lifetime">'a</span>, A = NoArg, B = NoArg, C = NoArg, D = NoArg, E = NoArg, F = NoArg&gt; {
+    a: SyscallVal&lt;<span class="lifetime">'a</span>, A&gt;,
+    b: SyscallVal&lt;<span class="lifetime">'a</span>, B&gt;,
+    c: SyscallVal&lt;<span class="lifetime">'a</span>, C&gt;,
+    d: SyscallVal&lt;<span class="lifetime">'a</span>, D&gt;,
+    e: SyscallVal&lt;<span class="lifetime">'a</span>, E&gt;,
+    f: SyscallVal&lt;<span class="lifetime">'a</span>, F&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A, B, C, D, E, F&gt; SyscallArgsFmt&lt;<span class="lifetime">&#39;a</span>, A, B, C, D, E, F&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, A, B, C, D, E, F&gt; SyscallArgsFmt&lt;<span class="lifetime">'a</span>, A, B, C, D, E, F&gt;
 <span class="kw">where
-    </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, A&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, B&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, C&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, D&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, E&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, F&gt;: Display,
+    </span>SyscallVal&lt;<span class="lifetime">'a</span>, A&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, B&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, C&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, D&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, E&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, F&gt;: Display,
 {
-    <span class="kw">pub fn </span>new(args: [SysCallReg; <span class="number">6</span>], options: FmtOptions, mem: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MemoryManager) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(args: [SysCallReg; <span class="number">6</span>], options: FmtOptions, mem: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>MemoryManager) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             a: SyscallVal::new(args[<span class="number">0</span>], args, options, mem),
             b: SyscallVal::new(args[<span class="number">1</span>], args, options, mem),
@@ -465,22 +466,22 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A, B, C, D, E, F&gt; Display <span class="kw">for </span>SyscallArgsFmt&lt;<span class="lifetime">&#39;a</span>, A, B, C, D, E, F&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, A, B, C, D, E, F&gt; Display <span class="kw">for </span>SyscallArgsFmt&lt;<span class="lifetime">'a</span>, A, B, C, D, E, F&gt;
 <span class="kw">where
-    </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, A&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, B&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, C&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, D&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, E&gt;: Display,
-    SyscallVal&lt;<span class="lifetime">&#39;a</span>, F&gt;: Display,
-    A: <span class="lifetime">&#39;static</span>,
-    B: <span class="lifetime">&#39;static</span>,
-    C: <span class="lifetime">&#39;static</span>,
-    D: <span class="lifetime">&#39;static</span>,
-    E: <span class="lifetime">&#39;static</span>,
-    F: <span class="lifetime">&#39;static</span>,
+    </span>SyscallVal&lt;<span class="lifetime">'a</span>, A&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, B&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, C&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, D&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, E&gt;: Display,
+    SyscallVal&lt;<span class="lifetime">'a</span>, F&gt;: Display,
+    A: <span class="lifetime">'static</span>,
+    B: <span class="lifetime">'static</span>,
+    C: <span class="lifetime">'static</span>,
+    D: <span class="lifetime">'static</span>,
+    E: <span class="lifetime">'static</span>,
+    F: <span class="lifetime">'static</span>,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>args: [<span class="kw-2">&amp;</span><span class="kw">dyn </span>Display; <span class="number">6</span>] = [<span class="kw-2">&amp;</span><span class="self">self</span>.a, <span class="kw-2">&amp;</span><span class="self">self</span>.b, <span class="kw-2">&amp;</span><span class="self">self</span>.c, <span class="kw-2">&amp;</span><span class="self">self</span>.d, <span class="kw-2">&amp;</span><span class="self">self</span>.e, <span class="kw-2">&amp;</span><span class="self">self</span>.f];
 
         <span class="kw">let </span>types: [TypeId; <span class="number">6</span>] = [
@@ -495,16 +496,16 @@
         <span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
         <span class="kw">for </span>(arg, arg_type) <span class="kw">in </span>args.iter().zip(types) {
             <span class="kw">if </span>arg_type == TypeId::of::&lt;NoArg&gt;() {
-                <span class="comment">// the user didn&#39;t override this generic type, so it and any following types/args
+                <span class="comment">// the user didn't override this generic type, so it and any following types/args
                 // should not be shown
                 </span><span class="kw">break</span>;
             }
 
             <span class="kw">if </span>first {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{arg}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">"{arg}"</span>)<span class="question-mark">?</span>;
                 first = <span class="bool-val">false</span>;
             } <span class="kw">else </span>{
-                <span class="macro">write!</span>(f, <span class="string">&quot;, {arg}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">", {arg}"</span>)<span class="question-mark">?</span>;
             }
         }
 
@@ -513,28 +514,28 @@
 }
 
 <span class="doccomment">/// A formatting wrapper for the syscall result.
-</span><span class="kw">pub struct </span>SyscallResultFmt&lt;<span class="lifetime">&#39;a</span>, RV&gt;
+</span><span class="kw">pub struct </span>SyscallResultFmt&lt;<span class="lifetime">'a</span>, RV&gt;
 <span class="kw">where
-    </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, RV&gt;: Display,
+    </span>SyscallVal&lt;<span class="lifetime">'a</span>, RV&gt;: Display,
     RV: std::fmt::Debug,
 {
-    rv: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SyscallResult,
+    rv: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SyscallResult,
     args: [SysCallReg; <span class="number">6</span>],
     options: FmtOptions,
-    mem: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MemoryManager,
+    mem: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>MemoryManager,
     _phantom: PhantomData&lt;RV&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, RV&gt; SyscallResultFmt&lt;<span class="lifetime">&#39;a</span>, RV&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, RV&gt; SyscallResultFmt&lt;<span class="lifetime">'a</span>, RV&gt;
 <span class="kw">where
-    </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, RV&gt;: Display,
+    </span>SyscallVal&lt;<span class="lifetime">'a</span>, RV&gt;: Display,
     RV: std::fmt::Debug,
 {
     <span class="kw">pub fn </span>new(
-        rv: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SyscallResult,
+        rv: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SyscallResult,
         args: [SysCallReg; <span class="number">6</span>],
         options: FmtOptions,
-        mem: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MemoryManager,
+        mem: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>MemoryManager,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             rv,
@@ -546,28 +547,28 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, RV&gt; Display <span class="kw">for </span>SyscallResultFmt&lt;<span class="lifetime">&#39;a</span>, RV&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, RV&gt; Display <span class="kw">for </span>SyscallResultFmt&lt;<span class="lifetime">'a</span>, RV&gt;
 <span class="kw">where
-    </span>SyscallVal&lt;<span class="lifetime">&#39;a</span>, RV&gt;: Display,
+    </span>SyscallVal&lt;<span class="lifetime">'a</span>, RV&gt;: Display,
     RV: std::fmt::Debug,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.rv {
             SyscallResult::Ok(x) =&gt; {
-                <span class="kw">let </span>rv = SyscallVal::&lt;<span class="lifetime">&#39;_</span>, RV&gt;::new(<span class="kw-2">*</span>x, <span class="self">self</span>.args, <span class="self">self</span>.options, <span class="self">self</span>.mem);
-                <span class="macro">write!</span>(f, <span class="string">&quot;{rv}&quot;</span>)
+                <span class="kw">let </span>rv = SyscallVal::&lt;<span class="lifetime">'_</span>, RV&gt;::new(<span class="kw-2">*</span>x, <span class="self">self</span>.args, <span class="self">self</span>.options, <span class="self">self</span>.mem);
+                <span class="macro">write!</span>(f, <span class="string">"{rv}"</span>)
             }
             SyscallResult::Err(SyscallError::Failed(failed)) =&gt; {
                 <span class="kw">let </span>errno = failed.errno;
                 <span class="kw">let </span>rv = SysCallReg::from(errno.to_negated_i64());
-                <span class="kw">let </span>rv = SyscallVal::&lt;<span class="lifetime">&#39;_</span>, RV&gt;::new(rv, <span class="self">self</span>.args, <span class="self">self</span>.options, <span class="self">self</span>.mem);
-                <span class="macro">write!</span>(f, <span class="string">&quot;{rv} ({errno})&quot;</span>)
+                <span class="kw">let </span>rv = SyscallVal::&lt;<span class="lifetime">'_</span>, RV&gt;::new(rv, <span class="self">self</span>.args, <span class="self">self</span>.options, <span class="self">self</span>.mem);
+                <span class="macro">write!</span>(f, <span class="string">"{rv} ({errno})"</span>)
             }
             SyscallResult::Err(SyscallError::Native) =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;&lt;native&gt;&quot;</span>)
+                <span class="macro">write!</span>(f, <span class="string">"&lt;native&gt;"</span>)
             }
             SyscallResult::Err(SyscallError::Blocked(<span class="kw">_</span>)) =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;&lt;blocked&gt;&quot;</span>)
+                <span class="macro">write!</span>(f, <span class="string">"&lt;blocked&gt;"</span>)
             }
         }
     }
@@ -586,7 +587,7 @@
     <span class="kw">let </span>sim_time = TimeParts::from_nanos(sim_time.as_nanos());
     <span class="kw">let </span>sim_time = sim_time.fmt_hr_min_sec_nano();
 
-    <span class="macro">writeln!</span>(writer, <span class="string">&quot;{sim_time} [tid {tid}] {name}({args}) = {rv}&quot;</span>)
+    <span class="macro">writeln!</span>(writer, <span class="string">"{sim_time} [tid {tid}] {name}({args}) = {rv}"</span>)
 }
 
 <span class="doccomment">/// For logging unknown syscalls.
@@ -613,7 +614,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(time) = time {
             write_syscall(file, <span class="kw-2">&amp;</span>time, tid, syscall_name, args_str, rv)
         } <span class="kw">else </span>{
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Could not log syscall {syscall_name} with time {time:?}&quot;</span>);
+            <span class="macro">log::warn!</span>(<span class="string">"Could not log syscall {syscall_name} with time {time:?}"</span>);
             <span class="prelude-val">Ok</span>(())
         }
     })
@@ -631,7 +632,7 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
-    </span><span class="comment">// can&#39;t call foreign function: gnu_get_libc_version
+    </span><span class="comment">// can't call foreign function: gnu_get_libc_version
     </span><span class="attr">#[cfg_attr(miri, ignore)]
     </span><span class="kw">fn </span>test_no_args() {
         <span class="kw">let </span>args = SysCallArgs {
@@ -640,7 +641,7 @@
         };
 
         <span class="comment">// 10 seconds should be long enough to keep the process alive while the following code runs
-        </span><span class="kw">let </span><span class="kw-2">mut </span>proc = Command::new(<span class="string">&quot;sleep&quot;</span>).arg(<span class="number">10</span>.to_string()).spawn().unwrap();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>proc = Command::new(<span class="string">"sleep"</span>).arg(<span class="number">10</span>.to_string()).spawn().unwrap();
         <span class="kw">let </span>pid = nix::unistd::Pid::from_raw(proc.id().try_into().unwrap());
 
         <span class="kw">let </span>mem = <span class="kw">unsafe </span>{ MemoryManager::new(pid) };

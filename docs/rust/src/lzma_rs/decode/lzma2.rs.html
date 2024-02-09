@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lzma-rs-0.3.0/src/decode/lzma2.rs`."><title>lzma2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="lzma_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lzma-rs-0.3.0/src/decode/lzma2.rs`."><title>lzma2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="lzma_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -234,7 +235,7 @@
 }
 
 <span class="kw">impl </span>Lzma2Decoder {
-    <span class="doccomment">/// Creates a new object ready for decompressing data that it&#39;s given.
+    <span class="doccomment">/// Creates a new object ready for decompressing data that it's given.
     </span><span class="kw">pub fn </span>new() -&gt; Lzma2Decoder {
         Lzma2Decoder {
             lzma_state: DecoderState::new(
@@ -251,7 +252,7 @@
     <span class="doccomment">/// Performs the equivalent of replacing this decompression state with a freshly allocated copy.
     ///
     /// This function may not allocate memory and will attempt to reuse any previously allocated resources.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;raw_decoder&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"raw_decoder"</span>)]
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.lzma_state.reset_state(LzmaProperties {
             lc: <span class="number">0</span>,
@@ -270,13 +271,13 @@
 
         <span class="kw">loop </span>{
             <span class="kw">let </span>status = input.read_u8().map_err(|e| {
-                error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">&quot;LZMA2 expected new status: {}&quot;</span>, e))
+                error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">"LZMA2 expected new status: {}"</span>, e))
             })<span class="question-mark">?</span>;
 
-            <span class="macro">lzma_info!</span>(<span class="string">&quot;LZMA2 status: {}&quot;</span>, status);
+            <span class="macro">lzma_info!</span>(<span class="string">"LZMA2 status: {}"</span>, status);
 
             <span class="kw">if </span>status == <span class="number">0 </span>{
-                <span class="macro">lzma_info!</span>(<span class="string">&quot;LZMA2 end of input&quot;</span>);
+                <span class="macro">lzma_info!</span>(<span class="string">"LZMA2 end of input"</span>);
                 <span class="kw">break</span>;
             } <span class="kw">else if </span>status == <span class="number">1 </span>{
                 <span class="comment">// uncompressed reset dict
@@ -305,7 +306,7 @@
     {
         <span class="kw">if </span>status &amp; <span class="number">0x80 </span>== <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(error::Error::LzmaError(<span class="macro">format!</span>(
-                <span class="string">&quot;LZMA2 invalid status {}, must be 0, 1, 2 or &gt;= 128&quot;</span>,
+                <span class="string">"LZMA2 invalid status {}, must be 0, 1, 2 or &gt;= 128"</span>,
                 status
             )));
         }
@@ -339,16 +340,16 @@
 
         <span class="kw">let </span>unpacked_size = input
             .read_u16::&lt;BigEndian&gt;()
-            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">&quot;LZMA2 expected unpacked size: {}&quot;</span>, e)))<span class="question-mark">?</span>;
+            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">"LZMA2 expected unpacked size: {}"</span>, e)))<span class="question-mark">?</span>;
         <span class="kw">let </span>unpacked_size = ((((status &amp; <span class="number">0x1F</span>) <span class="kw">as </span>u64) &lt;&lt; <span class="number">16</span>) | (unpacked_size <span class="kw">as </span>u64)) + <span class="number">1</span>;
 
         <span class="kw">let </span>packed_size = input
             .read_u16::&lt;BigEndian&gt;()
-            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">&quot;LZMA2 expected packed size: {}&quot;</span>, e)))<span class="question-mark">?</span>;
+            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">"LZMA2 expected packed size: {}"</span>, e)))<span class="question-mark">?</span>;
         <span class="kw">let </span>packed_size = (packed_size <span class="kw">as </span>u64) + <span class="number">1</span>;
 
         <span class="macro">lzma_info!</span>(
-            <span class="string">&quot;LZMA2 compressed block {{ unpacked_size: {}, packed_size: {}, reset_dict: {}, reset_state: {}, reset_props: {} }}&quot;</span>,
+            <span class="string">"LZMA2 compressed block {{ unpacked_size: {}, packed_size: {}, reset_dict: {}, reset_state: {}, reset_props: {} }}"</span>,
             unpacked_size,
             packed_size,
             reset_dict,
@@ -363,13 +364,13 @@
         <span class="kw">if </span>reset_state {
             <span class="kw">let </span>new_props = <span class="kw">if </span>reset_props {
                 <span class="kw">let </span>props = input.read_u8().map_err(|e| {
-                    error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">&quot;LZMA2 expected new properties: {}&quot;</span>, e))
+                    error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">"LZMA2 expected new properties: {}"</span>, e))
                 })<span class="question-mark">?</span>;
 
                 <span class="kw">let </span><span class="kw-2">mut </span>pb = props <span class="kw">as </span>u32;
                 <span class="kw">if </span>pb &gt;= <span class="number">225 </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(error::Error::LzmaError(<span class="macro">format!</span>(
-                        <span class="string">&quot;LZMA2 invalid properties: {} must be &lt; 225&quot;</span>,
+                        <span class="string">"LZMA2 invalid properties: {} must be &lt; 225"</span>,
                         pb
                     )));
                 }
@@ -381,12 +382,12 @@
 
                 <span class="kw">if </span>lc + lp &gt; <span class="number">4 </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(error::Error::LzmaError(<span class="macro">format!</span>(
-                        <span class="string">&quot;LZMA2 invalid properties: lc + lp ({} + {}) must be &lt;= 4&quot;</span>,
+                        <span class="string">"LZMA2 invalid properties: lc + lp ({} + {}) must be &lt;= 4"</span>,
                         lc, lp
                     )));
                 }
 
-                <span class="macro">lzma_info!</span>(<span class="string">&quot;Properties {{ lc: {}, lp: {}, pb: {} }}&quot;</span>, lc, lp, pb);
+                <span class="macro">lzma_info!</span>(<span class="string">"Properties {{ lc: {}, lp: {}, pb: {} }}"</span>, lc, lp, pb);
                 LzmaProperties { lc, lp, pb }
             } <span class="kw">else </span>{
                 <span class="self">self</span>.lzma_state.lzma_props
@@ -400,7 +401,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>taken = input.take(packed_size);
         <span class="kw">let </span><span class="kw-2">mut </span>rangecoder = rangecoder::RangeDecoder::new(<span class="kw-2">&amp;mut </span>taken)
-            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">&quot;LZMA input too short: {}&quot;</span>, e)))<span class="question-mark">?</span>;
+            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">"LZMA input too short: {}"</span>, e)))<span class="question-mark">?</span>;
         <span class="self">self</span>.lzma_state.process(accum, <span class="kw-2">&amp;mut </span>rangecoder)
     }
 
@@ -415,11 +416,11 @@
     {
         <span class="kw">let </span>unpacked_size = input
             .read_u16::&lt;BigEndian&gt;()
-            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">&quot;LZMA2 expected unpacked size: {}&quot;</span>, e)))<span class="question-mark">?</span>;
+            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">"LZMA2 expected unpacked size: {}"</span>, e)))<span class="question-mark">?</span>;
         <span class="kw">let </span>unpacked_size = (unpacked_size <span class="kw">as </span>usize) + <span class="number">1</span>;
 
         <span class="macro">lzma_info!</span>(
-            <span class="string">&quot;LZMA2 uncompressed block {{ unpacked_size: {}, reset_dict: {} }}&quot;</span>,
+            <span class="string">"LZMA2 uncompressed block {{ unpacked_size: {}, reset_dict: {} }}"</span>,
             unpacked_size,
             reset_dict
         );
@@ -431,7 +432,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[<span class="number">0</span>; unpacked_size];
         input.read_exact(buf.as_mut_slice()).map_err(|e| {
             error::Error::LzmaError(<span class="macro">format!</span>(
-                <span class="string">&quot;LZMA2 expected {} uncompressed bytes: {}&quot;</span>,
+                <span class="string">"LZMA2 expected {} uncompressed bytes: {}"</span>,
                 unpacked_size, e
             ))
         })<span class="question-mark">?</span>;

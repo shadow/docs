@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["join","quote","split"],"mod":["bytes"],"struct":["Shlex"]};
+window.SIDEBAR_ITEMS = {"enum":["QuoteError"],"fn":["join","quote","split","try_join","try_quote"],"mod":["bytes","quoting_warning"],"struct":["Quoter","Shlex"]};

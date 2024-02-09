@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/pools/unbounded.rs`."><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/pools/unbounded.rs`."><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -506,7 +507,7 @@
 
 <span class="doccomment">/// A thread pool that runs a task on many threads. A task will run once on each thread.
 </span><span class="kw">pub struct </span>UnboundedThreadPool {
-    <span class="doccomment">/// Handles for joining threads when they&#39;ve exited.
+    <span class="doccomment">/// Handles for joining threads when they've exited.
     </span>thread_handles: Vec&lt;std::thread::JoinHandle&lt;()&gt;&gt;,
     <span class="doccomment">/// State shared between all threads.
     </span>shared_state: Arc&lt;SharedState&gt;,
@@ -589,7 +590,7 @@
         <span class="kw">for </span>handle <span class="kw">in </span><span class="self">self</span>.thread_handles.drain(..) {
             <span class="kw">let </span>result = handle.join();
             <span class="kw">if </span>check_for_errors {
-                result.expect(<span class="string">&quot;A thread panicked while stopping&quot;</span>);
+                result.expect(<span class="string">"A thread panicked while stopping"</span>);
             }
         }
     }
@@ -599,36 +600,36 @@
     </span><span class="comment">//
     // SAFETY: This works because:
     //
-    // 1. WorkerScope&lt;&#39;scope&gt; is covariant over &#39;scope.
-    // 2. TaskRunner&lt;&#39;a, &#39;scope&gt; is invariant over WorkerScope&lt;&#39;scope&gt;, so TaskRunner&lt;&#39;a, &#39;scope&gt;
-    //    is invariant over &#39;scope.
-    // 3. FnOnce(TaskRunner&lt;&#39;a, &#39;scope&gt;) is contravariant over TaskRunner&lt;&#39;a, &#39;scope&gt;, so
-    //    FnOnce(TaskRunner&lt;&#39;a, &#39;scope&gt;) is invariant over &#39;scope.
+    // 1. WorkerScope&lt;'scope&gt; is covariant over 'scope.
+    // 2. TaskRunner&lt;'a, 'scope&gt; is invariant over WorkerScope&lt;'scope&gt;, so TaskRunner&lt;'a, 'scope&gt;
+    //    is invariant over 'scope.
+    // 3. FnOnce(TaskRunner&lt;'a, 'scope&gt;) is contravariant over TaskRunner&lt;'a, 'scope&gt;, so
+    //    FnOnce(TaskRunner&lt;'a, 'scope&gt;) is invariant over 'scope.
     //
-    // This means that the provided scope closure cannot take a TaskRunner&lt;&#39;a, &#39;scope2&gt; where
-    // &#39;scope2 is shorter than &#39;scope, and therefore &#39;scope must be as long as this function call.
+    // This means that the provided scope closure cannot take a TaskRunner&lt;'a, 'scope2&gt; where
+    // 'scope2 is shorter than 'scope, and therefore 'scope must be as long as this function call.
     //
-    // If TaskRunner&lt;&#39;a, &#39;scope&gt; was covariant over &#39;scope, then FnOnce(TaskRunner&lt;&#39;a, &#39;scope&gt;)
-    // would have been contravariant over &#39;scope. This would have allowed the user to provide a
-    // scope closure that could take a TaskRunner&lt;&#39;a, &#39;scope2&gt; where &#39;scope2 is shorter than &#39;scope.
-    // Then when TaskRunner&lt;&#39;a, &#39;scope2&gt;::run(...) would eventually be called, the run closure would
-    // capture data with a lifetime of only &#39;scope2, which would be a shorter lifetime than the
-    // scope closure&#39;s lifetime of &#39;scope. Then, any captured mutable references would be accessible
+    // If TaskRunner&lt;'a, 'scope&gt; was covariant over 'scope, then FnOnce(TaskRunner&lt;'a, 'scope&gt;)
+    // would have been contravariant over 'scope. This would have allowed the user to provide a
+    // scope closure that could take a TaskRunner&lt;'a, 'scope2&gt; where 'scope2 is shorter than 'scope.
+    // Then when TaskRunner&lt;'a, 'scope2&gt;::run(...) would eventually be called, the run closure would
+    // capture data with a lifetime of only 'scope2, which would be a shorter lifetime than the
+    // scope closure's lifetime of 'scope. Then, any captured mutable references would be accessible
     // from both the run closure and the scope closure, leading to mutable aliasing.
-    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">&#39;scope</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span><span class="kw-2">mut </span><span class="self">self</span>,
-        f: <span class="kw">impl for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce(TaskRunner&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;scope</span>&gt;) + <span class="lifetime">&#39;scope</span>,
+    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">'scope</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'scope </span><span class="kw-2">mut </span><span class="self">self</span>,
+        f: <span class="kw">impl for</span>&lt;<span class="lifetime">'a</span>&gt; FnOnce(TaskRunner&lt;<span class="lifetime">'a</span>, <span class="lifetime">'scope</span>&gt;) + <span class="lifetime">'scope</span>,
     ) {
         <span class="macro">assert!</span>(
             !<span class="self">self
                 </span>.shared_state
                 .has_thread_panicked
                 .load(Ordering::Relaxed),
-            <span class="string">&quot;Attempting to use a workpool that previously panicked&quot;
+            <span class="string">"Attempting to use a workpool that previously panicked"
         </span>);
 
-        <span class="comment">// makes sure that the task is properly cleared even if &#39;f&#39; panics
-        </span><span class="kw">let </span><span class="kw-2">mut </span>scope = WorkerScope::&lt;<span class="lifetime">&#39;scope</span>&gt; {
+        <span class="comment">// makes sure that the task is properly cleared even if 'f' panics
+        </span><span class="kw">let </span><span class="kw-2">mut </span>scope = WorkerScope::&lt;<span class="lifetime">'scope</span>&gt; {
             pool: <span class="self">self</span>,
             _phantom: Default::default(),
         };
@@ -645,13 +646,13 @@
     }
 }
 
-<span class="kw">struct </span>WorkerScope&lt;<span class="lifetime">&#39;scope</span>&gt; {
-    pool: <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span><span class="kw-2">mut </span>UnboundedThreadPool,
-    <span class="comment">// when we are dropped, it&#39;s like dropping the task
-    </span>_phantom: PhantomData&lt;Box&lt;<span class="kw">dyn </span>TaskFn + <span class="lifetime">&#39;scope</span>&gt;&gt;,
+<span class="kw">struct </span>WorkerScope&lt;<span class="lifetime">'scope</span>&gt; {
+    pool: <span class="kw-2">&amp;</span><span class="lifetime">'scope </span><span class="kw-2">mut </span>UnboundedThreadPool,
+    <span class="comment">// when we are dropped, it's like dropping the task
+    </span>_phantom: PhantomData&lt;Box&lt;<span class="kw">dyn </span>TaskFn + <span class="lifetime">'scope</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; std::ops::Drop <span class="kw">for </span>WorkerScope&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; std::ops::Drop <span class="kw">for </span>WorkerScope&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// if the task was set (if `TaskRunner::run` was called)
         </span><span class="kw">if </span><span class="self">self</span>.pool.shared_state.task.borrow().is_some() {
@@ -668,34 +669,34 @@
                 .has_thread_panicked
                 .load(Ordering::Relaxed)
             {
-                <span class="comment">// we could store the thread&#39;s panic message and propagate it, but I don&#39;t think
-                // that&#39;s worth handling
-                </span><span class="macro">panic!</span>(<span class="string">&quot;A work thread panicked&quot;</span>);
+                <span class="comment">// we could store the thread's panic message and propagate it, but I don't think
+                // that's worth handling
+                </span><span class="macro">panic!</span>(<span class="string">"A work thread panicked"</span>);
             }
         }
     }
 }
 
 <span class="doccomment">/// Allows a single task to run per pool scope.
-</span><span class="kw">pub struct </span>TaskRunner&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;scope</span>&gt; {
-    <span class="comment">// SAFETY: Self must be invariant over &#39;scope, which is why we use &amp;mut here. See the
+</span><span class="kw">pub struct </span>TaskRunner&lt;<span class="lifetime">'a</span>, <span class="lifetime">'scope</span>&gt; {
+    <span class="comment">// SAFETY: Self must be invariant over 'scope, which is why we use &amp;mut here. See the
     // documentation for scope() above for details.
-    </span>scope: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>WorkerScope&lt;<span class="lifetime">&#39;scope</span>&gt;,
+    </span>scope: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>WorkerScope&lt;<span class="lifetime">'scope</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;scope</span>&gt; TaskRunner&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;scope</span>&gt; {
-    <span class="doccomment">/// Run a task on the pool&#39;s threads.
-    </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>TaskFn + <span class="lifetime">&#39;scope</span>) {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'scope</span>&gt; TaskRunner&lt;<span class="lifetime">'a</span>, <span class="lifetime">'scope</span>&gt; {
+    <span class="doccomment">/// Run a task on the pool's threads.
+    </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>TaskFn + <span class="lifetime">'scope</span>) {
         <span class="kw">let </span>f = Box::new(f);
 
-        <span class="comment">// SAFETY: WorkerScope will drop this TaskFn before the end of &#39;scope
+        <span class="comment">// SAFETY: WorkerScope will drop this TaskFn before the end of 'scope
         </span><span class="kw">let </span>f = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;Box&lt;<span class="kw">dyn </span>TaskFn + <span class="lifetime">&#39;scope</span>&gt;, Box&lt;<span class="kw">dyn </span>TaskFn + <span class="lifetime">&#39;static</span>&gt;&gt;(f)
+            std::mem::transmute::&lt;Box&lt;<span class="kw">dyn </span>TaskFn + <span class="lifetime">'scope</span>&gt;, Box&lt;<span class="kw">dyn </span>TaskFn + <span class="lifetime">'static</span>&gt;&gt;(f)
         };
 
         <span class="kw-2">*</span><span class="self">self</span>.scope.pool.shared_state.task.borrow_mut() = <span class="prelude-val">Some</span>(f);
 
-        <span class="comment">// we&#39;ve set the task, so start the threads
+        <span class="comment">// we've set the task, so start the threads
         </span><span class="self">self</span>.scope.pool.task_start_latch.open();
     }
 }
@@ -706,11 +707,11 @@
     <span class="kw-2">mut </span>start_waiter: simple_latch::LatchWaiter,
     <span class="kw-2">mut </span>end_counter: count_down_latch::LatchCounter,
 ) {
-    <span class="comment">// we don&#39;t use `catch_unwind` here for two main reasons:
+    <span class="comment">// we don't use `catch_unwind` here for two main reasons:
     //
     // 1. `catch_unwind` requires that the closure is `UnwindSafe`, which means that `TaskFn` also
     // needs to be `UnwindSafe`. This is a big restriction on the types of tasks that we could run,
-    // since it requires that there&#39;s no interior mutability in the closure. rayon seems to get
+    // since it requires that there's no interior mutability in the closure. rayon seems to get
     // around this by wrapping the closure in `AssertUnwindSafe`, under the assumption that the
     // panic will be propagated later with `resume_unwinding`, but this is a little more difficult
     // to reason about compared to simply avoiding `catch_unwind` altogether.
@@ -720,14 +721,14 @@
     // closure called `panic_any()` with a type that has a Drop implementation, and that Drop
     // implementation panics, it will cause a panic that is not caught by the `catch_unwind`,
     // causing the thread to panic again with no chance to clean up properly. The work pool would
-    // then deadlock. Since we don&#39;t use `catch_unwind`, the thread will instead &quot;panic when
-    // panicking&quot; and abort, which is a more ideal outcome.
+    // then deadlock. Since we don't use `catch_unwind`, the thread will instead "panic when
+    // panicking" and abort, which is a more ideal outcome.
     // https://github.com/rust-lang/rust/issues/86027
 
-    // this will poison the workpool when it&#39;s dropped
-    </span><span class="kw">struct </span>PoisonWhenDropped&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SharedState);
+    // this will poison the workpool when it's dropped
+    </span><span class="kw">struct </span>PoisonWhenDropped&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>SharedState);
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; std::ops::Drop <span class="kw">for </span>PoisonWhenDropped&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; std::ops::Drop <span class="kw">for </span>PoisonWhenDropped&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
             <span class="comment">// if we panicked, then inform other threads that we panicked and allow them to exit
             // gracefully
@@ -758,7 +759,7 @@
         </span>end_counter.count_down();
     }
 
-    <span class="comment">// didn&#39;t panic, so forget the poison handler and return normally
+    <span class="comment">// didn't panic, so forget the poison handler and return normally
     </span>std::mem::forget(poison_when_dropped);
 }
 
@@ -770,7 +771,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_scope() {
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>counter = <span class="number">0u32</span>;
         <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -784,7 +785,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_run() {
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         <span class="kw">let </span>counter = AtomicU32::new(<span class="number">0</span>);
         <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -800,7 +801,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_large_num_threads() {
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">100</span>, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">100</span>, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         <span class="kw">let </span>counter = AtomicU32::new(<span class="number">0</span>);
         <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -816,7 +817,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_scope_runner_order() {
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">1</span>, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">1</span>, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         <span class="kw">let </span>flag = AtomicBool::new(<span class="bool-val">false</span>);
         pool.scope(|s| {
@@ -833,7 +834,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_non_aliasing_borrows() {
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>counter = <span class="number">0</span>;
         pool.scope(|s| {
@@ -846,11 +847,11 @@
         <span class="macro">assert_eq!</span>(counter, <span class="number">1</span>);
     }
 
-    <span class="comment">// should not compile: &quot;cannot assign to `counter` because it is borrowed&quot;
+    <span class="comment">// should not compile: "cannot assign to `counter` because it is borrowed"
     </span><span class="doccomment">/// ```compile_fail
     /// # use shadow_rs::core::scheduler::pools::unbounded::*;
     /// let x = 5;
-    /// let mut pool = UnboundedThreadPool::new(4, &quot;worker&quot;, false);
+    /// let mut pool = UnboundedThreadPool::new(4, "worker", false);
     ///
     /// let mut counter = 0;
     /// pool.scope(|s| {
@@ -867,12 +868,12 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_panic_all() {
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         pool.scope(|s| {
             s.run(|i| {
                 <span class="comment">// all threads panic
-                </span><span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, i);
+                </span><span class="macro">panic!</span>(<span class="string">"{}"</span>, i);
             });
         });
     }
@@ -880,22 +881,22 @@
     <span class="attr">#[test]
     #[should_panic]
     </span><span class="kw">fn </span>test_panic_single() {
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(<span class="number">4</span>, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         pool.scope(|s| {
             s.run(|i| {
                 <span class="comment">// one thread panics
                 </span><span class="kw">if </span>i == <span class="number">2 </span>{
-                    <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, i);
+                    <span class="macro">panic!</span>(<span class="string">"{}"</span>, i);
                 }
             });
         });
     }
 
-    <span class="comment">// should not compile: &quot;`x` does not live long enough&quot;
+    <span class="comment">// should not compile: "`x` does not live long enough"
     </span><span class="doccomment">/// ```compile_fail
     /// # use shadow_rs::core::scheduler::pools::unbounded::*;
-    /// let mut pool = UnboundedThreadPool::new(4, &quot;worker&quot;, false);
+    /// let mut pool = UnboundedThreadPool::new(4, "worker", false);
     ///
     /// let x = 5;
     /// pool.scope(|s| {
@@ -906,14 +907,14 @@
     /// ```
     </span><span class="kw">fn </span>_test_panic_any() {}
 
-    <span class="comment">// should not compile: &quot;closure may outlive the current function, but it borrows `x`, which is
-    // owned by the current function&quot;
+    <span class="comment">// should not compile: "closure may outlive the current function, but it borrows `x`, which is
+    // owned by the current function"
     </span><span class="doccomment">/// ```compile_fail
     /// # use shadow_rs::core::scheduler::pools::unbounded::*;
-    /// let mut pool = UnboundedThreadPool::new(4, &quot;worker&quot;, false);
+    /// let mut pool = UnboundedThreadPool::new(4, "worker", false);
     ///
     /// pool.scope(|s| {
-    ///     // &#39;x&#39; will be dropped when the closure is dropped, but &#39;s&#39; lives longer than that
+    ///     // 'x' will be dropped when the closure is dropped, but 's' lives longer than that
     ///     let x = 5;
     ///     s.run(|_| {
     ///         let _x = x;
@@ -925,7 +926,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_queues() {
         <span class="kw">let </span>num_threads = <span class="number">4</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(num_threads, <span class="string">&quot;worker&quot;</span>, <span class="bool-val">false</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = UnboundedThreadPool::new(num_threads, <span class="string">"worker"</span>, <span class="bool-val">false</span>);
 
         <span class="comment">// a non-copy usize wrapper
         </span><span class="kw">struct </span>Wrapper(usize);

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/inet/udp.rs`."><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/inet/udp.rs`."><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1203,7 +1204,7 @@
             association: <span class="prelude-val">None</span>,
             recv_time_of_last_read_packet: <span class="prelude-val">None</span>,
             has_open_file: <span class="bool-val">false</span>,
-            _counter: ObjectCounter::new(<span class="string">&quot;UdpSocket&quot;</span>),
+            _counter: ObjectCounter::new(<span class="string">"UdpSocket"</span>),
         };
 
         CallbackQueue::queue_and_run(|cb_queue| {
@@ -1247,17 +1248,17 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(peer_addr) = <span class="self">self</span>.peer_addr {
             <span class="kw">if </span>peer_addr != packet.src_address() {
-                <span class="comment">// connect(2): &quot;If the socket sockfd is of type SOCK_DGRAM, then addr is the address
+                <span class="comment">// connect(2): "If the socket sockfd is of type SOCK_DGRAM, then addr is the address
                 // to which datagrams are sent by default, and the only address from which datagrams
-                // are received.&quot;
+                // are received."
 
                 // we have a peer, but received a packet from a different source address than that
                 // peer
                 </span>packet.add_status(PacketStatus::RcvSocketDropped);
 
-                <span class="comment">// TODO: There&#39;s a race condition where we check the packet&#39;s address only when
+                <span class="comment">// TODO: There's a race condition where we check the packet's address only when
                 // receiving the packet from the network interface, but the user could call
-                // `connect()` to set a peer after we&#39;ve already received and buffered this packet.
+                // `connect()` to set a peer after we've already received and buffered this packet.
                 // My guess is that this race condition exists in Linux as well, but ideally we
                 // should add a test, and do another check when `recvmsg()` is called if we really
                 // need to.
@@ -1268,7 +1269,7 @@
 
         <span class="comment">// TODO: also check the dst address to make sure we are the intended socket?
 
-        // don&#39;t bother copying the bytes if we know the push will fail
+        // don't bother copying the bytes if we know the push will fail
         </span><span class="kw">if </span>!<span class="self">self</span>.recv_buffer.has_space() {
             packet.add_status(PacketStatus::RcvSocketDropped);
             <span class="kw">return</span>;
@@ -1287,13 +1288,13 @@
             recv_time,
         };
 
-        <span class="comment">// push the message to the receive buffer (shouldn&#39;t fail since we checked for available
+        <span class="comment">// push the message to the receive buffer (shouldn't fail since we checked for available
         // space above)
         </span><span class="self">self</span>.recv_buffer
             .push_message(message.freeze(), header)
             .unwrap();
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Added a packet to the UDP socket&#39;s recv buffer&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"Added a packet to the UDP socket's recv buffer"</span>);
         packet.add_status(PacketStatus::RcvSocketBuffered);
 
         <span class="self">self</span>.refresh_readable_writable(FileSignals::READ_BUFFER_GREW, cb_queue);
@@ -1303,13 +1304,13 @@
         <span class="comment">// pop the message from the send buffer
         </span><span class="kw">let </span><span class="prelude-val">Some</span>((message, header)) = <span class="self">self</span>.send_buffer.pop_message() <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(
-                <span class="string">&quot;Attempted to remove a message from the UDP socket&#39;s send buffer, but none available&quot;
+                <span class="string">"Attempted to remove a message from the UDP socket's send buffer, but none available"
             </span>);
 
             <span class="kw">return </span><span class="prelude-val">None</span>;
         };
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Removed a message from the UDP socket&#39;s send buffer&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"Removed a message from the UDP socket's send buffer"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>packet = PacketRc::new();
         <span class="kw">let </span>priority = header.packet_priority;
@@ -1397,7 +1398,7 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             }
 
-            <span class="comment">// Since we&#39;re not bound, we must not have a peer. We may have a peer in the future if
+            <span class="comment">// Since we're not bound, we must not have a peer. We may have a peer in the future if
             // `connect()` is called on this socket.
             </span><span class="macro">assert!</span>(socket.peer_addr.is_none());
 
@@ -1418,7 +1419,7 @@
             rng,
         )<span class="question-mark">?</span>;
 
-        <span class="comment">// update the socket&#39;s local address
+        <span class="comment">// update the socket's local address
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>socket = socket.borrow_mut();
             socket.bound_addr = <span class="prelude-val">Some</span>(addr);
@@ -1439,7 +1440,7 @@
         <span class="comment">// we could call UdpSocket::recvmsg() here, but for now we expect that there are no code
         // paths that would call UdpSocket::readv() since the readv() syscall handler should have
         // called UdpSocket::recvmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called UdpSocket::readv() on a UDP socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called UdpSocket::readv() on a UDP socket"</span>);
     }
 
     <span class="kw">pub fn </span>writev(
@@ -1453,7 +1454,7 @@
         <span class="comment">// we could call UdpSocket::sendmsg() here, but for now we expect that there are no code
         // paths that would call UdpSocket::writev() since the writev() syscall handler should have
         // called UdpSocket::sendmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called UdpSocket::writev() on a UDP socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called UdpSocket::writev() on a UDP socket"</span>);
     }
 
     <span class="kw">pub fn </span>sendmsg(
@@ -1466,13 +1467,13 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>socket_ref = socket.borrow_mut();
 
-        <span class="comment">// if the file&#39;s writing has been shut down, return EPIPE
+        <span class="comment">// if the file's writing has been shut down, return EPIPE
         </span><span class="kw">if </span>socket_ref.shutdown_status.contains(ShutdownFlags::WRITE) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::EPIPE.into());
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(args.flags) <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unrecognized send flags: {:#b}&quot;</span>, args.flags);
+            <span class="macro">log::debug!</span>(<span class="string">"Unrecognized send flags: {:#b}"</span>, args.flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -1501,12 +1502,12 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::EMSGSIZE.into());
         }
 
-        <span class="comment">// make sure that we&#39;re bound
+        <span class="comment">// make sure that we're bound
         </span><span class="kw">if </span>socket_ref.bound_addr.is_some() {
-            <span class="comment">// we must have an association since we&#39;re bound
+            <span class="comment">// we must have an association since we're bound
             </span><span class="macro">assert!</span>(socket_ref.association.is_some());
         } <span class="kw">else </span>{
-            <span class="comment">// we can&#39;t be unbound but have a peer
+            <span class="comment">// we can't be unbound but have a peer
             </span><span class="macro">assert!</span>(socket_ref.peer_addr.is_none());
             <span class="macro">assert!</span>(socket_ref.association.is_none());
 
@@ -1534,9 +1535,9 @@
             socket_ref.association = <span class="prelude-val">Some</span>(handle);
         }
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t skip checking if we should block
+        <span class="comment">// run in a closure so that an early return doesn't skip checking if we should block
         </span><span class="kw">let </span>result = (|| {
-            <span class="comment">// don&#39;t bother copying the bytes if we know the push will fail
+            <span class="comment">// don't bother copying the bytes if we know the push will fail
             </span><span class="kw">if </span>!socket_ref.send_buffer.has_space() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EWOULDBLOCK);
             }
@@ -1548,7 +1549,7 @@
                 .read_exact(<span class="kw-2">&amp;mut </span>message[..])
                 .map_err(|e| Errno::try_from(e).unwrap())<span class="question-mark">?</span>;
 
-            <span class="comment">// get the priority that we&#39;ll assign to the eventual packet
+            <span class="comment">// get the priority that we'll assign to the eventual packet
             </span><span class="kw">let </span>packet_priority =
                 Worker::with_active_host(|host| host.get_next_packet_priority()).unwrap();
 
@@ -1571,7 +1572,7 @@
                 packet_priority,
             };
 
-            <span class="comment">// push the message to the send buffer (shouldn&#39;t fail since we checked for available
+            <span class="comment">// push the message to the send buffer (shouldn't fail since we checked for available
             // space above)
             </span>socket_ref
                 .send_buffer
@@ -1594,7 +1595,7 @@
 
         socket_ref.refresh_readable_writable(FileSignals::empty(), cb_queue);
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result == <span class="prelude-val">Err</span>(Errno::EWOULDBLOCK) &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(SyscallError::new_blocked_on_file(
                 File::Socket(Socket::Inet(InetSocket::Udp(socket.clone()))),
@@ -1615,7 +1616,7 @@
         <span class="kw">let </span>socket_ref = <span class="kw-2">&amp;mut *</span>socket.borrow_mut();
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(args.flags) <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unrecognized recv flags: {:#b}&quot;</span>, args.flags);
+            <span class="macro">log::debug!</span>(<span class="string">"Unrecognized recv flags: {:#b}"</span>, args.flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -1625,7 +1626,7 @@
 
         <span class="kw">let </span>len: libc::size_t = args.iovs.iter().map(|x| x.len).sum();
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t skip checking if we should block
+        <span class="comment">// run in a closure so that an early return doesn't skip checking if we should block
         </span><span class="kw">let </span>result = (|| {
             <span class="comment">// a temporary location to store the message and header if we popped them
             </span><span class="kw">let </span>message_storage;
@@ -1679,11 +1680,11 @@
 
         socket_ref.refresh_readable_writable(FileSignals::empty(), cb_queue);
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result.as_ref().err() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Errno::EWOULDBLOCK)
             &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT)
         {
-            <span class="comment">// if the syscall would block but the file&#39;s reading has been shut down, return EOF
+            <span class="comment">// if the syscall would block but the file's reading has been shut down, return EOF
             </span><span class="kw">if </span>socket_ref.shutdown_status.contains(ShutdownFlags::READ) {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(RecvmsgReturn {
                     return_val: <span class="number">0</span>,
@@ -1735,12 +1736,12 @@
                 <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
             }
             IoctlRequest::SIOCGSTAMP =&gt; {
-                <span class="comment">// socket(7): &quot;Return a struct timeval with the receive timestamp of the last packet
+                <span class="comment">// socket(7): "Return a struct timeval with the receive timestamp of the last packet
                 // passed to the user. [...] This ioctl should only be used if the socket option
                 // SO_TIMESTAMP is not set on the socket. Otherwise, it returns the timestamp of the
                 // last packet that was received while SO_TIMESTAMP was not set, or it fails if no
                 // such packet has been received, (i.e., ioctl(2) returns -1 with errno set to
-                // ENOENT).&quot;
+                // ENOENT)."
                 </span><span class="kw">let </span><span class="prelude-val">Some</span>(last_recv_time) = <span class="self">self</span>.recv_time_of_last_read_packet <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOENT.into());
                 };
@@ -1755,7 +1756,7 @@
                 <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
             }
             IoctlRequest::FIONBIO =&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;This should have been handled by the ioctl syscall handler&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"This should have been handled by the ioctl syscall handler"</span>);
             }
             IoctlRequest::TCGETS
             | IoctlRequest::TCSETS
@@ -1772,7 +1773,7 @@
             }
             request =&gt; {
                 <span class="macro">warn_once_then_debug!</span>(
-                    <span class="string">&quot;We do not yet handle ioctl request {request:?} on tcp sockets&quot;
+                    <span class="string">"We do not yet handle ioctl request {request:?} on tcp sockets"
                 </span>);
                 <span class="prelude-val">Err</span>(Errno::EINVAL.into())
             }
@@ -1810,30 +1811,30 @@
         }
 
         <span class="comment">// NOTE: it would be nice to use `Ipv4Addr::is_loopback` in this code rather than comparing
-        // to `Ipv4Addr::LOCALHOST`, but the rest of Shadow probably can&#39;t handle other loopback
-        // addresses (ex: 127.0.0.2) and it&#39;s probably best not to change this behaviour
+        // to `Ipv4Addr::LOCALHOST`, but the rest of Shadow probably can't handle other loopback
+        // addresses (ex: 127.0.0.2) and it's probably best not to change this behaviour
 
         // make sure we will be able to route this later
-        // TODO: UDP sockets probably shouldn&#39;t return `ECONNREFUSED`
+        // TODO: UDP sockets probably shouldn't return `ECONNREFUSED`
         </span><span class="kw">if </span>peer_addr.ip() != <span class="kw-2">&amp;</span>std::net::Ipv4Addr::LOCALHOST {
             <span class="kw">let </span>is_routable =
                 Worker::is_routable(net_ns.default_ip.into(), (<span class="kw-2">*</span>peer_addr.ip()).into());
 
             <span class="kw">if </span>!is_routable {
-                <span class="comment">// can&#39;t route it - there is no node with this address
+                <span class="comment">// can't route it - there is no node with this address
                 </span><span class="macro">log::warn!</span>(
-                    <span class="string">&quot;Attempting to connect to address &#39;{peer_addr}&#39; for which no host exists&quot;
+                    <span class="string">"Attempting to connect to address '{peer_addr}' for which no host exists"
                 </span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ECONNREFUSED.into());
             }
         }
 
-        <span class="comment">// make sure that we&#39;re bound
+        <span class="comment">// make sure that we're bound
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>socket_ref = socket.borrow_mut();
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(bound_addr) = socket_ref.bound_addr {
-                <span class="comment">// we must have an association since we&#39;re bound
+                <span class="comment">// we must have an association since we're bound
                 </span><span class="macro">assert!</span>(socket_ref.association.is_some());
 
                 <span class="comment">// make sure the new peer address is connectable from the bound interface
@@ -1847,13 +1848,13 @@
                         <span class="comment">// bound and peer on loopback interface
                         </span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {}
                         <span class="comment">// neither bound nor peer on loopback interface (shadow treats any
-                        // non-127.0.0.1 address as an &quot;internet&quot; address)
+                        // non-127.0.0.1 address as an "internet" address)
                         </span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; {}
                         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into()),
                     }
                 }
             } <span class="kw">else </span>{
-                <span class="comment">// we can&#39;t be unbound but have a peer
+                <span class="comment">// we can't be unbound but have a peer
                 </span><span class="macro">assert!</span>(socket_ref.peer_addr.is_none());
                 <span class="macro">assert!</span>(socket_ref.association.is_none());
 
@@ -1865,7 +1866,7 @@
                 };
 
                 <span class="comment">// this will allow us to receive packets from any source address, but
-                // `push_in_packet` should drop any packets that aren&#39;t from the peer
+                // `push_in_packet` should drop any packets that aren't from the peer
                 </span><span class="kw">let </span>unspecified_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, <span class="number">0</span>);
 
                 <span class="kw">let </span>(local_addr, handle) = <span class="kw">super</span>::associate_socket(
@@ -1984,11 +1985,11 @@
                 <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
             }
             (libc::SOL_SOCKET, <span class="kw">_</span>) =&gt; {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;getsockopt called with unsupported level {level} and opt {optname}&quot;</span>);
+                <span class="macro">log::debug!</span>(<span class="string">"getsockopt called with unsupported level {level} and opt {optname}"</span>);
                 <span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into())
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;getsockopt called with unsupported level {level} and opt {optname}&quot;</span>);
+                <span class="macro">log::debug!</span>(<span class="string">"getsockopt called with unsupported level {level} and opt {optname}"</span>);
                 <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
             }
         }
@@ -2021,8 +2022,8 @@
                 // man 7 socket is incorrect.
                 </span><span class="kw">let </span>val = std::cmp::max(val, <span class="number">4096</span>);
 
-                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don&#39;t change
-                // Shadow&#39;s behaviour, but also prevents an application from setting this to
+                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don't change
+                // Shadow's behaviour, but also prevents an application from setting this to
                 // something unnecessarily large like INT_MAX.
                 </span><span class="kw">let </span>val = std::cmp::min(val, <span class="number">268435456</span>); <span class="comment">// 2^28 = 256 MiB
 
@@ -2047,8 +2048,8 @@
                 // man 7 socket is incorrect.
                 </span><span class="kw">let </span>val = std::cmp::max(val, <span class="number">2048</span>);
 
-                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don&#39;t change
-                // Shadow&#39;s behaviour, but also prevents an application from setting this to
+                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don't change
+                // Shadow's behaviour, but also prevents an application from setting this to
                 // something unnecessarily large like INT_MAX.
                 </span><span class="kw">let </span>val = std::cmp::min(val, <span class="number">268435456</span>); <span class="comment">// 2^28 = 256 MiB
 
@@ -2057,27 +2058,27 @@
             }
             (libc::SOL_SOCKET, libc::SO_REUSEADDR) =&gt; {
                 <span class="comment">// TODO: implement this
-                </span><span class="macro">warn_once_then_debug!</span>(<span class="string">&quot;setsockopt SO_REUSEADDR not yet implemented for udp&quot;</span>);
+                </span><span class="macro">warn_once_then_debug!</span>(<span class="string">"setsockopt SO_REUSEADDR not yet implemented for udp"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
             }
             (libc::SOL_SOCKET, libc::SO_REUSEPORT) =&gt; {
                 <span class="comment">// TODO: implement this
-                </span><span class="macro">warn_once_then_debug!</span>(<span class="string">&quot;setsockopt SO_REUSEPORT not yet implemented for udp&quot;</span>);
+                </span><span class="macro">warn_once_then_debug!</span>(<span class="string">"setsockopt SO_REUSEPORT not yet implemented for udp"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
             }
             (libc::SOL_SOCKET, libc::SO_KEEPALIVE) =&gt; {
                 <span class="comment">// TODO: implement this
-                </span><span class="macro">warn_once_then_debug!</span>(<span class="string">&quot;setsockopt SO_KEEPALIVE not yet implemented for udp&quot;</span>);
+                </span><span class="macro">warn_once_then_debug!</span>(<span class="string">"setsockopt SO_KEEPALIVE not yet implemented for udp"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
             }
             (libc::SOL_SOCKET, libc::SO_BROADCAST) =&gt; {
                 <span class="comment">// TODO: implement this, pkg.go.dev/net uses it
                 </span><span class="macro">warn_once_then_debug!</span>(
-                    <span class="string">&quot;setsockopt SO_BROADCAST not yet implemented for udp; ignoring and returning 0&quot;
+                    <span class="string">"setsockopt SO_BROADCAST not yet implemented for udp; ignoring and returning 0"
                 </span>);
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">log::debug!</span>(<span class="string">&quot;setsockopt called with unsupported level {level} and opt {optname}&quot;</span>);
+                <span class="macro">log::debug!</span>(<span class="string">"setsockopt called with unsupported level {level} and opt {optname}"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
             }
         }
@@ -2093,7 +2094,7 @@
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
             + Send
             + Sync
-            + <span class="lifetime">&#39;static</span>,
+            + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="self">self</span>.event_source
             .add_listener(monitoring_state, monitoring_signals, filter, notify_fn)
@@ -2168,7 +2169,7 @@
     </span>src: SocketAddrV4,
     <span class="doccomment">/// The destination address (for example the peer).
     </span>dst: SocketAddrV4,
-    <span class="doccomment">/// The priority for the packet that we&#39;ll create in the future, given to us by the host.
+    <span class="doccomment">/// The priority for the packet that we'll create in the future, given to us by the host.
     </span>packet_priority: FifoPacketPriority,
 }
 
@@ -2189,7 +2190,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>MessageBuffer&lt;Hdr&gt; {
     <span class="doccomment">/// The message payloads and headers.
-    </span><span class="comment">// use a `LinkedList` so that socket buffers can shrink when they&#39;re empty (as opposed to
+    </span><span class="comment">// use a `LinkedList` so that socket buffers can shrink when they're empty (as opposed to
     // `VecDeque`)
     </span>buffer: LinkedList&lt;(Bytes, Hdr)&gt;,
     <span class="doccomment">/// The number of payload bytes in this socket.
@@ -2207,7 +2208,7 @@
         }
     }
 
-    <span class="doccomment">/// Push a message to the buffer. Returns the message and header as an `Err` if there wasn&#39;t
+    <span class="doccomment">/// Push a message to the buffer. Returns the message and header as an `Err` if there wasn't
     /// enough space.
     </span><span class="kw">pub fn </span>push_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: Bytes, header: Hdr) -&gt; <span class="prelude-ty">Result</span>&lt;(), (Bytes, Hdr)&gt; {
         <span class="comment">// TODO: i think udp allows at most one packet to exceed the buffer capacity; should confirm

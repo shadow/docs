@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/network/namespace.rs`."><title>namespace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/network/namespace.rs`."><title>namespace.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -412,13 +413,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
 <span class="kw">use </span><span class="kw">crate</span>::host::network::interface::{NetworkInterface, PcapOptions};
 
-<span class="comment">// The start of our random port range in host order, used if application doesn&#39;t
+<span class="comment">// The start of our random port range in host order, used if application doesn't
 // specify the port it wants to bind to, and for client connections.
 </span><span class="kw">const </span>MIN_RANDOM_PORT: u16 = <span class="number">10000</span>;
 
 <span class="doccomment">/// Represents a network namespace. Can be thought of as roughly equivalent to a Linux `struct net`.
-/// Shadow doesn&#39;t support multiple network namespaces, but this `NetworkNamespace` allows us to
-/// consolidate the host&#39;s networking objects, and hopefully might make it easier to support
+/// Shadow doesn't support multiple network namespaces, but this `NetworkNamespace` allows us to
+/// consolidate the host's networking objects, and hopefully might make it easier to support
 /// multiple network namespaces if we want to in the future.
 </span><span class="kw">pub struct </span>NetworkNamespace {
     <span class="comment">// map abstract socket addresses to unix sockets
@@ -431,7 +432,7 @@
     </span><span class="kw">pub </span>default_address: SyncSendPointer&lt;cshadow::Address&gt;,
     <span class="kw">pub </span>default_ip: Ipv4Addr,
 
-    <span class="comment">// used for debugging to make sure we&#39;ve cleaned up before being dropped
+    <span class="comment">// used for debugging to make sure we've cleaned up before being dropped
     </span>has_run_cleanup: Cell&lt;bool&gt;,
 }
 
@@ -449,7 +450,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(localhost, local_addr) = <span class="kw">unsafe </span>{
             <span class="self">Self</span>::setup_net_interface(
-                OsStr::new(<span class="string">&quot;lo&quot;</span>),
+                OsStr::new(<span class="string">"lo"</span>),
                 <span class="kw-2">&amp;</span>InterfaceOptions {
                     host_id,
                     hostname: hostname.clone(),
@@ -465,7 +466,7 @@
 
         <span class="kw">let </span>(internet, public_addr) = <span class="kw">unsafe </span>{
             <span class="self">Self</span>::setup_net_interface(
-                OsStr::new(<span class="string">&quot;eth0&quot;</span>),
+                OsStr::new(<span class="string">"eth0"</span>),
                 <span class="kw-2">&amp;</span>InterfaceOptions {
                     host_id,
                     hostname,
@@ -495,7 +496,7 @@
     ) -&gt; (NetworkInterface, <span class="kw-2">*mut </span>cshadow::Address) {
         <span class="kw">let </span>ip = u32::from(options.ip).to_be();
 
-        <span class="comment">// hostname is shadowed so that we can&#39;t accidentally drop the CString before the end of the
+        <span class="comment">// hostname is shadowed so that we can't accidentally drop the CString before the end of the
         // scope
         </span><span class="kw">let </span>hostname: CString = options.hostname.clone().into();
         <span class="kw">let </span>hostname = hostname.as_ptr();
@@ -522,13 +523,13 @@
     </span><span class="kw">pub fn </span>cleanup(<span class="kw-2">&amp;</span><span class="self">self</span>, dns: <span class="kw-2">&amp;</span>cshadow::DNS) {
         <span class="macro">assert!</span>(!<span class="self">self</span>.has_run_cleanup.get());
 
-        <span class="kw">let </span>dns = dns <span class="kw">as </span><span class="kw-2">*const </span>cshadow::DNS;
+        <span class="kw">let </span>dns = std::ptr::from_ref(dns);
         <span class="comment">// deregistering localhost is a no-op, so we skip it
         </span><span class="kw">unsafe </span>{
             cshadow::dns_deregister(dns.cast_mut(), <span class="self">self</span>.default_address.ptr());
         }
 
-        <span class="comment">// we need to unref all sockets and free them before we drop the host, otherwise they&#39;ll try
+        <span class="comment">// we need to unref all sockets and free them before we drop the host, otherwise they'll try
         // to access the global host and panic since there is no host
         </span><span class="self">self</span>.localhost.borrow().remove_all_sockets();
         <span class="self">self</span>.internet.borrow().remove_all_sockets();
@@ -541,14 +542,14 @@
     </span><span class="kw">pub fn </span>interface_borrow(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         addr: Ipv4Addr,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = NetworkInterface&gt; + <span class="lifetime">&#39;_</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = NetworkInterface&gt; + <span class="lifetime">'_</span>&gt; {
         <span class="comment">// Notes:
         // - The `is_loopback` matches all loopback addresses, but shadow will only work correctly
         //   with 127.0.0.1. Using any other loopback address will lead to problems.
         // - If the address is 0.0.0.0, we return the `internet` interface. This is not ideal if a
         //   socket bound to 0.0.0.0 is trying to send a localhost packet and uses this method to
         //   get the network interface, since the packet will be sent on the internet interface
-        //   instead of loopback. It&#39;s not clear if this will lead to bugs.
+        //   instead of loopback. It's not clear if this will lead to bugs.
         </span><span class="kw">if </span>addr.is_loopback() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.localhost.borrow())
         } <span class="kw">else if </span>addr == <span class="self">self</span>.default_ip || addr.is_unspecified() {
@@ -563,14 +564,14 @@
     </span><span class="kw">pub fn </span>interface_borrow_mut(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         addr: Ipv4Addr,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = NetworkInterface&gt; + DerefMut + <span class="lifetime">&#39;_</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = NetworkInterface&gt; + DerefMut + <span class="lifetime">'_</span>&gt; {
         <span class="comment">// Notes:
         // - The `is_loopback` matches all loopback addresses, but shadow will only work correctly
         //   with 127.0.0.1. Using any other loopback address will lead to problems.
         // - If the address is 0.0.0.0, we return the `internet` interface. This is not ideal if a
         //   socket bound to 0.0.0.0 is trying to send a localhost packet and uses this method to
         //   get the network interface, since the packet will be sent on the internet interface
-        //   instead of loopback. It&#39;s not clear if this will lead to bugs.
+        //   instead of loopback. It's not clear if this will lead to bugs.
         </span><span class="kw">if </span>addr.is_loopback() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.localhost.borrow_mut())
         } <span class="kw">else if </span>addr == <span class="self">self</span>.default_ip || addr.is_unspecified() {
@@ -616,7 +617,7 @@
         // get a free one. if we cannot find one fast enough, then as a fallback we
         // do an inefficient linear search that is guaranteed to succeed or fail.
 
-        // if choosing randomly doesn&#39;t succeed within 10 tries, then we have already
+        // if choosing randomly doesn't succeed within 10 tries, then we have already
         // allocated a lot of ports (&gt;90% on average). then we fall back to linear search.
         </span><span class="kw">for _ in </span><span class="number">0</span>..<span class="number">10 </span>{
             <span class="kw">let </span>random_port = rng.gen_range(MIN_RANDOM_PORT..=u16::MAX);
@@ -641,7 +642,7 @@
             }
         }
 
-        <span class="comment">// now if we tried too many times and still don&#39;t have a port, fall back
+        <span class="comment">// now if we tried too many times and still don't have a port, fall back
         // to a linear search to make sure we get a free port if we have one.
         // but start from a random port instead of the min.
         </span><span class="kw">let </span>start = rng.gen_range(MIN_RANDOM_PORT..=u16::MAX);
@@ -661,7 +662,7 @@
             }
         }
 
-        <span class="macro">log::warn!</span>(<span class="string">&quot;unable to find free ephemeral port for {protocol_type} peer {peer}&quot;</span>);
+        <span class="macro">log::warn!</span>(<span class="string">"unable to find free ephemeral port for {protocol_type} peer {peer}"</span>);
         <span class="prelude-val">None
     </span>}
 
@@ -734,7 +735,7 @@
         <span class="kw">unsafe </span>{ cshadow::address_unref(<span class="self">self</span>.default_address.ptr()) };
 
         <span class="kw">if </span>!<span class="self">self</span>.has_run_cleanup.get() &amp;&amp; !std::thread::panicking() {
-            <span class="macro">debug_panic!</span>(<span class="string">&quot;Dropped the network namespace before it has been cleaned up&quot;</span>);
+            <span class="macro">debug_panic!</span>(<span class="string">"Dropped the network namespace before it has been cleaned up"</span>);
         }
     }
 }
@@ -752,7 +753,7 @@
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>NoInterface {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;No interface available&quot;</span>)
+        <span class="macro">write!</span>(f, <span class="string">"No interface available"</span>)
     }
 }
 

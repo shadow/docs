@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/connection.rs`."><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/connection.rs`."><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1156,7 +1157,7 @@
             need_to_send_rst: <span class="bool-val">false</span>,
         };
 
-        <span class="comment">// disable window scaling if it&#39;s disabled in the config
+        <span class="comment">// disable window scaling if it's disabled in the config
         </span><span class="kw">if </span>!rv.config.window_scaling_enabled {
             rv.window_scaling.disable();
         }
@@ -1226,7 +1227,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, PushPacketError&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_reset {
             <span class="macro">panic!</span>(
-                <span class="string">&quot;The connection has already been reset, so why are we being given more packets?&quot;
+                <span class="string">"The connection has already been reset, so why are we being given more packets?"
             </span>);
         }
 
@@ -1239,7 +1240,7 @@
             // with payload data)
 
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(recv_window) = recv_window <span class="kw">else </span>{
-                <span class="comment">// we haven&#39;t received a SYN yet, so we&#39;ll trust the RST
+                <span class="comment">// we haven't received a SYN yet, so we'll trust the RST
                 </span><span class="self">self</span>.is_reset = <span class="bool-val">true</span>;
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
             };
@@ -1268,7 +1269,7 @@
                 // &gt; After sending the challenge ACK, TCP endpoints MUST drop the unacceptable
                 // &gt; segment and stop processing the incoming packet further.
 
-                // TODO: Setting `need_to_ack` to true isn&#39;t enough to send an acknowledgement
+                // TODO: Setting `need_to_ack` to true isn't enough to send an acknowledgement
                 // exactly as described above, since the next `pop_packet` may next try to
                 // retransmit something which would have a different sequence number. But not sure
                 // if this really matters in practice since the peer would receive the packet and
@@ -1287,7 +1288,7 @@
 
         <span class="comment">// process the first SYN packet
         </span><span class="kw">if </span><span class="self">self</span>.recv.is_none() &amp;&amp; header.flags.contains(TcpFlags::SYN) {
-            <span class="comment">// we needed to know the sender&#39;s initial sequence number before we could initialize the
+            <span class="comment">// we needed to know the sender's initial sequence number before we could initialize the
             // receiving part of the connection
             </span><span class="kw">let </span>seq = Seq::new(header.seq);
             <span class="self">self</span>.recv = <span class="prelude-val">Some</span>(ConnectionRecv::new(seq));
@@ -1297,8 +1298,8 @@
 
         <span class="comment">// We need to keep track of if the original packet had the SYN flag set, even if we trim a
         // old retransmitted SYN flag from the packet below. If it was sent with a SYN flag, then we
-        // must not apply the window scale to the window size in the packet, even if the SYN&#39;s
-        // sequence number isn&#39;t within the receive window.
+        // must not apply the window scale to the window size in the packet, even if the SYN's
+        // sequence number isn't within the receive window.
         //
         // RFC 7323 2.2.:
         // &gt; The window field in a segment where the SYN bit is set (i.e., a &lt;SYN&gt; or &lt;SYN,ACK&gt;)
@@ -1323,14 +1324,14 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         };
 
-        <span class="comment">// if we&#39;ve been told to send a RST when we receive new payload data, and we did receive new
+        <span class="comment">// if we've been told to send a RST when we receive new payload data, and we did receive new
         // payload data
         </span><span class="kw">if </span><span class="self">self</span>.send_rst_if_recv_payload &amp;&amp; !payload.is_empty() {
             <span class="self">self</span>.send_rst();
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
-        <span class="comment">// if we&#39;ve previously received a FIN packet, and now we&#39;ve received a payload/SYN/FIN
+        <span class="comment">// if we've previously received a FIN packet, and now we've received a payload/SYN/FIN
         // packet that is within the receive window
         </span><span class="kw">if </span>recv.is_closed
             &amp;&amp; (!payload.is_empty() || header.flags.intersects(TcpFlags::SYN | TcpFlags::FIN))
@@ -1340,17 +1341,17 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>pushed_len = <span class="number">0</span>;
-        <span class="comment">// the receive buffer&#39;s initial next sequence number; useful so we can check if we need to
+        <span class="comment">// the receive buffer's initial next sequence number; useful so we can check if we need to
         // acknowledge or not
         </span><span class="kw">let </span>initial_seq = recv.buffer.next_seq();
 
         <span class="kw">if </span>!recv.is_closed {
             <span class="kw">if </span>header.flags.contains(TcpFlags::SYN) {
                 <span class="kw">if </span>recv.buffer.syn_added() {
-                    <span class="comment">// this is the second SYN we&#39;ve received
+                    <span class="comment">// this is the second SYN we've received
 
                     // TODO: We can follow RFC 793 or RFC 5961 here. 793 is probably easiest, and we
-                    // should send an RST and move to the &quot;closed&quot; state.
+                    // should send an RST and move to the "closed" state.
 
                     </span><span class="self">self</span>.send_rst();
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
@@ -1393,13 +1394,13 @@
             }
         }
 
-        <span class="comment">// we&#39;ve added to the receive buffer (payload, syn, or fin), so we need to send an
+        <span class="comment">// we've added to the receive buffer (payload, syn, or fin), so we need to send an
         // acknowledgement
         </span><span class="kw">if </span>recv.buffer.next_seq() != initial_seq {
             <span class="self">self</span>.need_to_ack = <span class="bool-val">true</span>;
         }
 
-        <span class="comment">// update the send window, applying the window scale shift only if it wasn&#39;t a SYN packet
+        <span class="comment">// update the send window, applying the window scale shift only if it wasn't a SYN packet
         // TODO: should we still update the window if the ACK was not in the valid range?
         </span><span class="kw">if </span>original_packet_had_syn {
             <span class="self">self</span>.send.window = u32::from(header.window_size);
@@ -1416,7 +1417,7 @@
 
             <span class="kw">if </span>valid_ack_range.contains(Seq::new(header.ack)) {
                 <span class="comment">// the SYN is always first, so if a new sequence number has been acknowledged, then
-                // either it&#39;s acknowledging the SYN, or the SYN has been acknowledged in the past
+                // either it's acknowledging the SYN, or the SYN has been acknowledged in the past
                 </span><span class="kw">if </span>Seq::new(header.ack) != <span class="self">self</span>.send.buffer.start_seq() {
                     <span class="self">self</span>.send.syn_acked = <span class="bool-val">true</span>;
                 }
@@ -1432,12 +1433,12 @@
         <span class="kw">let </span>(seq_range, <span class="kw-2">mut </span>flags, payload) =
             <span class="self">self</span>.next_segment().ok_or(PopPacketError::NoPacket)<span class="question-mark">?</span>;
 
-        <span class="comment">// After this point we must always send a packet. If we don&#39;t, then we&#39;re not being
+        <span class="comment">// After this point we must always send a packet. If we don't, then we're not being
         // consistent with `self.wants_to_send()`.
         </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.wants_to_send());
 
         <span class="kw">let </span>header_ack = <span class="kw">if let </span><span class="prelude-val">Some</span>(recv) = <span class="self">self</span>.recv.as_ref() {
-            <span class="comment">// we&#39;ve received a SYN packet (either now or in the past), so should always acknowledge
+            <span class="comment">// we've received a SYN packet (either now or in the past), so should always acknowledge
             </span>flags.insert(TcpFlags::ACK);
             recv.buffer.next_seq()
         } <span class="kw">else </span>{
@@ -1460,7 +1461,7 @@
                 header_window_scale = <span class="prelude-val">None</span>;
             }
 
-            <span class="comment">// don&#39;t actually apply this window scale in the SYN packet
+            <span class="comment">// don't actually apply this window scale in the SYN packet
             //
             // RFC 7323 2.2.:
             // &gt; The window field in a segment where the SYN bit is set (i.e., a &lt;SYN&gt; or &lt;SYN,ACK&gt;)
@@ -1468,14 +1469,14 @@
             </span>header_window_size = <span class="self">self</span>.recv_window_len();
             <span class="self">self</span>.last_advertised_window = <span class="prelude-val">Some</span>(header_window_size);
 
-            <span class="comment">// Make sure we&#39;re sending a valid 2-byte window size. We haven&#39;t called
+            <span class="comment">// Make sure we're sending a valid 2-byte window size. We haven't called
             // `WindowScaling::sent_syn()` yet, so `Self::recv_window_len()` should not have
             // returned a window size larger than `u16::MAX`.
             </span><span class="macro">debug_assert!</span>(header_window_size &lt;= u16::MAX <span class="kw">as </span>u32);
 
             <span class="self">self</span>.window_scaling.sent_syn(header_window_scale);
         } <span class="kw">else </span>{
-            <span class="comment">// don&#39;t send a window scale
+            <span class="comment">// don't send a window scale
             //
             // RFC 7323 2.1.:
             // &gt; The exponent of the scale factor is carried in a TCP option, Window Scale. This
@@ -1506,7 +1507,7 @@
             timestamp_echo: <span class="prelude-val">None</span>,
         };
 
-        <span class="comment">// we&#39;re sending the most up-to-date acknowledgement
+        <span class="comment">// we're sending the most up-to-date acknowledgement
         </span><span class="self">self</span>.need_to_ack = <span class="bool-val">false</span>;
 
         <span class="comment">// inform the buffer that we transmitted this segment
@@ -1539,7 +1540,7 @@
     ///
     /// Since `wants_to_send()` is only interested in whether the result is `Some`, by inlining this
     /// function the compiler should hopefully optimize it to remove unnecessary values that will be
-    /// immediately discarded. I&#39;m uncertain whether there&#39;s really much that can be optimized here
+    /// immediately discarded. I'm uncertain whether there's really much that can be optimized here
     /// though, but splitting it into functions will at least help us notice if either function is
     /// showing up in a profile/heatmap. Since the function is large and is `inline(always)` we only
     /// call it from two functions, `next_segment()` and `wants_to_send()`.
@@ -1557,16 +1558,16 @@
             <span class="kw">return </span><span class="prelude-val">Some</span>((seq_range, TcpFlags::RST, Payload::default()));
         }
 
-        <span class="comment">// if the connection has been reset and we don&#39;t need to send a RST packet, never send any
+        <span class="comment">// if the connection has been reset and we don't need to send a RST packet, never send any
         // future packets
         </span><span class="kw">if </span><span class="self">self</span>.is_reset {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let </span>(seq_range, syn_fin_flags, payload) = <span class="lifetime">&#39;packet</span>: {
+        <span class="kw">let </span>(seq_range, syn_fin_flags, payload) = <span class="lifetime">'packet</span>: {
             <span class="comment">// if we have syn/fin/payload data to send
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>((seq_range, syn_fin_flags, payload)) = <span class="self">self</span>.next_data_segment() {
-                <span class="kw">break </span><span class="lifetime">&#39;packet </span>(seq_range, syn_fin_flags, payload);
+                <span class="kw">break </span><span class="lifetime">'packet </span>(seq_range, syn_fin_flags, payload);
             }
 
             <span class="kw">let </span><span class="kw-2">mut </span>send_empty_packet = <span class="bool-val">false</span>;
@@ -1598,16 +1599,16 @@
                     .unwrap_or(<span class="self">self</span>.send.buffer.next_seq());
 
                 <span class="kw">let </span>seq_range = SeqRange::new(seq, seq);
-                <span class="kw">break </span><span class="lifetime">&#39;packet </span>(seq_range, TcpFlags::empty(), Payload::default());
+                <span class="kw">break </span><span class="lifetime">'packet </span>(seq_range, TcpFlags::empty(), Payload::default());
             }
 
             <span class="kw">return </span><span class="prelude-val">None</span>;
         };
 
-        <span class="comment">// if not sending a SYN packet and window scaling isn&#39;t yet confirmed
+        <span class="comment">// if not sending a SYN packet and window scaling isn't yet confirmed
         </span><span class="kw">if </span>!syn_fin_flags.contains(TcpFlags::SYN) &amp;&amp; !<span class="self">self</span>.window_scaling.is_configured() {
             <span class="comment">// we cannot send a non-SYN packet since non-SYN packets must apply window scaling, but
-            // we haven&#39;t yet confirmed if we&#39;re using window scaling or not
+            // we haven't yet confirmed if we're using window scaling or not
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
@@ -1637,7 +1638,7 @@
                 <span class="kw">break</span>;
             }
 
-            <span class="comment">// if we can&#39;t send any more payload bytes
+            <span class="comment">// if we can't send any more payload bytes
             </span><span class="kw">if </span>payload_bytes_len == MAX_BYTES_PER_PACKET {
                 <span class="kw">break</span>;
             }
@@ -1672,7 +1673,7 @@
                 }
             };
 
-            <span class="comment">// we shouldn&#39;t be sending more than allowed
+            <span class="comment">// we shouldn't be sending more than allowed
             </span><span class="macro">debug_assert!</span>(payload_bytes_len &lt;= MAX_BYTES_PER_PACKET);
         }
 
@@ -1692,7 +1693,7 @@
 
     <span class="doccomment">/// Returns true if we received a SYN packet from the peer.
     </span><span class="kw">pub fn </span>received_syn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="comment">// we don&#39;t construct the receive part of the connection until we&#39;ve received the SYN
+        <span class="comment">// we don't construct the receive part of the connection until we've received the SYN
         </span><span class="self">self</span>.recv.is_some()
     }
 
@@ -1748,7 +1749,7 @@
         std::cmp::min(<span class="self">self</span>.recv_buffer_capacity(), window_max)
     }
 
-    <span class="doccomment">/// Returns the receive window if we&#39;ve received a SYN packet.
+    <span class="doccomment">/// Returns the receive window if we've received a SYN packet.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>recv_window(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SeqRange&gt; {
         <span class="kw">let </span>recv = <span class="self">self</span>.recv.as_ref()<span class="question-mark">?</span>;
         <span class="kw">let </span>window_left = recv.buffer.next_seq();
@@ -1778,7 +1779,7 @@
     <span class="kw">pub fn </span>new(initial_seq: Seq) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             buffer: <span class="kw">super</span>::buffer::SendQueue::new(initial_seq),
-            <span class="comment">// we don&#39;t know the peer&#39;s receive window, so choose something conservative
+            <span class="comment">// we don't know the peer's receive window, so choose something conservative
             </span>window: <span class="number">2048</span>,
             is_closed: <span class="bool-val">false</span>,
             syn_acked: <span class="bool-val">false</span>,
@@ -1863,7 +1864,7 @@
 ///
 /// If the two ranges do not intersect `None` will be returned. A `None` is also returned if the
 /// range intersects the payload twice, for example if the payload covers the range 100..200 and the
-/// given range covers 180..120, but this shouldn&#39;t occur for reasonable TCP sequence number ranges.
+/// given range covers 180..120, but this shouldn't occur for reasonable TCP sequence number ranges.
 /// The returned payload may be empty if the original `payload` was empty or the `range` was empty,
 /// but they still intersect according to [`SeqRange::intersection`].
 </span><span class="kw">fn </span>trim_payload(seq: Seq, <span class="kw-2">mut </span>payload: Payload, range: <span class="kw-2">&amp;</span>SeqRange) -&gt; <span class="prelude-ty">Option</span>&lt;(Seq, Payload)&gt; {
@@ -1879,7 +1880,7 @@
     <span class="comment">// the sequence number of the current chunk
     </span><span class="kw">let </span><span class="kw-2">mut </span>seq_cursor = seq;
 
-    <span class="comment">// we could use `retain` here and remove empty/out-of-bounds chunks, but it&#39;s simpler and
+    <span class="comment">// we could use `retain` here and remove empty/out-of-bounds chunks, but it's simpler and
     // probably faster to avoid shifting elements around and just leave empty chunks (and replace
     // out-of-bounds chunks with empty chunks)
     </span><span class="kw">for </span>chunk <span class="kw">in </span><span class="kw-2">&amp;mut </span>payload.<span class="number">0 </span>{
@@ -1902,7 +1903,7 @@
 ///
 /// If the two ranges do not intersect `None` will be returned. A `None` is also returned if the
 /// range intersects the chunk twice, for example if the chunk covers the range 100..200 and the
-/// given range covers 180..120, but this shouldn&#39;t occur for reasonable TCP sequence number ranges.
+/// given range covers 180..120, but this shouldn't occur for reasonable TCP sequence number ranges.
 /// The returned chunk may be empty if the original `chunk` was empty or the `range` was empty, but
 /// they still intersect according to [`SeqRange::intersection`].
 </span><span class="kw">fn </span>trim_chunk(seq: Seq, <span class="kw-2">mut </span>chunk: Bytes, range: <span class="kw-2">&amp;</span>SeqRange) -&gt; <span class="prelude-ty">Option</span>&lt;(Seq, Bytes)&gt; {
@@ -1993,63 +1994,63 @@
         <span class="kw">const </span>ACK: TcpFlags = TcpFlags::ACK;
         <span class="kw">const </span>EMPTY: TcpFlags = TcpFlags::empty();
 
-        <span class="macro">assert_eq!</span>(test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">1</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(test_trim(EMPTY, seq(<span class="number">1</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>), range(<span class="number">1</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(EMPTY, seq(<span class="number">1</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
         <span class="macro">assert_eq!</span>(
-            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(ACK, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((ACK, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(ACK, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((ACK, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(SYN, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(FIN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(FIN, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
-            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
+            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
-            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;12&quot;</span>))),
+            test_trim(EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
+            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">0</span>), bytes(<span class="string">b"12"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
-            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;1&quot;</span>))),
+            test_trim(SYN, seq(<span class="number">0</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
+            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">0</span>), bytes(<span class="string">b"1"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
-            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;1&quot;</span>))),
+            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
+            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">0</span>), bytes(<span class="string">b"1"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">1</span>, <span class="number">2</span>)),
-            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">1</span>), bytes(<span class="string">b&quot;1&quot;</span>))),
+            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">1</span>, <span class="number">2</span>)),
+            <span class="prelude-val">Some</span>((EMPTY, seq(<span class="number">1</span>), bytes(<span class="string">b"1"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">1</span>, <span class="number">5</span>)),
-            <span class="prelude-val">Some</span>((FIN, seq(<span class="number">1</span>), bytes(<span class="string">b&quot;123&quot;</span>))),
+            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">1</span>, <span class="number">5</span>)),
+            <span class="prelude-val">Some</span>((FIN, seq(<span class="number">1</span>), bytes(<span class="string">b"123"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">0</span>, <span class="number">1</span>)),
-            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(SYN | FIN, seq(<span class="number">0</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">0</span>, <span class="number">1</span>)),
+            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN | FIN, seq(<span class="number">4</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">0</span>, <span class="number">5</span>)),
-            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">4</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(SYN | FIN, seq(<span class="number">4</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">0</span>, <span class="number">5</span>)),
+            <span class="prelude-val">Some</span>((SYN, seq(<span class="number">4</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(SYN | FIN | ACK, seq(<span class="number">3</span>), bytes(<span class="string">b&quot;123&quot;</span>), range(<span class="number">0</span>, <span class="number">5</span>)),
-            <span class="prelude-val">Some</span>((SYN | ACK, seq(<span class="number">3</span>), bytes(<span class="string">b&quot;1&quot;</span>))),
+            test_trim(SYN | FIN | ACK, seq(<span class="number">3</span>), bytes(<span class="string">b"123"</span>), range(<span class="number">0</span>, <span class="number">5</span>)),
+            <span class="prelude-val">Some</span>((SYN | ACK, seq(<span class="number">3</span>), bytes(<span class="string">b"1"</span>))),
         );
     }
 
@@ -2061,91 +2062,91 @@
         }
 
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>], range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b""</span>], range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b""</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
             test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[], range(<span class="number">0</span>, <span class="number">0</span>)),
             <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">vec!</span>[])),
         );
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>], range(<span class="number">0</span>, <span class="number">0</span>)), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>], range(<span class="number">0</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b""</span>], range(<span class="number">0</span>, <span class="number">0</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b""</span>], range(<span class="number">0</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>], range(<span class="number">0</span>, <span class="number">2</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b""</span>], range(<span class="number">0</span>, <span class="number">2</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b""</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;a&quot;</span>], range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"a"</span>], range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b""</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;a&quot;</span>], range(<span class="number">0</span>, <span class="number">1</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;a&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"a"</span>], range(<span class="number">0</span>, <span class="number">1</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"a"</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;ab&quot;</span>], range(<span class="number">0</span>, <span class="number">1</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;a&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"ab"</span>], range(<span class="number">0</span>, <span class="number">1</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"a"</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>], range(<span class="number">2</span>, <span class="number">4</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">2</span>), <span class="macro">payload!</span>[<span class="string">b&quot;cd&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>], range(<span class="number">2</span>, <span class="number">4</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">2</span>), <span class="macro">payload!</span>[<span class="string">b"cd"</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>], range(<span class="number">2</span>, <span class="number">4</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b&quot;a&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>], range(<span class="number">2</span>, <span class="number">4</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b"a"</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>], range(<span class="number">2</span>, <span class="number">20</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>], range(<span class="number">2</span>, <span class="number">20</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>].<span class="number">0</span>)),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>], range(<span class="number">9</span>, <span class="number">20</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">9</span>), <span class="macro">payload!</span>[<span class="string">b&quot;g&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>], range(<span class="number">9</span>, <span class="number">20</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">9</span>), <span class="macro">payload!</span>[<span class="string">b"g"</span>].<span class="number">0</span>)),
         );
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>], range(<span class="number">10</span>, <span class="number">20</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>], range(<span class="number">10</span>, <span class="number">20</span>)), <span class="prelude-val">None</span>);
 
         <span class="comment">// second test intersects twice, so returns `None`
         </span><span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">5</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>], range(<span class="number">8</span>, <span class="number">5</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">8</span>), <span class="macro">payload!</span>[<span class="string">b&quot;defg&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">5</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>], range(<span class="number">8</span>, <span class="number">5</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">8</span>), <span class="macro">payload!</span>[<span class="string">b"defg"</span>].<span class="number">0</span>)),
         );
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">5</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abcdefg&quot;</span>], range(<span class="number">8</span>, <span class="number">7</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">5</span>), <span class="macro">payload!</span>[<span class="string">b"abcdefg"</span>], range(<span class="number">8</span>, <span class="number">7</span>)), <span class="prelude-val">None</span>);
 
         <span class="comment">// cut off right edge
         </span><span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;a&quot;</span>, <span class="string">b&quot;bcd&quot;</span>], range(<span class="number">0</span>, <span class="number">3</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;a&quot;</span>, <span class="string">b&quot;bc&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"a"</span>, <span class="string">b"bcd"</span>], range(<span class="number">0</span>, <span class="number">3</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"a"</span>, <span class="string">b"bc"</span>].<span class="number">0</span>)),
         );
         <span class="comment">// cut off left edge
         </span><span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abc&quot;</span>, <span class="string">b&quot;d&quot;</span>], range(<span class="number">1</span>, <span class="number">4</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b&quot;bc&quot;</span>, <span class="string">b&quot;d&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"abc"</span>, <span class="string">b"d"</span>], range(<span class="number">1</span>, <span class="number">4</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b"bc"</span>, <span class="string">b"d"</span>].<span class="number">0</span>)),
         );
         <span class="comment">// cut off left and right edge
         </span><span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abc&quot;</span>, <span class="string">b&quot;def&quot;</span>, <span class="string">b&quot;ghi&quot;</span>], range(<span class="number">1</span>, <span class="number">8</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b&quot;bc&quot;</span>, <span class="string">b&quot;def&quot;</span>, <span class="string">b&quot;gh&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"abc"</span>, <span class="string">b"def"</span>, <span class="string">b"ghi"</span>], range(<span class="number">1</span>, <span class="number">8</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), <span class="macro">payload!</span>[<span class="string">b"bc"</span>, <span class="string">b"def"</span>, <span class="string">b"gh"</span>].<span class="number">0</span>)),
         );
         <span class="comment">// cut off left and right chunks
         </span><span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abc&quot;</span>, <span class="string">b&quot;def&quot;</span>, <span class="string">b&quot;ghi&quot;</span>], range(<span class="number">3</span>, <span class="number">6</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>, <span class="string">b&quot;def&quot;</span>, <span class="string">b&quot;&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"abc"</span>, <span class="string">b"def"</span>, <span class="string">b"ghi"</span>], range(<span class="number">3</span>, <span class="number">6</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), <span class="macro">payload!</span>[<span class="string">b""</span>, <span class="string">b"def"</span>, <span class="string">b""</span>].<span class="number">0</span>)),
         );
         <span class="comment">// cut off left and right edges of same chunk
         </span><span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b&quot;abc&quot;</span>, <span class="string">b&quot;def&quot;</span>, <span class="string">b&quot;ghi&quot;</span>], range(<span class="number">4</span>, <span class="number">5</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">4</span>), <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>, <span class="string">b&quot;e&quot;</span>, <span class="string">b&quot;&quot;</span>].<span class="number">0</span>)),
+            test_trim(seq(<span class="number">0</span>), <span class="macro">payload!</span>[<span class="string">b"abc"</span>, <span class="string">b"def"</span>, <span class="string">b"ghi"</span>], range(<span class="number">4</span>, <span class="number">5</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">4</span>), <span class="macro">payload!</span>[<span class="string">b""</span>, <span class="string">b"e"</span>, <span class="string">b""</span>].<span class="number">0</span>)),
         );
 
         <span class="macro">assert_eq!</span>(
             test_trim(
                 seq(<span class="number">0</span>),
-                <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>, <span class="string">b&quot;abc&quot;</span>, <span class="string">b&quot;&quot;</span>, <span class="string">b&quot;de&quot;</span>, <span class="string">b&quot;&quot;</span>, <span class="string">b&quot;f&quot;</span>, <span class="string">b&quot;&quot;</span>, <span class="string">b&quot;ghi&quot;</span>],
+                <span class="macro">payload!</span>[<span class="string">b""</span>, <span class="string">b"abc"</span>, <span class="string">b""</span>, <span class="string">b"de"</span>, <span class="string">b""</span>, <span class="string">b"f"</span>, <span class="string">b""</span>, <span class="string">b"ghi"</span>],
                 range(<span class="number">3</span>, <span class="number">6</span>)
             ),
             <span class="prelude-val">Some</span>((
                 seq(<span class="number">3</span>),
-                <span class="macro">payload!</span>[<span class="string">b&quot;&quot;</span>, <span class="string">b&quot;&quot;</span>, <span class="string">b&quot;&quot;</span>, <span class="string">b&quot;de&quot;</span>, <span class="string">b&quot;&quot;</span>, <span class="string">b&quot;f&quot;</span>, <span class="string">b&quot;&quot;</span>, <span class="string">b&quot;&quot;</span>].<span class="number">0
+                <span class="macro">payload!</span>[<span class="string">b""</span>, <span class="string">b""</span>, <span class="string">b""</span>, <span class="string">b"de"</span>, <span class="string">b""</span>, <span class="string">b"f"</span>, <span class="string">b""</span>, <span class="string">b""</span>].<span class="number">0
             </span>)),
         );
     }
@@ -2157,51 +2158,51 @@
         }
 
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">0</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">1</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">1</span>), bytes(<span class="string">b&quot;&quot;</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), bytes(<span class="string">b&quot;&quot;</span>))),
-        );
-        <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b&quot;a&quot;</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b&quot;&quot;</span>))),
+            test_trim(seq(<span class="number">1</span>), bytes(<span class="string">b""</span>), range(<span class="number">0</span>, <span class="number">2</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">1</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b&quot;a&quot;</span>), range(<span class="number">0</span>, <span class="number">1</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b&quot;a&quot;</span>))),
+            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b"a"</span>), range(<span class="number">0</span>, <span class="number">0</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b""</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b&quot;ab&quot;</span>), range(<span class="number">0</span>, <span class="number">1</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b&quot;a&quot;</span>))),
+            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b"a"</span>), range(<span class="number">0</span>, <span class="number">1</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b"a"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>), range(<span class="number">2</span>, <span class="number">4</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">2</span>), bytes(<span class="string">b&quot;cd&quot;</span>))),
+            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b"ab"</span>), range(<span class="number">0</span>, <span class="number">1</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">0</span>), bytes(<span class="string">b"a"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>), range(<span class="number">2</span>, <span class="number">4</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), bytes(<span class="string">b&quot;a&quot;</span>))),
+            test_trim(seq(<span class="number">0</span>), bytes(<span class="string">b"abcdefg"</span>), range(<span class="number">2</span>, <span class="number">4</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">2</span>), bytes(<span class="string">b"cd"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>), range(<span class="number">2</span>, <span class="number">20</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>))),
+            test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b"abcdefg"</span>), range(<span class="number">2</span>, <span class="number">4</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), bytes(<span class="string">b"a"</span>))),
         );
         <span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>), range(<span class="number">9</span>, <span class="number">20</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">9</span>), bytes(<span class="string">b&quot;g&quot;</span>))),
+            test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b"abcdefg"</span>), range(<span class="number">2</span>, <span class="number">20</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">3</span>), bytes(<span class="string">b"abcdefg"</span>))),
         );
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>), range(<span class="number">10</span>, <span class="number">20</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(
+            test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b"abcdefg"</span>), range(<span class="number">9</span>, <span class="number">20</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">9</span>), bytes(<span class="string">b"g"</span>))),
+        );
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">3</span>), bytes(<span class="string">b"abcdefg"</span>), range(<span class="number">10</span>, <span class="number">20</span>)), <span class="prelude-val">None</span>);
 
         <span class="comment">// second test intersects twice, so returns `None`
         </span><span class="macro">assert_eq!</span>(
-            test_trim(seq(<span class="number">5</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>), range(<span class="number">8</span>, <span class="number">5</span>)),
-            <span class="prelude-val">Some</span>((seq(<span class="number">8</span>), bytes(<span class="string">b&quot;defg&quot;</span>))),
+            test_trim(seq(<span class="number">5</span>), bytes(<span class="string">b"abcdefg"</span>), range(<span class="number">8</span>, <span class="number">5</span>)),
+            <span class="prelude-val">Some</span>((seq(<span class="number">8</span>), bytes(<span class="string">b"defg"</span>))),
         );
-        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">5</span>), bytes(<span class="string">b&quot;abcdefg&quot;</span>), range(<span class="number">8</span>, <span class="number">7</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(test_trim(seq(<span class="number">5</span>), bytes(<span class="string">b"abcdefg"</span>), range(<span class="number">8</span>, <span class="number">7</span>)), <span class="prelude-val">None</span>);
     }
 }
 </code></pre></div></section></main></body></html>

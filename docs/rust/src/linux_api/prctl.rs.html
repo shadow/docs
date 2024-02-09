@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/linux-api/src/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="linux_api" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/linux-api/src/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="linux_api" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -202,10 +203,10 @@
 <span class="doccomment">/// Options for `man 2 prctl`.
 </span><span class="comment">// We want to allow unknown values since newer kernel versions may add new options, and we may want
 // to gracefully handle these options (for example to pass them on to the kernel). Linux also uses
-// the same namespace (&quot;PR_&quot;) for both options and argument flags (for example the `option`
+// the same namespace ("PR_") for both options and argument flags (for example the `option`
 // `PR_SET_FP_MODE` and the bitflag arguments `PR_FP_MODE_FR` and `PR_FP_MODE_FRE` in `arg2`). We
-// don&#39;t want bitflags in this struct, so when adding new &quot;PR_&quot; entries, make sure they correspond
-// with prctl &quot;options&quot; and not &quot;arguments&quot;.
+// don't want bitflags in this struct, so when adding new "PR_" entries, make sure they correspond
+// with prctl "options" and not "arguments".
 </span><span class="attr">#[derive(PartialEq, Eq)]
 </span><span class="kw">pub struct </span>PrctlOp(i32);
 
@@ -297,88 +298,88 @@
         <span class="self">Self</span>::new(const_conversions::i32_from_u32(val))
     }
 
-    <span class="kw">pub const fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+    <span class="kw">pub const fn </span>to_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            <span class="self">Self</span>::PR_SET_PDEATHSIG =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_PDEATHSIG&quot;</span>),
-            <span class="self">Self</span>::PR_GET_PDEATHSIG =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_PDEATHSIG&quot;</span>),
-            <span class="self">Self</span>::PR_GET_DUMPABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_DUMPABLE&quot;</span>),
-            <span class="self">Self</span>::PR_SET_DUMPABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_DUMPABLE&quot;</span>),
-            <span class="self">Self</span>::PR_GET_UNALIGN =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_UNALIGN&quot;</span>),
-            <span class="self">Self</span>::PR_SET_UNALIGN =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_UNALIGN&quot;</span>),
-            <span class="self">Self</span>::PR_GET_KEEPCAPS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_KEEPCAPS&quot;</span>),
-            <span class="self">Self</span>::PR_SET_KEEPCAPS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_KEEPCAPS&quot;</span>),
-            <span class="self">Self</span>::PR_GET_FPEMU =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_FPEMU&quot;</span>),
-            <span class="self">Self</span>::PR_SET_FPEMU =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_FPEMU&quot;</span>),
-            <span class="self">Self</span>::PR_GET_FPEXC =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_FPEXC&quot;</span>),
-            <span class="self">Self</span>::PR_SET_FPEXC =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_FPEXC&quot;</span>),
-            <span class="self">Self</span>::PR_GET_TIMING =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_TIMING&quot;</span>),
-            <span class="self">Self</span>::PR_SET_TIMING =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_TIMING&quot;</span>),
-            <span class="self">Self</span>::PR_SET_NAME =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_NAME&quot;</span>),
-            <span class="self">Self</span>::PR_GET_NAME =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_NAME&quot;</span>),
-            <span class="self">Self</span>::PR_GET_ENDIAN =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_ENDIAN&quot;</span>),
-            <span class="self">Self</span>::PR_SET_ENDIAN =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_ENDIAN&quot;</span>),
-            <span class="self">Self</span>::PR_GET_SECCOMP =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_SECCOMP&quot;</span>),
-            <span class="self">Self</span>::PR_SET_SECCOMP =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_SECCOMP&quot;</span>),
-            <span class="self">Self</span>::PR_CAPBSET_READ =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_CAPBSET_READ&quot;</span>),
-            <span class="self">Self</span>::PR_CAPBSET_DROP =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_CAPBSET_DROP&quot;</span>),
-            <span class="self">Self</span>::PR_GET_TSC =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_TSC&quot;</span>),
-            <span class="self">Self</span>::PR_SET_TSC =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_TSC&quot;</span>),
-            <span class="self">Self</span>::PR_GET_SECUREBITS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_SECUREBITS&quot;</span>),
-            <span class="self">Self</span>::PR_SET_SECUREBITS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_SECUREBITS&quot;</span>),
-            <span class="self">Self</span>::PR_SET_TIMERSLACK =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_TIMERSLACK&quot;</span>),
-            <span class="self">Self</span>::PR_GET_TIMERSLACK =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_TIMERSLACK&quot;</span>),
-            <span class="self">Self</span>::PR_TASK_PERF_EVENTS_DISABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_TASK_PERF_EVENTS_DISABLE&quot;</span>),
-            <span class="self">Self</span>::PR_TASK_PERF_EVENTS_ENABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_TASK_PERF_EVENTS_ENABLE&quot;</span>),
-            <span class="self">Self</span>::PR_MCE_KILL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_MCE_KILL&quot;</span>),
-            <span class="self">Self</span>::PR_SET_MM =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_MM&quot;</span>),
-            <span class="self">Self</span>::PR_SET_PTRACER =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_PTRACER&quot;</span>),
-            <span class="self">Self</span>::PR_SET_CHILD_SUBREAPER =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_CHILD_SUBREAPER&quot;</span>),
-            <span class="self">Self</span>::PR_GET_CHILD_SUBREAPER =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_CHILD_SUBREAPER&quot;</span>),
-            <span class="self">Self</span>::PR_SET_NO_NEW_PRIVS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_NO_NEW_PRIVS&quot;</span>),
-            <span class="self">Self</span>::PR_GET_NO_NEW_PRIVS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_NO_NEW_PRIVS&quot;</span>),
-            <span class="self">Self</span>::PR_GET_TID_ADDRESS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_TID_ADDRESS&quot;</span>),
-            <span class="self">Self</span>::PR_SET_THP_DISABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_THP_DISABLE&quot;</span>),
-            <span class="self">Self</span>::PR_GET_THP_DISABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_THP_DISABLE&quot;</span>),
-            <span class="self">Self</span>::PR_MPX_ENABLE_MANAGEMENT =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_MPX_ENABLE_MANAGEMENT&quot;</span>),
-            <span class="self">Self</span>::PR_MPX_DISABLE_MANAGEMENT =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_MPX_DISABLE_MANAGEMENT&quot;</span>),
-            <span class="self">Self</span>::PR_SET_FP_MODE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_FP_MODE&quot;</span>),
-            <span class="self">Self</span>::PR_GET_FP_MODE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_FP_MODE&quot;</span>),
-            <span class="self">Self</span>::PR_CAP_AMBIENT =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_CAP_AMBIENT&quot;</span>),
-            <span class="self">Self</span>::PR_SVE_SET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SVE_SET_VL&quot;</span>),
-            <span class="self">Self</span>::PR_SVE_GET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SVE_GET_VL&quot;</span>),
-            <span class="self">Self</span>::PR_GET_SPECULATION_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_SPECULATION_CTRL&quot;</span>),
-            <span class="self">Self</span>::PR_SET_SPECULATION_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_SPECULATION_CTRL&quot;</span>),
-            <span class="self">Self</span>::PR_PAC_RESET_KEYS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_PAC_RESET_KEYS&quot;</span>),
-            <span class="self">Self</span>::PR_SET_TAGGED_ADDR_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_TAGGED_ADDR_CTRL&quot;</span>),
-            <span class="self">Self</span>::PR_GET_TAGGED_ADDR_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_TAGGED_ADDR_CTRL&quot;</span>),
-            <span class="self">Self</span>::PR_SET_IO_FLUSHER =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_IO_FLUSHER&quot;</span>),
-            <span class="self">Self</span>::PR_GET_IO_FLUSHER =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_GET_IO_FLUSHER&quot;</span>),
-            <span class="self">Self</span>::PR_SET_SYSCALL_USER_DISPATCH =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_SYSCALL_USER_DISPATCH&quot;</span>),
-            <span class="self">Self</span>::PR_PAC_SET_ENABLED_KEYS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_PAC_SET_ENABLED_KEYS&quot;</span>),
-            <span class="self">Self</span>::PR_PAC_GET_ENABLED_KEYS =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_PAC_GET_ENABLED_KEYS&quot;</span>),
-            <span class="self">Self</span>::PR_SCHED_CORE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SCHED_CORE&quot;</span>),
-            <span class="self">Self</span>::PR_SME_SET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SME_SET_VL&quot;</span>),
-            <span class="self">Self</span>::PR_SME_GET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SME_GET_VL&quot;</span>),
-            <span class="self">Self</span>::PR_SET_VMA =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;PR_SET_VMA&quot;</span>),
+            <span class="self">Self</span>::PR_SET_PDEATHSIG =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_PDEATHSIG"</span>),
+            <span class="self">Self</span>::PR_GET_PDEATHSIG =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_PDEATHSIG"</span>),
+            <span class="self">Self</span>::PR_GET_DUMPABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_DUMPABLE"</span>),
+            <span class="self">Self</span>::PR_SET_DUMPABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_DUMPABLE"</span>),
+            <span class="self">Self</span>::PR_GET_UNALIGN =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_UNALIGN"</span>),
+            <span class="self">Self</span>::PR_SET_UNALIGN =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_UNALIGN"</span>),
+            <span class="self">Self</span>::PR_GET_KEEPCAPS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_KEEPCAPS"</span>),
+            <span class="self">Self</span>::PR_SET_KEEPCAPS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_KEEPCAPS"</span>),
+            <span class="self">Self</span>::PR_GET_FPEMU =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_FPEMU"</span>),
+            <span class="self">Self</span>::PR_SET_FPEMU =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_FPEMU"</span>),
+            <span class="self">Self</span>::PR_GET_FPEXC =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_FPEXC"</span>),
+            <span class="self">Self</span>::PR_SET_FPEXC =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_FPEXC"</span>),
+            <span class="self">Self</span>::PR_GET_TIMING =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_TIMING"</span>),
+            <span class="self">Self</span>::PR_SET_TIMING =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_TIMING"</span>),
+            <span class="self">Self</span>::PR_SET_NAME =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_NAME"</span>),
+            <span class="self">Self</span>::PR_GET_NAME =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_NAME"</span>),
+            <span class="self">Self</span>::PR_GET_ENDIAN =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_ENDIAN"</span>),
+            <span class="self">Self</span>::PR_SET_ENDIAN =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_ENDIAN"</span>),
+            <span class="self">Self</span>::PR_GET_SECCOMP =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_SECCOMP"</span>),
+            <span class="self">Self</span>::PR_SET_SECCOMP =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_SECCOMP"</span>),
+            <span class="self">Self</span>::PR_CAPBSET_READ =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_CAPBSET_READ"</span>),
+            <span class="self">Self</span>::PR_CAPBSET_DROP =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_CAPBSET_DROP"</span>),
+            <span class="self">Self</span>::PR_GET_TSC =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_TSC"</span>),
+            <span class="self">Self</span>::PR_SET_TSC =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_TSC"</span>),
+            <span class="self">Self</span>::PR_GET_SECUREBITS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_SECUREBITS"</span>),
+            <span class="self">Self</span>::PR_SET_SECUREBITS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_SECUREBITS"</span>),
+            <span class="self">Self</span>::PR_SET_TIMERSLACK =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_TIMERSLACK"</span>),
+            <span class="self">Self</span>::PR_GET_TIMERSLACK =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_TIMERSLACK"</span>),
+            <span class="self">Self</span>::PR_TASK_PERF_EVENTS_DISABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_TASK_PERF_EVENTS_DISABLE"</span>),
+            <span class="self">Self</span>::PR_TASK_PERF_EVENTS_ENABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_TASK_PERF_EVENTS_ENABLE"</span>),
+            <span class="self">Self</span>::PR_MCE_KILL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_MCE_KILL"</span>),
+            <span class="self">Self</span>::PR_SET_MM =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_MM"</span>),
+            <span class="self">Self</span>::PR_SET_PTRACER =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_PTRACER"</span>),
+            <span class="self">Self</span>::PR_SET_CHILD_SUBREAPER =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_CHILD_SUBREAPER"</span>),
+            <span class="self">Self</span>::PR_GET_CHILD_SUBREAPER =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_CHILD_SUBREAPER"</span>),
+            <span class="self">Self</span>::PR_SET_NO_NEW_PRIVS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_NO_NEW_PRIVS"</span>),
+            <span class="self">Self</span>::PR_GET_NO_NEW_PRIVS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_NO_NEW_PRIVS"</span>),
+            <span class="self">Self</span>::PR_GET_TID_ADDRESS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_TID_ADDRESS"</span>),
+            <span class="self">Self</span>::PR_SET_THP_DISABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_THP_DISABLE"</span>),
+            <span class="self">Self</span>::PR_GET_THP_DISABLE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_THP_DISABLE"</span>),
+            <span class="self">Self</span>::PR_MPX_ENABLE_MANAGEMENT =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_MPX_ENABLE_MANAGEMENT"</span>),
+            <span class="self">Self</span>::PR_MPX_DISABLE_MANAGEMENT =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_MPX_DISABLE_MANAGEMENT"</span>),
+            <span class="self">Self</span>::PR_SET_FP_MODE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_FP_MODE"</span>),
+            <span class="self">Self</span>::PR_GET_FP_MODE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_FP_MODE"</span>),
+            <span class="self">Self</span>::PR_CAP_AMBIENT =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_CAP_AMBIENT"</span>),
+            <span class="self">Self</span>::PR_SVE_SET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SVE_SET_VL"</span>),
+            <span class="self">Self</span>::PR_SVE_GET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SVE_GET_VL"</span>),
+            <span class="self">Self</span>::PR_GET_SPECULATION_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_SPECULATION_CTRL"</span>),
+            <span class="self">Self</span>::PR_SET_SPECULATION_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_SPECULATION_CTRL"</span>),
+            <span class="self">Self</span>::PR_PAC_RESET_KEYS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_PAC_RESET_KEYS"</span>),
+            <span class="self">Self</span>::PR_SET_TAGGED_ADDR_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_TAGGED_ADDR_CTRL"</span>),
+            <span class="self">Self</span>::PR_GET_TAGGED_ADDR_CTRL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_TAGGED_ADDR_CTRL"</span>),
+            <span class="self">Self</span>::PR_SET_IO_FLUSHER =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_IO_FLUSHER"</span>),
+            <span class="self">Self</span>::PR_GET_IO_FLUSHER =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_GET_IO_FLUSHER"</span>),
+            <span class="self">Self</span>::PR_SET_SYSCALL_USER_DISPATCH =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_SYSCALL_USER_DISPATCH"</span>),
+            <span class="self">Self</span>::PR_PAC_SET_ENABLED_KEYS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_PAC_SET_ENABLED_KEYS"</span>),
+            <span class="self">Self</span>::PR_PAC_GET_ENABLED_KEYS =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_PAC_GET_ENABLED_KEYS"</span>),
+            <span class="self">Self</span>::PR_SCHED_CORE =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SCHED_CORE"</span>),
+            <span class="self">Self</span>::PR_SME_SET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SME_SET_VL"</span>),
+            <span class="self">Self</span>::PR_SME_GET_VL =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SME_GET_VL"</span>),
+            <span class="self">Self</span>::PR_SET_VMA =&gt; <span class="prelude-val">Some</span>(<span class="string">"PR_SET_VMA"</span>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>PrctlOp {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), core::fmt::Error&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), core::fmt::Error&gt; {
         <span class="kw">match </span><span class="self">self</span>.to_str() {
             <span class="prelude-val">Some</span>(s) =&gt; formatter.write_str(s),
-            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(formatter, <span class="string">&quot;(unknown prctl option {})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(formatter, <span class="string">"(unknown prctl option {})"</span>, <span class="self">self</span>.<span class="number">0</span>),
         }
     }
 }
 
 <span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>PrctlOp {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), core::fmt::Error&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), core::fmt::Error&gt; {
         <span class="kw">match </span><span class="self">self</span>.to_str() {
-            <span class="prelude-val">Some</span>(s) =&gt; <span class="macro">write!</span>(formatter, <span class="string">&quot;PrctlOp::{s}&quot;</span>),
-            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(formatter, <span class="string">&quot;PrctlOp::&lt;{}&gt;&quot;</span>, <span class="self">self</span>.<span class="number">0</span>),
+            <span class="prelude-val">Some</span>(s) =&gt; <span class="macro">write!</span>(formatter, <span class="string">"PrctlOp::{s}"</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">write!</span>(formatter, <span class="string">"PrctlOp::&lt;{}&gt;"</span>, <span class="self">self</span>.<span class="number">0</span>),
         }
     }
 }

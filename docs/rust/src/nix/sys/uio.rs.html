@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.27.1/src/sys/uio.rs`."><title>uio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.27.1/src/sys/uio.rs`."><title>uio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -234,7 +235,7 @@
 <span class="doccomment">/// Low-level vectored write to a raw file descriptor
 ///
 /// See also [writev(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/writev.html)
-</span><span class="kw">pub fn </span>writev&lt;Fd: AsFd&gt;(fd: Fd, iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+</span><span class="kw">pub fn </span>writev&lt;Fd: AsFd&gt;(fd: Fd, iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
     <span class="comment">// SAFETY: to quote the documentation for `IoSlice`:
     //
     // [IoSlice] is semantically a wrapper around a &amp;[u8], but is
@@ -252,10 +253,10 @@
 <span class="doccomment">/// Low-level vectored read from a raw file descriptor
 ///
 /// See also [readv(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/readv.html)
-</span><span class="comment">// Clippy doesn&#39;t know that we need to pass iov mutably only because the
+</span><span class="comment">// Clippy doesn't know that we need to pass iov mutably only because the
 // mutation happens after converting iov to a pointer
 </span><span class="attr">#[allow(clippy::needless_pass_by_ref_mut)]
-</span><span class="kw">pub fn </span>readv&lt;Fd: AsFd&gt;(fd: Fd, iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+</span><span class="kw">pub fn </span>readv&lt;Fd: AsFd&gt;(fd: Fd, iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
     <span class="comment">// SAFETY: same as in writev(), IoSliceMut is ABI-compatible with iovec
     </span><span class="kw">let </span>res = <span class="kw">unsafe </span>{
         libc::readv(fd.as_fd().as_raw_fd(), iov.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>libc::iovec, iov.len() <span class="kw">as </span>c_int)
@@ -270,11 +271,11 @@
 /// or an error occurs. The file offset is not changed.
 ///
 /// See also: [`writev`](fn.writev.html) and [`pwrite`](fn.pwrite.html)
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"redox"</span>, target_os = <span class="string">"haiku"</span>)))]
 #[cfg_attr(docsrs, doc(cfg(all())))]
-</span><span class="kw">pub fn </span>pwritev&lt;Fd: AsFd&gt;(fd: Fd, iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;], offset: off_t) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(target_env = <span class="string">&quot;uclibc&quot;</span>)]
-    </span><span class="kw">let </span>offset = offset <span class="kw">as </span>libc::off64_t; <span class="comment">// uclibc doesn&#39;t use off_t
+</span><span class="kw">pub fn </span>pwritev&lt;Fd: AsFd&gt;(fd: Fd, iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;], offset: off_t) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    <span class="attr">#[cfg(target_env = <span class="string">"uclibc"</span>)]
+    </span><span class="kw">let </span>offset = offset <span class="kw">as </span>libc::off64_t; <span class="comment">// uclibc doesn't use off_t
 
     // SAFETY: same as in writev()
     </span><span class="kw">let </span>res = <span class="kw">unsafe </span>{
@@ -296,18 +297,18 @@
 /// changed.
 ///
 /// See also: [`readv`](fn.readv.html) and [`pread`](fn.pread.html)
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(target_os = <span class="string">"redox"</span>, target_os = <span class="string">"haiku"</span>)))]
 #[cfg_attr(docsrs, doc(cfg(all())))]
-</span><span class="comment">// Clippy doesn&#39;t know that we need to pass iov mutably only because the
+</span><span class="comment">// Clippy doesn't know that we need to pass iov mutably only because the
 // mutation happens after converting iov to a pointer
 </span><span class="attr">#[allow(clippy::needless_pass_by_ref_mut)]
 </span><span class="kw">pub fn </span>preadv&lt;Fd: AsFd&gt;(
     fd: Fd,
-    iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+    iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     offset: off_t,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(target_env = <span class="string">&quot;uclibc&quot;</span>)]
-    </span><span class="kw">let </span>offset = offset <span class="kw">as </span>libc::off64_t; <span class="comment">// uclibc doesn&#39;t use off_t
+    <span class="attr">#[cfg(target_env = <span class="string">"uclibc"</span>)]
+    </span><span class="kw">let </span>offset = offset <span class="kw">as </span>libc::off64_t; <span class="comment">// uclibc doesn't use off_t
 
     // SAFETY: same as in readv()
     </span><span class="kw">let </span>res = <span class="kw">unsafe </span>{
@@ -364,7 +365,7 @@
 /// therefore not represented in Rust by an actual slice as `IoSlice` is. It
 /// is used with [`process_vm_readv`](fn.process_vm_readv.html)
 /// and [`process_vm_writev`](fn.process_vm_writev.html).
-</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+</span><span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
 #[cfg_attr(docsrs, doc(cfg(all())))]
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -376,9 +377,9 @@
 }
 
 <span class="macro">feature! </span>{
-<span class="attr">#![feature = <span class="string">&quot;process&quot;</span>]
+<span class="attr">#![feature = <span class="string">"process"</span>]
 
-</span><span class="doccomment">/// Write data directly to another process&#39;s virtual memory
+</span><span class="doccomment">/// Write data directly to another process's virtual memory
 /// (see [`process_vm_writev`(2)]).
 ///
 /// `local_iov` is a list of [`IoSlice`]s containing the data to be written,
@@ -398,10 +399,10 @@
 /// [ptrace]: ../ptrace/index.html
 /// [`IoSlice`]: https://doc.rust-lang.org/std/io/struct.IoSlice.html
 /// [`RemoteIoVec`]: struct.RemoteIoVec.html
-</span><span class="attr">#[cfg(all(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>), not(target_env = <span class="string">&quot;uclibc&quot;</span>)))]
+</span><span class="attr">#[cfg(all(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>), not(target_env = <span class="string">"uclibc"</span>)))]
 </span><span class="kw">pub fn </span>process_vm_writev(
     pid: <span class="kw">crate</span>::unistd::Pid,
-    local_iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+    local_iov: <span class="kw-2">&amp;</span>[IoSlice&lt;<span class="lifetime">'_</span>&gt;],
     remote_iov: <span class="kw-2">&amp;</span>[RemoteIoVec]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt;
 {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{
@@ -413,7 +414,7 @@
     Errno::result(res).map(|r| r <span class="kw">as </span>usize)
 }
 
-<span class="doccomment">/// Read data directly from another process&#39;s virtual memory
+<span class="doccomment">/// Read data directly from another process's virtual memory
 /// (see [`process_vm_readv`(2)]).
 ///
 /// `local_iov` is a list of [`IoSliceMut`]s containing the buffer to copy
@@ -433,10 +434,10 @@
 /// [`ptrace`]: ../ptrace/index.html
 /// [`IoSliceMut`]: https://doc.rust-lang.org/std/io/struct.IoSliceMut.html
 /// [`RemoteIoVec`]: struct.RemoteIoVec.html
-</span><span class="attr">#[cfg(all(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>), not(target_env = <span class="string">&quot;uclibc&quot;</span>)))]
+</span><span class="attr">#[cfg(all(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>), not(target_env = <span class="string">"uclibc"</span>)))]
 </span><span class="kw">pub fn </span>process_vm_readv(
     pid: <span class="kw">crate</span>::unistd::Pid,
-    local_iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">&#39;_</span>&gt;],
+    local_iov: <span class="kw-2">&amp;mut </span>[IoSliceMut&lt;<span class="lifetime">'_</span>&gt;],
     remote_iov: <span class="kw-2">&amp;</span>[RemoteIoVec]) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt;
 {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{

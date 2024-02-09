@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/pipe.rs`."><title>pipe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/pipe.rs`."><title>pipe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -504,7 +505,7 @@
 
     <span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">if </span><span class="self">self</span>.state.contains(FileState::CLOSED) {
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Attempting to close an already-closed pipe&quot;</span>);
+            <span class="macro">log::warn!</span>(<span class="string">"Attempting to close an already-closed pipe"</span>);
         }
 
         <span class="comment">// drop the event listener handle so that we stop receiving new events
@@ -552,7 +553,7 @@
         mem: <span class="kw-2">&amp;mut </span>MemoryManager,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
-        <span class="comment">// pipes don&#39;t support seeking
+        <span class="comment">// pipes don't support seeking
         </span><span class="kw">if </span>offset.is_some() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::ESPIPE.into());
         }
@@ -595,7 +596,7 @@
         mem: <span class="kw-2">&amp;mut </span>MemoryManager,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
-        <span class="comment">// pipes don&#39;t support seeking
+        <span class="comment">// pipes don't support seeking
         </span><span class="kw">if </span>offset.is_some() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::ESPIPE.into());
         }
@@ -636,7 +637,7 @@
                     <span class="comment">// the number of remaining bytes to write
                     </span><span class="kw">let </span>bytes_remaining = len - num_written;
 
-                    <span class="comment">// if there are no more bytes to write (pipes don&#39;t support 0-length packets)
+                    <span class="comment">// if there are no more bytes to write (pipes don't support 0-length packets)
                     </span><span class="kw">if </span>bytes_remaining == <span class="number">0 </span>{
                         <span class="kw">break </span>num_written;
                     }
@@ -645,7 +646,7 @@
                     </span><span class="kw">let </span>bytes_to_write = std::cmp::min(bytes_remaining, libc::PIPE_BUF);
 
                     <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = buffer.write_packet(<span class="kw-2">&amp;mut </span>reader, bytes_to_write, cb_queue) {
-                        <span class="comment">// if we&#39;ve already written bytes, return those instead of an error
+                        <span class="comment">// if we've already written bytes, return those instead of an error
                         </span><span class="kw">if </span>num_written &gt; <span class="number">0 </span>{
                             <span class="kw">break </span>num_written;
                         }
@@ -666,7 +667,7 @@
         _arg_ptr: ForeignPtr&lt;()&gt;,
         _memory_manager: <span class="kw-2">&amp;mut </span>MemoryManager,
     ) -&gt; SyscallResult {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;We do not yet handle ioctl request {request:?} on pipes&quot;</span>);
+        <span class="macro">log::warn!</span>(<span class="string">"We do not yet handle ioctl request {request:?} on pipes"</span>);
         <span class="prelude-val">Err</span>(Errno::EINVAL.into())
     }
 
@@ -721,11 +722,11 @@
             monitoring_state,
             BufferSignals::BUFFER_GREW,
             <span class="kw">move </span>|buffer_state, buffer_signals, cb_queue| {
-                <span class="comment">// if the file hasn&#39;t been dropped
+                <span class="comment">// if the file hasn't been dropped
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pipe) = weak.upgrade() {
                     <span class="kw">let </span><span class="kw-2">mut </span>pipe = pipe.borrow_mut();
 
-                    <span class="comment">// update the pipe file&#39;s state to align with the buffer&#39;s current state
+                    <span class="comment">// update the pipe file's state to align with the buffer's current state
                     </span>pipe.align_state_to_buffer(buffer_state, buffer_signals, cb_queue);
                 }
             },
@@ -733,7 +734,7 @@
 
         pipe.buffer_event_handle = <span class="prelude-val">Some</span>(handle);
 
-        <span class="comment">// update the pipe file&#39;s initial state to align with the buffer&#39;s current state
+        <span class="comment">// update the pipe file's initial state to align with the buffer's current state
         </span><span class="kw">let </span>buffer_state = pipe.buffer.as_ref().unwrap().borrow().state();
         pipe.align_state_to_buffer(buffer_state, BufferSignals::empty(), cb_queue);
     }
@@ -746,7 +747,7 @@
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
             + Send
             + Sync
-            + <span class="lifetime">&#39;static</span>,
+            + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="self">self</span>.event_source
             .add_listener(monitoring_state, monitoring_signals, filter, notify_fn)
@@ -764,8 +765,8 @@
         <span class="self">self</span>.state
     }
 
-    <span class="doccomment">/// Align the pipe&#39;s state to the buffer state. For example if the buffer is both `READABLE` and
-    /// `WRITABLE`, and the pipe is only open in `READ` mode, the pipe&#39;s `READABLE` state will be
+    <span class="doccomment">/// Align the pipe's state to the buffer state. For example if the buffer is both `READABLE` and
+    /// `WRITABLE`, and the pipe is only open in `READ` mode, the pipe's `READABLE` state will be
     /// set and the `WRITABLE` state will be unchanged.
     </span><span class="kw">fn </span>align_state_to_buffer(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -803,7 +804,7 @@
             }
         }
 
-        <span class="comment">// update the file&#39;s state
+        <span class="comment">// update the file's state
         </span><span class="self">self</span>.update_state(mask, file_state, file_signals, cb_queue);
     }
 

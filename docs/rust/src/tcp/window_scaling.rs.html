@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/window_scaling.rs`."><title>window_scaling.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/window_scaling.rs`."><title>window_scaling.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -228,7 +229,7 @@
 }
 
 <span class="kw">impl </span>WindowScaling {
-    <span class="doccomment">/// Maximum value of the &quot;Window Scale&quot; TCP option as specified by RFC 7323.
+    <span class="doccomment">/// Maximum value of the "Window Scale" TCP option as specified by RFC 7323.
     </span><span class="kw">const </span>MAX_SCALE_SHIFT: u8 = <span class="number">14</span>;
 
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
@@ -277,7 +278,7 @@
         <span class="comment">// why did we send the SYN twice?
         </span><span class="macro">assert!</span>(!<span class="self">self</span>.sent_syn);
 
-        <span class="comment">// if it was disabled, we shouldn&#39;t have sent a window scale in the SYN
+        <span class="comment">// if it was disabled, we shouldn't have sent a window scale in the SYN
         </span><span class="kw">if </span><span class="self">self</span>.disabled {
             <span class="macro">assert!</span>(window_scale.is_none());
         }
@@ -320,14 +321,14 @@
         <span class="self">self</span>.send_window_scale_shift = window_scale;
     }
 
-    <span class="doccomment">/// Checks if it&#39;s valid for an outward SYN packet to contain a window scale option.
+    <span class="doccomment">/// Checks if it's valid for an outward SYN packet to contain a window scale option.
     </span><span class="kw">pub fn </span>can_send_window_scale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="comment">// can&#39;t send if window scaling has been disabled, or if we&#39;ve already received a SYN packet
+        <span class="comment">// can't send if window scaling has been disabled, or if we've already received a SYN packet
         // that did not have window scaling enabled
         </span>!(<span class="self">self</span>.disabled || (<span class="self">self</span>.received_syn &amp;&amp; <span class="self">self</span>.send_window_scale_shift.is_none()))
     }
 
-    <span class="doccomment">/// Has window scaling been configured? This does *not* mean that it&#39;s enabled. If this returns
+    <span class="doccomment">/// Has window scaling been configured? This does *not* mean that it's enabled. If this returns
     /// true, then `recv_window_scale_shift()` and `send_window_scale_shift()` should not panic.
     </span><span class="kw">pub fn </span>is_configured(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.disabled || (<span class="self">self</span>.sent_syn &amp;&amp; <span class="self">self</span>.received_syn)
@@ -357,18 +358,18 @@
         </span>}
     }
 
-    <span class="doccomment">/// The right bit-shift to apply to the receive buffer&#39;s window size when sending a packet.
+    <span class="doccomment">/// The right bit-shift to apply to the receive buffer's window size when sending a packet.
     </span><span class="kw">pub fn </span>recv_window_scale_shift(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
-        <span class="comment">// we shouldn&#39;t be trying to get the receive window scale before we&#39;ve fully configured
+        <span class="comment">// we shouldn't be trying to get the receive window scale before we've fully configured
         // window scaling
         </span><span class="macro">assert!</span>(<span class="self">self</span>.is_configured());
 
         <span class="self">self</span>.recv_shift()
     }
 
-    <span class="doccomment">/// The left bit-shift to apply to the send buffer&#39;s window size when receiving a packet.
+    <span class="doccomment">/// The left bit-shift to apply to the send buffer's window size when receiving a packet.
     </span><span class="kw">pub fn </span>send_window_scale_shift(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
-        <span class="comment">// we shouldn&#39;t be trying to get the send window scale before we&#39;ve fully configured window
+        <span class="comment">// we shouldn't be trying to get the send window scale before we've fully configured window
         // scaling
         </span><span class="macro">assert!</span>(<span class="self">self</span>.is_configured());
 
@@ -395,7 +396,7 @@
             <span class="macro">assert_eq!</span>(rv, expected);
 
             <span class="comment">// Check that applying the window scale bit-shift does result in a value that fits
-            // within a u16. We can&#39;t check this if the provided window size is larger than
+            // within a u16. We can't check this if the provided window size is larger than
             // `MAX_WINDOW_SIZE`, since we use a max bit shift value of 14.
             </span><span class="kw">if </span>window &lt;= MAX_WINDOW_SIZE {
                 <span class="macro">assert!</span>(window &gt;&gt; rv &lt;= u16::MAX <span class="kw">as </span>u32);

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/formatting-nostd/src/format_buffer.rs`."><title>format_buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="formatting_nostd" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/formatting-nostd/src/format_buffer.rs`."><title>format_buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="formatting_nostd" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -458,8 +459,8 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>core::ffi::CStr;
 <span class="kw">use </span>core::mem::MaybeUninit;
 
-<span class="doccomment">/// A self-contained buffer that can be used with both Rust&#39;s formatting utilities and
-/// libc&#39;s sprintf.
+<span class="doccomment">/// A self-contained buffer that can be used with both Rust's formatting utilities and
+/// libc's sprintf.
 ///
 /// Because those tools panic on errors, overflowing writes are truncated rather
 /// than returning an error. A non-zero truncation count is included in
@@ -469,17 +470,17 @@
 /// The generic parameter `N` is the internal size of the buffer.  One byte is
 /// reserved for NULL to support conversion to `CStr`.
 ///
-/// To format a message with Rust&#39;s formatting:
+/// To format a message with Rust's formatting:
 /// ```
 /// # use formatting_nostd::FormatBuffer;
 /// use core::fmt::Write;
 /// let mut buf = FormatBuffer::&lt;1000&gt;::new();
 /// let x = 42;
-/// write!(&amp;mut buf, &quot;{x}&quot;).unwrap();
-/// assert_eq!(buf.as_str(), &quot;42&quot;);
+/// write!(&amp;mut buf, "{x}").unwrap();
+/// assert_eq!(buf.as_str(), "42");
 /// let y = 43;
-/// write!(&amp;mut buf, &quot; {y}&quot;).unwrap();
-/// assert_eq!(buf.as_str(), &quot;42 43&quot;);
+/// write!(&amp;mut buf, " {y}").unwrap();
+/// assert_eq!(buf.as_str(), "42 43");
 /// ```
 </span><span class="kw">pub struct </span>FormatBuffer&lt;<span class="kw">const </span>N: usize&gt; {
     buffer: [MaybeUninit&lt;u8&gt;; N],
@@ -513,7 +514,7 @@
     }
 
     <span class="doccomment">/// How many bytes (not chars) have been truncated.
-    /// This shouldn&#39;t be relied on for an exact count; in particular
+    /// This shouldn't be relied on for an exact count; in particular
     /// the accounting is not precise in `sprintf` if utf8 replacement
     /// characters need to be inserted.
     </span><span class="kw">pub fn </span>truncated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -552,10 +553,10 @@
 
     <span class="doccomment">/// `str` representation of internal buffer.
     ///
-    /// If you&#39;d like to render the buffer including any non-zero
+    /// If you'd like to render the buffer including any non-zero
     /// truncation count, use the `Display` attribute instead.
     </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="comment">// SAFETY: We&#39;ve ensured that only valid utf8 is appended to the buffer.
+        <span class="comment">// SAFETY: We've ensured that only valid utf8 is appended to the buffer.
         </span><span class="kw">unsafe </span>{ core::str::from_utf8_unchecked(<span class="self">self</span>.initd_buffer_excluding_null()) }
     }
 
@@ -565,19 +566,19 @@
     }
 
     <span class="doccomment">/// Appends the result of formatting `fmt` and `args`, following the conventions
-    /// of libc&#39;s `sprintf`.
+    /// of libc's `sprintf`.
     ///
     /// Any non-utf8 sequences in the resulting string are replaced with the
     /// utf8 replacement character. If truncation occurs, the truncation count
-    /// doesn&#39;t necessarily account for all such substitutions.
+    /// doesn't necessarily account for all such substitutions.
     ///
-    /// Currently calls libc&#39;s `vsnprintf` internally and panics on unexpected error.
-    /// TODO: Ideally we&#39;d find or create our own reimplementation of `vsnprintf` instead,
-    /// since `vsnprintf` isn&#39;t guaranteed to be async-signal-safe.
+    /// Currently calls libc's `vsnprintf` internally and panics on unexpected error.
+    /// TODO: Ideally we'd find or create our own reimplementation of `vsnprintf` instead,
+    /// since `vsnprintf` isn't guaranteed to be async-signal-safe.
     ///
     /// # Safety
     ///
-    /// `fmt` and `args` must be consistent, as with arguments to libc&#39;s `sprintf`.
+    /// `fmt` and `args` must be consistent, as with arguments to libc's `sprintf`.
     </span><span class="kw">pub unsafe fn </span>sprintf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fmt: <span class="kw-2">&amp;</span>CStr, args: va_list::VaList) {
         <span class="comment">// We use a temp buffer for the direct libc destination, so that we
         // can relatively easily do a lossy utf8 decode from that buffer to
@@ -586,11 +587,11 @@
         // We *could* instead do a lossy decode in place to avoid having to
         // allocate this additional buffer. However, because the unicode
         // replacement character is multiple bytes, each insertion would be an
-        // O(N) to shift of the rest of the buffer.  Performance-wise that&#39;s
+        // O(N) to shift of the rest of the buffer.  Performance-wise that's
         // probably fine since in the common case nothing would be substituted,
-        // but it&#39;d also make the code significantly trickier.
+        // but it'd also make the code significantly trickier.
         //
-        // Meanwhile, this stack allocation is ~free... as long as we don&#39;t
+        // Meanwhile, this stack allocation is ~free... as long as we don't
         // overflow the stack.
         </span><span class="kw">let </span><span class="kw-2">mut </span>buf = [MaybeUninit::&lt;i8&gt;::uninit(); N];
 
@@ -600,7 +601,7 @@
         </span><span class="kw">let </span>formatted_len = <span class="kw">match </span>usize::try_from(rv) {
             <span class="prelude-val">Ok</span>(n) =&gt; n,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;vsnprintf returned {rv}&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"vsnprintf returned {rv}"</span>);
             }
         };
 
@@ -631,14 +632,14 @@
         <span class="self">self</span>.null_terminate();
     }
 
-    <span class="comment">// Panics if the bytes don&#39;t fit.
+    <span class="comment">// Panics if the bytes don't fit.
     </span><span class="kw">fn </span>write_fitting_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>str) {
         <span class="macro">assert!</span>(src.len() &lt;= <span class="self">self</span>.capacity_remaining());
 
         <span class="comment">// SAFETY: the pointer arithmetic here stays inside the original object (the buffer).
         </span><span class="kw">let </span>dst: <span class="kw-2">*mut </span>MaybeUninit&lt;u8&gt; = <span class="kw">unsafe </span>{ <span class="self">self</span>.buffer.as_mut_ptr().add(<span class="self">self</span>.used) };
 
-        <span class="comment">// `MaybeUninit` guarantees this cast is safe, as long as we don&#39;t try to read
+        <span class="comment">// `MaybeUninit` guarantees this cast is safe, as long as we don't try to read
         // the uninitialized data.
         </span><span class="kw">let </span>dst: <span class="kw-2">*mut </span>u8 = dst <span class="kw">as </span><span class="kw-2">*mut </span>u8;
 
@@ -662,7 +663,7 @@
         }
 
         <span class="comment">// Find safe end to split at.
-        // TODO: consider `str::floor_char_boundary` once it&#39;s stabilized.
+        // TODO: consider `str::floor_char_boundary` once it's stabilized.
         </span><span class="kw">let </span><span class="kw-2">mut </span>nbytes = <span class="self">self</span>.capacity_remaining();
         <span class="kw">while </span>!src.is_char_boundary(nbytes) {
             nbytes -= <span class="number">1</span>;
@@ -675,11 +676,11 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="kw">const </span>N: usize&gt; core::fmt::Display <span class="kw">for </span>FormatBuffer&lt;N&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.truncated == <span class="number">0 </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
+            <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.as_str())
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}...&lt;truncated {}&gt;&quot;</span>, <span class="self">self</span>.as_str(), <span class="self">self</span>.truncated())
+            <span class="macro">write!</span>(f, <span class="string">"{}...&lt;truncated {}&gt;"</span>, <span class="self">self</span>.as_str(), <span class="self">self</span>.truncated())
         }
     }
 }
@@ -693,14 +694,14 @@
 <span class="comment">// Ensure the system libc is linked.
 </span><span class="kw">extern crate </span>libc;
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
-    <span class="comment">// Use libc&#39;s `vsnprintf` function. The `libc` crate doesn&#39;t expose it, so
+<span class="kw">extern </span><span class="string">"C" </span>{
+    <span class="comment">// Use libc's `vsnprintf` function. The `libc` crate doesn't expose it, so
     // we declare it ourselves.
     //
     // From `sprintf(3)`:
     // &gt; int vsnprintf(char *str, size_t size, const char *format, va_list ap);
     //
-    // `va_list::VaList` is ABI compatible with libc&#39;s `va_list`.
+    // `va_list::VaList` is ABI compatible with libc's `va_list`.
     </span><span class="kw">fn </span>vsnprintf(
         str: <span class="kw-2">*mut </span>core::ffi::c_char,
         size: usize,
@@ -720,33 +721,33 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_format_buffer_write_str_exact() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">4</span>&gt;::new();
-        <span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;123&quot;</span>).is_ok());
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;123&quot;</span>);
+        <span class="macro">assert!</span>(buf.write_str(<span class="string">"123"</span>).is_ok());
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"123"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">0</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_format_buffer_write_str_truncated() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">3</span>&gt;::new();
-        <span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;123&quot;</span>).is_ok());
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;12&quot;</span>);
+        <span class="macro">assert!</span>(buf.write_str(<span class="string">"123"</span>).is_ok());
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"12"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">1</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_format_buffer_write_str_truncated_unicode() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">3</span>&gt;::new();
-        <span class="comment">// U+00A1 &quot;inverted exclamation mark&quot; is 2 bytes in utf8.
+        <span class="comment">// U+00A1 "inverted exclamation mark" is 2 bytes in utf8.
         // Ensure that both bytes are truncated, rather than splitting in the
         // middle.
-        </span><span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;1¡&quot;</span>).is_ok());
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;1&quot;</span>);
+        </span><span class="macro">assert!</span>(buf.write_str(<span class="string">"1¡"</span>).is_ok());
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"1"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">2</span>);
 
         <span class="comment">// While there is 1 byte of capacity left, once bytes have been truncated
         // the buffer truncates all additional writes.
         </span><span class="macro">assert_eq!</span>(buf.capacity_remaining(), <span class="number">1</span>);
-        <span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;2&quot;</span>).is_ok());
+        <span class="macro">assert!</span>(buf.write_str(<span class="string">"2"</span>).is_ok());
         <span class="macro">assert_eq!</span>(buf.capacity_remaining(), <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">3</span>);
     }
@@ -754,29 +755,29 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_format_buffer_display_truncated() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">3</span>&gt;::new();
-        <span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;123&quot;</span>).is_ok());
-        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{buf}&quot;</span>), <span class="string">&quot;12...&lt;truncated 1&gt;&quot;</span>);
+        <span class="macro">assert!</span>(buf.write_str(<span class="string">"123"</span>).is_ok());
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{buf}"</span>), <span class="string">"12...&lt;truncated 1&gt;"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_format_buffer_write_str_multiple() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">7</span>&gt;::new();
-        <span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;123&quot;</span>).is_ok());
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;123&quot;</span>);
-        <span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;456&quot;</span>).is_ok());
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;123456&quot;</span>);
+        <span class="macro">assert!</span>(buf.write_str(<span class="string">"123"</span>).is_ok());
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"123"</span>);
+        <span class="macro">assert!</span>(buf.write_str(<span class="string">"456"</span>).is_ok());
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"123456"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_cstr_ok() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">7</span>&gt;::new();
-        <span class="macro">assert!</span>(buf.write_str(<span class="string">&quot;123&quot;</span>).is_ok());
-        <span class="kw">let </span>expected = CString::new(<span class="string">&quot;123&quot;</span>).unwrap();
+        <span class="macro">assert!</span>(buf.write_str(<span class="string">"123"</span>).is_ok());
+        <span class="kw">let </span>expected = CString::new(<span class="string">"123"</span>).unwrap();
         <span class="macro">assert_eq!</span>(buf.as_cstr(), <span class="prelude-val">Some</span>(expected.as_c_str()));
     }
 }
 
-<span class="comment">// sprintf tests don&#39;t work under miri since we use FFI.
+<span class="comment">// sprintf tests don't work under miri since we use FFI.
 </span><span class="attr">#[cfg(all(test, not(miri)))]
 </span><span class="kw">mod </span>sprintf_test {
     <span class="kw">use </span>std::ffi::CString;
@@ -785,7 +786,7 @@
 
     <span class="comment">// Wrapper code we expose to our C test harness.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>test_format_buffer_valist(
+    </span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>test_format_buffer_valist(
         format_buffer: <span class="kw-2">*mut </span>FormatBuffer&lt;<span class="number">10</span>&gt;,
         fmt: <span class="kw-2">*const </span>core::ffi::c_char,
         args: va_list::VaList,
@@ -795,12 +796,12 @@
         <span class="kw">unsafe </span>{ format_buffer.sprintf(fmt, args) };
     }
 
-    <span class="kw">extern </span><span class="string">&quot;C-unwind&quot; </span>{
+    <span class="kw">extern </span><span class="string">"C-unwind" </span>{
         <span class="comment">// Wrapper code that our C test harness exposes to us.
         // It calls `test_format_buffer_valist` and returns the result.
         //
         // We need this to transform varargs (...) to a `VaList`;
-        // we don&#39;t have a way to construct a `VaList` in pure Rust.
+        // we don't have a way to construct a `VaList` in pure Rust.
         </span><span class="attr">#[allow(improper_ctypes)]
         </span><span class="kw">fn </span>test_format_buffer_vararg(
             format_buffer: <span class="kw-2">*mut </span>FormatBuffer&lt;<span class="number">10</span>&gt;,
@@ -812,53 +813,53 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_sprintf_noargs() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">10</span>&gt;::new();
-        <span class="kw">let </span>fmt = CString::new(<span class="string">&quot;hello&quot;</span>).unwrap();
+        <span class="kw">let </span>fmt = CString::new(<span class="string">"hello"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr()) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;hello&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"hello"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">0</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_sprintf_args() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">10</span>&gt;::new();
-        <span class="kw">let </span>fmt = CString::new(<span class="string">&quot;x %d y&quot;</span>).unwrap();
+        <span class="kw">let </span>fmt = CString::new(<span class="string">"x %d y"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr(), <span class="number">42i32</span>) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;x 42 y&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"x 42 y"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">0</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_sprintf_truncated() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">10</span>&gt;::new();
-        <span class="kw">let </span>fmt = CString::new(<span class="string">&quot;1234567890123&quot;</span>).unwrap();
+        <span class="kw">let </span>fmt = CString::new(<span class="string">"1234567890123"</span>).unwrap();
 
         <span class="comment">// The last *4* bytes will be truncated, only writing *9*.
-        // Internally we use libc&#39;s `vsnprintf` which always NULL-terminates.
+        // Internally we use libc's `vsnprintf` which always NULL-terminates.
         </span><span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr()) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;123456789&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"123456789"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">4</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_sprintf_truncated_partly_full() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">10</span>&gt;::new();
-        <span class="kw">let </span>fmt = CString::new(<span class="string">&quot;12345678&quot;</span>).unwrap();
+        <span class="kw">let </span>fmt = CString::new(<span class="string">"12345678"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr()) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;12345678&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"12345678"</span>);
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr()) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;123456781&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"123456781"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">7</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_sprintf_truncated_unicode() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">10</span>&gt;::new();
-        <span class="comment">// U+00A1 &quot;inverted exclamation mark&quot; is 2 bytes in utf8.
+        <span class="comment">// U+00A1 "inverted exclamation mark" is 2 bytes in utf8.
         // Ensure that both bytes are truncated, rather than splitting in the
         // middle.
-        </span><span class="kw">let </span>fmt = CString::new(<span class="string">&quot;123456789¡&quot;</span>).unwrap();
+        </span><span class="kw">let </span>fmt = CString::new(<span class="string">"123456789¡"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr()) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;123456789&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"123456789"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">2</span>);
     }
 
@@ -868,9 +869,9 @@
         <span class="comment">// Cause the formatted output to have a continuation byte 0x80 without
         // a previous start byte; i.e. be invalid utf8. It should get replaced with
         // a replacment character.
-        </span><span class="kw">let </span>fmt = CString::new(<span class="string">&quot;x%cy&quot;</span>).unwrap();
+        </span><span class="kw">let </span>fmt = CString::new(<span class="string">"x%cy"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr(), <span class="number">0x80 </span><span class="kw">as </span>core::ffi::c_int) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;x�y&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"x�y"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">0</span>);
     }
 
@@ -880,11 +881,11 @@
         <span class="comment">// Cause the formatted output to have a continuation byte 0x80 without
         // a previous start byte; i.e. be invalid utf8. It should get replaced with
         // a replacment character.
-        </span><span class="kw">let </span>fmt = CString::new(<span class="string">&quot;12345678%c&quot;</span>).unwrap();
+        </span><span class="kw">let </span>fmt = CString::new(<span class="string">"12345678%c"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr(), <span class="number">0x80 </span><span class="kw">as </span>core::ffi::c_int) };
-        <span class="comment">// The unicode replacement charater won&#39;t fit, so should get truncated completely.
-        </span><span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;12345678&quot;</span>);
-        <span class="comment">// We&#39;re not guaranteeing anything about the exact count in this case,
+        <span class="comment">// The unicode replacement charater won't fit, so should get truncated completely.
+        </span><span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"12345678"</span>);
+        <span class="comment">// We're not guaranteeing anything about the exact count in this case,
         // other than it should be non-zero.
         </span><span class="macro">assert!</span>(buf.truncated() &gt; <span class="number">0</span>);
     }
@@ -892,11 +893,11 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_sprintf_multiple() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">10</span>&gt;::new();
-        <span class="kw">let </span>fmt = CString::new(<span class="string">&quot;123&quot;</span>).unwrap();
+        <span class="kw">let </span>fmt = CString::new(<span class="string">"123"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr()) };
-        <span class="kw">let </span>fmt = CString::new(<span class="string">&quot;456&quot;</span>).unwrap();
+        <span class="kw">let </span>fmt = CString::new(<span class="string">"456"</span>).unwrap();
         <span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr()) };
-        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">&quot;123456&quot;</span>);
+        <span class="macro">assert_eq!</span>(buf.as_str(), <span class="string">"123456"</span>);
         <span class="macro">assert_eq!</span>(buf.truncated(), <span class="number">0</span>);
     }
 
@@ -904,9 +905,9 @@
     </span><span class="kw">fn </span>test_sprintf_cstr_fail() {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = FormatBuffer::&lt;<span class="number">10</span>&gt;::new();
         <span class="comment">// Cause the formatted output to have an interior NULL byte.
-        </span><span class="kw">let </span>fmt = CString::new(<span class="string">&quot;1234%c56&quot;</span>).unwrap();
+        </span><span class="kw">let </span>fmt = CString::new(<span class="string">"1234%c56"</span>).unwrap();
 
-        <span class="comment">// We have to cast 0 to `c_int` here, because the vararg ABI doesn&#39;t
+        <span class="comment">// We have to cast 0 to `c_int` here, because the vararg ABI doesn't
         // support passing a char. (i.e. casting to `c_char` fails to compile)
         </span><span class="kw">unsafe </span>{ test_format_buffer_vararg(<span class="kw-2">&amp;mut </span>buf, fmt.as_ptr(), <span class="number">0 </span><span class="kw">as </span>core::ffi::c_int) };
         <span class="macro">assert_eq!</span>(buf.as_cstr(), <span class="prelude-val">None</span>);

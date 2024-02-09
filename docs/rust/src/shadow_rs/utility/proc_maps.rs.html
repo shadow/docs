@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/utility/proc_maps.rs`."><title>proc_maps.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/utility/proc_maps.rs`."><title>proc_maps.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -543,17 +544,17 @@
 <span class="kw">impl </span>FromStr <span class="kw">for </span>Sharing {
     <span class="kw">type </span><span class="prelude-val">Err </span>= Box&lt;<span class="kw">dyn </span>Error&gt;;
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
-        <span class="kw">if </span>s == <span class="string">&quot;p&quot; </span>{
+        <span class="kw">if </span>s == <span class="string">"p" </span>{
             <span class="prelude-val">Ok</span>(Sharing::Private)
-        } <span class="kw">else if </span>s == <span class="string">&quot;s&quot; </span>{
+        } <span class="kw">else if </span>s == <span class="string">"s" </span>{
             <span class="prelude-val">Ok</span>(Sharing::Shared)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bad sharing specifier {}&quot;</span>, s).into())
+            <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Bad sharing specifier {}"</span>, s).into())
         }
     }
 }
 
-<span class="doccomment">/// The &quot;path&quot; of where a region is mapped from.
+<span class="doccomment">/// The "path" of where a region is mapped from.
 </span><span class="attr">#[derive(PartialEq, Eq, Debug, Clone)]
 </span><span class="kw">pub enum </span>MappingPath {
     InitialStack,
@@ -567,10 +568,10 @@
 <span class="kw">impl </span>FromStr <span class="kw">for </span>MappingPath {
     <span class="kw">type </span><span class="prelude-val">Err </span>= Box&lt;<span class="kw">dyn </span>Error&gt;;
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
-        <span class="kw">static </span>SPECIAL_RE: Lazy&lt;Regex&gt; = Lazy::new(|| Regex::new(<span class="string">r&quot;^\[(\S+)\]$&quot;</span>).unwrap());
-        <span class="kw">static </span>THREAD_STACK_RE: Lazy&lt;Regex&gt; = Lazy::new(|| Regex::new(<span class="string">r&quot;^stack:(\d+)$&quot;</span>).unwrap());
+        <span class="kw">static </span>SPECIAL_RE: Lazy&lt;Regex&gt; = Lazy::new(|| Regex::new(<span class="string">r"^\[(\S+)\]$"</span>).unwrap());
+        <span class="kw">static </span>THREAD_STACK_RE: Lazy&lt;Regex&gt; = Lazy::new(|| Regex::new(<span class="string">r"^stack:(\d+)$"</span>).unwrap());
 
-        <span class="kw">if </span>s.starts_with(<span class="string">&#39;/&#39;</span>) {
+        <span class="kw">if </span>s.starts_with(<span class="string">'/'</span>) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(MappingPath::Path(PathBuf::from(s)));
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(caps) = SPECIAL_RE.captures(s) {
@@ -581,20 +582,20 @@
                         .unwrap()
                         .as_str()
                         .parse::&lt;i32&gt;()
-                        .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Parsing thread id: {}&quot;</span>, e))<span class="question-mark">?</span>,
+                        .map_err(|e| <span class="macro">format!</span>(<span class="string">"Parsing thread id: {}"</span>, e))<span class="question-mark">?</span>,
                 ));
             }
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>s {
-                <span class="string">&quot;stack&quot; </span>=&gt; MappingPath::InitialStack,
-                <span class="string">&quot;vdso&quot; </span>=&gt; MappingPath::Vdso,
-                <span class="string">&quot;heap&quot; </span>=&gt; MappingPath::Heap,
+                <span class="string">"stack" </span>=&gt; MappingPath::InitialStack,
+                <span class="string">"vdso" </span>=&gt; MappingPath::Vdso,
+                <span class="string">"heap" </span>=&gt; MappingPath::Heap,
                 <span class="comment">// Experimentally there other labels here that are undocumented in proc(5). Some
                 // examples include `vvar` and `vsyscall`. Rather than failing to parse, we just
                 // save the label.
                 </span><span class="kw">_ </span>=&gt; MappingPath::OtherSpecial(s.to_string()),
             });
         }
-        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Couldn&#39;t parse &#39;{}&#39;&quot;</span>, s).into())
+        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Couldn't parse '{}'"</span>, s).into())
     }
 }
 
@@ -623,7 +624,7 @@
 {
     <span class="kw">match </span>parse_fn(field) {
         <span class="prelude-val">Ok</span>(res) =&gt; <span class="prelude-val">Ok</span>(res),
-        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Parsing {} &#39;{}&#39;: {}&quot;</span>, field_name, field, err)),
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Parsing {} '{}': {}"</span>, field_name, field, err)),
     }
 }
 
@@ -632,73 +633,73 @@
     <span class="kw">fn </span>from_str(line: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">static </span>RE: Lazy&lt;Regex&gt; = Lazy::new(|| {
             Regex::new(
-                <span class="string">r&quot;^(\S+)-(\S+)\s+(\S)(\S)(\S)(\S)\s+(\S+)\s+(\S+):(\S+)\s+(\S+)\s*(\S*)\s*(\S*)$&quot;</span>,
+                <span class="string">r"^(\S+)-(\S+)\s+(\S)(\S)(\S)(\S)\s+(\S+)\s+(\S+):(\S+)\s+(\S+)\s*(\S*)\s*(\S*)$"</span>,
             )
             .unwrap()
         });
 
         <span class="kw">let </span>caps = RE
             .captures(line)
-            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Didn&#39;t match regex: {}&quot;</span>, line))<span class="question-mark">?</span>;
+            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Didn't match regex: {}"</span>, line))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(Mapping {
-            begin: parse_field(caps.get(<span class="number">1</span>).unwrap().as_str(), <span class="string">&quot;begin&quot;</span>, |s| {
+            begin: parse_field(caps.get(<span class="number">1</span>).unwrap().as_str(), <span class="string">"begin"</span>, |s| {
                 usize::from_str_radix(s, <span class="number">16</span>)
             })<span class="question-mark">?</span>,
-            end: parse_field(caps.get(<span class="number">2</span>).unwrap().as_str(), <span class="string">&quot;end&quot;</span>, |s| {
+            end: parse_field(caps.get(<span class="number">2</span>).unwrap().as_str(), <span class="string">"end"</span>, |s| {
                 usize::from_str_radix(s, <span class="number">16</span>)
             })<span class="question-mark">?</span>,
             read: {
                 <span class="kw">let </span>s = caps.get(<span class="number">3</span>).unwrap().as_str();
                 <span class="kw">match </span>s {
-                    <span class="string">&quot;r&quot; </span>=&gt; <span class="bool-val">true</span>,
-                    <span class="string">&quot;-&quot; </span>=&gt; <span class="bool-val">false</span>,
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Couldn&#39;t parse read bit {}&quot;</span>, s).into()),
+                    <span class="string">"r" </span>=&gt; <span class="bool-val">true</span>,
+                    <span class="string">"-" </span>=&gt; <span class="bool-val">false</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Couldn't parse read bit {}"</span>, s).into()),
                 }
             },
             write: {
                 <span class="kw">let </span>s = caps.get(<span class="number">4</span>).unwrap().as_str();
                 <span class="kw">match </span>s {
-                    <span class="string">&quot;w&quot; </span>=&gt; <span class="bool-val">true</span>,
-                    <span class="string">&quot;-&quot; </span>=&gt; <span class="bool-val">false</span>,
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Couldn&#39;t parse write bit {}&quot;</span>, s).into()),
+                    <span class="string">"w" </span>=&gt; <span class="bool-val">true</span>,
+                    <span class="string">"-" </span>=&gt; <span class="bool-val">false</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Couldn't parse write bit {}"</span>, s).into()),
                 }
             },
             execute: {
                 <span class="kw">let </span>s = caps.get(<span class="number">5</span>).unwrap().as_str();
                 <span class="kw">match </span>s {
-                    <span class="string">&quot;x&quot; </span>=&gt; <span class="bool-val">true</span>,
-                    <span class="string">&quot;-&quot; </span>=&gt; <span class="bool-val">false</span>,
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Couldn&#39;t parse execute bit {}&quot;</span>, s).into()),
+                    <span class="string">"x" </span>=&gt; <span class="bool-val">true</span>,
+                    <span class="string">"-" </span>=&gt; <span class="bool-val">false</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Couldn't parse execute bit {}"</span>, s).into()),
                 }
             },
             sharing: caps.get(<span class="number">6</span>).unwrap().as_str().parse::&lt;Sharing&gt;()<span class="question-mark">?</span>,
-            offset: parse_field(caps.get(<span class="number">7</span>).unwrap().as_str(), <span class="string">&quot;offset&quot;</span>, |s| {
+            offset: parse_field(caps.get(<span class="number">7</span>).unwrap().as_str(), <span class="string">"offset"</span>, |s| {
                 usize::from_str_radix(s, <span class="number">16</span>)
             })<span class="question-mark">?</span>,
-            device_major: parse_field(caps.get(<span class="number">8</span>).unwrap().as_str(), <span class="string">&quot;device_major&quot;</span>, |s| {
+            device_major: parse_field(caps.get(<span class="number">8</span>).unwrap().as_str(), <span class="string">"device_major"</span>, |s| {
                 i32::from_str_radix(s, <span class="number">16</span>)
             })<span class="question-mark">?</span>,
-            device_minor: parse_field(caps.get(<span class="number">9</span>).unwrap().as_str(), <span class="string">&quot;device_minor&quot;</span>, |s| {
+            device_minor: parse_field(caps.get(<span class="number">9</span>).unwrap().as_str(), <span class="string">"device_minor"</span>, |s| {
                 i32::from_str_radix(s, <span class="number">16</span>)
             })<span class="question-mark">?</span>,
             <span class="comment">// Undocumented whether this is actually base 10; change to 16 if we find
             // counter-examples.
-            </span>inode: parse_field(caps.get(<span class="number">10</span>).unwrap().as_str(), <span class="string">&quot;inode&quot;</span>, |s| s.parse())<span class="question-mark">?</span>,
+            </span>inode: parse_field(caps.get(<span class="number">10</span>).unwrap().as_str(), <span class="string">"inode"</span>, |s| s.parse())<span class="question-mark">?</span>,
             path: parse_field::&lt;<span class="kw">_</span>, <span class="kw">_</span>, Box&lt;<span class="kw">dyn </span>Error&gt;&gt;(
                 caps.get(<span class="number">11</span>).unwrap().as_str(),
-                <span class="string">&quot;path&quot;</span>,
+                <span class="string">"path"</span>,
                 |s| <span class="kw">match </span>s {
-                    <span class="string">&quot;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+                    <span class="string">"" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
                     s =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(s.parse::&lt;MappingPath&gt;()<span class="question-mark">?</span>)),
                 },
             )<span class="question-mark">?</span>,
             deleted: {
                 <span class="kw">let </span>s = caps.get(<span class="number">12</span>).unwrap().as_str();
                 <span class="kw">match </span>s {
-                    <span class="string">&quot;&quot; </span>=&gt; <span class="bool-val">false</span>,
-                    <span class="string">&quot;(deleted)&quot; </span>=&gt; <span class="bool-val">true</span>,
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Couldn&#39;t parse trailing field &#39;{}&#39;&quot;</span>, s).into()),
+                    <span class="string">"" </span>=&gt; <span class="bool-val">false</span>,
+                    <span class="string">"(deleted)" </span>=&gt; <span class="bool-val">true</span>,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Couldn't parse trailing field '{}'"</span>, s).into()),
                 }
             },
         })
@@ -709,7 +710,7 @@
 </span><span class="kw">pub fn </span>parse_file_contents(mappings: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Mapping&gt;, Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
     <span class="kw">let </span>res: <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, String&gt; = mappings
         .lines()
-        .map(|line| Mapping::from_str(line).map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Parsing line: {}\n{}&quot;</span>, line, e)))
+        .map(|line| Mapping::from_str(line).map_err(|e| <span class="macro">format!</span>(<span class="string">"Parsing line: {}\n{}"</span>, line, e)))
         .collect();
     <span class="prelude-val">Ok</span>(res<span class="question-mark">?</span>)
 }
@@ -719,7 +720,7 @@
     <span class="kw">use </span>std::fs::File;
     <span class="kw">use </span>std::io::Read;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>file = File::open(<span class="macro">format!</span>(<span class="string">&quot;/proc/{}/maps&quot;</span>, pid))<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>file = File::open(<span class="macro">format!</span>(<span class="string">"/proc/{}/maps"</span>, pid))<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>contents = String::new();
     file.read_to_string(<span class="kw-2">&amp;mut </span>contents)<span class="question-mark">?</span>;
     parse_file_contents(<span class="kw-2">&amp;</span>contents)
@@ -733,7 +734,7 @@
     </span><span class="kw">fn </span>test_mapping_from_str() {
         <span class="comment">// Private mapping of part of a file. Taken from proc(5).
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;00400000-00452000 r-xp 00000000 08:02 173521      /usr/bin/dbus-daemon&quot;
+            <span class="string">"00400000-00452000 r-xp 00000000 08:02 173521      /usr/bin/dbus-daemon"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap(),
             Mapping {
@@ -747,14 +748,14 @@
                 device_major: <span class="number">8</span>,
                 device_minor: <span class="number">2</span>,
                 inode: <span class="number">173521</span>,
-                path: <span class="prelude-val">Some</span>(MappingPath::Path(PathBuf::from(<span class="string">&quot;/usr/bin/dbus-daemon&quot;</span>))),
+                path: <span class="prelude-val">Some</span>(MappingPath::Path(PathBuf::from(<span class="string">"/usr/bin/dbus-daemon"</span>))),
                 deleted: <span class="bool-val">false</span>,
             }
         );
 
         <span class="comment">// Heap. Taken from proc(5).
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;00e03000-00e24000 rw-p 00000000 00:00 0           [heap]&quot;
+            <span class="string">"00e03000-00e24000 rw-p 00000000 00:00 0           [heap]"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap(),
             Mapping {
@@ -775,7 +776,7 @@
 
         <span class="comment">// Anonymous. Taken from proc(5).
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;35b1a21000-35b1a22000 rw-p 00000000 00:00 0&quot;
+            <span class="string">"35b1a21000-35b1a22000 rw-p 00000000 00:00 0"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap(),
             Mapping {
@@ -796,7 +797,7 @@
 
         <span class="comment">// Thread stack. Taken from proc(5).
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;f2c6ff8c000-7f2c7078c000 rw-p 00000000 00:00 0    [stack:986]&quot;
+            <span class="string">"f2c6ff8c000-7f2c7078c000 rw-p 00000000 00:00 0    [stack:986]"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap(),
             Mapping {
@@ -817,7 +818,7 @@
 
         <span class="comment">// Initial stack. Taken from proc(5).
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;7fffb2c0d000-7fffb2c2e000 rw-p 00000000 00:00 0   [stack]&quot;
+            <span class="string">"7fffb2c0d000-7fffb2c2e000 rw-p 00000000 00:00 0   [stack]"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap(),
             Mapping {
@@ -838,7 +839,7 @@
 
         <span class="comment">// vdso. Taken from proc(5).
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;7fffb2d48000-7fffb2d49000 r-xp 00000000 00:00 0   [vdso]&quot;
+            <span class="string">"7fffb2d48000-7fffb2d49000 r-xp 00000000 00:00 0   [vdso]"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap(),
             Mapping {
@@ -859,28 +860,28 @@
 
         <span class="comment">// vsyscall. Undocumented in proc(5), but found experimentally.
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;7fffb2d48000-7fffb2d49000 r-xp 00000000 00:00 0   [vsyscall]&quot;
+            <span class="string">"7fffb2d48000-7fffb2d49000 r-xp 00000000 00:00 0   [vsyscall]"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap()
                 .path,
-            <span class="prelude-val">Some</span>(MappingPath::OtherSpecial(<span class="string">&quot;vsyscall&quot;</span>.to_string()))
+            <span class="prelude-val">Some</span>(MappingPath::OtherSpecial(<span class="string">"vsyscall"</span>.to_string()))
         );
 
         <span class="comment">// Hexadecimal device major and minor numbers. Base is unspecified in proc(5), but
-        // experimentally they&#39;re hex.
+        // experimentally they're hex.
         </span>{
-            <span class="kw">let </span>mapping = <span class="string">&quot;00400000-00452000 r-xp 00000000 bb:cc 173521      /usr/bin/dbus-daemon&quot;
+            <span class="kw">let </span>mapping = <span class="string">"00400000-00452000 r-xp 00000000 bb:cc 173521      /usr/bin/dbus-daemon"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap();
             <span class="macro">assert_eq!</span>(mapping.device_major, <span class="number">0xbb</span>);
             <span class="macro">assert_eq!</span>(mapping.device_minor, <span class="number">0xcc</span>);
         }
 
-        <span class="comment">// Undocumented &#39;(deleted)&#39; trailer, indicating that the mapped file has been removed from
+        <span class="comment">// Undocumented '(deleted)' trailer, indicating that the mapped file has been removed from
         // the file system.
         </span>{
             <span class="kw">let </span>mapping =
-                <span class="string">&quot;00400000-00452000 r-xp 00000000 bb:cc 173521      /usr/bin/dbus-daemon (deleted)&quot;
+                <span class="string">"00400000-00452000 r-xp 00000000 bb:cc 173521      /usr/bin/dbus-daemon (deleted)"
                     </span>.parse::&lt;Mapping&gt;()
                     .unwrap();
             <span class="macro">assert!</span>(mapping.deleted);
@@ -888,7 +889,7 @@
 
         <span class="comment">// A large 64-bit inode value.
         </span><span class="macro">assert_eq!</span>(
-            <span class="string">&quot;00400000-00452000 r-xp 00000000 08:02 18446744073709551615      /usr/bin/dbus-daemon&quot;
+            <span class="string">"00400000-00452000 r-xp 00000000 08:02 18446744073709551615      /usr/bin/dbus-daemon"
                 </span>.parse::&lt;Mapping&gt;()
                 .unwrap(),
             Mapping {
@@ -902,7 +903,7 @@
                 device_major: <span class="number">8</span>,
                 device_minor: <span class="number">2</span>,
                 inode: <span class="number">18446744073709551615</span>,
-                path: <span class="prelude-val">Some</span>(MappingPath::Path(PathBuf::from(<span class="string">&quot;/usr/bin/dbus-daemon&quot;</span>))),
+                path: <span class="prelude-val">Some</span>(MappingPath::Path(PathBuf::from(<span class="string">"/usr/bin/dbus-daemon"</span>))),
                 deleted: <span class="bool-val">false</span>,
             }
         );
@@ -913,84 +914,84 @@
         <span class="comment">// These should return errors but *not* panic.
 
         // Empty
-        </span><span class="macro">assert!</span>(<span class="string">&quot;&quot;</span>.parse::&lt;Mapping&gt;().is_err());
+        </span><span class="macro">assert!</span>(<span class="string">""</span>.parse::&lt;Mapping&gt;().is_err());
 
         <span class="comment">// Non-match
-        </span><span class="macro">assert!</span>(<span class="string">&quot;garbage&quot;</span>.parse::&lt;Mapping&gt;().is_err());
+        </span><span class="macro">assert!</span>(<span class="string">"garbage"</span>.parse::&lt;Mapping&gt;().is_err());
 
         <span class="comment">// Validate parseable template as baseline, before testing different mutations of it below.
-        </span><span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso]&quot;
+        </span><span class="string">"7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .unwrap();
 
         <span class="comment">// Bad begin
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d4800q-7fffb2d49000 ---p 00000000 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d4800q-7fffb2d49000 ---p 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad end
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d4900q ---p 00000000 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d4900q ---p 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad r
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 z--p 00000000 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 z--p 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad w
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 -z-p 00000000 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 -z-p 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad x
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 --zp 00000000 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 --zp 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad sharing
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 ---- 00000000 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 ---- 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad offset
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 0000000z 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 ---p 0000000z 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad device high
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 00000000 0z:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 ---p 00000000 0z:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad device low
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 00000000 00:0z 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 ---p 00000000 00:0z 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad inode
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 z   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 z   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Bad path
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   z&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   z"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Leading garbage
-        </span><span class="macro">assert!</span>(<span class="string">&quot;z 7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso]&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"z 7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso]"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Trailing garbage after path
-        </span><span class="macro">assert!</span>(<span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso] z&quot;
+        </span><span class="macro">assert!</span>(<span class="string">"7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso] z"
             </span>.parse::&lt;Mapping&gt;()
             .is_err());
 
         <span class="comment">// Trailing garbage after (deleted)
         </span><span class="macro">assert!</span>(
-            <span class="string">&quot;7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso] (deleted) z&quot;
+            <span class="string">"7fffb2d48000-7fffb2d49000 ---p 00000000 00:00 0   [vdso] (deleted) z"
                 </span>.parse::&lt;Mapping&gt;()
                 .is_err()
         );
@@ -1000,8 +1001,8 @@
     </span><span class="kw">fn </span>test_parse_file_contents() {
         <span class="comment">// Multiple lines.
         </span><span class="attr">#[rustfmt::skip]
-        </span><span class="kw">let </span>s = <span class="string">&quot;00400000-00452000 r-xp 00000000 08:02 173521      /usr/bin/dbus-daemon\n\
-                 7fffb2c0d000-7fffb2c2e000 rw-p 00000000 00:00 0   [stack]\n&quot;</span>;
+        </span><span class="kw">let </span>s = <span class="string">"00400000-00452000 r-xp 00000000 08:02 173521      /usr/bin/dbus-daemon\n\
+                 7fffb2c0d000-7fffb2c2e000 rw-p 00000000 00:00 0   [stack]\n"</span>;
         <span class="macro">assert_eq!</span>(
             parse_file_contents(s).unwrap(),
             <span class="macro">vec!</span>[
@@ -1016,7 +1017,7 @@
                     device_major: <span class="number">8</span>,
                     device_minor: <span class="number">2</span>,
                     inode: <span class="number">173521</span>,
-                    path: <span class="prelude-val">Some</span>(MappingPath::Path(PathBuf::from(<span class="string">&quot;/usr/bin/dbus-daemon&quot;</span>))),
+                    path: <span class="prelude-val">Some</span>(MappingPath::Path(PathBuf::from(<span class="string">"/usr/bin/dbus-daemon"</span>))),
                     deleted: <span class="bool-val">false</span>,
                 },
                 Mapping {
@@ -1037,7 +1038,7 @@
         );
 
         <span class="comment">// Empty.
-        </span><span class="macro">assert_eq!</span>(parse_file_contents(<span class="string">&quot;&quot;</span>).unwrap(), Vec::&lt;Mapping&gt;::new());
+        </span><span class="macro">assert_eq!</span>(parse_file_contents(<span class="string">""</span>).unwrap(), Vec::&lt;Mapping&gt;::new());
     }
 
     <span class="attr">#[test]

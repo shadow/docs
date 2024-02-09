@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shim/src/signals.rs`."><title>signals.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shim/src/signals.rs`."><title>signals.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -452,10 +453,10 @@
     native_sigaltstack: <span class="prelude-ty">Option</span>&lt;stack_t&gt;,
     siginfo: siginfo_t,
     action: sigaction,
-    <span class="comment">// May be NULL, in the case that we didn&#39;t get here in the context of an
+    <span class="comment">// May be NULL, in the case that we didn't get here in the context of an
     // earlier signal handler (e.g. seccomp).
 
-    // We don&#39;t copy by value in case additional fields are added to the stuct
+    // We don't copy by value in case additional fields are added to the stuct
     // definition, and because we currently accept a libc::ucontext_t in our C
     // API, which *does* have extra fields at the end.
     </span>ctx: <span class="kw-2">*mut </span>ucontext,
@@ -463,7 +464,7 @@
 <span class="kw">static </span>SIGUSR1_SIGINFO: ShimTlsVar&lt;Cell&lt;<span class="prelude-ty">Option</span>&lt;Sigusr1Info&gt;&gt;&gt; =
     ShimTlsVar::new(<span class="kw-2">&amp;</span><span class="kw">crate</span>::SHIM_TLS, || Cell::new(<span class="prelude-val">None</span>));
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>handle_sigusr1(_signo: i32, _info: <span class="kw-2">*mut </span>siginfo_t, ctx: <span class="kw-2">*mut </span>core::ffi::c_void) {
+<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>handle_sigusr1(_signo: i32, _info: <span class="kw-2">*mut </span>siginfo_t, ctx: <span class="kw-2">*mut </span>core::ffi::c_void) {
     <span class="kw">let </span><span class="kw-2">mut </span>info = SIGUSR1_SIGINFO.get().take().unwrap();
     <span class="kw">let </span>signo = info.siginfo.signal().unwrap().as_i32();
     <span class="macro">assert!</span>(<span class="kw">crate</span>::tls_allow_native_syscalls::swap(<span class="bool-val">false</span>));
@@ -473,26 +474,26 @@
     <span class="kw">if let </span><span class="prelude-val">Some</span>(stack) = <span class="kw-2">&amp;</span>info.native_sigaltstack {
         <span class="comment">// We temporarily switched the sigaltstack so that this handler would
         // run on the specified stack. Now switch back to the native sigaltstack (i.e.
-        // the one Shadow originally configured for *it&#39;s* signal handling).
+        // the one Shadow originally configured for *it's* signal handling).
         </span><span class="kw">unsafe </span>{ linux_api::signal::sigaltstack(<span class="prelude-val">Some</span>(stack), <span class="prelude-val">None</span>) }.unwrap();
     }
 
-    <span class="comment">// SAFETY: Not particularly. We&#39;re calling a handler provided by managed code, which
-    // we don&#39;t attempt to analyze or sandbox. A &quot;well behaved&quot; handler should be safe to
+    <span class="comment">// SAFETY: Not particularly. We're calling a handler provided by managed code, which
+    // we don't attempt to analyze or sandbox. A "well behaved" handler should be safe to
     // call here, but it could do anything including things that are unsound in Rust.
     </span><span class="kw">match </span>handler {
         linux_api::signal::SignalHandler::Handler(handler_fn) =&gt; <span class="kw">unsafe </span>{ handler_fn(signo) },
         linux_api::signal::SignalHandler::Action(action_fn) =&gt; <span class="kw">unsafe </span>{
-            <span class="comment">// If there&#39;s an &quot;earlier&quot; context, we use it. This might be important e.g.
+            <span class="comment">// If there's an "earlier" context, we use it. This might be important e.g.
             // when handling a signal like SIGSEGV, where the handler might actually
             // inspect individual register values.
             //
             // Otherwise, use the the context that the kernel gave us for *this* signal
-            // handler.  The register values won&#39;t make much sense to the handler, but
+            // handler.  The register values won't make much sense to the handler, but
             // it should WAI with functionality like `swapcontext`, which might be done
             // in an implementation of user-space threads.
             </span><span class="kw">let </span>ctx: <span class="kw-2">*mut </span>ucontext = <span class="kw">if </span>info.ctx.is_null() {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;Passing a synthetic context to managed code signal handler&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"Passing a synthetic context to managed code signal handler"</span>);
                 ctx.cast()
             } <span class="kw">else </span>{
                 info.ctx
@@ -500,7 +501,7 @@
             action_fn(signo, <span class="kw-2">&amp;mut </span>info.siginfo, ctx.cast::&lt;core::ffi::c_void&gt;())
         },
         linux_api::signal::SignalHandler::SigIgn | linux_api::signal::SignalHandler::SigDfl =&gt; {
-            <span class="macro">panic!</span>(<span class="string">&quot;No handler&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"No handler"</span>)
         }
     }
     <span class="macro">assert!</span>(!<span class="kw">crate</span>::tls_allow_native_syscalls::swap(<span class="bool-val">true</span>));
@@ -534,7 +535,7 @@
 /// `ucontext` must be dereferenceable if not NULL.
 ///
 /// Configured handlers for all pending unblocked signals must be safe to call. (Which
-/// we basically can&#39;t ensure).
+/// we basically can't ensure).
 </span><span class="kw">pub unsafe fn </span>process_signals(<span class="kw-2">mut </span>ucontext: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ucontext&gt;) -&gt; bool {
     <span class="kw">let </span><span class="kw-2">mut </span>host = <span class="kw">crate</span>::global_host_shmem::get();
     <span class="kw">let </span><span class="kw-2">mut </span>host_lock = host.protected().lock();
@@ -571,7 +572,7 @@
             }
         }
 
-        <span class="macro">trace!</span>(<span class="string">&quot;Handling emulated signal {sig:?}&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">"Handling emulated signal {sig:?}"</span>);
 
         <span class="kw">let </span>(sigaltstack_orig_emu, mask_orig_emu): (stack_t, sigset_t) =
             tls_thread_shmem::with(|thread| {
@@ -627,7 +628,7 @@
                 //
                 // Documentation is unclear what should happen, but switching to
                 // the already-in-use stack would almost certainly go badly.
-                </span><span class="macro">panic!</span>(<span class="string">&quot;Alternate stack already in use.&quot;</span>)
+                </span><span class="macro">panic!</span>(<span class="string">"Alternate stack already in use."</span>)
             }
 
             <span class="comment">// Update the signal-stack configuration while the handler is being run.
@@ -682,7 +683,7 @@
             action,
             ctx: ucontext
                 .as_mut()
-                .map(|c| <span class="kw-2">*</span>c <span class="kw">as </span><span class="kw-2">*mut </span>ucontext)
+                .map(|c| core::ptr::from_mut(<span class="kw-2">*</span>c))
                 .unwrap_or(core::ptr::null_mut()),
         }));
         <span class="macro">assert!</span>(prev.is_none());
@@ -694,13 +695,13 @@
         drop(host);
 
         <span class="comment">// We raise a signal natively to let the kernel create a ucontext for us
-        // and switch stacks. We invoke the managed code&#39;s signal handler from our
+        // and switch stacks. We invoke the managed code's signal handler from our
         // signal handler.
         //
-        // We could potentially skip this if the managed code signal handler isn&#39;t
-        // configured to switch stacks and either doesn&#39;t need a context or we already
-        // have one. But that&#39;d mean another code path to maintain, and signal
-        // handling shouldn&#39;t be on the hot path of performance for most
+        // We could potentially skip this if the managed code signal handler isn't
+        // configured to switch stacks and either doesn't need a context or we already
+        // have one. But that'd mean another code path to maintain, and signal
+        // handling shouldn't be on the hot path of performance for most
         // applications. (We could also consider implementing the stack switch
         // and/or creation of a ucontext ourselves, but again that would be more
         // complex code to maintain).
@@ -716,7 +717,7 @@
             } <span class="kw">else </span>{
                 SigActionFlags::empty()
             };
-        <span class="comment">// SAFETY: `handle_sigusr1` is sound, if the handler we&#39;re calling is.
+        <span class="comment">// SAFETY: `handle_sigusr1` is sound, if the handler we're calling is.
         </span><span class="kw">unsafe </span>{
             linux_api::signal::rt_sigaction(
                 Signal::SIGUSR1,
@@ -745,7 +746,7 @@
             <span class="comment">// SAFETY: Pointers are valid in managed process.
             </span><span class="kw">unsafe </span>{ <span class="kw-2">*</span>thread.sigaltstack_mut() = sigaltstack_orig_emu };
             <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = sigaltstack_orig_native {
-                <span class="comment">// SAFETY: We&#39;re restoring the previous, presumably valid, stack.
+                <span class="comment">// SAFETY: We're restoring the previous, presumably valid, stack.
                 </span><span class="kw">unsafe </span>{ linux_api::signal::sigaltstack(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>s), <span class="prelude-val">None</span>) }.unwrap();
             }
         });
@@ -753,7 +754,7 @@
     restartable
 }
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>handle_hardware_error_signal(
+<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>handle_hardware_error_signal(
     signo: i32,
     info: <span class="kw-2">*mut </span>siginfo_t,
     ctx: <span class="kw-2">*mut </span>core::ffi::c_void,
@@ -775,7 +776,7 @@
         <span class="kw">let </span>host_lock = host.protected().lock();
         <span class="kw">let </span>pending_signals = thread.protected.borrow(<span class="kw-2">&amp;</span>host_lock.root).pending_signals;
         <span class="kw">if </span>pending_signals.has(signal) {
-            <span class="macro">warn!</span>(<span class="string">&quot;Received signal {signal:?} when it was already pending&quot;</span>);
+            <span class="macro">warn!</span>(<span class="string">"Received signal {signal:?} when it was already pending"</span>);
         } <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>thread_protected = thread.protected.borrow_mut(<span class="kw-2">&amp;</span>host_lock.root);
             thread_protected.pending_signals |= signal.into();
@@ -792,10 +793,10 @@
 }
 
 <span class="kw">pub fn </span>install_hardware_error_handlers() {
-    <span class="comment">// SA_NODEFER: Don&#39;t block the current signal in the handler.
+    <span class="comment">// SA_NODEFER: Don't block the current signal in the handler.
     // Generating one of these signals while it is blocked is
     // undefined behavior; the handler itself detects recursion.
-    // SA_SIGINFO: Required because we&#39;re specifying
+    // SA_SIGINFO: Required because we're specifying
     // sa_sigaction.
     // SA_ONSTACK: Use the alternate signal handling stack,
     // to avoid interfering with userspace thread stacks.
@@ -809,7 +810,7 @@
         Signal::SIGBUS,
         Signal::SIGFPE,
     ] {
-        <span class="comment">// SAFETY: We&#39;ve set up a valid handler.
+        <span class="comment">// SAFETY: We've set up a valid handler.
         </span><span class="kw">unsafe </span>{ linux_api::signal::rt_sigaction(signal, <span class="kw-2">&amp;</span>action, <span class="prelude-val">None</span>) }.unwrap();
     }
 }
@@ -835,14 +836,14 @@
     /// `ucontext` must be dereferenceable if not NULL.
     ///
     /// Configured handlers for all pending unblocked signals must be safe to call. (Which
-    /// we basically can&#39;t ensure).
+    /// we basically can't ensure).
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shim_process_signals(ucontext: <span class="kw-2">*mut </span>libc::ucontext_t) -&gt; bool {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_process_signals(ucontext: <span class="kw-2">*mut </span>libc::ucontext_t) -&gt; bool {
         <span class="comment">// `libc::ucontext_t` appears to be safe to cast to a kernel `ucontext`; as
         // verified experimentally and by manual inspection of the definitions.
         //
-        // The libc definition has some extra fields at the end, but we&#39;re
-        // careful not to copy the ucontext so they shouldn&#39;t hurt anything.
+        // The libc definition has some extra fields at the end, but we're
+        // careful not to copy the ucontext so they shouldn't hurt anything.
         </span><span class="kw">let </span>ucontext: <span class="kw-2">*mut </span>ucontext = ucontext.cast();
 
         <span class="comment">// SAFETY: ensured by caller.
@@ -852,15 +853,15 @@
     <span class="doccomment">/// Install signal handlers for signals that can be generated by hardware errors.
     /// e.g. SIGSEGV
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shim_install_hardware_error_handlers() {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_install_hardware_error_handlers() {
         install_hardware_error_handlers()
     }
 
     <span class="doccomment">/// More-specialized error handlers (e.g. for rdtsc) can invoke this handler
-    /// directly when unable to handle the current signal (e.g. when a SIGSEGV wasn&#39;t
+    /// directly when unable to handle the current signal (e.g. when a SIGSEGV wasn't
     /// caused by an rdtsc instruction)
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shim_handle_hardware_error_signal(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_handle_hardware_error_signal(
         signo: i32,
         info: <span class="kw-2">*mut </span>siginfo_t,
         ctx: <span class="kw-2">*mut </span>core::ffi::c_void,

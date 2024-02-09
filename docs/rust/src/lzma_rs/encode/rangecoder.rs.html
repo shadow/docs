@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lzma-rs-0.3.0/src/encode/rangecoder.rs`."><title>rangecoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="lzma_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lzma-rs-0.3.0/src/encode/rangecoder.rs`."><title>rangecoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="lzma_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -378,23 +379,23 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>byteorder::WriteBytesExt;
 <span class="kw">use </span>std::io;
 
-<span class="kw">pub struct </span>RangeEncoder&lt;<span class="lifetime">&#39;a</span>, W&gt;
+<span class="kw">pub struct </span>RangeEncoder&lt;<span class="lifetime">'a</span>, W&gt;
 <span class="kw">where
-    </span>W: <span class="lifetime">&#39;a </span>+ io::Write,
+    </span>W: <span class="lifetime">'a </span>+ io::Write,
 {
-    stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W,
+    stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W,
     range: u32,
     low: u64,
     cache: u8,
     cachesz: u32,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, W&gt; RangeEncoder&lt;<span class="lifetime">&#39;a</span>, W&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, W&gt; RangeEncoder&lt;<span class="lifetime">'a</span>, W&gt;
 <span class="kw">where
     </span>W: io::Write,
 {
     <span class="attr">#[allow(clippy::let_and_return)]
-    </span><span class="kw">pub fn </span>new(stream: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>W) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(stream: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>W) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>enc = <span class="self">Self </span>{
             stream,
             range: <span class="number">0xFFFF_FFFF</span>,
@@ -402,7 +403,7 @@
             cache: <span class="number">0</span>,
             cachesz: <span class="number">1</span>,
         };
-        <span class="macro">lzma_debug!</span>(<span class="string">&quot;0 {{ range: {:08x}, low: {:010x} }}&quot;</span>, enc.range, enc.low);
+        <span class="macro">lzma_debug!</span>(<span class="string">"0 {{ range: {:08x}, low: {:010x} }}"</span>, enc.range, enc.low);
         enc
     }
 
@@ -412,7 +413,7 @@
             <span class="kw">loop </span>{
                 <span class="kw">let </span>byte = tmp.wrapping_add((<span class="self">self</span>.low &gt;&gt; <span class="number">32</span>) <span class="kw">as </span>u8);
                 <span class="self">self</span>.stream.write_u8(byte)<span class="question-mark">?</span>;
-                <span class="macro">lzma_debug!</span>(<span class="string">&quot;&gt; byte: {:02x}&quot;</span>, byte);
+                <span class="macro">lzma_debug!</span>(<span class="string">"&gt; byte: {:02x}"</span>, byte);
                 tmp = <span class="number">0xFF</span>;
                 <span class="self">self</span>.cachesz -= <span class="number">1</span>;
                 <span class="kw">if </span><span class="self">self</span>.cachesz == <span class="number">0 </span>{
@@ -431,7 +432,7 @@
         <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">5 </span>{
             <span class="self">self</span>.write_low()<span class="question-mark">?</span>;
 
-            <span class="macro">lzma_debug!</span>(<span class="string">&quot;$ {{ range: {:08x}, low: {:010x} }}&quot;</span>, <span class="self">self</span>.range, <span class="self">self</span>.low);
+            <span class="macro">lzma_debug!</span>(<span class="string">"$ {{ range: {:08x}, low: {:010x} }}"</span>, <span class="self">self</span>.range, <span class="self">self</span>.low);
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -439,7 +440,7 @@
     <span class="kw">fn </span>normalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">while </span><span class="self">self</span>.range &lt; <span class="number">0x0100_0000 </span>{
             <span class="macro">lzma_debug!</span>(
-                <span class="string">&quot;+ {{ range: {:08x}, low: {:010x}, cache: {:02x}, {} }}&quot;</span>,
+                <span class="string">"+ {{ range: {:08x}, low: {:010x}, cache: {:02x}, {} }}"</span>,
                 <span class="self">self</span>.range,
                 <span class="self">self</span>.low,
                 <span class="self">self</span>.cache,
@@ -448,21 +449,21 @@
             <span class="self">self</span>.range &lt;&lt;= <span class="number">8</span>;
             <span class="self">self</span>.write_low()<span class="question-mark">?</span>;
             <span class="macro">lzma_debug!</span>(
-                <span class="string">&quot;* {{ range: {:08x}, low: {:010x}, cache: {:02x}, {} }}&quot;</span>,
+                <span class="string">"* {{ range: {:08x}, low: {:010x}, cache: {:02x}, {} }}"</span>,
                 <span class="self">self</span>.range,
                 <span class="self">self</span>.low,
                 <span class="self">self</span>.cache,
                 <span class="self">self</span>.cachesz
             );
         }
-        <span class="macro">lzma_trace!</span>(<span class="string">&quot;  {{ range: {:08x}, low: {:010x} }}&quot;</span>, <span class="self">self</span>.range, <span class="self">self</span>.low);
+        <span class="macro">lzma_trace!</span>(<span class="string">"  {{ range: {:08x}, low: {:010x} }}"</span>, <span class="self">self</span>.range, <span class="self">self</span>.low);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>encode_bit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prob: <span class="kw-2">&amp;mut </span>u16, bit: bool) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span>bound: u32 = (<span class="self">self</span>.range &gt;&gt; <span class="number">11</span>) * (<span class="kw-2">*</span>prob <span class="kw">as </span>u32);
         <span class="macro">lzma_trace!</span>(
-            <span class="string">&quot;  bound: {:08x}, prob: {:04x}, bit: {}&quot;</span>,
+            <span class="string">"  bound: {:08x}, prob: {:04x}, bit: {}"</span>,
             bound,
             prob,
             bit <span class="kw">as </span>u8

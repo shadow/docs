@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/thread_per_host.rs`."><title>thread_per_host.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/thread_per_host.rs`."><title>thread_per_host.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -321,15 +322,15 @@
 <span class="kw">use </span><span class="kw">crate</span>::pools::bounded::{ParallelismBoundedThreadPool, TaskRunner};
 <span class="kw">use </span><span class="kw">crate</span>::CORE_AFFINITY;
 
-<span class="kw">pub trait </span>Host: Debug + Send + <span class="lifetime">&#39;static </span>{}
-<span class="kw">impl</span>&lt;T&gt; Host <span class="kw">for </span>T <span class="kw">where </span>T: Debug + Send + <span class="lifetime">&#39;static </span>{}
+<span class="kw">pub trait </span>Host: Debug + Send + <span class="lifetime">'static </span>{}
+<span class="kw">impl</span>&lt;T&gt; Host <span class="kw">for </span>T <span class="kw">where </span>T: Debug + Send + <span class="lifetime">'static </span>{}
 
 <span class="doccomment">/// A host scheduler.
 </span><span class="kw">pub struct </span>ThreadPerHostSched&lt;HostType: Host&gt; {
     <span class="doccomment">/// The thread pool.
     </span>pool: ParallelismBoundedThreadPool,
     <span class="doccomment">/// Thread-local storage where a thread can store its host.
-    </span>host_storage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;HostType&gt;&gt;&gt;,
+    </span>host_storage: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>LocalKey&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;HostType&gt;&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;HostType: Host&gt; ThreadPerHostSched&lt;HostType&gt; {
@@ -342,7 +343,7 @@
     /// borrowed while the scheduler is in use.
     </span><span class="kw">pub fn </span>new&lt;T&gt;(
         cpu_ids: <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;u32&gt;],
-        host_storage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;HostType&gt;&gt;&gt;,
+        host_storage: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>LocalKey&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;HostType&gt;&gt;&gt;,
         hosts: T,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -351,7 +352,7 @@
     {
         <span class="kw">let </span>hosts = hosts.into_iter();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>pool = ParallelismBoundedThreadPool::new(cpu_ids, hosts.len(), <span class="string">&quot;shadow-worker&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>pool = ParallelismBoundedThreadPool::new(cpu_ids, hosts.len(), <span class="string">"shadow-worker"</span>);
 
         <span class="comment">// for determinism, threads will take hosts from a vec rather than a queue
         </span><span class="kw">let </span>hosts: Vec&lt;Mutex&lt;<span class="prelude-ty">Option</span>&lt;HostType&gt;&gt;&gt; = hosts.map(|x| Mutex::new(<span class="prelude-val">Some</span>(x))).collect();
@@ -376,9 +377,9 @@
     }
 
     <span class="doccomment">/// See [`crate::Scheduler::scope`].
-    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">&#39;scope</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span><span class="kw-2">mut </span><span class="self">self</span>,
-        f: <span class="kw">impl for</span>&lt;<span class="lifetime">&#39;a</span>&gt; FnOnce(SchedulerScope&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;scope</span>, HostType&gt;) + <span class="lifetime">&#39;scope</span>,
+    </span><span class="kw">pub fn </span>scope&lt;<span class="lifetime">'scope</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'scope </span><span class="kw-2">mut </span><span class="self">self</span>,
+        f: <span class="kw">impl for</span>&lt;<span class="lifetime">'a</span>&gt; FnOnce(SchedulerScope&lt;<span class="lifetime">'a</span>, <span class="lifetime">'scope</span>, HostType&gt;) + <span class="lifetime">'scope</span>,
     ) {
         <span class="kw">let </span>host_storage = <span class="self">self</span>.host_storage;
         <span class="self">self</span>.pool.scope(<span class="kw">move </span>|s| {
@@ -411,17 +412,17 @@
     }
 }
 
-<span class="doccomment">/// A wrapper around the work pool&#39;s scoped runner.
-</span><span class="kw">pub struct </span>SchedulerScope&lt;<span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType: Host&gt; {
-    <span class="doccomment">/// The work pool&#39;s scoped runner.
-    </span>runner: TaskRunner&lt;<span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>&gt;,
+<span class="doccomment">/// A wrapper around the work pool's scoped runner.
+</span><span class="kw">pub struct </span>SchedulerScope&lt;<span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; {
+    <span class="doccomment">/// The work pool's scoped runner.
+    </span>runner: TaskRunner&lt;<span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>&gt;,
     <span class="doccomment">/// Thread-local storage where a thread can retrieve its host.
-    </span>host_storage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>LocalKey&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;HostType&gt;&gt;&gt;,
+    </span>host_storage: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>LocalKey&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;HostType&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">&#39;pool</span>, <span class="lifetime">&#39;scope</span>, HostType&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt; {
     <span class="doccomment">/// See [`crate::SchedulerScope::run`].
-    </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize) + Sync + Send + <span class="lifetime">&#39;scope</span>) {
+    </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize) + Sync + Send + <span class="lifetime">'scope</span>) {
         <span class="self">self</span>.runner.run(<span class="kw">move </span>|task_context| {
             <span class="comment">// update the thread-local core affinity
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cpu_id) = task_context.cpu_id {
@@ -433,7 +434,7 @@
     }
 
     <span class="doccomment">/// See [`crate::SchedulerScope::run_with_hosts`].
-    </span><span class="kw">pub fn </span>run_with_hosts(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;) + Send + Sync + <span class="lifetime">&#39;scope</span>) {
+    </span><span class="kw">pub fn </span>run_with_hosts(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;) + Send + Sync + <span class="lifetime">'scope</span>) {
         <span class="self">self</span>.runner.run(<span class="kw">move </span>|task_context| {
             <span class="comment">// update the thread-local core affinity
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cpu_id) = task_context.cpu_id {
@@ -455,8 +456,8 @@
     <span class="doccomment">/// See [`crate::SchedulerScope::run_with_data`].
     </span><span class="kw">pub fn </span>run_with_data&lt;T&gt;(
         <span class="self">self</span>,
-        data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;scope </span>[T],
-        f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;, <span class="kw-2">&amp;</span>T) + Send + Sync + <span class="lifetime">&#39;scope</span>,
+        data: <span class="kw-2">&amp;</span><span class="lifetime">'scope </span>[T],
+        f: <span class="kw">impl </span>Fn(usize, <span class="kw-2">&amp;mut </span>HostIter&lt;HostType&gt;, <span class="kw-2">&amp;</span>T) + Send + Sync + <span class="lifetime">'scope</span>,
     ) <span class="kw">where
         </span>T: Sync,
     {

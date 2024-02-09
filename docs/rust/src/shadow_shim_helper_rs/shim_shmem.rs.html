@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shadow-shim-helper-rs/src/shim_shmem.rs`."><title>shim_shmem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim_helper_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shadow-shim-helper-rs/src/shim_shmem.rs`."><title>shim_shmem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim_helper_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -817,6 +818,7 @@
 <a href="#817" id="817">817</a>
 <a href="#818" id="818">818</a>
 <a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::signal::{sigaction, siginfo_t, sigset_t, stack_t, Signal};
 <span class="kw">use </span>shadow_shmem::allocator::{ShMemBlock, ShMemBlockSerialized};
 <span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
@@ -842,9 +844,9 @@
         </span><span class="macro">static_assertions::assert_impl_all!</span>(<span class="macro-nonterminal">$t</span>: VirtualAddressSpaceIndependent);
 
         <span class="comment">// Must have a stable layout.
-        // This property is important if it&#39;s possible for code compiled in
+        // This property is important if it's possible for code compiled in
         // different `rustc` invocations to access the shared memory. Theoretically,
-        // with the current Shadow build layout, it *shouldn&#39;t* be needed, since this
+        // with the current Shadow build layout, it *shouldn't* be needed, since this
         // code should be compiled only once before linking into both Shadow and the shim.
         // It would be easy to lose that property without noticing though, and end up with
         // very subtle memory bugs.
@@ -861,7 +863,7 @@
         // `assert_shmem_safe`, and enforce it in e.g. APIs that set up and
         // initialize shared memory.
         </span><span class="attr">#[deny(improper_ctypes_definitions)]
-        </span><span class="kw">unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span><span class="macro-nonterminal">$testfnname</span>(<span class="kw">_</span>: <span class="macro-nonterminal">$t</span>) {}
+        </span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span><span class="macro-nonterminal">$testfnname</span>(<span class="kw">_</span>: <span class="macro-nonterminal">$t</span>) {}
     };
 }
 
@@ -879,23 +881,23 @@
     <span class="kw">pub </span>protected: SelfContainedMutex&lt;HostShmemProtected&gt;,
 
     <span class="comment">// Whether to model unblocked syscalls as taking non-zero time.
-    // TODO: Move to a &quot;ShimShmemGlobal&quot; struct if we make one.
+    // TODO: Move to a "ShimShmemGlobal" struct if we make one.
     </span><span class="kw">pub </span>model_unblocked_syscall_latency: bool,
 
     <span class="comment">// Maximum accumulated CPU latency before updating clock.
-    // TODO: Move to a &quot;ShimShmemGlobal&quot; struct if we make one, and if this
+    // TODO: Move to a "ShimShmemGlobal" struct if we make one, and if this
     // stays a global constant; Or down into the process if we make it a
     // per-process option.
     </span><span class="kw">pub </span>max_unapplied_cpu_latency: SimulationTime,
 
     <span class="comment">// How much to move time forward for each unblocked syscall.
-    // TODO: Move to a &quot;ShimShmemGlobal&quot; struct if we make one, and if this
+    // TODO: Move to a "ShimShmemGlobal" struct if we make one, and if this
     // stays a global constant; Or down into the process if we make it a
     // per-process option.
     </span><span class="kw">pub </span>unblocked_syscall_latency: SimulationTime,
 
-    <span class="comment">// How much to move time forward for each unblocked vdso &quot;syscall&quot;.
-    // TODO: Move to a &quot;ShimShmemGlobal&quot; struct if we make one, and if this
+    <span class="comment">// How much to move time forward for each unblocked vdso "syscall".
+    // TODO: Move to a "ShimShmemGlobal" struct if we make one, and if this
     // stays a global constant; Or down into the process if we make it a
     // per-process option.
     </span><span class="kw">pub </span>unblocked_vdso_latency: SimulationTime,
@@ -960,7 +962,7 @@
 
     <span class="kw">pub </span>root: Root,
 
-    <span class="comment">// Modeled CPU latency that hasn&#39;t been applied to the clock yet.
+    <span class="comment">// Modeled CPU latency that hasn't been applied to the clock yet.
     </span><span class="kw">pub </span>unapplied_cpu_latency: SimulationTime,
 
     <span class="comment">// Max simulation time to which sim_time may be incremented.  Moving time
@@ -1015,7 +1017,7 @@
     </span><span class="kw">pub </span>pending_signals: sigset_t,
 
     <span class="comment">// siginfo for each of the standard signals.
-    // SAFETY: we ensure the internal pointers aren&#39;t dereferenced
+    // SAFETY: we ensure the internal pointers aren't dereferenced
     // outside of its original virtual address space.
     </span><span class="attr">#[unsafe_assume_virtual_address_space_independent]
     </span>pending_standard_siginfos: [siginfo_t; Signal::STANDARD_MAX.as_i32() <span class="kw">as </span>usize],
@@ -1024,7 +1026,7 @@
     // We currently support configuring handlers for realtime signals, but not
     // actually delivering them. This is to handle the case where handlers are
     // defensively installed, but not used in practice.
-    // SAFETY: we ensure the internal pointers aren&#39;t dereferenced
+    // SAFETY: we ensure the internal pointers aren't dereferenced
     // outside of its original virtual address space.
     </span><span class="attr">#[unsafe_assume_virtual_address_space_independent]
     </span>signal_actions: [sigaction; Signal::MAX.as_i32() <span class="kw">as </span>usize],
@@ -1051,7 +1053,7 @@
 
     <span class="doccomment">/// # Safety
     ///
-    /// Only valid if pointers in `src` sigactions are valid in `self`&#39;s address
+    /// Only valid if pointers in `src` sigactions are valid in `self`'s address
     /// space (e.g. `src` is a parent that just forked this process).
     </span><span class="kw">pub unsafe fn </span>clone_signal_actions(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
         <span class="self">self</span>.signal_actions = src.signal_actions
@@ -1129,7 +1131,7 @@
         }
     }
 
-    <span class="doccomment">/// Create a copy of `Self`. We can&#39;t implement the `Clone` trait since we
+    <span class="doccomment">/// Create a copy of `Self`. We can't implement the `Clone` trait since we
     /// need the `root`.
     </span><span class="kw">pub fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, root: <span class="kw-2">&amp;</span>Root) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -1149,13 +1151,13 @@
     </span><span class="kw">pub </span>pending_signals: sigset_t,
 
     <span class="comment">// siginfo for each of the 32 standard signals.
-    // SAFETY: we ensure the internal pointers aren&#39;t dereferenced
+    // SAFETY: we ensure the internal pointers aren't dereferenced
     // outside of its original virtual address space.
     </span><span class="attr">#[unsafe_assume_virtual_address_space_independent]
     </span>pending_standard_siginfos: [siginfo_t; Signal::STANDARD_MAX.as_i32() <span class="kw">as </span>usize],
 
     <span class="comment">// Signal mask, e.g. as set by `sigprocmask`.
-    // We don&#39;t use sigset_t since glibc uses a much larger bitfield than
+    // We don't use sigset_t since glibc uses a much larger bitfield than
     // actually supported by the kernel.
     </span><span class="kw">pub </span>blocked_signals: sigset_t,
 
@@ -1211,11 +1213,11 @@
 #[repr(transparent)]
 </span><span class="kw">struct </span>StackWrapper(stack_t);
 
-<span class="comment">// SAFETY: We ensure the contained pointer isn&#39;t dereferenced
+<span class="comment">// SAFETY: We ensure the contained pointer isn't dereferenced
 // except from the owning thread.
 </span><span class="kw">unsafe impl </span>Send <span class="kw">for </span>StackWrapper {}
 
-<span class="comment">// SAFETY: We ensure the contained pointers isn&#39;t dereferenced
+<span class="comment">// SAFETY: We ensure the contained pointers isn't dereferenced
 // except from the original virtual address space: in the shim.
 </span><span class="kw">unsafe impl </span>VirtualAddressSpaceIndependent <span class="kw">for </span>StackWrapper {}
 
@@ -1247,7 +1249,7 @@
     <span class="kw">use crate</span>::{emulated_time::CEmulatedTime, simulation_time::CSimulationTime};
 
     <span class="comment">// Legacy type names; keeping the more verbose names for the C API, since
-    // they&#39;re not namespaced.
+    // they're not namespaced.
     </span><span class="kw">pub type </span>ShimShmemManager = ManagerShmem;
     <span class="kw">pub type </span>ShimShmemHost = HostShmem;
     <span class="kw">pub type </span>ShimShmemHostLock = HostShmemProtected;
@@ -1258,12 +1260,13 @@
     ///
     /// `host` must be valid. The returned pointer must not be accessed from other threads.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmemhost_lock(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmemhost_lock(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; <span class="kw-2">*mut </span>ShimShmemHostLock {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
-        <span class="kw">let </span><span class="kw-2">mut </span>guard = host.protected().lock();
-        <span class="kw">let </span>lock = <span class="kw-2">&amp;mut *</span>guard <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>guard: SelfContainedMutexGuard&lt;ShimShmemHostLock&gt; = host.protected().lock();
+        <span class="kw">let </span>lock: <span class="kw-2">&amp;mut </span>ShimShmemHostLock = <span class="kw-2">&amp;mut </span>guard;
+        <span class="kw">let </span>lock = std::ptr::from_mut(lock);
         guard.disconnect();
         lock
     }
@@ -1272,7 +1275,7 @@
     ///
     /// `host` and `lock` must be valid.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmemhost_unlock(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmemhost_unlock(
         host: <span class="kw-2">*const </span>ShimShmemHost,
         lock: <span class="kw-2">*mut *mut </span>ShimShmemHostLock,
     ) {
@@ -1288,7 +1291,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getShadowPid(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getShadowPid(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; libc::pid_t {
         <span class="kw">let </span>host_mem = <span class="kw">unsafe </span>{ host_mem.as_ref().unwrap() };
@@ -1299,7 +1302,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getTscHz(host_mem: <span class="kw-2">*const </span>ShimShmemHost) -&gt; u64 {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getTscHz(host_mem: <span class="kw-2">*const </span>ShimShmemHost) -&gt; u64 {
         <span class="kw">let </span>host_mem = <span class="kw">unsafe </span>{ host_mem.as_ref().unwrap() };
         host_mem.tsc_hz
     }
@@ -1308,7 +1311,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getLogLevel(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getLogLevel(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; ::logger::LogLevel {
         <span class="kw">let </span>host_mem = <span class="kw">unsafe </span>{ host_mem.as_ref().unwrap() };
@@ -1319,7 +1322,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getEmulatedTime(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getEmulatedTime(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CEmulatedTime {
         <span class="kw">let </span>host_mem = <span class="kw">unsafe </span>{ host_mem.as_ref().unwrap() };
@@ -1330,7 +1333,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_setEmulatedTime(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setEmulatedTime(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
         t: CEmulatedTime,
     ) {
@@ -1344,7 +1347,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getMaxRunaheadTime(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getMaxRunaheadTime(
         host_mem: <span class="kw-2">*const </span>ShimShmemHostLock,
     ) -&gt; CEmulatedTime {
         <span class="kw">let </span>host_mem = <span class="kw">unsafe </span>{ host_mem.as_ref().unwrap() };
@@ -1355,7 +1358,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_setMaxRunaheadTime(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setMaxRunaheadTime(
         host_mem: <span class="kw-2">*mut </span>ShimShmemHostLock,
         t: CEmulatedTime,
     ) {
@@ -1367,7 +1370,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getProcessStraceFd(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getProcessStraceFd(
         process: <span class="kw-2">*const </span>ShimShmemProcess,
     ) -&gt; libc::c_int {
         <span class="kw">let </span>process_mem = <span class="kw">unsafe </span>{ process.as_ref().unwrap() };
@@ -1378,7 +1381,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getSignalAction(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getSignalAction(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         process: <span class="kw-2">*const </span>ShimShmemProcess,
         sig: i32,
@@ -1393,7 +1396,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_setSignalAction(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setSignalAction(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         process: <span class="kw-2">*const </span>ShimShmemProcess,
         sig: i32,
@@ -1407,7 +1410,7 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmemthread_size() -&gt; usize {
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmemthread_size() -&gt; usize {
         std::mem::size_of::&lt;ThreadShmem&gt;()
     }
 
@@ -1415,7 +1418,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getThreadId(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getThreadId(
         thread: <span class="kw-2">*const </span>ShimShmemThread,
     ) -&gt; libc::pid_t {
         <span class="kw">let </span>thread_mem = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
@@ -1426,7 +1429,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getThreadPendingSignals(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getThreadPendingSignals(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
     ) -&gt; linux_sigset_t {
@@ -1436,13 +1439,13 @@
         sigset_t::peel(protected.pending_signals)
     }
 
-    <span class="doccomment">/// Set the process&#39;s pending signal set.
+    <span class="doccomment">/// Set the process's pending signal set.
     ///
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_setThreadPendingSignals(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setThreadPendingSignals(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
         s: linux_sigset_t,
@@ -1459,7 +1462,7 @@
     ///
     /// Pointer args must be safely dereferenceable. The mandatory fields of `info` must be initd.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_setThreadSiginfo(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setThreadSiginfo(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
         sig: i32,
@@ -1476,7 +1479,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getBlockedSignals(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getBlockedSignals(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
     ) -&gt; linux_sigset_t {
@@ -1486,13 +1489,13 @@
         sigset_t::peel(protected.blocked_signals)
     }
 
-    <span class="doccomment">/// Set the process&#39;s pending signal set.
+    <span class="doccomment">/// Set the process's pending signal set.
     ///
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_setBlockedSignals(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setBlockedSignals(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
         s: linux_sigset_t,
@@ -1509,7 +1512,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getSigAltStack(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getSigAltStack(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
     ) -&gt; linux_stack_t {
@@ -1525,7 +1528,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_setSigAltStack(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setSigAltStack(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
         stack: linux_stack_t,
@@ -1540,7 +1543,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_incrementUnappliedCpuLatency(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_incrementUnappliedCpuLatency(
         lock: <span class="kw-2">*mut </span>ShimShmemHostLock,
         dt: CSimulationTime,
     ) {
@@ -1552,7 +1555,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getUnappliedCpuLatency(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getUnappliedCpuLatency(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
     ) -&gt; CSimulationTime {
         <span class="kw">let </span>lock = <span class="kw">unsafe </span>{ lock.as_ref().unwrap() };
@@ -1563,7 +1566,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_resetUnappliedCpuLatency(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_resetUnappliedCpuLatency(
         lock: <span class="kw-2">*mut </span>ShimShmemHostLock,
     ) {
         <span class="kw">let </span>lock = <span class="kw">unsafe </span>{ lock.as_mut().unwrap() };
@@ -1576,7 +1579,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getModelUnblockedSyscallLatency(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getModelUnblockedSyscallLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; bool {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
@@ -1590,7 +1593,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_maxUnappliedCpuLatency(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_maxUnappliedCpuLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CSimulationTime {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
@@ -1603,20 +1606,20 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_unblockedSyscallLatency(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_unblockedSyscallLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CSimulationTime {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
         SimulationTime::to_c_simtime(<span class="prelude-val">Some</span>(host.unblocked_syscall_latency))
     }
 
-    <span class="doccomment">/// Get the configured latency to emulate for each unblocked vdso &quot;syscall&quot;.
+    <span class="doccomment">/// Get the configured latency to emulate for each unblocked vdso "syscall".
     ///
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_unblockedVdsoLatency(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_unblockedVdsoLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CSimulationTime {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
@@ -1629,7 +1632,7 @@
     ///
     /// Pointer args must be safely dereferenceable.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>shimshmem_getLoggingStartTime(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getLoggingStartTime(
         manager: <span class="kw-2">*const </span>ShimShmemManager,
     ) -&gt; i64 {
         <span class="kw">let </span>manager = <span class="kw">unsafe </span>{ manager.as_ref().unwrap() };

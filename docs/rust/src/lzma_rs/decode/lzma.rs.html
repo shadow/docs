@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lzma-rs-0.3.0/src/decode/lzma.rs`."><title>lzma.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="lzma_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/lzma-rs-0.3.0/src/decode/lzma.rs`."><title>lzma.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="lzma_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -673,7 +674,7 @@
 }
 
 <span class="attr">#[derive(Debug, Copy, Clone)]
-</span><span class="doccomment">/// LZMA &#39;lclppb&#39; decompression properties.
+</span><span class="doccomment">/// LZMA 'lclppb' decompression properties.
 </span><span class="kw">pub struct </span>LzmaProperties {
     <span class="doccomment">/// The number of literal context bits.
     ///
@@ -703,7 +704,7 @@
 <span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="doccomment">/// LZMA decompression parameters.
 </span><span class="kw">pub struct </span>LzmaParams {
-    <span class="doccomment">/// The LZMA &#39;lclppb&#39; decompression properties.
+    <span class="doccomment">/// The LZMA 'lclppb' decompression properties.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) properties: LzmaProperties,
     <span class="doccomment">/// The dictionary size to use when decompressing.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) dict_size: u32,
@@ -713,7 +714,7 @@
 
 <span class="kw">impl </span>LzmaParams {
     <span class="doccomment">/// Create an new instance of LZMA parameters.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;raw_decoder&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"raw_decoder"</span>)]
     </span><span class="kw">pub fn </span>new(
         properties: LzmaProperties,
         dict_size: u32,
@@ -737,7 +738,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>pb = props <span class="kw">as </span>u32;
         <span class="kw">if </span>pb &gt;= <span class="number">225 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(error::Error::LzmaError(<span class="macro">format!</span>(
-                <span class="string">&quot;LZMA header invalid properties: {} must be &lt; 225&quot;</span>,
+                <span class="string">"LZMA header invalid properties: {} must be &lt; 225"</span>,
                 pb
             )));
         }
@@ -747,7 +748,7 @@
         <span class="kw">let </span>lp: u32 = pb % <span class="number">5</span>;
         pb /= <span class="number">5</span>;
 
-        <span class="macro">lzma_info!</span>(<span class="string">&quot;Properties {{ lc: {}, lp: {}, pb: {} }}&quot;</span>, lc, lp, pb);
+        <span class="macro">lzma_info!</span>(<span class="string">"Properties {{ lc: {}, lp: {}, pb: {} }}"</span>, lc, lp, pb);
 
         <span class="comment">// Dictionary
         </span><span class="kw">let </span>dict_size_provided = input
@@ -759,7 +760,7 @@
             dict_size_provided
         };
 
-        <span class="macro">lzma_info!</span>(<span class="string">&quot;Dict size: {}&quot;</span>, dict_size);
+        <span class="macro">lzma_info!</span>(<span class="string">"Dict size: {}"</span>, dict_size);
 
         <span class="comment">// Unpacked size
         </span><span class="kw">let </span>unpacked_size: <span class="prelude-ty">Option</span>&lt;u64&gt; = <span class="kw">match </span>options.unpacked_size {
@@ -783,7 +784,7 @@
             UnpackedSize::UseProvided(x) =&gt; x,
         };
 
-        <span class="macro">lzma_info!</span>(<span class="string">&quot;Unpacked size: {:?}&quot;</span>, unpacked_size);
+        <span class="macro">lzma_info!</span>(<span class="string">"Unpacked size: {:?}"</span>, unpacked_size);
 
         <span class="kw">let </span>params = LzmaParams {
             properties: LzmaProperties { lc, lp, pb },
@@ -880,33 +881,33 @@
         <span class="self">self</span>.unpacked_size = unpacked_size;
     }
 
-    <span class="kw">pub fn </span>process&lt;<span class="lifetime">&#39;a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
+    <span class="kw">pub fn </span>process&lt;<span class="lifetime">'a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         output: <span class="kw-2">&amp;mut </span>LZB,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
     ) -&gt; error::Result&lt;()&gt; {
         <span class="self">self</span>.process_mode(output, rangecoder, ProcessingMode::Finish)
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;stream&quot;</span>)]
-    </span><span class="kw">pub fn </span>process_stream&lt;<span class="lifetime">&#39;a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
+    <span class="attr">#[cfg(feature = <span class="string">"stream"</span>)]
+    </span><span class="kw">pub fn </span>process_stream&lt;<span class="lifetime">'a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         output: <span class="kw-2">&amp;mut </span>LZB,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
     ) -&gt; error::Result&lt;()&gt; {
         <span class="self">self</span>.process_mode(output, rangecoder, ProcessingMode::Partial)
     }
 
     <span class="doccomment">/// Process the next iteration of the loop.
     ///
-    /// If the update flag is true, the decoder&#39;s state will be updated.
+    /// If the update flag is true, the decoder's state will be updated.
     ///
     /// Returns `ProcessingStatus` to determine whether one should continue
     /// processing the loop.
-    </span><span class="kw">fn </span>process_next_inner&lt;<span class="lifetime">&#39;a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
+    </span><span class="kw">fn </span>process_next_inner&lt;<span class="lifetime">'a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         output: <span class="kw-2">&amp;mut </span>LZB,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
         update: bool,
     ) -&gt; error::Result&lt;ProcessingStatus&gt; {
         <span class="kw">let </span>pos_state = output.len() &amp; ((<span class="number">1 </span>&lt;&lt; <span class="self">self</span>.lzma_props.pb) - <span class="number">1</span>);
@@ -920,7 +921,7 @@
             <span class="kw">let </span>byte: u8 = <span class="self">self</span>.decode_literal(output, rangecoder, update)<span class="question-mark">?</span>;
 
             <span class="kw">if </span>update {
-                <span class="macro">lzma_debug!</span>(<span class="string">&quot;Literal: {}&quot;</span>, byte);
+                <span class="macro">lzma_debug!</span>(<span class="string">"Literal: {}"</span>, byte);
                 output.append_literal(byte)<span class="question-mark">?</span>;
 
                 <span class="self">self</span>.state = <span class="kw">if </span><span class="self">self</span>.state &lt; <span class="number">4 </span>{
@@ -1004,7 +1005,7 @@
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(ProcessingStatus::Finished);
                     }
                     <span class="kw">return </span><span class="prelude-val">Err</span>(error::Error::LzmaError(String::from(
-                        <span class="string">&quot;Found end-of-stream marker but more bytes are available&quot;</span>,
+                        <span class="string">"Found end-of-stream marker but more bytes are available"</span>,
                     )));
                 }
             }
@@ -1020,10 +1021,10 @@
         <span class="prelude-val">Ok</span>(ProcessingStatus::Continue)
     }
 
-    <span class="kw">fn </span>process_next&lt;<span class="lifetime">&#39;a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
+    <span class="kw">fn </span>process_next&lt;<span class="lifetime">'a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         output: <span class="kw-2">&amp;mut </span>LZB,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
     ) -&gt; error::Result&lt;ProcessingStatus&gt; {
         <span class="self">self</span>.process_next_inner(output, rangecoder, <span class="bool-val">true</span>)
     }
@@ -1047,9 +1048,9 @@
     }
 
     <span class="doccomment">/// Utility function to read data into the partial input buffer.
-    </span><span class="kw">fn </span>read_partial_input_buf&lt;<span class="lifetime">&#39;a</span>, R: io::BufRead&gt;(
+    </span><span class="kw">fn </span>read_partial_input_buf&lt;<span class="lifetime">'a</span>, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
     ) -&gt; error::Result&lt;()&gt; {
         <span class="comment">// Fill as much of the tmp buffer as possible
         </span><span class="kw">let </span>start = <span class="self">self</span>.partial_input_buf.position() <span class="kw">as </span>usize;
@@ -1060,10 +1061,10 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>process_mode&lt;<span class="lifetime">&#39;a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
+    <span class="kw">fn </span>process_mode&lt;<span class="lifetime">'a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         output: <span class="kw-2">&amp;mut </span>LZB,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
         mode: ProcessingMode,
     ) -&gt; error::Result&lt;()&gt; {
         <span class="kw">loop </span>{
@@ -1141,7 +1142,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = <span class="self">self</span>.unpacked_size {
             <span class="kw">if </span>mode == ProcessingMode::Finish &amp;&amp; len != output.len() <span class="kw">as </span>u64 {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(error::Error::LzmaError(<span class="macro">format!</span>(
-                    <span class="string">&quot;Expected unpacked size of {} but decompressed to {}&quot;</span>,
+                    <span class="string">"Expected unpacked size of {} but decompressed to {}"</span>,
                     len,
                     output.len()
                 )));
@@ -1151,10 +1152,10 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>decode_literal&lt;<span class="lifetime">&#39;a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
+    <span class="kw">fn </span>decode_literal&lt;<span class="lifetime">'a</span>, W: io::Write, LZB: LzBuffer&lt;W&gt;, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         output: <span class="kw-2">&amp;mut </span>LZB,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
         update: bool,
     ) -&gt; error::Result&lt;u8&gt; {
         <span class="kw">let </span>def_prev_byte = <span class="number">0u8</span>;
@@ -1188,9 +1189,9 @@
         <span class="prelude-val">Ok</span>((result - <span class="number">0x100</span>) <span class="kw">as </span>u8)
     }
 
-    <span class="kw">fn </span>decode_distance&lt;<span class="lifetime">&#39;a</span>, R: io::BufRead&gt;(
+    <span class="kw">fn </span>decode_distance&lt;<span class="lifetime">'a</span>, R: io::BufRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">&#39;a</span>, R&gt;,
+        rangecoder: <span class="kw-2">&amp;mut </span>RangeDecoder&lt;<span class="lifetime">'a</span>, R&gt;,
         length: usize,
         update: bool,
     ) -&gt; error::Result&lt;usize&gt; {
@@ -1229,7 +1230,7 @@
 }
 
 <span class="kw">impl </span>LzmaDecoder {
-    <span class="doccomment">/// Creates a new object ready for decompressing data that it&#39;s given for the input
+    <span class="doccomment">/// Creates a new object ready for decompressing data that it's given for the input
     /// dict size, expected unpacked data size, and memory limit for the internal buffer.
     </span><span class="kw">pub fn </span>new(params: LzmaParams, memlimit: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; error::Result&lt;LzmaDecoder&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
@@ -1245,7 +1246,7 @@
     /// is given, the previous unpacked size that the decoder was initialized with remains unchanged.
     ///
     /// This function may not allocate memory and will attempt to reuse any previously allocated resources.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;raw_decoder&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"raw_decoder"</span>)]
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unpacked_size: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Option</span>&lt;u64&gt;&gt;) {
         <span class="self">self</span>.state.reset_state(<span class="self">self</span>.params.properties);
 
@@ -1264,7 +1265,7 @@
             LzCircularBuffer::from_stream(output, <span class="self">self</span>.params.dict_size <span class="kw">as </span>usize, <span class="self">self</span>.memlimit);
 
         <span class="kw">let </span><span class="kw-2">mut </span>rangecoder = RangeDecoder::new(input)
-            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">&quot;LZMA stream too short: {}&quot;</span>, e)))<span class="question-mark">?</span>;
+            .map_err(|e| error::Error::LzmaError(<span class="macro">format!</span>(<span class="string">"LZMA stream too short: {}"</span>, e)))<span class="question-mark">?</span>;
         <span class="self">self</span>.state.process(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;mut </span>rangecoder)<span class="question-mark">?</span>;
         output.finish()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())

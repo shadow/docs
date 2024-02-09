@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/codegen/serialize.rs`."><title>serialize.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/codegen/serialize.rs`."><title>serialize.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -457,10 +458,10 @@
 <span class="kw">fn </span>get_loc(item: <span class="kw-2">&amp;</span>Item) -&gt; String {
     item.location()
         .map(|x| x.to_string())
-        .unwrap_or_else(|| <span class="string">&quot;unknown&quot;</span>.to_owned())
+        .unwrap_or_else(|| <span class="string">"unknown"</span>.to_owned())
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>CSerialize&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>CSerialize&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Extra;
 
     <span class="kw">fn </span>serialize&lt;W: Write&gt;(
@@ -472,8 +473,8 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), CodegenError&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CSerialize&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>Item {
-    <span class="kw">type </span>Extra = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="prelude-ty">Option</span>&lt;WrapAsVariadic&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CSerialize&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>Item {
+    <span class="kw">type </span>Extra = <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="prelude-ty">Option</span>&lt;WrapAsVariadic&gt;;
 
     <span class="kw">fn </span>serialize&lt;W: Write&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -487,15 +488,15 @@
                 func.serialize(ctx, (<span class="self">self</span>, extra), stack, writer)
             }
             kind =&gt; <span class="prelude-val">Err</span>(CodegenError::Serialize {
-                msg: <span class="macro">format!</span>(<span class="string">&quot;Cannot serialize item kind {:?}&quot;</span>, kind),
+                msg: <span class="macro">format!</span>(<span class="string">"Cannot serialize item kind {:?}"</span>, kind),
                 loc: get_loc(<span class="self">self</span>),
             }),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CSerialize&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>Function {
-    <span class="kw">type </span>Extra = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Item, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="prelude-ty">Option</span>&lt;WrapAsVariadic&gt;);
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CSerialize&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>Function {
+    <span class="kw">type </span>Extra = (<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Item, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="prelude-ty">Option</span>&lt;WrapAsVariadic&gt;);
 
     <span class="kw">fn </span>serialize&lt;W: Write&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -507,7 +508,7 @@
         <span class="kw">if </span><span class="self">self</span>.kind() != FunctionKind::Function {
             <span class="kw">return </span><span class="prelude-val">Err</span>(CodegenError::Serialize {
                 msg: <span class="macro">format!</span>(
-                    <span class="string">&quot;Cannot serialize function kind {:?}&quot;</span>,
+                    <span class="string">"Cannot serialize function kind {:?}"</span>,
                     <span class="self">self</span>.kind(),
                 ),
                 loc: get_loc(item),
@@ -544,7 +545,7 @@
                     </span>} <span class="kw">else </span>{
                         <span class="prelude-val">Some</span>((
                             opt_name.unwrap_or_else(|| {
-                                <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;arg_{}&quot;</span>, count);
+                                <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"arg_{}"</span>, count);
                                 count += <span class="number">1</span>;
                                 name
                             }),
@@ -556,9 +557,9 @@
         };
 
         <span class="comment">// The name used for the wrapper self.
-        </span><span class="kw">let </span>wrap_name = <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, name, ctx.wrap_static_fns_suffix());
+        </span><span class="kw">let </span>wrap_name = <span class="macro">format!</span>(<span class="string">"{}{}"</span>, name, ctx.wrap_static_fns_suffix());
 
-        <span class="comment">// The function&#39;s return type
+        <span class="comment">// The function's return type
         </span><span class="kw">let </span>(ret_item, ret_ty) = {
             <span class="kw">let </span>type_id = signature.return_type();
             <span class="kw">let </span>ret_item = ctx.resolve_item(type_id);
@@ -570,44 +571,44 @@
             (ret_item, ret_ty)
         };
 
-        <span class="kw">const </span>INDENT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;    &quot;</span>;
+        <span class="kw">const </span>INDENT: <span class="kw-2">&amp;</span>str = <span class="string">"    "</span>;
 
         <span class="comment">// Write `wrap_name(args`.
-        </span><span class="macro">write!</span>(writer, <span class="string">&quot; {}(&quot;</span>, wrap_name)<span class="question-mark">?</span>;
+        </span><span class="macro">write!</span>(writer, <span class="string">" {}("</span>, wrap_name)<span class="question-mark">?</span>;
         serialize_args(<span class="kw-2">&amp;</span>args, ctx, writer)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>wrap_as_variadic.is_none() {
             <span class="comment">// Write `) { name(` if the function returns void and `) { return name(` if it does not.
             </span><span class="kw">if </span>ret_ty.is_void() {
-                <span class="macro">write!</span>(writer, <span class="string">&quot;) {{ {}(&quot;</span>, name)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">") {{ {}("</span>, name)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
-                <span class="macro">write!</span>(writer, <span class="string">&quot;) {{ return {}(&quot;</span>, name)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">") {{ return {}("</span>, name)<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{
             <span class="comment">// Write `, ...) {`
-            </span><span class="macro">writeln!</span>(writer, <span class="string">&quot;, ...) {{&quot;</span>)<span class="question-mark">?</span>;
+            </span><span class="macro">writeln!</span>(writer, <span class="string">", ...) {{"</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// Declare the return type `RET_TY ret;` if their is a need to do so
             </span><span class="kw">if </span>!ret_ty.is_void() {
-                <span class="macro">write!</span>(writer, <span class="string">&quot;{INDENT}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">"{INDENT}"</span>)<span class="question-mark">?</span>;
                 ret_ty.serialize(ctx, ret_item, stack, writer)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(writer, <span class="string">&quot; ret;&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(writer, <span class="string">" ret;"</span>)<span class="question-mark">?</span>;
             }
 
             <span class="comment">// Setup va_list
-            </span><span class="macro">writeln!</span>(writer, <span class="string">&quot;{INDENT}va_list ap;\n&quot;</span>)<span class="question-mark">?</span>;
+            </span><span class="macro">writeln!</span>(writer, <span class="string">"{INDENT}va_list ap;\n"</span>)<span class="question-mark">?</span>;
             <span class="macro">writeln!</span>(
                 writer,
-                <span class="string">&quot;{INDENT}va_start(ap, {});&quot;</span>,
+                <span class="string">"{INDENT}va_start(ap, {});"</span>,
                 args.last().unwrap().<span class="number">0
             </span>)<span class="question-mark">?</span>;
 
-            <span class="macro">write!</span>(writer, <span class="string">&quot;{INDENT}&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(writer, <span class="string">"{INDENT}"</span>)<span class="question-mark">?</span>;
             <span class="comment">// Write `ret = name(` or `name(` depending if the function returns something
             </span><span class="kw">if </span>!ret_ty.is_void() {
-                <span class="macro">write!</span>(writer, <span class="string">&quot;ret = &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">"ret = "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(writer, <span class="string">&quot;{}(&quot;</span>, name)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(writer, <span class="string">"{}("</span>, name)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Get the arguments names and insert at the right place if necessary `ap`
@@ -616,31 +617,31 @@
             idx_of_va_list_arg, ..
         }) = wrap_as_variadic
         {
-            args.insert(<span class="kw-2">*</span>idx_of_va_list_arg, <span class="string">&quot;ap&quot;</span>.to_owned());
+            args.insert(<span class="kw-2">*</span>idx_of_va_list_arg, <span class="string">"ap"</span>.to_owned());
         }
 
         <span class="comment">// Write `arg_names);`.
-        </span>serialize_sep(<span class="string">&quot;, &quot;</span>, args.iter(), ctx, writer, |name, <span class="kw">_</span>, buf| {
-            <span class="macro">write!</span>(buf, <span class="string">&quot;{}&quot;</span>, name).map_err(From::from)
+        </span>serialize_sep(<span class="string">", "</span>, args.iter(), ctx, writer, |name, <span class="kw">_</span>, buf| {
+            <span class="macro">write!</span>(buf, <span class="string">"{}"</span>, name).map_err(From::from)
         })<span class="question-mark">?</span>;
         <span class="attr">#[rustfmt::skip]
-        </span><span class="macro">write!</span>(writer, <span class="string">&quot;);{}&quot;</span>, <span class="kw">if </span>wrap_as_variadic.is_none() { <span class="string">&quot; &quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;\n&quot; </span>})<span class="question-mark">?</span>;
+        </span><span class="macro">write!</span>(writer, <span class="string">");{}"</span>, <span class="kw">if </span>wrap_as_variadic.is_none() { <span class="string">" " </span>} <span class="kw">else </span>{ <span class="string">"\n" </span>})<span class="question-mark">?</span>;
 
         <span class="kw">if </span>wrap_as_variadic.is_some() {
             <span class="comment">// End va_list and return the result if their is one
-            </span><span class="macro">writeln!</span>(writer, <span class="string">&quot;{INDENT}va_end(ap);&quot;</span>)<span class="question-mark">?</span>;
+            </span><span class="macro">writeln!</span>(writer, <span class="string">"{INDENT}va_end(ap);"</span>)<span class="question-mark">?</span>;
             <span class="kw">if </span>!ret_ty.is_void() {
-                <span class="macro">writeln!</span>(writer, <span class="string">&quot;{INDENT}return ret;&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(writer, <span class="string">"{INDENT}return ret;"</span>)<span class="question-mark">?</span>;
             }
         }
 
-        <span class="macro">writeln!</span>(writer, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(writer, <span class="string">"}}"</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CSerialize&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>TypeId {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CSerialize&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>TypeId {
     <span class="kw">type </span>Extra = ();
 
     <span class="kw">fn </span>serialize&lt;W: Write&gt;(
@@ -655,8 +656,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CSerialize&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>Type {
-    <span class="kw">type </span>Extra = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Item;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CSerialize&lt;<span class="lifetime">'a</span>&gt; <span class="kw">for </span>Type {
+    <span class="kw">type </span>Extra = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Item;
 
     <span class="kw">fn </span>serialize&lt;W: Write&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -668,38 +669,38 @@
         <span class="kw">match </span><span class="self">self</span>.kind() {
             TypeKind::Void =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
-                <span class="macro">write!</span>(writer, <span class="string">&quot;void&quot;</span>)<span class="question-mark">?
+                <span class="macro">write!</span>(writer, <span class="string">"void"</span>)<span class="question-mark">?
             </span>}
             TypeKind::NullPtr =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
-                <span class="macro">write!</span>(writer, <span class="string">&quot;nullptr_t&quot;</span>)<span class="question-mark">?
+                <span class="macro">write!</span>(writer, <span class="string">"nullptr_t"</span>)<span class="question-mark">?
             </span>}
             TypeKind::Int(int_kind) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
                 <span class="kw">match </span>int_kind {
-                    IntKind::Bool =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;bool&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::SChar =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;signed char&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::UChar =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;unsigned char&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::WChar =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;wchar_t&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::Short =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;short&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::UShort =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;unsigned short&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::Int =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;int&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::UInt =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;unsigned int&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::Long =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;long&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::ULong =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;unsigned long&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::LongLong =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;long long&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::ULongLong =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;unsigned long long&quot;</span>)<span class="question-mark">?</span>,
-                    IntKind::Char { .. } =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;char&quot;</span>)<span class="question-mark">?</span>,
+                    IntKind::Bool =&gt; <span class="macro">write!</span>(writer, <span class="string">"bool"</span>)<span class="question-mark">?</span>,
+                    IntKind::SChar =&gt; <span class="macro">write!</span>(writer, <span class="string">"signed char"</span>)<span class="question-mark">?</span>,
+                    IntKind::UChar =&gt; <span class="macro">write!</span>(writer, <span class="string">"unsigned char"</span>)<span class="question-mark">?</span>,
+                    IntKind::WChar =&gt; <span class="macro">write!</span>(writer, <span class="string">"wchar_t"</span>)<span class="question-mark">?</span>,
+                    IntKind::Short =&gt; <span class="macro">write!</span>(writer, <span class="string">"short"</span>)<span class="question-mark">?</span>,
+                    IntKind::UShort =&gt; <span class="macro">write!</span>(writer, <span class="string">"unsigned short"</span>)<span class="question-mark">?</span>,
+                    IntKind::Int =&gt; <span class="macro">write!</span>(writer, <span class="string">"int"</span>)<span class="question-mark">?</span>,
+                    IntKind::UInt =&gt; <span class="macro">write!</span>(writer, <span class="string">"unsigned int"</span>)<span class="question-mark">?</span>,
+                    IntKind::Long =&gt; <span class="macro">write!</span>(writer, <span class="string">"long"</span>)<span class="question-mark">?</span>,
+                    IntKind::ULong =&gt; <span class="macro">write!</span>(writer, <span class="string">"unsigned long"</span>)<span class="question-mark">?</span>,
+                    IntKind::LongLong =&gt; <span class="macro">write!</span>(writer, <span class="string">"long long"</span>)<span class="question-mark">?</span>,
+                    IntKind::ULongLong =&gt; <span class="macro">write!</span>(writer, <span class="string">"unsigned long long"</span>)<span class="question-mark">?</span>,
+                    IntKind::Char { .. } =&gt; <span class="macro">write!</span>(writer, <span class="string">"char"</span>)<span class="question-mark">?</span>,
                     int_kind =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(CodegenError::Serialize {
                             msg: <span class="macro">format!</span>(
-                                <span class="string">&quot;Cannot serialize integer kind {:?}&quot;</span>,
+                                <span class="string">"Cannot serialize integer kind {:?}"</span>,
                                 int_kind
                             ),
                             loc: get_loc(item),
@@ -709,34 +710,34 @@
             }
             TypeKind::Float(float_kind) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
                 <span class="kw">match </span>float_kind {
-                    FloatKind::Float =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;float&quot;</span>)<span class="question-mark">?</span>,
-                    FloatKind::Double =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;double&quot;</span>)<span class="question-mark">?</span>,
-                    FloatKind::LongDouble =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;long double&quot;</span>)<span class="question-mark">?</span>,
-                    FloatKind::Float128 =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;__float128&quot;</span>)<span class="question-mark">?</span>,
+                    FloatKind::Float =&gt; <span class="macro">write!</span>(writer, <span class="string">"float"</span>)<span class="question-mark">?</span>,
+                    FloatKind::Double =&gt; <span class="macro">write!</span>(writer, <span class="string">"double"</span>)<span class="question-mark">?</span>,
+                    FloatKind::LongDouble =&gt; <span class="macro">write!</span>(writer, <span class="string">"long double"</span>)<span class="question-mark">?</span>,
+                    FloatKind::Float128 =&gt; <span class="macro">write!</span>(writer, <span class="string">"__float128"</span>)<span class="question-mark">?</span>,
                 }
             }
             TypeKind::Complex(float_kind) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
                 <span class="kw">match </span>float_kind {
-                    FloatKind::Float =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;float complex&quot;</span>)<span class="question-mark">?</span>,
-                    FloatKind::Double =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;double complex&quot;</span>)<span class="question-mark">?</span>,
+                    FloatKind::Float =&gt; <span class="macro">write!</span>(writer, <span class="string">"float complex"</span>)<span class="question-mark">?</span>,
+                    FloatKind::Double =&gt; <span class="macro">write!</span>(writer, <span class="string">"double complex"</span>)<span class="question-mark">?</span>,
                     FloatKind::LongDouble =&gt; {
-                        <span class="macro">write!</span>(writer, <span class="string">&quot;long double complex&quot;</span>)<span class="question-mark">?
+                        <span class="macro">write!</span>(writer, <span class="string">"long double complex"</span>)<span class="question-mark">?
                     </span>}
-                    FloatKind::Float128 =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;__complex128&quot;</span>)<span class="question-mark">?</span>,
+                    FloatKind::Float128 =&gt; <span class="macro">write!</span>(writer, <span class="string">"__complex128"</span>)<span class="question-mark">?</span>,
                 }
             }
             TypeKind::Alias(type_id) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self</span>.name() {
                     <span class="kw">if </span><span class="self">self</span>.is_const() {
-                        <span class="macro">write!</span>(writer, <span class="string">&quot;const {}&quot;</span>, name)<span class="question-mark">?</span>;
+                        <span class="macro">write!</span>(writer, <span class="string">"const {}"</span>, name)<span class="question-mark">?</span>;
                     } <span class="kw">else </span>{
-                        <span class="macro">write!</span>(writer, <span class="string">&quot;{}&quot;</span>, name)<span class="question-mark">?</span>;
+                        <span class="macro">write!</span>(writer, <span class="string">"{}"</span>, name)<span class="question-mark">?</span>;
                     }
                 } <span class="kw">else </span>{
                     type_id.serialize(ctx, (), stack, writer)<span class="question-mark">?</span>;
@@ -744,11 +745,11 @@
             }
             TypeKind::Array(type_id, length) =&gt; {
                 type_id.serialize(ctx, (), stack, writer)<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(writer, <span class="string">&quot; [{}]&quot;</span>, length)<span class="question-mark">?
+                <span class="macro">write!</span>(writer, <span class="string">" [{}]"</span>, length)<span class="question-mark">?
             </span>}
             TypeKind::Function(signature) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    stack.push(<span class="string">&quot;const &quot;</span>.to_string());
+                    stack.push(<span class="string">"const "</span>.to_string());
                 }
 
                 signature.return_type().serialize(
@@ -758,19 +759,19 @@
                     writer,
                 )<span class="question-mark">?</span>;
 
-                <span class="macro">write!</span>(writer, <span class="string">&quot; (&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">" ("</span>)<span class="question-mark">?</span>;
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = stack.pop() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;{}&quot;</span>, item)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"{}"</span>, item)<span class="question-mark">?</span>;
                 }
-                <span class="macro">write!</span>(writer, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">")"</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>args = signature.argument_types();
                 <span class="kw">if </span>args.is_empty() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot; (void)&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">" (void)"</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
-                    <span class="macro">write!</span>(writer, <span class="string">&quot; (&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">" ("</span>)<span class="question-mark">?</span>;
                     serialize_sep(
-                        <span class="string">&quot;, &quot;</span>,
+                        <span class="string">", "</span>,
                         args.iter(),
                         ctx,
                         writer,
@@ -782,55 +783,55 @@
                             type_id.serialize(ctx, (), <span class="kw-2">&amp;mut </span>stack, buf)
                         },
                     )<span class="question-mark">?</span>;
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?
+                    <span class="macro">write!</span>(writer, <span class="string">")"</span>)<span class="question-mark">?
                 </span>}
             }
             TypeKind::ResolvedTypeRef(type_id) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
                 type_id.serialize(ctx, (), stack, writer)<span class="question-mark">?
             </span>}
             TypeKind::Pointer(type_id) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    stack.push(<span class="string">&quot;*const &quot;</span>.to_owned());
+                    stack.push(<span class="string">"*const "</span>.to_owned());
                 } <span class="kw">else </span>{
-                    stack.push(<span class="string">&quot;*&quot;</span>.to_owned());
+                    stack.push(<span class="string">"*"</span>.to_owned());
                 }
                 type_id.serialize(ctx, (), stack, writer)<span class="question-mark">?
             </span>}
             TypeKind::Comp(comp_info) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="kw">let </span>name = item.canonical_name(ctx);
 
                 <span class="kw">match </span>comp_info.kind() {
-                    CompKind::Struct =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;struct {}&quot;</span>, name)<span class="question-mark">?</span>,
-                    CompKind::Union =&gt; <span class="macro">write!</span>(writer, <span class="string">&quot;union {}&quot;</span>, name)<span class="question-mark">?</span>,
+                    CompKind::Struct =&gt; <span class="macro">write!</span>(writer, <span class="string">"struct {}"</span>, name)<span class="question-mark">?</span>,
+                    CompKind::Union =&gt; <span class="macro">write!</span>(writer, <span class="string">"union {}"</span>, name)<span class="question-mark">?</span>,
                 };
             }
             TypeKind::Enum(_enum_ty) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.is_const() {
-                    <span class="macro">write!</span>(writer, <span class="string">&quot;const &quot;</span>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(writer, <span class="string">"const "</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="kw">let </span>name = item.canonical_name(ctx);
-                <span class="macro">write!</span>(writer, <span class="string">&quot;enum {}&quot;</span>, name)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">"enum {}"</span>, name)<span class="question-mark">?</span>;
             }
             ty =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(CodegenError::Serialize {
-                    msg: <span class="macro">format!</span>(<span class="string">&quot;Cannot serialize type kind {:?}&quot;</span>, ty),
+                    msg: <span class="macro">format!</span>(<span class="string">"Cannot serialize type kind {:?}"</span>, ty),
                     loc: get_loc(item),
                 })
             }
         };
 
         <span class="kw">if </span>!stack.is_empty() {
-            <span class="macro">write!</span>(writer, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(writer, <span class="string">" "</span>)<span class="question-mark">?</span>;
             <span class="kw">while let </span><span class="prelude-val">Some</span>(item) = stack.pop() {
-                <span class="macro">write!</span>(writer, <span class="string">&quot;{}&quot;</span>, item)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(writer, <span class="string">"{}"</span>, item)<span class="question-mark">?</span>;
             }
         }
 
@@ -844,10 +845,10 @@
     writer: <span class="kw-2">&amp;mut </span>W,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), CodegenError&gt; {
     <span class="kw">if </span>args.is_empty() {
-        <span class="macro">write!</span>(writer, <span class="string">&quot;void&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(writer, <span class="string">"void"</span>)<span class="question-mark">?</span>;
     } <span class="kw">else </span>{
         serialize_sep(
-            <span class="string">&quot;, &quot;</span>,
+            <span class="string">", "</span>,
             args.iter(),
             ctx,
             writer,

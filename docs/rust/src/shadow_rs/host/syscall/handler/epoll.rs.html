@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/epoll.rs`."><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -468,8 +469,8 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         size: std::ffi::c_int,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
-        <span class="comment">// epoll_create(2): &quot;Since Linux 2.6.8, the size argument is ignored, but must be greater
-        // than zero&quot;
+        <span class="comment">// epoll_create(2): "Since Linux 2.6.8, the size argument is ignored, but must be greater
+        // than zero"
         </span><span class="kw">if </span>size &lt;= <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
@@ -492,7 +493,7 @@
         <span class="comment">// See here for the order that the input args are checked in Linux:
         // https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2030
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(flags) = EpollCreateFlags::from_bits(flags) <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Invalid epoll_create flags: {flags}&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Invalid epoll_create flags: {flags}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -513,7 +514,7 @@
             .register_descriptor(desc)
             .or(<span class="prelude-val">Err</span>(Errno::ENFILE))<span class="question-mark">?</span>;
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Created epoll fd {fd}&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"Created epoll fd {fd}"</span>);
 
         <span class="prelude-val">Ok</span>(fd.val().try_into().unwrap())
     }
@@ -530,10 +531,10 @@
         <span class="comment">// See here for the order that the input args are checked in Linux:
         // https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2111
 
-        // We&#39;ll need to look up descriptors.
+        // We'll need to look up descriptors.
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
 
-        <span class="comment">// Get the epoll descriptor, or return early if it doesn&#39;t exist.
+        <span class="comment">// Get the epoll descriptor, or return early if it doesn't exist.
         </span><span class="kw">let </span>(epoll, epoll_canon_handle) = {
             <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, epfd)<span class="question-mark">?</span>;
 
@@ -557,20 +558,20 @@
             <span class="comment">// Our epoll implementation only supports adding new Rust descriptor types.
             // However, the only legacy type remaining in Shadow is a regular file, and
             // epoll_ctl(2) states that EPERM should be returned for regular files and
-            // other files that don&#39;t support epolling.
+            // other files that don't support epolling.
             </span><span class="kw">match </span>desc.file() {
                 CompatFile::New(file) =&gt; file.inner_file().clone(),
                 CompatFile::Legacy(file) =&gt; {
                     <span class="kw">let </span>file_type = <span class="kw">unsafe </span>{ cshadow::legacyfile_getType(file.ptr()) };
                     <span class="kw">if </span>file_type == cshadow::_LegacyFileType_DT_FILE {
-                        <span class="comment">// Epoll doesn&#39;t support regular files.
+                        <span class="comment">// Epoll doesn't support regular files.
                         </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPERM.into());
                     } <span class="kw">else </span>{
-                        <span class="comment">// Our implementation doesn&#39;t support other legacy types.
-                        // We don&#39;t think we have such types remaining, but warn anyway.
+                        <span class="comment">// Our implementation doesn't support other legacy types.
+                        // We don't think we have such types remaining, but warn anyway.
                         </span><span class="macro">warn_once_then_trace!</span>(
-                            <span class="string">&quot;Attempted to add a legacy file to an epoll file, which \
-                            shadow doesn&#39;t support&quot;
+                            <span class="string">"Attempted to add a legacy file to an epoll file, which \
+                            shadow doesn't support"
                         </span>);
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
                     }
@@ -585,7 +586,7 @@
 
         <span class="comment">// Extract the operation.
         </span><span class="kw">let </span><span class="prelude-val">Ok</span>(op) = EpollCtlOp::try_from(op) <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Invalid epoll op: {op}&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Invalid epoll op: {op}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -600,7 +601,7 @@
 
             <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>events) = EpollEvents::from_bits(ev.events) <span class="kw">else </span>{
                 <span class="comment">// Braces are needed around `ev.events` for alignment (see rustc --explain E0793).
-                </span><span class="macro">log::debug!</span>(<span class="string">&quot;Invalid epoll_ctl events: {}&quot;</span>, { ev.events });
+                </span><span class="macro">log::debug!</span>(<span class="string">"Invalid epoll_ctl events: {}"</span>, { ev.events });
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             };
 
@@ -610,7 +611,7 @@
             (events, ev.data)
         };
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Calling epoll_ctl on epoll {epfd} with child {fd}&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"Calling epoll_ctl on epoll {epfd} with child {fd}"</span>);
 
         <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
             CallbackQueue::queue_and_run(|cb_queue| {
@@ -651,8 +652,8 @@
         sigmask_ptr: ForeignPtr&lt;linux_api::signal::sigset_t&gt;,
         _sigsetsize: linux_api::posix_types::kernel_size_t,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
-        <span class="comment">// epoll_wait(2): &quot;The sigmask argument may be specified as NULL, in which case
-        // epoll_pwait() is equivalent to epoll_wait()&quot;
+        <span class="comment">// epoll_wait(2): "The sigmask argument may be specified as NULL, in which case
+        // epoll_pwait() is equivalent to epoll_wait()"
         </span><span class="kw">let </span>sigmask = <span class="kw">if </span>sigmask_ptr.is_null() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
@@ -680,15 +681,15 @@
         <span class="kw">let </span>(sigmask, timeout) = {
             <span class="kw">let </span>mem = ctx.objs.process.memory_borrow();
 
-            <span class="comment">// epoll_wait(2): &quot;The sigmask argument may be specified as NULL, in which case
-            // epoll_pwait() is equivalent to epoll_wait()&quot;
+            <span class="comment">// epoll_wait(2): "The sigmask argument may be specified as NULL, in which case
+            // epoll_pwait() is equivalent to epoll_wait()"
             </span><span class="kw">let </span>sigmask = <span class="kw">if </span>sigmask_ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
                 <span class="prelude-val">Some</span>(mem.read(sigmask_ptr)<span class="question-mark">?</span>)
             };
 
-            <span class="comment">// epoll_wait(2): &quot;If timeout is NULL, then epoll_pwait2() can block indefinitely&quot;
+            <span class="comment">// epoll_wait(2): "If timeout is NULL, then epoll_pwait2() can block indefinitely"
             </span><span class="kw">let </span>timeout = <span class="kw">if </span>timeout_ptr.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
@@ -717,8 +718,8 @@
 
             <span class="kw">if </span>max_events &lt;= <span class="number">0 </span>|| max_events &gt; upper_bound {
                 <span class="macro">log::trace!</span>(
-                    <span class="string">&quot;Epoll maxevents {max_events} is not greater than 0 \
-                            and less than {upper_bound}&quot;
+                    <span class="string">"Epoll maxevents {max_events} is not greater than 0 \
+                            and less than {upper_bound}"
                 </span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             }
@@ -729,13 +730,13 @@
         <span class="comment">// TODO: support the signal mask
         </span><span class="kw">if </span>sigmask.is_some() {
             <span class="macro">warn_once_then_trace!</span>(
-                <span class="string">&quot;Epoll pwait called with non-null sigmask, \
-                which is not yet supported by shadow; returning EINVAL&quot;
+                <span class="string">"Epoll pwait called with non-null sigmask, \
+                which is not yet supported by shadow; returning EINVAL"
             </span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
-        <span class="comment">// Get the descriptor, or return early if it doesn&#39;t exist.
+        <span class="comment">// Get the descriptor, or return early if it doesn't exist.
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>epoll = {
             <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, epfd)<span class="question-mark">?</span>;
@@ -752,7 +753,7 @@
         };
 
         <span class="kw">if </span>epoll.borrow().has_ready_events() {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Epoll {epfd} has ready events&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Epoll {epfd} has ready events"</span>);
 
             <span class="comment">// We must not return an error after collecting events from epoll, otherwise the epoll
             // state will become inconsitent with the view of events from the managed process.
@@ -764,7 +765,7 @@
 
             <span class="comment">// After we collect the events here, failing to write them out to the events_ptr
             // ForeignPointer below will leave our event state inconsistent with the managed
-            // process&#39;s understanding of the available events.
+            // process's understanding of the available events.
             </span><span class="kw">let </span>ready = CallbackQueue::queue_and_run(|cb_queue| {
                 epoll
                     .borrow_mut()
@@ -772,7 +773,7 @@
             });
             <span class="kw">let </span>n_ready = ready.len();
             <span class="kw">if </span>n_ready &gt; max_events <span class="kw">as </span>usize {
-                <span class="macro">panic!</span>(<span class="string">&quot;Epoll should not return more than {max_events} events&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"Epoll should not return more than {max_events} events"</span>);
             }
 
             <span class="comment">// Write the events out to the managed process memory.
@@ -780,7 +781,7 @@
             write_events_to_ptr(<span class="kw-2">&amp;mut </span>mem, ready, events_ptr)<span class="question-mark">?</span>;
 
             <span class="comment">// Return the number of events we are reporting.
-            </span><span class="macro">log::trace!</span>(<span class="string">&quot;Epoll {epfd} returning {n_ready} events&quot;</span>);
+            </span><span class="macro">log::trace!</span>(<span class="string">"Epoll {epfd} returning {n_ready} events"</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(n_ready.try_into().unwrap());
         }
 
@@ -788,7 +789,7 @@
         // Return immediately if timeout is 0.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = timeout {
             <span class="kw">if </span>timeout.is_zero() {
-                <span class="macro">log::trace!</span>(<span class="string">&quot;No events are ready on epoll {epfd} and the timeout is 0&quot;</span>);
+                <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and the timeout is 0"</span>);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
             }
         }
@@ -798,13 +799,13 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cond) = ctx.objs.thread.syscall_condition() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(abs_timeout) = cond.timeout() {
                 <span class="kw">if </span>Worker::current_time().unwrap() &gt;= abs_timeout {
-                    <span class="macro">log::trace!</span>(<span class="string">&quot;No events are ready on epoll {epfd} and the timeout expired&quot;</span>);
+                    <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and the timeout expired"</span>);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
                 }
             }
         }
 
-        <span class="comment">// If there&#39;s a signal pending, this syscall will be interrupted.
+        <span class="comment">// If there's a signal pending, this syscall will be interrupted.
         </span><span class="kw">if </span>ctx.objs.thread.unblocked_signal_pending(
             ctx.objs.process,
             <span class="kw-2">&amp;</span>ctx.objs.host.shim_shmem_lock_borrow().unwrap(),
@@ -817,11 +818,11 @@
             .map(|x| Worker::current_time().unwrap().checked_add(x).ok_or(()))
             .transpose()
         <span class="kw">else </span>{
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Epoll wait with invalid timeout {timeout:?} (too large)&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Epoll wait with invalid timeout {timeout:?} (too large)"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;No events are ready on epoll {epfd} and we need to block&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and we need to block"</span>);
 
         <span class="comment">// Block on epoll state; an epoll descriptor is readable when it has events.
         </span><span class="kw">let </span><span class="kw-2">mut </span>rv = SyscallError::new_blocked_on_file(
@@ -842,7 +843,7 @@
 <span class="kw">fn </span>timeout_arg_to_maybe_simtime(
     timeout_ms: std::ffi::c_int,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SimulationTime&gt;, SyscallError&gt; {
-    <span class="comment">// epoll_wait(2): &quot;Specifying a timeout of -1 causes epoll_wait() to block indefinitely&quot;
+    <span class="comment">// epoll_wait(2): "Specifying a timeout of -1 causes epoll_wait() to block indefinitely"
     </span><span class="kw">let </span>timeout_ms = (timeout_ms &gt;= <span class="number">0</span>).then_some(timeout_ms);
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(timeout_ms) = timeout_ms {

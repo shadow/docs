@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/syscall-logger/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syscall_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/syscall-logger/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syscall_logger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -229,7 +230,7 @@
 <span class="kw">use </span>quote::ToTokens;
 
 <span class="comment">// FIXME: These doctests are effectively disabled via `compile_fail`.
-// For them to work, this crate would need to depend on shadow_rs. We can&#39;t do that though,
+// For them to work, this crate would need to depend on shadow_rs. We can't do that though,
 // since shadow_rs depends on this crate. This could perhaps be fixed by moving the parts
 // of shadow_rs neede by this crate out to a separate crate to break the cycle.
 </span><span class="doccomment">/// This macro wraps a syscall handler by renaming the original function and making a new
@@ -275,11 +276,11 @@
 
     <span class="comment">// name of the syscall
     </span><span class="kw">let </span>syscall_name;
-    <span class="comment">// name of the syscall with &quot;_original&quot; appended
+    <span class="comment">// name of the syscall with "_original" appended
     </span><span class="kw">let </span>syscall_name_original;
-    <span class="comment">// the syscall argument names (ex: [&quot;ctx&quot;, &quot;fd&quot;, &quot;val&quot;])
+    <span class="comment">// the syscall argument names (ex: ["ctx", "fd", "val"])
     </span><span class="kw">let </span>syscall_args: Vec&lt;<span class="kw">_</span>&gt;;
-    <span class="comment">// the syscall arguments as a token stream (ex: &quot;ctx: SyscallContext, fd: u32, val: i32&quot;)
+    <span class="comment">// the syscall arguments as a token stream (ex: "ctx: SyscallContext, fd: u32, val: i32")
     </span><span class="kw">let </span><span class="kw-2">mut </span>syscall_args_and_types;
     <span class="comment">// the syscal return type (including the `-&gt;` token)
     </span><span class="kw">let </span>syscall_ret_type;
@@ -289,11 +290,11 @@
     {
         <span class="kw">let </span>input_fn: <span class="kw-2">&amp;mut </span><span class="kw">_ </span>= <span class="kw">match </span><span class="kw-2">&amp;mut </span>input {
             syn::Item::Fn(input_fn) =&gt; input_fn,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Expected Item::Fn&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Expected Item::Fn"</span>),
         };
 
         syscall_name = input_fn.sig.ident.clone();
-        syscall_name_original = <span class="macro">quote::format_ident!</span>(<span class="string">&quot;{}_original&quot;</span>, syscall_name);
+        syscall_name_original = <span class="macro">quote::format_ident!</span>(<span class="string">"{}_original"</span>, syscall_name);
 
         <span class="comment">// rename the function
         </span>input_fn.sig.ident = syscall_name_original.clone();
@@ -326,14 +327,14 @@
             .iter()
             .map(|arg| {
                 <span class="kw">let </span>syn::FnArg::Typed(arg) = arg <span class="kw">else </span>{
-                    <span class="macro">panic!</span>(<span class="string">&quot;Expected a typed arg. Does the function take `self`?&quot;</span>);
+                    <span class="macro">panic!</span>(<span class="string">"Expected a typed arg. Does the function take `self`?"</span>);
                 };
 
                 <span class="comment">// rust functions can be complicated (for example struct destructured args), but syscall
                 // arguments will be simple
                 </span><span class="kw">let </span>syn::Pat::Ident(ident_pat) = <span class="kw-2">&amp;*</span>arg.pat <span class="kw">else </span>{
                     <span class="macro">panic!</span>(
-                        <span class="string">&quot;Function arguments must be identities (ex: `name: Type`), not {:?}&quot;</span>,
+                        <span class="string">"Function arguments must be identities (ex: `name: Type`), not {:?}"</span>,
                         arg.pat
                     );
                 };
@@ -353,7 +354,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>found_comma = <span class="bool-val">false</span>;
     <span class="kw">for </span>tt <span class="kw">in </span>args.into_iter() {
         <span class="kw">if let </span>TokenTree::Punct(<span class="kw-2">ref </span>p) = tt {
-            <span class="kw">if </span>!found_comma &amp;&amp; p.as_char() == <span class="string">&#39;,&#39; </span>&amp;&amp; p.spacing() == Spacing::Alone {
+            <span class="kw">if </span>!found_comma &amp;&amp; p.as_char() == <span class="string">',' </span>&amp;&amp; p.spacing() == Spacing::Alone {
                 found_comma = <span class="bool-val">true</span>;
                 <span class="kw">continue</span>;
             }
@@ -392,9 +393,9 @@
             <span class="kw">let </span>syscall_args = {
                 <span class="kw">let </span>memory = #context_arg_name.objs.process.memory_borrow();
                 <span class="kw">let </span>syscall_args = &lt;SyscallArgsFmt::&lt;#(#arg_types)<span class="kw-2">*</span>&gt;&gt;::new(#context_arg_name.args.args, strace_fmt_options, <span class="kw-2">&amp;*</span>memory);
-                <span class="comment">// need to convert to a string so that we read the plugin&#39;s memory before we potentially
+                <span class="comment">// need to convert to a string so that we read the plugin's memory before we potentially
                 // modify it during the syscall
-                </span><span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, syscall_args)
+                </span><span class="macro">format!</span>(<span class="string">"{}"</span>, syscall_args)
             };
 
             <span class="comment">// make the syscall
@@ -417,7 +418,7 @@
             </span><span class="kw">let </span>rv_original_ok = rv.as_ref().ok().cloned();
             <span class="kw">let </span>rv = rv.map(|x| x.into());
 
-            <span class="comment">// format the result (returns None if the syscall didn&#39;t complete)
+            <span class="comment">// format the result (returns None if the syscall didn't complete)
             </span><span class="kw">let </span>syscall_rv = SyscallResultFmt::&lt;#(#rv_type)<span class="kw-2">*</span>&gt;::new(<span class="kw-2">&amp;</span>rv, #context_arg_name.args.args, strace_fmt_options, <span class="kw-2">&amp;*</span>memory);
 
             #context_arg_name.objs.process.with_strace_file(|file| {

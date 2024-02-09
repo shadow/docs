@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/clone.rs`."><title>clone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/syscall/handler/clone.rs`."><title>clone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -444,11 +445,11 @@
         ctid: ForeignPtr&lt;kernel_pid_t&gt;,
         newtls: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
-        <span class="comment">// We use this for a consistency check to validate that we&#39;ve inspected
+        <span class="comment">// We use this for a consistency check to validate that we've inspected
         // and emulated all of the provided flags.
         </span><span class="kw">let </span><span class="kw-2">mut </span>handled_flags = CloneFlags::empty();
 
-        <span class="comment">// The parameters that we&#39;ll pass to the native clone call.
+        <span class="comment">// The parameters that we'll pass to the native clone call.
         </span><span class="kw">let </span><span class="kw-2">mut </span>native_flags = CloneFlags::empty();
 
         <span class="comment">// We emulate the flags that would use these, so we always pass NULL to
@@ -467,16 +468,16 @@
             // &gt; Since Linux 2.5.35, the flags mask must also include
             // &gt; CLONE_SIGHAND if CLONE_THREAD is specified
             </span><span class="kw">if </span>!flags.contains(CloneFlags::CLONE_SIGHAND) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Missing CLONE_SIGHAND&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Missing CLONE_SIGHAND"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             }
             <span class="kw">if </span>!flags.contains(CloneFlags::CLONE_SETTLS) {
                 <span class="comment">// Legal in Linux, but the shim will be broken and behave unpredictably.
-                </span><span class="macro">warn!</span>(<span class="string">&quot;CLONE_THREAD without CLONE_TLS not supported by shadow&quot;</span>);
+                </span><span class="macro">warn!</span>(<span class="string">"CLONE_THREAD without CLONE_TLS not supported by shadow"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
             }
             <span class="kw">if </span>exit_signal.is_some() {
-                <span class="macro">warn!</span>(<span class="string">&quot;Exit signal is unimplemented&quot;</span>);
+                <span class="macro">warn!</span>(<span class="string">"Exit signal is unimplemented"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
             }
             <span class="comment">// The native clone call will:
@@ -494,7 +495,7 @@
             handled_flags.insert(CloneFlags::CLONE_THREAD);
         } <span class="kw">else </span>{
             <span class="kw">if </span>ctx.objs.process.memory_borrow().has_mapper() {
-                <span class="macro">warn!</span>(<span class="string">&quot;Fork with memory mapper unimplemented&quot;</span>);
+                <span class="macro">warn!</span>(<span class="string">"Fork with memory mapper unimplemented"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
             }
             <span class="comment">// Make shadow the parent process
@@ -506,16 +507,16 @@
             // &gt; Since Linux 2.6.0, the flags mask must also include CLONE_VM if
             // &gt; CLONE_SIGHAND is specified
             </span><span class="kw">if </span>!flags.contains(CloneFlags::CLONE_VM) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Missing CLONE_VM&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Missing CLONE_VM"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             }
             <span class="comment">// Currently a no-op since threads always share signal handlers,
-            // and we don&#39;t yet support non-CLONE_THREAD.
+            // and we don't yet support non-CLONE_THREAD.
             </span>handled_flags.insert(CloneFlags::CLONE_SIGHAND);
         }
 
         <span class="kw">if </span>flags.contains(CloneFlags::CLONE_FS) {
-            <span class="comment">// Currently a no-op since we don&#39;t support the related
+            <span class="comment">// Currently a no-op since we don't support the related
             // metadata and syscalls that this affects (e.g. chroot).
             </span>handled_flags.insert(CloneFlags::CLONE_FS);
         }
@@ -544,16 +545,16 @@
         }
 
         <span class="kw">if </span>flags.contains(CloneFlags::CLONE_VFORK) {
-            <span class="comment">// *Typically* `CLONE_VFORK|CLONE_VM` is used as a &quot;faster fork&quot;, and
+            <span class="comment">// *Typically* `CLONE_VFORK|CLONE_VM` is used as a "faster fork", and
             // ignoring it will still work as intended.
             //
             // In principle this might not be true if the managed program
             // actually uses the shared memory with the parent process as a
-            // &quot;feature&quot; and e.g. writes to non-scratch memory, expecting the
+            // "feature" and e.g. writes to non-scratch memory, expecting the
             // parent process to see those writes when it resumes.
             </span><span class="macro">warn_once_then_debug!</span>(
-                <span class="string">&quot;Ignoring CLONE_VFORK (and CLONE_VM if set). In *typical* usage this won&#39;t \
-                result in incorrect behavior.&quot;
+                <span class="string">"Ignoring CLONE_VFORK (and CLONE_VM if set). In *typical* usage this won't \
+                result in incorrect behavior."
             </span>);
             handled_flags.insert(CloneFlags::CLONE_VFORK);
         }
@@ -564,20 +565,20 @@
             } <span class="kw">else if </span>flags.contains(CloneFlags::CLONE_VFORK) {
                 <span class="comment">// We already handled (warned) about this above.
             </span>} <span class="kw">else </span>{
-                <span class="comment">// Haven&#39;t seen this in practice.
+                <span class="comment">// Haven't seen this in practice.
                 //
-                // Unclear that it&#39;d be safe to ignore. Lack of CLONE_VFORK
-                // (which normally pauses the parent until the child exec&#39;s or
+                // Unclear that it'd be safe to ignore. Lack of CLONE_VFORK
+                // (which normally pauses the parent until the child exec's or
                 // exits) implies that this that the child may exist for more
-                // than a brief window before exec&#39;ing.
-                </span><span class="macro">warn!</span>(<span class="string">&quot;CLONE_VM without CLONE_THREAD and without CLONE_VFORK unsupported&quot;</span>);
+                // than a brief window before exec'ing.
+                </span><span class="macro">warn!</span>(<span class="string">"CLONE_VM without CLONE_THREAD and without CLONE_VFORK unsupported"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
             }
             handled_flags.insert(CloneFlags::CLONE_VM);
         }
 
         <span class="kw">if </span>flags.contains(CloneFlags::CLONE_SYSVSEM) {
-            <span class="comment">// Currently a no-op since we don&#39;t support sysv semaphores.
+            <span class="comment">// Currently a no-op since we don't support sysv semaphores.
             </span>handled_flags.insert(CloneFlags::CLONE_SYSVSEM);
         }
 
@@ -601,7 +602,7 @@
             }
             <span class="bool-val">false
         </span>} <span class="kw">else </span>{
-            <span class="comment">// We only need to copy if they&#39;re not shared.
+            <span class="comment">// We only need to copy if they're not shared.
             </span>!flags.contains(CloneFlags::CLONE_SIGHAND)
         };
         handled_flags.insert(CloneFlags::CLONE_CLEAR_SIGHAND);
@@ -614,7 +615,7 @@
 
         <span class="kw">let </span>unhandled_flags = flags.difference(handled_flags);
         <span class="kw">if </span>!unhandled_flags.is_empty() {
-            <span class="macro">warn!</span>(<span class="string">&quot;Unhandled clone flags: {unhandled_flags:?}&quot;</span>);
+            <span class="macro">warn!</span>(<span class="string">"Unhandled clone flags: {unhandled_flags:?}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
         }
 
@@ -694,7 +695,7 @@
         }
 
         <span class="kw">if </span>do_child_settid {
-            <span class="comment">// Set the child thread id in the child&#39;s memory.
+            <span class="comment">// Set the child thread id in the child's memory.
             </span>child_process
                 .memory_borrow_mut()
                 .write(ctid, <span class="kw-2">&amp;</span>kernel_pid_t::from(child_tid))<span class="question-mark">?</span>;
@@ -722,7 +723,7 @@
     }
 
     <span class="comment">// Note that the syscall args are different than the libc wrapper.
-    // See &quot;C library/kernel differences&quot; in clone(2).
+    // See "C library/kernel differences" in clone(2).
     </span><span class="attr">#[log_syscall(
         <span class="comment">/* rv */</span>kernel_pid_t,
         <span class="comment">/* flags */</span>CloneFlags,
@@ -742,7 +743,7 @@
         <span class="kw">let </span>raw_exit_signal = (flags_and_exit_signal <span class="kw">as </span>u32 &amp; <span class="number">0xff</span>) <span class="kw">as </span>i32;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = CloneFlags::from_bits(raw_flags <span class="kw">as </span>u64) <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;Couldn&#39;t parse clone flags: {raw_flags:x}&quot;</span>);
+            <span class="macro">debug!</span>(<span class="string">"Couldn't parse clone flags: {raw_flags:x}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -750,7 +751,7 @@
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span><span class="prelude-val">Ok</span>(exit_signal) = Signal::try_from(raw_exit_signal) <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;Bad exit signal: {raw_exit_signal:?}&quot;</span>);
+                <span class="macro">debug!</span>(<span class="string">"Bad exit signal: {raw_exit_signal:?}"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             };
             <span class="prelude-val">Some</span>(exit_signal)
@@ -774,16 +775,16 @@
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
         <span class="kw">let </span>args = ctx.objs.process.memory_borrow().read(args)<span class="question-mark">?</span>;
-        <span class="macro">trace!</span>(<span class="string">&quot;clone3 args: {args:?}&quot;</span>);
+        <span class="macro">trace!</span>(<span class="string">"clone3 args: {args:?}"</span>);
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = CloneFlags::from_bits(args.flags) <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;Couldn&#39;t parse clone flags: {:x}&quot;</span>, args.flags);
+            <span class="macro">debug!</span>(<span class="string">"Couldn't parse clone flags: {:x}"</span>, args.flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
         <span class="kw">let </span>exit_signal = <span class="kw">if </span>args.exit_signal == <span class="number">0 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span><span class="prelude-val">Ok</span>(exit_signal) = Signal::try_from(args.exit_signal <span class="kw">as </span>i32) <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;Bad signal number: {}&quot;</span>, args.exit_signal);
+                <span class="macro">debug!</span>(<span class="string">"Bad signal number: {}"</span>, args.exit_signal);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             };
             <span class="prelude-val">Some</span>(exit_signal)

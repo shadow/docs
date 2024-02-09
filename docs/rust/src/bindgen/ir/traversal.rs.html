@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/ir/traversal.rs`."><title>traversal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/ir/traversal.rs`."><title>traversal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -662,18 +663,18 @@
 /// The predicate must return true if the traversal should follow this edge
 /// and visit everything that is reachable through it.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TraversalPredicate =
-    <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BindgenContext, Edge) -&gt; bool;
+    <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>BindgenContext, Edge) -&gt; bool;
 
 <span class="doccomment">/// A `TraversalPredicate` implementation that follows all edges, and therefore
 /// traversals using this predicate will see the whole IR graph reachable from
-/// the traversal&#39;s roots.
+/// the traversal's roots.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_edges(<span class="kw">_</span>: <span class="kw-2">&amp;</span>BindgenContext, <span class="kw">_</span>: Edge) -&gt; bool {
     <span class="bool-val">true
 </span>}
 
 <span class="doccomment">/// A `TraversalPredicate` implementation that only follows
 /// `EdgeKind::InnerType` edges, and therefore traversals using this predicate
-/// will only visit the traversal&#39;s roots and their inner types. This is used
+/// will only visit the traversal's roots and their inner types. This is used
 /// in no-recursive-allowlist mode, where inner types such as anonymous
 /// structs/unions still need to be processed.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>only_inner_type_edges(<span class="kw">_</span>: <span class="kw-2">&amp;</span>BindgenContext, edge: Edge) -&gt; bool {
@@ -691,7 +692,7 @@
         }
 
         <span class="comment">// We statically know the kind of item that non-generic edges can point
-        // to, so we don&#39;t need to actually resolve the item and check
+        // to, so we don't need to actually resolve the item and check
         // `Item::is_enabled_for_codegen`.
         </span>EdgeKind::TemplateParameterDefinition |
         EdgeKind::TemplateArgument |
@@ -713,9 +714,9 @@
 <span class="doccomment">/// The storage for the set of items that have been seen (although their
 /// outgoing edges might not have been fully traversed yet) in an active
 /// traversal.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>TraversalStorage&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>TraversalStorage&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Construct a new instance of this TraversalStorage, for a new traversal.
-    </span><span class="kw">fn </span>new(ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext) -&gt; <span class="self">Self</span>;
+    </span><span class="kw">fn </span>new(ctx: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext) -&gt; <span class="self">Self</span>;
 
     <span class="doccomment">/// Add the given item to the storage. If the item has never been seen
     /// before, return `true`. Otherwise, return `false`.
@@ -725,8 +726,8 @@
     </span><span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="prelude-ty">Option</span>&lt;ItemId&gt;, item: ItemId) -&gt; bool;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; TraversalStorage&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>ItemSet {
-    <span class="kw">fn </span>new(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; TraversalStorage&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>ItemSet {
+    <span class="kw">fn </span>new(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext) -&gt; <span class="self">Self </span>{
         ItemSet::new()
     }
 
@@ -739,10 +740,10 @@
 /// each item. This is useful for providing debug assertions with meaningful
 /// diagnostic messages about dangling items.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Paths&lt;<span class="lifetime">&#39;ctx</span>&gt;(BTreeMap&lt;ItemId, ItemId&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Paths&lt;<span class="lifetime">'ctx</span>&gt;(BTreeMap&lt;ItemId, ItemId&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; TraversalStorage&lt;<span class="lifetime">&#39;ctx</span>&gt; <span class="kw">for </span>Paths&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">fn </span>new(ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; TraversalStorage&lt;<span class="lifetime">'ctx</span>&gt; <span class="kw">for </span>Paths&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">fn </span>new(ctx: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext) -&gt; <span class="self">Self </span>{
         Paths(BTreeMap::new(), ctx)
     }
 
@@ -755,8 +756,8 @@
             <span class="kw">let </span><span class="kw-2">mut </span>current = item;
             <span class="kw">loop </span>{
                 <span class="kw">let </span>predecessor = <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.get(<span class="kw-2">&amp;</span>current).expect(
-                    <span class="string">&quot;We know we found this item id, so it must have a \
-                     predecessor&quot;</span>,
+                    <span class="string">"We know we found this item id, so it must have a \
+                     predecessor"</span>,
                 );
                 <span class="kw">if </span>predecessor == current {
                     <span class="kw">break</span>;
@@ -766,7 +767,7 @@
             }
             path.reverse();
             <span class="macro">panic!</span>(
-                <span class="string">&quot;Found reference to dangling id = {:?}\nvia path = {:?}&quot;</span>,
+                <span class="string">"Found reference to dangling id = {:?}\nvia path = {:?}"</span>,
                 item, path
             );
         }
@@ -838,7 +839,7 @@
     /// information through.
     </span><span class="kw">type </span>Extra;
 
-    <span class="doccomment">/// Trace all of this item&#39;s outgoing edges to other items.
+    <span class="doccomment">/// Trace all of this item's outgoing edges to other items.
     </span><span class="kw">fn </span>trace&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         context: <span class="kw-2">&amp;</span>BindgenContext,
@@ -851,12 +852,12 @@
 <span class="doccomment">/// An graph traversal of the transitive closure of references between items.
 ///
 /// See `BindgenContext::allowlisted_items` for more information.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ItemTraversal&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ItemTraversal&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt;
 <span class="kw">where
-    </span>Storage: TraversalStorage&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    </span>Storage: TraversalStorage&lt;<span class="lifetime">'ctx</span>&gt;,
     Queue: TraversalQueue,
 {
-    ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext,
+    ctx: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext,
 
     <span class="doccomment">/// The set of items we have seen thus far in this traversal.
     </span>seen: Storage,
@@ -871,17 +872,17 @@
     </span>currently_traversing: <span class="prelude-ty">Option</span>&lt;ItemId&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt; ItemTraversal&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt; ItemTraversal&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt;
 <span class="kw">where
-    </span>Storage: TraversalStorage&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    </span>Storage: TraversalStorage&lt;<span class="lifetime">'ctx</span>&gt;,
     Queue: TraversalQueue,
 {
     <span class="doccomment">/// Begin a new traversal, starting from the given roots.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;R&gt;(
-        ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext,
+        ctx: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext,
         roots: R,
         predicate: TraversalPredicate,
-    ) -&gt; ItemTraversal&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt;
+    ) -&gt; ItemTraversal&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt;
     <span class="kw">where
         </span>R: IntoIterator&lt;Item = ItemId&gt;,
     {
@@ -903,9 +904,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt; Tracer <span class="kw">for </span>ItemTraversal&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt; Tracer <span class="kw">for </span>ItemTraversal&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt;
 <span class="kw">where
-    </span>Storage: TraversalStorage&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    </span>Storage: TraversalStorage&lt;<span class="lifetime">'ctx</span>&gt;,
     Queue: TraversalQueue,
 {
     <span class="kw">fn </span>visit_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, item: ItemId, kind: EdgeKind) {
@@ -922,9 +923,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt; Iterator <span class="kw">for </span>ItemTraversal&lt;<span class="lifetime">&#39;ctx</span>, Storage, Queue&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt; Iterator <span class="kw">for </span>ItemTraversal&lt;<span class="lifetime">'ctx</span>, Storage, Queue&gt;
 <span class="kw">where
-    </span>Storage: TraversalStorage&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    </span>Storage: TraversalStorage&lt;<span class="lifetime">'ctx</span>&gt;,
     Queue: TraversalQueue,
 {
     <span class="kw">type </span>Item = ItemId;
@@ -935,11 +936,11 @@
         <span class="kw">let </span>newly_discovered = <span class="self">self</span>.seen.add(<span class="prelude-val">None</span>, id);
         <span class="macro">debug_assert!</span>(
             !newly_discovered,
-            <span class="string">&quot;should have already seen anything we get out of our queue&quot;
+            <span class="string">"should have already seen anything we get out of our queue"
         </span>);
         <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.ctx.resolve_item_fallible(id).is_some(),
-            <span class="string">&quot;should only get IDs of actual items in our context during traversal&quot;
+            <span class="string">"should only get IDs of actual items in our context during traversal"
         </span>);
 
         <span class="self">self</span>.currently_traversing = <span class="prelude-val">Some</span>(id);
@@ -954,6 +955,6 @@
 ///
 /// See `BindgenContext::assert_no_dangling_item_traversal` for more
 /// information.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>AssertNoDanglingItemsTraversal&lt;<span class="lifetime">&#39;ctx</span>&gt; =
-    ItemTraversal&lt;<span class="lifetime">&#39;ctx</span>, Paths&lt;<span class="lifetime">&#39;ctx</span>&gt;, VecDeque&lt;ItemId&gt;&gt;;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>AssertNoDanglingItemsTraversal&lt;<span class="lifetime">'ctx</span>&gt; =
+    ItemTraversal&lt;<span class="lifetime">'ctx</span>, Paths&lt;<span class="lifetime">'ctx</span>&gt;, VecDeque&lt;ItemId&gt;&gt;;
 </code></pre></div></section></main></body></html>

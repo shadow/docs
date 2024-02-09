@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/inet/tcp.rs`."><title>tcp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/inet/tcp.rs`."><title>tcp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1177,14 +1178,14 @@
                 socket_weak: weak.clone(),
                 event_source: StateEventSource::new(),
                 status,
-                <span class="comment">// the readable/writable file state shouldn&#39;t matter here since we run
+                <span class="comment">// the readable/writable file state shouldn't matter here since we run
                 // `with_tcp_state` below to update it, but we need ACTIVE set so that epoll works
                 </span>file_state: FileState::ACTIVE,
                 association: <span class="prelude-val">None</span>,
                 connect_result_is_pending: <span class="bool-val">false</span>,
                 shutdown_status: <span class="prelude-val">None</span>,
                 has_open_file: <span class="bool-val">false</span>,
-                _counter: ObjectCounter::new(<span class="string">&quot;TcpSocket&quot;</span>),
+                _counter: ObjectCounter::new(<span class="string">"TcpSocket"</span>),
             })
         });
 
@@ -1237,7 +1238,7 @@
     ) -&gt; T {
         <span class="kw">let </span>rv = f(<span class="kw-2">&amp;mut </span><span class="self">self</span>.tcp_state);
 
-        <span class="comment">// we may have mutated the tcp state, so update the socket&#39;s file state and notify listeners
+        <span class="comment">// we may have mutated the tcp state, so update the socket's file state and notify listeners
 
         // if there are packets to send, notify the host
         </span><span class="kw">if </span><span class="self">self</span>.tcp_state.wants_to_send() {
@@ -1246,9 +1247,9 @@
             // it might indicate a bug somewhere else.
             </span><span class="kw">let </span>socket = <span class="self">self</span>.socket_weak.upgrade().unwrap();
 
-            <span class="comment">// First try getting our IP address from the tcp state (if it&#39;s connected), then try
-            // from the association handle (if it&#39;s not connected but is bound). Assume that our IP
-            // address will match an interface&#39;s IP address.
+            <span class="comment">// First try getting our IP address from the tcp state (if it's connected), then try
+            // from the association handle (if it's not connected but is bound). Assume that our IP
+            // address will match an interface's IP address.
             </span><span class="kw">let </span>interface_ip = <span class="kw-2">*</span><span class="self">self
                 </span>.tcp_state
                 .local_remote_addrs()
@@ -1286,7 +1287,7 @@
             read_write_flags.insert(FileState::READABLE | FileState::WRITABLE);
         }
 
-        <span class="comment">// if the socket/file is closed, undo all of the flags set above (closed sockets aren&#39;t
+        <span class="comment">// if the socket/file is closed, undo all of the flags set above (closed sockets aren't
         // readable or writable)
         </span><span class="kw">if </span><span class="self">self</span>.file_state.contains(FileState::CLOSED) {
             read_write_flags = FileState::empty();
@@ -1302,7 +1303,7 @@
 
         <span class="comment">// if the tcp state is in the closed state
         </span><span class="kw">if </span>poll_state.contains(tcp::PollState::CLOSED) {
-            <span class="comment">// drop the association handle so that we&#39;re removed from the network interface
+            <span class="comment">// drop the association handle so that we're removed from the network interface
             </span><span class="self">self</span>.association = <span class="prelude-val">None</span>;
             <span class="comment">// we do not change to `FileState::CLOSED` here since that flag represents that the file
             // has closed (with `close()`), not that the tcp state has closed
@@ -1319,14 +1320,14 @@
     ) {
         packet.add_status(PacketStatus::RcvSocketProcessed);
 
-        <span class="comment">// TODO: don&#39;t bother copying the bytes if we know the push will fail
+        <span class="comment">// TODO: don't bother copying the bytes if we know the push will fail
 
         // TODO: we have no way of adding `PacketStatus::RcvSocketDropped` if the tcp state drops
         // the packet
 
         </span><span class="kw">let </span>header = packet
             .get_tcp()
-            .expect(<span class="string">&quot;TCP socket received a non-tcp packet&quot;</span>);
+            .expect(<span class="string">"TCP socket received a non-tcp packet"</span>);
 
         <span class="comment">// in the future, the packet could contain an array of `Bytes` objects and we could simply
         // transfer the `Bytes` objects directly from the payload to the tcp state without copying
@@ -1381,9 +1382,9 @@
         <span class="kw">let </span><span class="kw-2">mut </span>packet = PacketRc::new();
 
         <span class="comment">// TODO: This is expensive. Here we allocate a new buffer, copy all of the payload bytes to
-        // this new buffer, and then copy the bytes in this new buffer to the packet&#39;s buffer. In
+        // this new buffer, and then copy the bytes in this new buffer to the packet's buffer. In
         // the future, the packet could contain an array of `Bytes` objects and we could simply
-        // transfer the `Bytes` objects directly from the tcp state&#39;s `Payload` object to the packet
+        // transfer the `Bytes` objects directly from the tcp state's `Payload` object to the packet
         // without copying the bytes themselves.
         </span><span class="kw">let </span>payload = payload.concat();
 
@@ -1405,8 +1406,8 @@
     }
 
     <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, SyscallError&gt; {
-        <span class="comment">// The socket state won&#39;t always have the local address. For example if the socket was bound
-        // but connect() hasn&#39;t yet been called, the socket state will not have a local or remote
+        <span class="comment">// The socket state won't always have the local address. For example if the socket was bound
+        // but connect() hasn't yet been called, the socket state will not have a local or remote
         // address. Instead we should get the local address from the association.
         </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
             <span class="self">self</span>.association
@@ -1417,7 +1418,7 @@
     }
 
     <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, SyscallError&gt; {
-        <span class="comment">// The association won&#39;t always have the peer address. For example if the socket was bound
+        <span class="comment">// The association won't always have the peer address. For example if the socket was bound
         // before connect() was called, the association will have a peer of 0.0.0.0. Instead we
         // should get the peer address from the socket state.
         </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
@@ -1431,7 +1432,7 @@
         // `shutdown(RDWR)`), in which case `local_remote_addrs()` will return `None` so this will
         // incorrectly return ENOTCONN. Should fix this somehow and add a test.
 
-        // TODO: I don&#39;t think `getpeername()` should not return a valid peer name before the
+        // TODO: I don't think `getpeername()` should not return a valid peer name before the
         // connection is successfully established.
     </span>}
 
@@ -1440,7 +1441,7 @@
     }
 
     <span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
-        <span class="comment">// we don&#39;t expect close() to ever have an error
+        <span class="comment">// we don't expect close() to ever have an error
         </span><span class="self">self</span>.with_tcp_state(cb_queue, |state| state.close())
             .unwrap();
 
@@ -1509,7 +1510,7 @@
         <span class="comment">// we could call TcpSocket::recvmsg() here, but for now we expect that there are no code
         // paths that would call TcpSocket::readv() since the readv() syscall handler should have
         // called TcpSocket::recvmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called TcpSocket::readv() on a TCP socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called TcpSocket::readv() on a TCP socket"</span>);
     }
 
     <span class="kw">pub fn </span>writev(
@@ -1523,7 +1524,7 @@
         <span class="comment">// we could call TcpSocket::sendmsg() here, but for now we expect that there are no code
         // paths that would call TcpSocket::writev() since the writev() syscall handler should have
         // called TcpSocket::sendmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called TcpSocket::writev() on a TCP socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called TcpSocket::writev() on a TCP socket"</span>);
     }
 
     <span class="kw">pub fn </span>sendmsg(
@@ -1537,7 +1538,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>socket_ref = socket.borrow_mut();
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(args.flags) <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unrecognized send flags: {:#b}&quot;</span>, args.flags);
+            <span class="macro">log::debug!</span>(<span class="string">"Unrecognized send flags: {:#b}"</span>, args.flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -1547,7 +1548,7 @@
 
         <span class="kw">let </span>len: libc::size_t = args.iovs.iter().map(|x| x.len).sum();
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t skip checking if we should block
+        <span class="comment">// run in a closure so that an early return doesn't skip checking if we should block
         </span><span class="kw">let </span>result = (|| {
             <span class="kw">let </span>reader = IoVecReader::new(args.iovs, mem);
 
@@ -1565,7 +1566,7 @@
             <span class="prelude-val">Ok</span>(num_sent)
         })();
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result == <span class="prelude-val">Err</span>(Errno::EWOULDBLOCK) &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(SyscallError::new_blocked_on_file(
                 File::Socket(Socket::Inet(InetSocket::Tcp(socket.clone()))),
@@ -1587,7 +1588,7 @@
 
         <span class="comment">// if there was an asynchronous error, return it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(error) = socket_ref.with_tcp_state(cb_queue, |state| state.clear_error()) {
-            <span class="comment">// by returning this error, we&#39;re probably (but not necessarily) returning a previous
+            <span class="comment">// by returning this error, we're probably (but not necessarily) returning a previous
             // connect() result
             </span>socket_ref.connect_result_is_pending = <span class="bool-val">false</span>;
 
@@ -1595,7 +1596,7 @@
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(args.flags) <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unrecognized recv flags: {:#b}&quot;</span>, args.flags);
+            <span class="macro">log::debug!</span>(<span class="string">"Unrecognized recv flags: {:#b}"</span>, args.flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -1605,7 +1606,7 @@
 
         <span class="kw">let </span>len: libc::size_t = args.iovs.iter().map(|x| x.len).sum();
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t skip checking if we should block
+        <span class="comment">// run in a closure so that an early return doesn't skip checking if we should block
         </span><span class="kw">let </span>result = (|| {
             <span class="kw">let </span>writer = IoVecWriter::new(args.iovs, mem);
 
@@ -1637,7 +1638,7 @@
             })
         })();
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result.as_ref().err() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Errno::EWOULDBLOCK)
             &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT)
         {
@@ -1730,7 +1731,7 @@
 
         <span class="comment">// if there was an asynchronous error, return it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(error) = socket_ref.with_tcp_state(cb_queue, |state| state.clear_error()) {
-            <span class="comment">// by returning this error, we&#39;re probably (but not necessarily) returning a previous
+            <span class="comment">// by returning this error, we're probably (but not necessarily) returning a previous
             // connect() result
             </span>socket_ref.connect_result_is_pending = <span class="bool-val">false</span>;
 
@@ -1740,9 +1741,9 @@
         <span class="comment">// if connect() had previously been called (either blocking or non-blocking), we need to
         // return the result
         </span><span class="kw">if </span>socket_ref.connect_result_is_pending {
-            <span class="comment">// ignore all connect arguments and just check if we&#39;ve connected
+            <span class="comment">// ignore all connect arguments and just check if we've connected
 
-            // check if it&#39;s still connecting (in the &quot;syn-sent&quot; or &quot;syn-received&quot; state)
+            // check if it's still connecting (in the "syn-sent" or "syn-received" state)
             </span><span class="kw">if </span>socket_ref
                 .tcp_state
                 .poll()
@@ -1782,7 +1783,7 @@
                 };
             }
 
-            <span class="comment">// it&#39;s already associated so use the existing address
+            <span class="comment">// it's already associated so use the existing address
             </span><span class="kw">let </span>associate_fn = || <span class="prelude-val">Ok</span>((local_addr, <span class="prelude-val">None</span>));
             socket_ref.with_tcp_state(cb_queue, |state| state.connect(peer_addr, associate_fn))
         } <span class="kw">else </span>{
@@ -1829,7 +1830,7 @@
             socket_ref.association = <span class="prelude-val">Some</span>(handle);
         }
 
-        <span class="comment">// we&#39;re attempting to connect, so set a flag so that we know a future connect() call should
+        <span class="comment">// we're attempting to connect, so set a flag so that we know a future connect() call should
         // return the result
         </span>socket_ref.connect_result_is_pending = <span class="bool-val">true</span>;
 
@@ -1838,19 +1839,19 @@
         } <span class="kw">else </span>{
             <span class="kw">let </span>err = SyscallError::new_blocked_on_file(
                 File::Socket(Socket::Inet(InetSocket::Tcp(Arc::clone(socket)))),
-                <span class="comment">// I think we want this to resume when it leaves the &quot;syn-sent&quot; and &quot;syn-received&quot;
-                // states (for example moves to the &quot;rst&quot;, &quot;closed&quot;, &quot;fin-wait-1&quot;, etc states).
+                <span class="comment">// I think we want this to resume when it leaves the "syn-sent" and "syn-received"
+                // states (for example moves to the "rst", "closed", "fin-wait-1", etc states).
                 //
-                // - READABLE: the state may timeout in the &quot;syn-received&quot; state and move to the
-                //   &quot;closed&quot; state, which is `tcp::PollState::RECV_CLOSED` and maps to
+                // - READABLE: the state may timeout in the "syn-received" state and move to the
+                //   "closed" state, which is `tcp::PollState::RECV_CLOSED` and maps to
                 //   `FileState::READABLE`
-                // - WRITABLE: the state may reach the &quot;established&quot; state which is
+                // - WRITABLE: the state may reach the "established" state which is
                 //   `tcp::PollState::WRITABLE` which maps to `FileState::WRITABLE`
                 // - CLOSED: we use this just to be safe; typically the `connect()` syscall handler
                 //   would hold an `OpenFile` for this socket while the syscall is blocked which
                 //   would prevent the socket from being closed until the syscall completed
                 //
-                // We assume here that the &quot;syn-sent&quot; and &quot;syn-received&quot; states never have the
+                // We assume here that the "syn-sent" and "syn-received" states never have the
                 // `RECV_CLOSED`, `READABLE`, or `WRITABLE` `PollState` states, otherwise this
                 // syscall condition would trigger while the socket was still connecting. This all
                 // relies on the `PollState` to `FileState` mappings in `with_tcp_state()` above.
@@ -1895,14 +1896,14 @@
                 socket_weak: weak.clone(),
                 event_source: StateEventSource::new(),
                 status: FileStatus::empty(),
-                <span class="comment">// the readable/writable file state shouldn&#39;t matter here since we run
+                <span class="comment">// the readable/writable file state shouldn't matter here since we run
                 // `with_tcp_state` below to update it, but we need ACTIVE set so that epoll works
                 </span>file_state: FileState::ACTIVE,
                 association: <span class="prelude-val">None</span>,
                 connect_result_is_pending: <span class="bool-val">false</span>,
                 shutdown_status: <span class="prelude-val">None</span>,
                 has_open_file: <span class="bool-val">false</span>,
-                _counter: ObjectCounter::new(<span class="string">&quot;TcpSocket&quot;</span>),
+                _counter: ObjectCounter::new(<span class="string">"TcpSocket"</span>),
             })
         });
 
@@ -1942,7 +1943,7 @@
         </span><span class="kw">let </span>how = <span class="kw">match </span>(how, <span class="self">self</span>.shutdown_status) {
             <span class="comment">// if it was previously `Both`
             </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(Shutdown::Both)) =&gt; Shutdown::Both,
-            <span class="comment">// if it&#39;s now `Both`
+            <span class="comment">// if it's now `Both`
             </span>(Shutdown::Both, <span class="kw">_</span>) =&gt; Shutdown::Both,
             (Shutdown::Read, <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Shutdown::Read)) =&gt; Shutdown::Read,
             (Shutdown::Read, <span class="prelude-val">Some</span>(Shutdown::Write)) =&gt; Shutdown::Both,
@@ -1968,7 +1969,7 @@
                 }
             }
         } <span class="kw">else </span>{
-            <span class="comment">// we don&#39;t need to call shutdown() on the tcp state since we don&#39;t actually want to do
+            <span class="comment">// we don't need to call shutdown() on the tcp state since we don't actually want to do
             // anything, but we still need to return ENOTCONN sometimes
 
             </span><span class="kw">let </span>not_connected = !<span class="self">self
@@ -1998,7 +1999,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::socklen_t, SyscallError&gt; {
         <span class="kw">match </span>(level, optname) {
             (libc::SOL_SOCKET, libc::SO_ERROR) =&gt; {
-                <span class="comment">// may update the socket&#39;s state (for example, reading `SO_ERROR` will make `poll()`
+                <span class="comment">// may update the socket's state (for example, reading `SO_ERROR` will make `poll()`
                 // stop returning `POLLERR` for the socket)
                 </span><span class="kw">let </span>error = <span class="self">self</span>.with_tcp_state(cb_queue, |state| state.clear_error());
                 <span class="kw">let </span>error = error.map(tcp_error_to_errno).map(Into::into).unwrap_or(<span class="number">0</span>);
@@ -2042,7 +2043,7 @@
                 <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;getsockopt called with unsupported level {level} and opt {optname}&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"getsockopt called with unsupported level {level} and opt {optname}"</span>);
                 <span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into())
             }
         }
@@ -2059,22 +2060,22 @@
         <span class="kw">match </span>(level, optname) {
             (libc::SOL_SOCKET, libc::SO_REUSEADDR) =&gt; {
                 <span class="comment">// TODO: implement this, tor and tgen use it
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_REUSEADDR not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_REUSEADDR not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_REUSEPORT) =&gt; {
                 <span class="comment">// TODO: implement this, tgen uses it
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_REUSEPORT not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_REUSEPORT not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_KEEPALIVE) =&gt; {
                 <span class="comment">// TODO: implement this, libevent uses it in evconnlistener_new_bind()
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_KEEPALIVE not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_KEEPALIVE not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_BROADCAST) =&gt; {
                 <span class="comment">// TODO: implement this, pkg.go.dev/net uses it
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_BROADCAST not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_BROADCAST not yet implemented"</span>);
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;setsockopt called with unsupported level {level} and opt {optname}&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"setsockopt called with unsupported level {level} and opt {optname}"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
             }
         }
@@ -2090,7 +2091,7 @@
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
             + Send
             + Sync
-            + <span class="lifetime">&#39;static</span>,
+            + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="self">self</span>.event_source
             .add_listener(monitoring_state, monitoring_signals, filter, notify_fn)
@@ -2180,11 +2181,11 @@
     <span class="kw">fn </span>register_timer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         time: <span class="self">Self</span>::Instant,
-        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>tcp::TcpState&lt;<span class="self">Self</span>&gt;, tcp::TimerRegisteredBy) + Send + Sync + <span class="lifetime">&#39;static</span>,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>tcp::TcpState&lt;<span class="self">Self</span>&gt;, tcp::TimerRegisteredBy) + Send + Sync + <span class="lifetime">'static</span>,
     ) {
         <span class="comment">// make sure the socket is kept alive in the closure while the timer is waiting to be run
-        // (don&#39;t store a weak reference), otherwise the socket may have already been dropped and
-        // the timer won&#39;t run
+        // (don't store a weak reference), otherwise the socket may have already been dropped and
+        // the timer won't run
         // TODO: is this the behaviour we want?
         </span><span class="kw">let </span>timer_state = <span class="self">self</span>.timer_state.borrow();
         <span class="kw">let </span>socket = timer_state.socket.upgrade().unwrap();
@@ -2192,7 +2193,7 @@
 
         <span class="comment">// This is needed because `TaskRef` takes a `Fn`, but we have a `FnOnce`. It would be nice
         // if we could schedule a task that is guaranteed to run only once so we could avoid this
-        // extra allocation and atomic. Instead we&#39;ll panic if it does run more than once.
+        // extra allocation and atomic. Instead we'll panic if it does run more than once.
         </span><span class="kw">let </span>f = Arc::new(AtomicRefCell::new(<span class="prelude-val">Some</span>(f)));
 
         <span class="comment">// schedule a task with the host

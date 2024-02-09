@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/vasi-sync/src/scmutex.rs`."><title>scmutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="vasi_sync" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/vasi-sync/src/scmutex.rs`."><title>scmutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="vasi_sync" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -404,7 +405,7 @@
 </span><span class="kw">struct </span>AtomicFutexWord(sync::atomic::AtomicU32);
 
 <span class="kw">impl </span>AtomicFutexWord {
-    <span class="comment">// TODO: merge with `new` if and when loom&#39;s `AtomicU32` supports a const `new`.
+    <span class="comment">// TODO: merge with `new` if and when loom's `AtomicU32` supports a const `new`.
     </span><span class="attr">#[cfg(not(loom))]
     </span><span class="kw">pub const fn </span>const_new(val: FutexWord) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(<span class="kw">crate</span>::sync::atomic::AtomicU32::new(val.to_u32()))
@@ -419,7 +420,7 @@
         // so we can increment the whole word.
         </span><span class="kw">let </span>prev = FutexWord::from(<span class="self">self</span>.<span class="number">0</span>.fetch_add(<span class="number">1</span>, ord));
 
-        <span class="comment">// We&#39;ll panic here if we&#39;ve overflowed she &quot;sleepers&quot; half of the word,
+        <span class="comment">// We'll panic here if we've overflowed she "sleepers" half of the word,
         // leaving the lock in a bad state. Since UNLOCKED is 0, this will never
         // cause a spurious unlock, but still-live threads using the lock
         // will likely panic or deadlock.
@@ -433,13 +434,13 @@
         <span class="comment">// The number of sleepers is stored in the low bits of the futex word,
         // so we can decrement the whole word.
 
-        // Ideally we&#39;d just use an atomic op on the &quot;sleepers&quot; part of the
-        // larger word, but that sort of aliasing breaks loom&#39;s analysis.
+        // Ideally we'd just use an atomic op on the "sleepers" part of the
+        // larger word, but that sort of aliasing breaks loom's analysis.
         </span><span class="kw">let </span>prev = FutexWord::from(<span class="self">self</span>.<span class="number">0</span>.fetch_sub(<span class="number">1</span>, ord));
 
-        <span class="comment">// We&#39;ll panic here if we&#39;ve underflowed the &quot;sleepers&quot; half of the word,
-        // leaving the lock in a bad state. This shouldn&#39;t be possible assuming
-        // SelfContainedMutex itself isn&#39;t buggy.
+        <span class="comment">// We'll panic here if we've underflowed the "sleepers" half of the word,
+        // leaving the lock in a bad state. This shouldn't be possible assuming
+        // SelfContainedMutex itself isn't buggy.
         </span>FutexWord {
             lock_state: prev.lock_state,
             num_sleepers: prev.num_sleepers.checked_sub(<span class="number">1</span>).unwrap(),
@@ -468,8 +469,8 @@
         <span class="comment">// We avoid having to synchronize the number of sleepers by using fetch_add
         // instead of a compare and swap.
         //
-        // We&#39;ll panic here if we&#39;ve somehow underflowed the word. This
-        // shouldn&#39;t be possible assuming SelfContainedMutex itself isn&#39;t buggy.
+        // We'll panic here if we've somehow underflowed the word. This
+        // shouldn't be possible assuming SelfContainedMutex itself isn't buggy.
         </span><span class="kw">let </span>to_add = LOCKED_DISCONNECTED.checked_sub(LOCKED).unwrap();
         <span class="kw">let </span>prev = FutexWord::from(<span class="self">self</span>.<span class="number">0</span>.fetch_add(
             u32::from(FutexWord {
@@ -530,9 +531,9 @@
 <span class="doccomment">/// Simple mutex that is suitable for use in shared memory:
 ///
 /// * It has a fixed layout (repr(C))
-/// * It&#39;s self-contained; e.g. isn&#39;t boxed and doesn&#39;t refer
-///   to global lock-state in this process&#39;s address space.
-/// * Works across processes (e.g. doesn&#39;t use FUTEX_PRIVATE_FLAG)
+/// * It's self-contained; e.g. isn't boxed and doesn't refer
+///   to global lock-state in this process's address space.
+/// * Works across processes (e.g. doesn't use FUTEX_PRIVATE_FLAG)
 ///
 /// Performance is optimized primarily for low-contention scenarios.
 </span><span class="attr">#[cfg_attr(not(loom), derive(VirtualAddressSpaceIndependent))]
@@ -595,12 +596,12 @@
                         <span class="comment">// We successfully took the lock.
                         </span><span class="kw">break</span>;
                     }
-                    <span class="comment">// We weren&#39;t able to take the lock.
+                    <span class="comment">// We weren't able to take the lock.
                     </span><span class="prelude-val">Err</span>(i) =&gt; i,
                 };
             }
 
-            <span class="comment">// If the lock is available, try again now that we&#39;ve sync&#39;d the
+            <span class="comment">// If the lock is available, try again now that we've sync'd the
             // rest of the futex word (num_sleepers).
             </span><span class="kw">if </span>current.lock_state == UNLOCKED {
                 <span class="kw">continue</span>;
@@ -633,7 +634,7 @@
                         // ourselves from the sleeper count.
                         </span>current = <span class="self">self</span>.futex.load(sync::Ordering::Relaxed)
                     }
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected futex error {:?}&quot;</span>, e),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected futex error {:?}"</span>, e),
                 };
             }
             <span class="comment">// Since decrementing is a read-modify-write operation, this does
@@ -647,8 +648,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>lock_pinned&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;SelfContainedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;&gt; {
-        <span class="comment">// SAFETY: `SelfContainedMutexGuard` doesn&#39;t provide DerefMut when `T`
+    <span class="kw">pub fn </span>lock_pinned&lt;<span class="lifetime">'a</span>&gt;(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;SelfContainedMutexGuard&lt;<span class="lifetime">'a</span>, T&gt;&gt; {
+        <span class="comment">// SAFETY: `SelfContainedMutexGuard` doesn't provide DerefMut when `T`
         // is `!Unpin`.
         </span><span class="kw">unsafe </span>{ Pin::new_unchecked(<span class="self">self</span>.get_ref().lock()) }
     }
@@ -664,19 +665,19 @@
     }
 }
 
-<span class="kw">pub struct </span>SelfContainedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    mutex: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SelfContainedMutex&lt;T&gt;&gt;,
+<span class="kw">pub struct </span>SelfContainedMutexGuard&lt;<span class="lifetime">'a</span>, T&gt; {
+    mutex: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>SelfContainedMutex&lt;T&gt;&gt;,
     ptr: <span class="prelude-ty">Option</span>&lt;sync::MutPtr&lt;T&gt;&gt;,
     <span class="comment">// For purposes of deriving Send, Sync, etc.,
     // this type should act as `&amp;mut T`.
-    </span>_phantom: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T&gt;,
+    </span>_phantom: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; SelfContainedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; SelfContainedMutexGuard&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="doccomment">/// Drops the guard *without releasing the lock*.
     ///
     /// This is useful when a lock must be held across some span of code within
-    /// a single thread, but it&#39;s difficult to pass the the guard between the
+    /// a single thread, but it's difficult to pass the the guard between the
     /// two parts of the code.
     </span><span class="kw">pub fn </span>disconnect(<span class="kw-2">mut </span><span class="self">self</span>) {
         <span class="self">self</span>.mutex
@@ -695,7 +696,7 @@
     /// Ok to reconnect from a different thread,though some external
     /// synchronization may be needed to ensure the mutex is disconnected before
     /// it tries to do so.
-    </span><span class="kw">pub fn </span>reconnect(mutex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SelfContainedMutex&lt;T&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>reconnect(mutex: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SelfContainedMutex&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>current = FutexWord {
             lock_state: LOCKED_DISCONNECTED,
             num_sleepers: <span class="number">0</span>,
@@ -732,13 +733,13 @@
     ///
     /// When T implements `Unpin`, the caller can just use deref_mut instead.
     ///
-    </span><span class="comment">// We can&#39;t provide an API that simply returns a Pin&lt;&amp;mut T&gt;, since the Pin
-    // API doesn&#39;t provide a way to get to the inner guard without consuming the outer Pin.
+    </span><span class="comment">// We can't provide an API that simply returns a Pin&lt;&amp;mut T&gt;, since the Pin
+    // API doesn't provide a way to get to the inner guard without consuming the outer Pin.
     </span><span class="kw">pub fn </span>map_pinned&lt;F, O&gt;(guard: Pin&lt;<span class="self">Self</span>&gt;, f: F) -&gt; O
     <span class="kw">where
         </span>F: FnOnce(Pin&lt;<span class="kw-2">&amp;mut </span>T&gt;) -&gt; O,
     {
-        <span class="comment">// SAFETY: We ensure that the &amp;mut T made available from the unpinned guard isn&#39;t
+        <span class="comment">// SAFETY: We ensure that the &amp;mut T made available from the unpinned guard isn't
         // moved-from, by only giving `f` access to a Pin&lt;&amp;mut T&gt;.
         </span><span class="kw">let </span>guard: SelfContainedMutexGuard&lt;T&gt; = <span class="kw">unsafe </span>{ Pin::into_inner_unchecked(guard) };
         <span class="comment">// SAFETY: The pointer is valid because it came from the mutex, which we know is live.
@@ -750,7 +751,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Drop <span class="kw">for </span>SelfContainedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Drop <span class="kw">for </span>SelfContainedMutexGuard&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(mutex) = <span class="self">self</span>.mutex {
             <span class="comment">// We have to drop this pointer before unlocking when running
@@ -764,11 +765,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; core::ops::Deref <span class="kw">for </span>SelfContainedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; core::ops::Deref <span class="kw">for </span>SelfContainedMutexGuard&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="comment">// We can&#39;t call self.ptr.as_ref().unwrap().deref() here, since that
+        <span class="comment">// We can't call self.ptr.as_ref().unwrap().deref() here, since that
         // would create a `&amp;mut T`, and there could already exist a `&amp;T`
         // borrowed from `&amp;self`.
         // https://github.com/tokio-rs/loom/issues/293
@@ -776,9 +777,9 @@
     }
 }
 
-<span class="doccomment">/// When T is Unpin, we can implement DerefMut. Otherwise it&#39;s unsafe
+<span class="doccomment">/// When T is Unpin, we can implement DerefMut. Otherwise it's unsafe
 /// to do so, since SelfContainedMutex is an Archive type.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; core::ops::DerefMut <span class="kw">for </span>SelfContainedMutexGuard&lt;<span class="lifetime">&#39;a</span>, T&gt;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; core::ops::DerefMut <span class="kw">for </span>SelfContainedMutexGuard&lt;<span class="lifetime">'a</span>, T&gt;
 <span class="kw">where
     </span>T: Unpin,
 {

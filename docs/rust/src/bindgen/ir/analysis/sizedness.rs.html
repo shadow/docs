@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/ir/analysis/sizedness.rs`."><title>sizedness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/ir/analysis/sizedness.rs`."><title>sizedness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -412,11 +413,11 @@
     /// inserted, while `Flongo&lt;NonEmpty&gt;` is *not* zero-sized, and should *not*
     /// have an `_address` byte inserted.
     ///
-    /// We don&#39;t properly handle this situation correctly right now:
+    /// We don't properly handle this situation correctly right now:
     /// &lt;https://github.com/rust-lang/rust-bindgen/issues/586&gt;
     </span>DependsOnTypeParam,
 
-    <span class="doccomment">/// Has some size that is known to be greater than zero. That doesn&#39;t mean
+    <span class="doccomment">/// Has some size that is known to be greater than zero. That doesn't mean
     /// it has a static size, but it is not zero sized for sure. In other words,
     /// it might contain an incomplete array or some other dynamically sized
     /// type.
@@ -463,15 +464,15 @@
 ///
 /// * For type parameters, `DependsOnTypeParam` is assigned.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SizednessAnalysis&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SizednessAnalysis&lt;<span class="lifetime">'ctx</span>&gt; {
+    ctx: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext,
     dependencies: HashMap&lt;TypeId, Vec&lt;TypeId&gt;&gt;,
     <span class="comment">// Incremental results of the analysis. Missing entries are implicitly
     // considered `ZeroSized`.
     </span>sized: HashMap&lt;TypeId, SizednessResult&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; SizednessAnalysis&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; SizednessAnalysis&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">fn </span>consider_edge(kind: EdgeKind) -&gt; bool {
         <span class="comment">// These are the only edges that can affect whether a type is
         // zero-sized or not.
@@ -493,7 +494,7 @@
         id: TypeId,
         result: SizednessResult,
     ) -&gt; ConstrainResult {
-        <span class="macro">trace!</span>(<span class="string">&quot;inserting {:?} for {:?}&quot;</span>, result, id);
+        <span class="macro">trace!</span>(<span class="string">"inserting {:?} for {:?}"</span>, result, id);
 
         <span class="kw">if let </span>SizednessResult::ZeroSized = result {
             <span class="kw">return </span>ConstrainResult::Same;
@@ -523,12 +524,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; MonotoneFramework <span class="kw">for </span>SizednessAnalysis&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; MonotoneFramework <span class="kw">for </span>SizednessAnalysis&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="kw">type </span>Node = TypeId;
-    <span class="kw">type </span>Extra = <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext;
+    <span class="kw">type </span>Extra = <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext;
     <span class="kw">type </span>Output = HashMap&lt;TypeId, SizednessResult&gt;;
 
-    <span class="kw">fn </span>new(ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>BindgenContext) -&gt; SizednessAnalysis&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>new(ctx: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>BindgenContext) -&gt; SizednessAnalysis&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>dependencies = generate_dependencies(ctx, <span class="self">Self</span>::consider_edge)
             .into_iter()
             .filter_map(|(id, sub_ids)| {
@@ -563,31 +564,31 @@
     }
 
     <span class="kw">fn </span>constrain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: TypeId) -&gt; ConstrainResult {
-        <span class="macro">trace!</span>(<span class="string">&quot;constrain {:?}&quot;</span>, id);
+        <span class="macro">trace!</span>(<span class="string">"constrain {:?}"</span>, id);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(SizednessResult::NonZeroSized) =
             <span class="self">self</span>.sized.get(<span class="kw-2">&amp;</span>id).cloned()
         {
-            <span class="macro">trace!</span>(<span class="string">&quot;    already know it is not zero-sized&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"    already know it is not zero-sized"</span>);
             <span class="kw">return </span>ConstrainResult::Same;
         }
 
         <span class="kw">if </span>id.has_vtable_ptr(<span class="self">self</span>.ctx) {
-            <span class="macro">trace!</span>(<span class="string">&quot;    has an explicit vtable pointer, therefore is not zero-sized&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"    has an explicit vtable pointer, therefore is not zero-sized"</span>);
             <span class="kw">return </span><span class="self">self</span>.insert(id, SizednessResult::NonZeroSized);
         }
 
         <span class="kw">let </span>ty = <span class="self">self</span>.ctx.resolve_type(id);
 
         <span class="kw">if </span>id.is_opaque(<span class="self">self</span>.ctx, <span class="kw-2">&amp;</span>()) {
-            <span class="macro">trace!</span>(<span class="string">&quot;    type is opaque; checking layout...&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"    type is opaque; checking layout..."</span>);
             <span class="kw">let </span>result =
                 ty.layout(<span class="self">self</span>.ctx).map_or(SizednessResult::ZeroSized, |l| {
                     <span class="kw">if </span>l.size == <span class="number">0 </span>{
-                        <span class="macro">trace!</span>(<span class="string">&quot;    ...layout has size == 0&quot;</span>);
+                        <span class="macro">trace!</span>(<span class="string">"    ...layout has size == 0"</span>);
                         SizednessResult::ZeroSized
                     } <span class="kw">else </span>{
-                        <span class="macro">trace!</span>(<span class="string">&quot;    ...layout has size &gt; 0&quot;</span>);
+                        <span class="macro">trace!</span>(<span class="string">"    ...layout has size &gt; 0"</span>);
                         SizednessResult::NonZeroSized
                     }
                 });
@@ -596,14 +597,14 @@
 
         <span class="kw">match </span><span class="kw-2">*</span>ty.kind() {
             TypeKind::Void =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    void is zero-sized&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">"    void is zero-sized"</span>);
                 <span class="self">self</span>.insert(id, SizednessResult::ZeroSized)
             }
 
             TypeKind::TypeParam =&gt; {
                 <span class="macro">trace!</span>(
-                    <span class="string">&quot;    type params sizedness depends on what they&#39;re \
-                     instantiated as&quot;
+                    <span class="string">"    type params sizedness depends on what they're \
+                     instantiated as"
                 </span>);
                 <span class="self">self</span>.insert(id, SizednessResult::DependsOnTypeParam)
             }
@@ -618,12 +619,12 @@
             TypeKind::ObjCId |
             TypeKind::ObjCSel |
             TypeKind::Pointer(..) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    {:?} is known not to be zero-sized&quot;</span>, ty.kind());
+                <span class="macro">trace!</span>(<span class="string">"    {:?} is known not to be zero-sized"</span>, ty.kind());
                 <span class="self">self</span>.insert(id, SizednessResult::NonZeroSized)
             }
 
             TypeKind::ObjCInterface(..) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    obj-c interfaces always have at least the `isa` pointer&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">"    obj-c interfaces always have at least the `isa` pointer"</span>);
                 <span class="self">self</span>.insert(id, SizednessResult::NonZeroSized)
             }
 
@@ -631,33 +632,33 @@
             TypeKind::Alias(t) |
             TypeKind::BlockPointer(t) |
             TypeKind::ResolvedTypeRef(t) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    aliases and type refs forward to their inner type&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">"    aliases and type refs forward to their inner type"</span>);
                 <span class="self">self</span>.forward(t, id)
             }
 
             TypeKind::TemplateInstantiation(<span class="kw-2">ref </span>inst) =&gt; {
                 <span class="macro">trace!</span>(
-                    <span class="string">&quot;    template instantiations are zero-sized if their \
-                     definition is zero-sized&quot;
+                    <span class="string">"    template instantiations are zero-sized if their \
+                     definition is zero-sized"
                 </span>);
                 <span class="self">self</span>.forward(inst.template_definition(), id)
             }
 
             TypeKind::Array(<span class="kw">_</span>, <span class="number">0</span>) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    arrays of zero elements are zero-sized&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">"    arrays of zero elements are zero-sized"</span>);
                 <span class="self">self</span>.insert(id, SizednessResult::ZeroSized)
             }
             TypeKind::Array(..) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    arrays of &gt; 0 elements are not zero-sized&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">"    arrays of &gt; 0 elements are not zero-sized"</span>);
                 <span class="self">self</span>.insert(id, SizednessResult::NonZeroSized)
             }
             TypeKind::Vector(..) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    vectors are not zero-sized&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">"    vectors are not zero-sized"</span>);
                 <span class="self">self</span>.insert(id, SizednessResult::NonZeroSized)
             }
 
             TypeKind::Comp(<span class="kw-2">ref </span>info) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;    comp considers its own fields and bases&quot;</span>);
+                <span class="macro">trace!</span>(<span class="string">"    comp considers its own fields and bases"</span>);
 
                 <span class="kw">if </span>!info.fields().is_empty() {
                     <span class="kw">return </span><span class="self">self</span>.insert(id, SizednessResult::NonZeroSized);
@@ -673,11 +674,11 @@
             }
 
             TypeKind::Opaque =&gt; {
-                <span class="macro">unreachable!</span>(<span class="string">&quot;covered by the .is_opaque() check above&quot;</span>)
+                <span class="macro">unreachable!</span>(<span class="string">"covered by the .is_opaque() check above"</span>)
             }
 
             TypeKind::UnresolvedTypeRef(..) =&gt; {
-                <span class="macro">unreachable!</span>(<span class="string">&quot;Should have been resolved after parsing!&quot;</span>);
+                <span class="macro">unreachable!</span>(<span class="string">"Should have been resolved after parsing!"</span>);
             }
         }
     }
@@ -688,16 +689,16 @@
     {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(edges) = <span class="self">self</span>.dependencies.get(<span class="kw-2">&amp;</span>id) {
             <span class="kw">for </span>ty <span class="kw">in </span>edges {
-                <span class="macro">trace!</span>(<span class="string">&quot;enqueue {:?} into worklist&quot;</span>, ty);
+                <span class="macro">trace!</span>(<span class="string">"enqueue {:?} into worklist"</span>, ty);
                 f(<span class="kw-2">*</span>ty);
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; From&lt;SizednessAnalysis&lt;<span class="lifetime">&#39;ctx</span>&gt;&gt; <span class="kw">for </span>HashMap&lt;TypeId, SizednessResult&gt; {
-    <span class="kw">fn </span>from(analysis: SizednessAnalysis&lt;<span class="lifetime">&#39;ctx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="comment">// We let the lack of an entry mean &quot;ZeroSized&quot; to save space.
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; From&lt;SizednessAnalysis&lt;<span class="lifetime">'ctx</span>&gt;&gt; <span class="kw">for </span>HashMap&lt;TypeId, SizednessResult&gt; {
+    <span class="kw">fn </span>from(analysis: SizednessAnalysis&lt;<span class="lifetime">'ctx</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="comment">// We let the lack of an entry mean "ZeroSized" to save space.
         </span><span class="macro">extra_assert!</span>(analysis
             .sized
             .values()
@@ -710,7 +711,7 @@
 <span class="doccomment">/// A convenience trait for querying whether some type or ID is sized.
 ///
 /// This is not for _computing_ whether the thing is sized, it is for looking up
-/// the results of the `Sizedness` analysis&#39;s computations for a specific thing.
+/// the results of the `Sizedness` analysis's computations for a specific thing.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Sizedness {
     <span class="doccomment">/// Get the sizedness of this type.
     </span><span class="kw">fn </span>sizedness(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>BindgenContext) -&gt; SizednessResult;

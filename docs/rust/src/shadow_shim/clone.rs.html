@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shim/src/clone.rs`."><title>clone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shim/src/clone.rs`."><title>clone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -362,15 +363,15 @@
 /// TODO: replace with `core::ptr::offset_of` once stabilized.
 /// https://github.com/rust-lang/rust/issues/106655
 </span><span class="kw">fn </span>sigcontext_offset_of(base: <span class="kw-2">&amp;</span>sigcontext, field: <span class="kw-2">&amp;</span>u64) -&gt; usize {
-    <span class="kw">let </span>base = base <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize;
-    <span class="kw">let </span>field = field <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize;
+    <span class="kw">let </span>base = core::ptr::from_ref(base) <span class="kw">as </span>usize;
+    <span class="kw">let </span>field = core::ptr::from_ref(field) <span class="kw">as </span>usize;
     field - base
 }
 
 <span class="doccomment">/// Round `ptr` down to a value that has alignment `align`. Useful when
 /// allocating on a stack that grows downward.
 ///
-/// Panics if `align` isn&#39;t a power of 2.
+/// Panics if `align` isn't a power of 2.
 ///
 /// # Safety
 ///
@@ -394,9 +395,9 @@
 ///
 /// This is difficult to characterize in a general sense, but e.g. minimally the
 /// stack and instruction pointers must be valid, and other register values must
-/// correspond to &quot;sound&quot; values of whatever state they correspond to at that
+/// correspond to "sound" values of whatever state they correspond to at that
 /// instruction pointer.
-</span><span class="kw">unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>set_context(ctx: <span class="kw-2">&amp;</span>sigcontext) -&gt; ! {
+</span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>set_context(ctx: <span class="kw-2">&amp;</span>sigcontext) -&gt; ! {
     <span class="comment">// These offsets are hard-coded into the asm format string below.
     // TODO: turn these into const parameters to the asm block when const
     // asm parameters are stabilized.
@@ -421,48 +422,48 @@
         <span class="macro">core::arch::asm!</span>(
             <span class="comment">// Restore general purpose registers.
             // Offsets are validated in assertions above.
-            </span><span class="string">&quot;mov r8, [rax+0x0]&quot;</span>,
-            <span class="string">&quot;mov r9, [rax+0x8]&quot;</span>,
-            <span class="string">&quot;mov r10, [rax+0x10]&quot;</span>,
-            <span class="string">&quot;mov r11, [rax+0x18]&quot;</span>,
-            <span class="string">&quot;mov r12, [rax+0x20]&quot;</span>,
-            <span class="string">&quot;mov r13, [rax+0x28]&quot;</span>,
-            <span class="string">&quot;mov r14, [rax+0x30]&quot;</span>,
-            <span class="string">&quot;mov r15, [rax+0x38]&quot;</span>,
-            <span class="string">&quot;mov rsi, [rax+0x48]&quot;</span>,
-            <span class="string">&quot;mov rdi, [rax+0x40]&quot;</span>,
-            <span class="string">&quot;mov rbx, [rax+0x58]&quot;</span>,
-            <span class="string">&quot;mov rdx, [rax+0x60]&quot;</span>,
-            <span class="string">&quot;mov rbp, [rax+0x50]&quot;</span>,
-            <span class="string">&quot;mov rsp, [rax+0x78]&quot;</span>,
+            </span><span class="string">"mov r8, [rax+0x0]"</span>,
+            <span class="string">"mov r9, [rax+0x8]"</span>,
+            <span class="string">"mov r10, [rax+0x10]"</span>,
+            <span class="string">"mov r11, [rax+0x18]"</span>,
+            <span class="string">"mov r12, [rax+0x20]"</span>,
+            <span class="string">"mov r13, [rax+0x28]"</span>,
+            <span class="string">"mov r14, [rax+0x30]"</span>,
+            <span class="string">"mov r15, [rax+0x38]"</span>,
+            <span class="string">"mov rsi, [rax+0x48]"</span>,
+            <span class="string">"mov rdi, [rax+0x40]"</span>,
+            <span class="string">"mov rbx, [rax+0x58]"</span>,
+            <span class="string">"mov rdx, [rax+0x60]"</span>,
+            <span class="string">"mov rbp, [rax+0x50]"</span>,
+            <span class="string">"mov rsp, [rax+0x78]"</span>,
 
-            <span class="comment">// Push `ctx`&#39;s `rip` to stack
-            </span><span class="string">&quot;mov rax, [rax+0x80]&quot;</span>,
-            <span class="string">&quot;push rax&quot;</span>,
+            <span class="comment">// Push `ctx`'s `rip` to stack
+            </span><span class="string">"mov rax, [rax+0x80]"</span>,
+            <span class="string">"push rax"</span>,
 
             <span class="comment">// Not restored:
             // - `rax`: stores the result of the syscall, which we set below.
             // - Floating point and other special registers: hopefully not needed.
 
             // Set `rax` to 0
-            </span><span class="string">&quot;mov rax, 0&quot;</span>,
+            </span><span class="string">"mov rax, 0"</span>,
 
-            <span class="comment">// Ret to ctx&#39;s `rip`
-            </span><span class="string">&quot;ret&quot;</span>,
-            <span class="kw">in</span>(<span class="string">&quot;rax&quot;</span>) ctx <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            <span class="comment">// Ret to ctx's `rip`
+            </span><span class="string">"ret"</span>,
+            <span class="kw">in</span>(<span class="string">"rax"</span>) core::ptr::from_ref(ctx),
             options(noreturn)
         )
     };
 }
 
-<span class="doccomment">/// `extern &quot;C-unwind&quot;` wrapper for `crate::tls_ipc::set`, which we can call from
+<span class="doccomment">/// `extern "C-unwind"` wrapper for `crate::tls_ipc::set`, which we can call from
 /// assembly.
 ///
 /// # Safety
 ///
 /// `blk` must contained a serialized block of
 /// type `IPCData`, which outlives the current thread.
-</span><span class="kw">unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>tls_ipc_set(blk: <span class="kw-2">*const </span>ShMemBlockSerialized) {
+</span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>tls_ipc_set(blk: <span class="kw-2">*const </span>ShMemBlockSerialized) {
     <span class="kw">let </span>blk = <span class="kw">unsafe </span>{ blk.as_ref().unwrap() };
     <span class="kw">let </span>prev = <span class="kw">crate</span>::tls_allow_native_syscalls::swap(<span class="bool-val">true</span>);
 
@@ -481,7 +482,7 @@
 /// * `ctx` must be dereferenceable, and must be safe for the newly spawned
 /// child thread to restore.
 /// * Other pointers, if non-null, must be safely dereferenceable.
-/// * `child_stack` must be &quot;sufficiently big&quot; for the child thread to run on.
+/// * `child_stack` must be "sufficiently big" for the child thread to run on.
 /// * `tls` if provided must point to correctly initialized thread local storage.
 </span><span class="kw">unsafe fn </span>do_clone_process(ctx: <span class="kw-2">&amp;</span>ucontext, event: <span class="kw-2">&amp;</span>ShimEventAddThreadReq) -&gt; i64 {
     <span class="kw">let </span>flags = CloneFlags::from_bits(event.flags).unwrap();
@@ -492,21 +493,21 @@
     <span class="kw">let </span>newtls = event.newtls;
 
     <span class="kw">if </span>flags.contains(CloneFlags::CLONE_VM) {
-        <span class="comment">// Don&#39;t know of a real-world need for this.
-        </span><span class="macro">unimplemented!</span>(<span class="string">&quot;fork with shared memory&quot;</span>);
+        <span class="comment">// Don't know of a real-world need for this.
+        </span><span class="macro">unimplemented!</span>(<span class="string">"fork with shared memory"</span>);
     }
     <span class="kw">if </span>flags.contains(CloneFlags::CLONE_VFORK) {
         <span class="comment">// We want to support this eventually, but will take some work.
-        </span><span class="macro">unimplemented!</span>(<span class="string">&quot;vfork&quot;</span>);
+        </span><span class="macro">unimplemented!</span>(<span class="string">"vfork"</span>);
     }
     <span class="kw">if </span>flags.contains(CloneFlags::CLONE_SETTLS) {
-        <span class="comment">// In particular we don&#39;t correctly handle the case where the parent
+        <span class="comment">// In particular we don't correctly handle the case where the parent
         // thread is using `tls::Mode::Native`, but the child thread is
         // unable to.
         //
         // We could try to detect that more specific case and/or correctly
-        // handle it, but I don&#39;t think this is likely to be needed.
-        </span><span class="macro">unimplemented!</span>(<span class="string">&quot;CLONE_SETTLS without CLONE_THREAD&quot;</span>);
+        // handle it, but I don't think this is likely to be needed.
+        </span><span class="macro">unimplemented!</span>(<span class="string">"CLONE_SETTLS without CLONE_THREAD"</span>);
     }
 
     <span class="comment">// The shadow Process should be the parent; not this process.
@@ -520,8 +521,8 @@
             <span class="prelude-val">Some</span>(Signal::SIGCHLD),
             <span class="comment">// If a child stack is provided, we do the stack switch below
             // as part of initialization instead of having the syscall do it for us.
-            // It&#39;s a bit simpler this way, and we can safely do it this way
-            // since we&#39;re not using CLONE_VM (not sharing memory with the
+            // It's a bit simpler this way, and we can safely do it this way
+            // since we're not using CLONE_VM (not sharing memory with the
             // parent).
             </span>core::ptr::null_mut(),
             ptid,
@@ -535,7 +536,7 @@
     <span class="kw">match </span>res {
         CloneResult::CallerIsChild =&gt; {
             <span class="comment">// SAFETY: We have exclusive access to SHIM_TLS: this is the only thread
-            // in the new process, and we&#39;re not sharing memory with the parent process.
+            // in the new process, and we're not sharing memory with the parent process.
             </span><span class="kw">unsafe </span>{ <span class="kw">crate</span>::SHIM_TLS.fork_from(parent_tls_key) };
             <span class="comment">// SAFETY: Shadow should give us the correct type and lifetime.
             </span><span class="kw">unsafe </span>{ <span class="kw">crate</span>::tls_ipc::set(<span class="kw-2">&amp;</span>event.ipc_block) };
@@ -564,7 +565,7 @@
 /// * `ctx` must be dereferenceable, and must be safe for the newly spawned
 /// child thread to restore.
 /// * Other pointers, if non-null, must be safely dereferenceable.
-/// * `child_stack` must be &quot;sufficiently big&quot; for the child thread to run on.
+/// * `child_stack` must be "sufficiently big" for the child thread to run on.
 /// * `tls` if provided must point to correctly initialized thread local storage.
 </span><span class="kw">unsafe fn </span>do_clone_thread(ctx: <span class="kw-2">&amp;</span>ucontext, event: <span class="kw-2">&amp;</span>ShimEventAddThreadReq) -&gt; i64 {
     <span class="kw">let </span>flags = CloneFlags::from_bits(event.flags).unwrap();
@@ -576,14 +577,14 @@
 
     <span class="macro">assert!</span>(
         !child_stack.is_null(),
-        <span class="string">&quot;clone without a new stack not implemented&quot;
+        <span class="string">"clone without a new stack not implemented"
     </span>);
 
     <span class="comment">// x86-64 calling conventions require a 16-byte aligned stack
     </span><span class="macro">assert_eq!</span>(
         child_stack.align_offset(<span class="number">16</span>),
         <span class="number">0</span>,
-        <span class="string">&quot;clone with unaligned new stack not implemented&quot;
+        <span class="string">"clone with unaligned new stack not implemented"
     </span>);
 
     <span class="comment">// Copy ctx to top of the child stack.
@@ -594,11 +595,11 @@
     <span class="kw">let </span>child_sigcontext = child_current_rsp.cast::&lt;sigcontext&gt;();
     <span class="kw">unsafe </span>{ core::ptr::write(child_sigcontext, ctx.uc_mcontext) };
 
-    <span class="comment">// Update child&#39;s copy of context to use the child&#39;s stack.
+    <span class="comment">// Update child's copy of context to use the child's stack.
     </span><span class="kw">let </span>child_sigctx = <span class="kw">unsafe </span>{ child_sigcontext.as_mut().unwrap() };
     child_sigctx.rsp = child_stack <span class="kw">as </span>u64;
 
-    <span class="comment">// Copy child&#39;s IPC block to child&#39;s stack
+    <span class="comment">// Copy child's IPC block to child's stack
     </span><span class="kw">let </span>child_current_rsp =
         <span class="kw">unsafe </span>{ child_current_rsp.sub(core::mem::size_of::&lt;ShMemBlockSerialized&gt;()) };
     <span class="kw">let </span>child_current_rsp = <span class="kw">unsafe </span>{
@@ -617,7 +618,7 @@
     <span class="comment">// SAFETY:
     //
     // This block makes the clone syscall, which is tricky because Rust currently
-    // doesn&#39;t have a way to tell the compiler that a block or function &quot;returns twice&quot;.
+    // doesn't have a way to tell the compiler that a block or function "returns twice".
     // &lt;https://github.com/rust-lang/libc/issues/1596&gt;
     //
     // We work around this by using a single asm block to:
@@ -634,41 +635,41 @@
     </span><span class="kw">unsafe </span>{
         <span class="macro">core::arch::asm!</span>(
             <span class="comment">// Make the clone syscall
-            </span><span class="string">&quot;syscall&quot;</span>,
+            </span><span class="string">"syscall"</span>,
             <span class="comment">// If in the parent, exit the asm block (by jumping forward to the label
             // `2`). https://doc.rust-lang.org/rust-by-example/unsafe/asm.html#labels
-            </span><span class="string">&quot;cmp rax, 0&quot;</span>,
-            <span class="string">&quot;jne 2f&quot;</span>,
+            </span><span class="string">"cmp rax, 0"</span>,
+            <span class="string">"jne 2f"</span>,
 
             <span class="comment">// Initialize the IPC block for this thread
-            </span><span class="string">&quot;mov rdi, {blk}&quot;</span>,
-            <span class="string">&quot;call {tls_ipc_set}&quot;</span>,
+            </span><span class="string">"mov rdi, {blk}"</span>,
+            <span class="string">"call {tls_ipc_set}"</span>,
 
             <span class="comment">// Initialize state for this thread
-            </span><span class="string">&quot;call {shim_init_thread}&quot;</span>,
+            </span><span class="string">"call {shim_init_thread}"</span>,
 
             <span class="comment">// Set CPU state from ctx
-            </span><span class="string">&quot;mov rdi, r12&quot;</span>,
-            <span class="string">&quot;call {set_context}&quot;</span>,
+            </span><span class="string">"mov rdi, r12"</span>,
+            <span class="string">"call {set_context}"</span>,
 
-            <span class="string">&quot;2:&quot;</span>,
+            <span class="string">"2:"</span>,
             <span class="comment">// clone syscall number in, rv out
-            </span>inout(<span class="string">&quot;rax&quot;</span>) libc::SYS_clone =&gt; rv,
+            </span>inout(<span class="string">"rax"</span>) libc::SYS_clone =&gt; rv,
             <span class="comment">// clone syscall arg1
-            </span><span class="kw">in</span>(<span class="string">&quot;rdi&quot;</span>) flags.bits(),
+            </span><span class="kw">in</span>(<span class="string">"rdi"</span>) flags.bits(),
             <span class="comment">// clone syscall arg2
-            </span><span class="kw">in</span>(<span class="string">&quot;rsi&quot;</span>) child_current_rsp,
+            </span><span class="kw">in</span>(<span class="string">"rsi"</span>) child_current_rsp,
             <span class="comment">// clone syscall arg3
-            </span><span class="kw">in</span>(<span class="string">&quot;rdx&quot;</span>) ptid,
+            </span><span class="kw">in</span>(<span class="string">"rdx"</span>) ptid,
             <span class="comment">// clone syscall arg4
-            </span><span class="kw">in</span>(<span class="string">&quot;r10&quot;</span>) ctid,
+            </span><span class="kw">in</span>(<span class="string">"r10"</span>) ctid,
             <span class="comment">// clone syscall arg5
-            </span><span class="kw">in</span>(<span class="string">&quot;r8&quot;</span>) newtls,
+            </span><span class="kw">in</span>(<span class="string">"r8"</span>) newtls,
             blk = <span class="kw">in</span>(reg) child_ipc_blk,
             tls_ipc_set = sym tls_ipc_set,
             shim_init_thread = sym <span class="kw">crate</span>::init_thread,
             <span class="comment">// callee-saved register
-            </span><span class="kw">in</span>(<span class="string">&quot;r12&quot;</span>) child_sigcontext <span class="kw">as </span>* <span class="kw">const _</span>,
+            </span><span class="kw">in</span>(<span class="string">"r12"</span>) child_sigcontext <span class="kw">as </span>* <span class="kw">const _</span>,
             set_context = sym set_context,
         )
     }
@@ -689,7 +690,7 @@
 /// * `ctx` must be dereferenceable, and must be safe for the newly spawned
 /// child thread to restore.
 /// * Other pointers, if non-null, must be safely dereferenceable.
-/// * `child_stack` must be &quot;sufficiently big&quot; for the child thread to run on.
+/// * `child_stack` must be "sufficiently big" for the child thread to run on.
 /// * `tls` if provided must point to correctly initialized thread local storage.
 </span><span class="kw">pub unsafe fn </span>do_clone(ctx: <span class="kw-2">&amp;</span>ucontext, event: <span class="kw-2">&amp;</span>ShimEventAddThreadReq) -&gt; i64 {
     <span class="kw">let </span>flags = CloneFlags::from_bits(event.flags).unwrap();

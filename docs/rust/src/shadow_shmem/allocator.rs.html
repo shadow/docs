@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shmem/src/allocator.rs`."><title>allocator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shmem" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shmem/src/allocator.rs`."><title>allocator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shmem" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -557,7 +558,7 @@
 //! (a) The main Shadow simulator process allocates a shared memory block containing an object.
 //! (b) The block is serialized.
 //! (c) The serialized block is turned into a string.
-//! (d) The string is passed to one of Shadow&#39;s child, managed processes.
+//! (d) The string is passed to one of Shadow's child, managed processes.
 //! (e) The managed process converts the string back to a serialized block.
 //! (f) The serialized block is deserialized into a shared memory block alias.
 //! (g) The alias is dereferenced and the shared object is retrieved.
@@ -570,7 +571,7 @@
 
 <span class="doccomment">/// This function moves the input parameter into a newly-allocated shared memory block. Analogous to
 /// `malloc()`.
-</span><span class="kw">pub fn </span>shmalloc&lt;T&gt;(val: T) -&gt; ShMemBlock&lt;<span class="lifetime">&#39;static</span>, T&gt;
+</span><span class="kw">pub fn </span>shmalloc&lt;T&gt;(val: T) -&gt; ShMemBlock&lt;<span class="lifetime">'static</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -579,7 +580,7 @@
 }
 
 <span class="doccomment">/// This function frees a previously allocated block.
-</span><span class="kw">pub fn </span>shfree&lt;T&gt;(block: ShMemBlock&lt;<span class="lifetime">&#39;static</span>, T&gt;)
+</span><span class="kw">pub fn </span>shfree&lt;T&gt;(block: ShMemBlock&lt;<span class="lifetime">'static</span>, T&gt;)
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -593,7 +594,7 @@
 ///
 /// This function can violate type safety if a template type is provided that does not match
 /// original block that was serialized.
-</span><span class="kw">pub unsafe fn </span>shdeserialize&lt;T&gt;(serialized: <span class="kw-2">&amp;</span>ShMemBlockSerialized) -&gt; ShMemBlockAlias&lt;<span class="lifetime">&#39;static</span>, T&gt;
+</span><span class="kw">pub unsafe fn </span>shdeserialize&lt;T&gt;(serialized: <span class="kw-2">&amp;</span>ShMemBlockSerialized) -&gt; ShMemBlockAlias&lt;<span class="lifetime">'static</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -601,12 +602,12 @@
 }
 
 <span class="attr">#[cfg(test)]
-</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>shmalloc_teardown() {
+</span><span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>shmalloc_teardown() {
     SHMALLOC.lock().destruct();
 }
 
-<span class="comment">// Just needed because we can&#39;t put the drop guard in a global place. We don&#39;t want to drop
-// after every function, and there&#39;s no global test main routine we can take advantage of. No
+<span class="comment">// Just needed because we can't put the drop guard in a global place. We don't want to drop
+// after every function, and there's no global test main routine we can take advantage of. No
 // big deal.
 </span><span class="attr">#[cfg(test)]
 #[cfg_attr(miri, ignore)]
@@ -626,11 +627,11 @@
 <span class="comment">// The global, singleton shared memory allocator and deserializer objects.
 // TODO(rwails): Adjust to use lazy lock instead.
 </span><span class="macro">lazy_static! </span>{
-    <span class="kw">static </span><span class="kw-2">ref </span>SHMALLOC: SelfContainedMutex&lt;SharedMemAllocator&lt;<span class="lifetime">&#39;static</span>&gt;&gt; = {
+    <span class="kw">static </span><span class="kw-2">ref </span>SHMALLOC: SelfContainedMutex&lt;SharedMemAllocator&lt;<span class="lifetime">'static</span>&gt;&gt; = {
         <span class="kw">let </span>alloc = SharedMemAllocator::new();
         SelfContainedMutex::new(alloc)
     };
-    <span class="kw">static </span><span class="kw-2">ref </span>SHDESERIALIZER: SelfContainedMutex&lt;SharedMemDeserializer&lt;<span class="lifetime">&#39;static</span>&gt;&gt; = {
+    <span class="kw">static </span><span class="kw-2">ref </span>SHDESERIALIZER: SelfContainedMutex&lt;SharedMemDeserializer&lt;<span class="lifetime">'static</span>&gt;&gt; = {
         <span class="kw">let </span>deserial = SharedMemDeserializer::new();
         SelfContainedMutex::new(deserial)
     };
@@ -660,22 +661,22 @@
 }
 
 <span class="doccomment">/// A smart pointer class that holds a `Sync` and `VirtualAddressSpaceIndependent` object. The pointer
-/// is obtained by a call to a shared memory allocator&#39;s `alloc()` function (or the global
+/// is obtained by a call to a shared memory allocator's `alloc()` function (or the global
 /// `shalloc()` function. The memory is freed when the block is dropped.
 ///
 /// This smart pointer is unique in that it may be serialized to a string, passed across process
 /// boundaries, and deserialized in a (potentially) separate process to obtain a view of the
 /// contained data.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ShMemBlock&lt;<span class="lifetime">&#39;allocator</span>, T&gt;
+</span><span class="kw">pub struct </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
     block: <span class="kw-2">*mut </span><span class="kw">crate</span>::shmalloc_impl::Block,
-    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;allocator </span>T&gt;,
+    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'allocator </span>T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;allocator</span>, T&gt; ShMemBlock&lt;<span class="lifetime">&#39;allocator</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -689,16 +690,16 @@
 
 <span class="comment">// SAFETY: T is already required to be Sync, and ShMemBlock only exposes
 // immutable references to the underlying data.
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;allocator</span>, T&gt; Sync <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">&#39;allocator</span>, T&gt; <span class="kw">where
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; Sync <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt; <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent
 {
 }
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;allocator</span>, T&gt; Send <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">&#39;allocator</span>, T&gt; <span class="kw">where
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; Send <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt; <span class="kw">where
     </span>T: Send + Sync + VirtualAddressSpaceIndependent
 {
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;allocator</span>, T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">&#39;allocator</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -710,7 +711,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;allocator</span>, T&gt; core::ops::Drop <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">&#39;allocator</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; core::ops::Drop <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -729,26 +730,26 @@
 /// the `shdeserialize()` to make this call on the global shared memory deserializer.
 ///
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ShMemBlockAlias&lt;<span class="lifetime">&#39;deserializer</span>, T&gt;
+</span><span class="kw">pub struct </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
     block: <span class="kw-2">*mut </span><span class="kw">crate</span>::shmalloc_impl::Block,
-    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;deserializer </span>T&gt;,
+    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'deserializer </span>T&gt;,
 }
 
 <span class="comment">// SAFETY: T is already required to be Sync, and ShMemBlock only exposes
 // immutable references to the underlying data.
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;deserializer</span>, T&gt; Sync <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">&#39;deserializer</span>, T&gt; <span class="kw">where
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'deserializer</span>, T&gt; Sync <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt; <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent
 {
 }
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;deserializer</span>, T&gt; Send <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">&#39;deserializer</span>, T&gt; <span class="kw">where
+<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'deserializer</span>, T&gt; Send <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt; <span class="kw">where
     </span>T: Send + Sync + VirtualAddressSpaceIndependent
 {
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;deserializer</span>, T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">&#39;deserializer</span>, T&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'deserializer</span>, T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -769,11 +770,11 @@
 <span class="kw">unsafe impl </span>Pod <span class="kw">for </span>ShMemBlockSerialized {}
 
 <span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>ShMemBlockSerialized {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
         <span class="kw">let </span>s =
             core::str::from_utf8(<span class="kw">crate</span>::util::trim_null_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>.internal.chunk_name).unwrap())
                 .unwrap();
-        <span class="macro">write!</span>(f, <span class="string">&quot;{};{}&quot;</span>, <span class="self">self</span>.internal.offset, s)
+        <span class="macro">write!</span>(f, <span class="string">"{};{}"</span>, <span class="self">self</span>.internal.offset, s)
     }
 }
 
@@ -785,7 +786,7 @@
         <span class="kw">use </span>core::fmt::Write;
         <span class="kw">use </span>formatting_nostd::FormatBuffer;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((offset_str, path_str)) = s.split_once(<span class="string">&#39;;&#39;</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((offset_str, path_str)) = s.split_once(<span class="string">';'</span>) {
             <span class="comment">// let offset = offset_str.parse::&lt;isize&gt;().map_err(Err).unwrap();
             </span><span class="kw">let </span>offset = offset_str
                 .parse::&lt;isize&gt;()
@@ -794,7 +795,7 @@
 
             <span class="kw">let </span><span class="kw-2">mut </span>chunk_format = FormatBuffer::&lt;{ <span class="kw">crate</span>::util::PATH_MAX_NBYTES }&gt;::new();
 
-            <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>chunk_format, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span>path_str).unwrap();
+            <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>chunk_format, <span class="string">"{}"</span>, <span class="kw-2">&amp;</span>path_str).unwrap();
 
             <span class="kw">let </span><span class="kw-2">mut </span>chunk_name = <span class="kw">crate</span>::util::NULL_PATH_BUF;
             chunk_name
@@ -806,7 +807,7 @@
                 internal: <span class="kw">crate</span>::shmalloc_impl::BlockSerialized { chunk_name, offset },
             })
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;missing ;&quot;</span>))
+            <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">"missing ;"</span>))
         }
     }
 }
@@ -814,13 +815,13 @@
 <span class="doccomment">/// Safe wrapper around our low-level, unsafe, nostd shared memory allocator. This allocator type
 /// is not meant to be used directly, but can be accessed indirectly via calls made to `shmalloc()`
 /// and `shfree()`.
-</span><span class="kw">pub struct </span>SharedMemAllocator&lt;<span class="lifetime">&#39;alloc</span>&gt; {
+</span><span class="kw">pub struct </span>SharedMemAllocator&lt;<span class="lifetime">'alloc</span>&gt; {
     internal: <span class="kw">crate</span>::shmalloc_impl::FreelistAllocator,
     nallocs: isize,
-    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;alloc </span>()&gt;,
+    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'alloc </span>()&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;alloc</span>&gt; SharedMemAllocator&lt;<span class="lifetime">&#39;alloc</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'alloc</span>&gt; SharedMemAllocator&lt;<span class="lifetime">'alloc</span>&gt; {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>internal = <span class="kw">crate</span>::shmalloc_impl::FreelistAllocator::new();
         internal.init().unwrap();
@@ -832,8 +833,8 @@
         }
     }
 
-    <span class="comment">// TODO(rwails): Fix the lifetime of the allocated block to match the allocator&#39;s lifetime.
-    </span><span class="kw">fn </span>alloc&lt;T: Sync + VirtualAddressSpaceIndependent&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; ShMemBlock&lt;<span class="lifetime">&#39;alloc</span>, T&gt; {
+    <span class="comment">// TODO(rwails): Fix the lifetime of the allocated block to match the allocator's lifetime.
+    </span><span class="kw">fn </span>alloc&lt;T: Sync + VirtualAddressSpaceIndependent&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: T) -&gt; ShMemBlock&lt;<span class="lifetime">'alloc</span>, T&gt; {
         <span class="kw">let </span>t_nbytes: usize = core::mem::size_of::&lt;T&gt;();
         <span class="kw">let </span>t_alignment: usize = core::mem::align_of::&lt;T&gt;();
 
@@ -843,13 +844,13 @@
         }
 
         <span class="self">self</span>.nallocs += <span class="number">1</span>;
-        ShMemBlock::&lt;<span class="lifetime">&#39;alloc</span>, T&gt; {
+        ShMemBlock::&lt;<span class="lifetime">'alloc</span>, T&gt; {
             block,
             phantom: Default::default(),
         }
     }
 
-    <span class="kw">fn </span>free&lt;T: Sync + VirtualAddressSpaceIndependent&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>block: ShMemBlock&lt;<span class="lifetime">&#39;alloc</span>, T&gt;) {
+    <span class="kw">fn </span>free&lt;T: Sync + VirtualAddressSpaceIndependent&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>block: ShMemBlock&lt;<span class="lifetime">'alloc</span>, T&gt;) {
         <span class="self">self</span>.nallocs -= <span class="number">1</span>;
         block.block = core::ptr::null_mut();
         <span class="self">self</span>.internal.dealloc(block.block);
@@ -859,17 +860,17 @@
         <span class="comment">// if self.nallocs != 0 {
         //crate::shmalloc_impl::log_err(crate::shmalloc_impl::AllocError::Leak, None);
 
-        // TODO(rwails): This condition currently occurs when running Shadow. It&#39;s not actually
+        // TODO(rwails): This condition currently occurs when running Shadow. It's not actually
         // a leak to worry about because the shared memory file backing store does get cleaned
-        // up. It&#39;s possible that all blocks are not dropped before this allocator is dropped.
+        // up. It's possible that all blocks are not dropped before this allocator is dropped.
         // }
 
         </span><span class="self">self</span>.internal.destruct();
     }
 }
 
-<span class="kw">unsafe impl </span>Send <span class="kw">for </span>SharedMemAllocator&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SharedMemAllocator&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>SharedMemAllocator&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SharedMemAllocator&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="comment">// Experimental... implements the global allocator using the shared memory allocator.
 /*
@@ -895,12 +896,12 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
 }
 */
 
-</span><span class="kw">pub struct </span>SharedMemDeserializer&lt;<span class="lifetime">&#39;alloc</span>&gt; {
+</span><span class="kw">pub struct </span>SharedMemDeserializer&lt;<span class="lifetime">'alloc</span>&gt; {
     internal: <span class="kw">crate</span>::shmalloc_impl::FreelistDeserializer,
-    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;alloc </span>()&gt;,
+    phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'alloc </span>()&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;alloc</span>&gt; SharedMemDeserializer&lt;<span class="lifetime">&#39;alloc</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'alloc</span>&gt; SharedMemDeserializer&lt;<span class="lifetime">'alloc</span>&gt; {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>internal = <span class="kw">crate</span>::shmalloc_impl::FreelistDeserializer::new();
 
@@ -914,11 +915,11 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
     ///
     /// This function can violate type safety if a template type is provided that does not match
     /// original block that was serialized.
-    </span><span class="comment">// TODO(rwails): Fix the lifetime of the allocated block to match the deserializer&#39;s lifetime.
+    </span><span class="comment">// TODO(rwails): Fix the lifetime of the allocated block to match the deserializer's lifetime.
     </span><span class="kw">pub unsafe fn </span>deserialize&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         serialized: <span class="kw-2">&amp;</span>ShMemBlockSerialized,
-    ) -&gt; ShMemBlockAlias&lt;<span class="lifetime">&#39;alloc</span>, T&gt;
+    ) -&gt; ShMemBlockAlias&lt;<span class="lifetime">'alloc</span>, T&gt;
     <span class="kw">where
         </span>T: Sync + VirtualAddressSpaceIndependent,
     {
@@ -931,8 +932,8 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
     }
 }
 
-<span class="kw">unsafe impl </span>Send <span class="kw">for </span>SharedMemDeserializer&lt;<span class="lifetime">&#39;_</span>&gt; {}
-<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SharedMemDeserializer&lt;<span class="lifetime">&#39;_</span>&gt; {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>SharedMemDeserializer&lt;<span class="lifetime">'_</span>&gt; {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>SharedMemDeserializer&lt;<span class="lifetime">'_</span>&gt; {}
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
@@ -1027,7 +1028,7 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
         shfree(original_block);
     }
 
-    <span class="comment">// Validate our guarantee that the data pointer doesn&#39;t move, even if the block does.
+    <span class="comment">// Validate our guarantee that the data pointer doesn't move, even if the block does.
     // Host relies on this for soundness.
     </span><span class="attr">#[test]
     </span><span class="comment">// Uses FFI
@@ -1045,14 +1046,14 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
         </span><span class="kw">let </span>new_block_addr = block.as_ref().unwrap() <span class="kw">as </span><span class="kw-2">*const </span>ShMemBlock&lt;T&gt;;
         <span class="macro">assert_ne!</span>(block_addr, new_block_addr);
 
-        <span class="comment">// Validate that the data referenced by the block *hasn&#39;t* moved.
+        <span class="comment">// Validate that the data referenced by the block *hasn't* moved.
         </span><span class="kw">let </span>new_data_addr = <span class="kw-2">**</span>(block.as_ref().unwrap()) <span class="kw">as </span><span class="kw-2">*const </span>T;
         <span class="macro">assert_eq!</span>(data_addr, new_data_addr);
 
         shfree(block.unwrap());
     }
 
-    <span class="comment">// Validate our guarantee that the data pointer doesn&#39;t move, even if the block does.
+    <span class="comment">// Validate our guarantee that the data pointer doesn't move, even if the block does.
     </span><span class="attr">#[test]
     </span><span class="comment">// Uses FFI
     </span><span class="attr">#[cfg_attr(miri, ignore)]
@@ -1071,7 +1072,7 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
         </span><span class="kw">let </span>new_block_addr = block.as_ref().unwrap() <span class="kw">as </span><span class="kw-2">*const </span>ShMemBlockAlias&lt;T&gt;;
         <span class="macro">assert_ne!</span>(block_addr, new_block_addr);
 
-        <span class="comment">// Validate that the data referenced by the block *hasn&#39;t* moved.
+        <span class="comment">// Validate that the data referenced by the block *hasn't* moved.
         </span><span class="kw">let </span>new_data_addr = <span class="kw-2">**</span>(block.as_ref().unwrap()) <span class="kw">as </span><span class="kw-2">*const </span>T;
         <span class="macro">assert_eq!</span>(data_addr, new_data_addr);
 

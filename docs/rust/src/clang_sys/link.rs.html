@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clang-sys-1.7.0/src/link.rs`."><title>link.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clang_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clang-sys-1.7.0/src/link.rs`."><title>link.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="clang_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -327,7 +328,7 @@
 // Macros
 //================================================
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"runtime"</span>)]
 </span><span class="macro">macro_rules! </span>link {
     (
         @LOAD:
@@ -353,7 +354,7 @@
         @LOAD:
         <span class="kw">fn </span><span class="macro-nonterminal">$name</span>:ident($(<span class="macro-nonterminal">$pname</span>:ident: <span class="macro-nonterminal">$pty</span>:ty), <span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$ret</span>:ty)*
     ) =&gt; (
-        <span class="macro">link!</span>(@LOAD: <span class="attr">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)] </span><span class="kw">fn </span><span class="macro-nonterminal">$name</span>($(<span class="macro-nonterminal">$pname</span>: <span class="macro-nonterminal">$pty</span>), <span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$ret</span>)<span class="kw-2">*</span>);
+        <span class="macro">link!</span>(@LOAD: <span class="attr">#[cfg(feature = <span class="string">"runtime"</span>)] </span><span class="kw">fn </span><span class="macro-nonterminal">$name</span>($(<span class="macro-nonterminal">$pname</span>: <span class="macro-nonterminal">$pty</span>), <span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$ret</span>)<span class="kw-2">*</span>);
     );
 
     (
@@ -392,21 +393,21 @@
             <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
                 <span class="kw">use </span>Version::<span class="kw-2">*</span>;
                 <span class="kw">match </span><span class="self">self </span>{
-                    V3_5 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;3.5.x&quot;</span>),
-                    V3_6 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;3.6.x&quot;</span>),
-                    V3_7 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;3.7.x&quot;</span>),
-                    V3_8 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;3.8.x&quot;</span>),
-                    V3_9 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;3.9.x&quot;</span>),
-                    V4_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;4.0.x&quot;</span>),
-                    V5_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;5.0.x&quot;</span>),
-                    V6_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;6.0.x&quot;</span>),
-                    V7_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;7.0.x&quot;</span>),
-                    V8_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;8.0.x&quot;</span>),
-                    V9_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;9.0.x - 10.0.x&quot;</span>),
-                    V11_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;11.0.x&quot;</span>),
-                    V12_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;12.0.x - 15.0.x&quot;</span>),
-                    V16_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;16.0.x&quot;</span>),
-                    V17_0 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;17.0.x or later&quot;</span>),
+                    V3_5 =&gt; <span class="macro">write!</span>(f, <span class="string">"3.5.x"</span>),
+                    V3_6 =&gt; <span class="macro">write!</span>(f, <span class="string">"3.6.x"</span>),
+                    V3_7 =&gt; <span class="macro">write!</span>(f, <span class="string">"3.7.x"</span>),
+                    V3_8 =&gt; <span class="macro">write!</span>(f, <span class="string">"3.8.x"</span>),
+                    V3_9 =&gt; <span class="macro">write!</span>(f, <span class="string">"3.9.x"</span>),
+                    V4_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"4.0.x"</span>),
+                    V5_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"5.0.x"</span>),
+                    V6_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"6.0.x"</span>),
+                    V7_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"7.0.x"</span>),
+                    V8_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"8.0.x"</span>),
+                    V9_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"9.0.x - 10.0.x"</span>),
+                    V11_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"11.0.x"</span>),
+                    V12_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"12.0.x - 15.0.x"</span>),
+                    V16_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"16.0.x"</span>),
+                    V17_0 =&gt; <span class="macro">write!</span>(f, <span class="string">"17.0.x or later"</span>),
                 }
             }
         }
@@ -455,21 +456,21 @@
                 }
 
                 <span class="kw">unsafe </span>{
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_CXXMethod_isExplicit&quot;</span>, V17_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_CXXMethod_isCopyAssignmentOperator&quot;</span>, V16_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Cursor_getVarDeclInitializer&quot;</span>, V12_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Type_getValueType&quot;</span>, V11_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Cursor_isAnonymousRecordDecl&quot;</span>, V9_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Cursor_getObjCPropertyGetterName&quot;</span>, V8_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_File_tryGetRealPathName&quot;</span>, V7_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_CXIndex_setInvocationEmissionPathOption&quot;</span>, V6_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Cursor_isExternalSymbol&quot;</span>, V5_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_EvalResult_getAsLongLong&quot;</span>, V4_0);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_CXXConstructor_isConvertingConstructor&quot;</span>, V3_9);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_CXXField_isMutable&quot;</span>, V3_8);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Cursor_getOffsetOfField&quot;</span>, V3_7);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Cursor_getStorageClass&quot;</span>, V3_6);
-                    <span class="macro">check!</span>(<span class="string">b&quot;clang_Type_getNumTemplateArguments&quot;</span>, V3_5);
+                    <span class="macro">check!</span>(<span class="string">b"clang_CXXMethod_isExplicit"</span>, V17_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_CXXMethod_isCopyAssignmentOperator"</span>, V16_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Cursor_getVarDeclInitializer"</span>, V12_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Type_getValueType"</span>, V11_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Cursor_isAnonymousRecordDecl"</span>, V9_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Cursor_getObjCPropertyGetterName"</span>, V8_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_File_tryGetRealPathName"</span>, V7_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_CXIndex_setInvocationEmissionPathOption"</span>, V6_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Cursor_isExternalSymbol"</span>, V5_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_EvalResult_getAsLongLong"</span>, V4_0);
+                    <span class="macro">check!</span>(<span class="string">b"clang_CXXConstructor_isConvertingConstructor"</span>, V3_9);
+                    <span class="macro">check!</span>(<span class="string">b"clang_CXXField_isMutable"</span>, V3_8);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Cursor_getOffsetOfField"</span>, V3_7);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Cursor_getStorageClass"</span>, V3_6);
+                    <span class="macro">check!</span>(<span class="string">b"clang_Type_getNumTemplateArguments"</span>, V3_5);
                 }
 
                 <span class="prelude-val">None
@@ -493,8 +494,8 @@
         }
 
         $(
-            <span class="attr">#[cfg_attr(feature=<span class="string">&quot;cargo-clippy&quot;</span>, allow(clippy::missing_safety_doc))]
-            #[cfg_attr(feature=<span class="string">&quot;cargo-clippy&quot;</span>, allow(clippy::too_many_arguments))]
+            <span class="attr">#[cfg_attr(feature=<span class="string">"cargo-clippy"</span>, allow(clippy::missing_safety_doc))]
+            #[cfg_attr(feature=<span class="string">"cargo-clippy"</span>, allow(clippy::too_many_arguments))]
             </span>$(<span class="attr">#[doc=<span class="macro-nonterminal">$doc</span>] #[cfg(<span class="macro-nonterminal">$cfg</span>)]</span>)*
             <span class="kw">pub unsafe fn </span><span class="macro-nonterminal">$name</span>($(<span class="macro-nonterminal">$pname</span>: <span class="macro-nonterminal">$pty</span>), <span class="kw-2">*</span>) $(-&gt; <span class="macro-nonterminal">$ret</span>)* {
                 <span class="kw">let </span>f = with_library(|library| {
@@ -502,7 +503,7 @@
                         function
                     } <span class="kw">else </span>{
                         <span class="macro">panic!</span>(
-                            <span class="string">r#&quot;
+                            <span class="string">r#"
 A `libclang` function was called that is not supported by the loaded `libclang` instance.
 
     called function = `{0}`
@@ -514,15 +515,15 @@ https://docs.rs/clang-sys/latest/clang_sys/{0}/index.html
 
 Instructions for installing `libclang` can be found here:
 https://rust-lang.github.io/rust-bindgen/requirements.html
-&quot;#</span>, 
+"#</span>, 
                             <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>),
                             library
                                 .version()
-                                .map(|v| <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, v))
-                                .unwrap_or_else(|| <span class="string">&quot;unsupported version&quot;</span>.into()),
+                                .map(|v| <span class="macro">format!</span>(<span class="string">"{}"</span>, v))
+                                .unwrap_or_else(|| <span class="string">"unsupported version"</span>.into()),
                         );
                     }
-                }).expect(<span class="string">&quot;a `libclang` shared library is not loaded on this thread&quot;</span>);
+                }).expect(<span class="string">"a `libclang` shared library is not loaded on this thread"</span>);
                 f($(<span class="macro-nonterminal">$pname</span>), <span class="kw-2">*</span>)
             }
 
@@ -550,9 +551,9 @@ https://rust-lang.github.io/rust-bindgen/requirements.html
         </span><span class="kw">pub fn </span>load_manually() -&gt; <span class="prelude-ty">Result</span>&lt;SharedLibrary, String&gt; {
             <span class="attr">#[allow(dead_code)]
             </span><span class="kw">mod </span>build {
-                <span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/macros.rs&quot;</span>));
-                <span class="kw">pub mod </span>common { <span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/common.rs&quot;</span>)); }
-                <span class="kw">pub mod </span>dynamic { <span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/dynamic.rs&quot;</span>)); }
+                <span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">"OUT_DIR"</span>), <span class="string">"/macros.rs"</span>));
+                <span class="kw">pub mod </span>common { <span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">"OUT_DIR"</span>), <span class="string">"/common.rs"</span>)); }
+                <span class="kw">pub mod </span>dynamic { <span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">"OUT_DIR"</span>), <span class="string">"/dynamic.rs"</span>)); }
             }
 
             <span class="kw">let </span>(directory, filename) = build::dynamic::find(<span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -561,7 +562,7 @@ https://rust-lang.github.io/rust-bindgen/requirements.html
             <span class="kw">unsafe </span>{
                 <span class="kw">let </span>library = libloading::Library::new(<span class="kw-2">&amp;</span>path).map_err(|e| {
                     <span class="macro">format!</span>(
-                        <span class="string">&quot;the `libclang` shared library at {} could not be opened: {}&quot;</span>,
+                        <span class="string">"the `libclang` shared library at {} could not be opened: {}"</span>,
                         path.display(),
                         e,
                     )
@@ -601,7 +602,7 @@ https://rust-lang.github.io/rust-bindgen/requirements.html
             <span class="kw">if </span>library.is_some() {
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(<span class="string">&quot;a `libclang` shared library is not in use in the current thread&quot;</span>.into())
+                <span class="prelude-val">Err</span>(<span class="string">"a `libclang` shared library is not in use in the current thread"</span>.into())
             }
         }
 
@@ -621,7 +622,7 @@ https://rust-lang.github.io/rust-bindgen/requirements.html
     )
 }
 
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"runtime"</span>))]
 </span><span class="macro">macro_rules! </span>link {
     (
         $(

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/states.rs`."><title>states.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/states.rs`."><title>states.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2350,9 +2351,9 @@
 
 <span class="comment">// state structs
 
-</span><span class="doccomment">/// The initial state of the TCP socket. While it&#39;s not a part of the official TCP state diagram, we
-/// don&#39;t want to overload the &quot;closed&quot; state to mean both a closed socket and a never used socket,
-/// since we don&#39;t allow TCP socket re-use.
+</span><span class="doccomment">/// The initial state of the TCP socket. While it's not a part of the official TCP state diagram, we
+/// don't want to overload the "closed" state to mean both a closed socket and a never used socket,
+/// since we don't allow TCP socket re-use.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>InitState&lt;X: Dependencies&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) common: Common&lt;X&gt;,
@@ -2373,7 +2374,7 @@
     <span class="doccomment">/// A map from 4 tuple (source address, destination address) to child. Packets received from the
     /// source address will be forwarded to the child.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) conn_map: HashMap&lt;RemoteLocalPair, ChildTcpKey&gt;,
-    <span class="doccomment">/// A queue of child TCP states in the &quot;established&quot; state, ready to be accept()ed.
+    <span class="doccomment">/// A queue of child TCP states in the "established" state, ready to be accept()ed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) accept_queue: LinkedList&lt;ChildTcpKey&gt;,
     <span class="doccomment">/// A list of child TCP states that want to send a packet.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) to_send: LinkedList&lt;ChildTcpKey&gt;,
@@ -2433,19 +2434,19 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) connection: Connection&lt;X::Instant&gt;,
 }
 
-<span class="doccomment">/// A state for sockets that need to send RST packets before closing. While it&#39;s not a part of the
-/// official TCP state diagram, we need to be able to buffer RST packets to send. We can&#39;t buffer
-/// RST packets in the &quot;closed&quot; state since the &quot;closed&quot; state is not allowed to send packets, so we
-/// use this as an intermediate state before we move to the &quot;closed&quot; state. We may need to buffer
-/// several RST packets; for example states in the &quot;listening&quot; state might need to send an RST
+<span class="doccomment">/// A state for sockets that need to send RST packets before closing. While it's not a part of the
+/// official TCP state diagram, we need to be able to buffer RST packets to send. We can't buffer
+/// RST packets in the "closed" state since the "closed" state is not allowed to send packets, so we
+/// use this as an intermediate state before we move to the "closed" state. We may need to buffer
+/// several RST packets; for example states in the "listening" state might need to send an RST
 /// packet for each child.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>RstState&lt;X: Dependencies&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) common: Common&lt;X&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) send_buffer: LinkedList&lt;TcpHeader&gt;,
     <span class="doccomment">/// Was the socket previously connected? Should be `true` for any states that have previously
-    /// been in the &quot;syn-sent&quot; or &quot;syn-received&quot; states. The connection does not need to have been
-    /// successful (for example it may have timed out in the &quot;syn-sent&quot; state or may have been
+    /// been in the "syn-sent" or "syn-received" states. The connection does not need to have been
+    /// successful (for example it may have timed out in the "syn-sent" state or may have been
     /// reset).
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) was_connected: bool,
 }
@@ -2455,8 +2456,8 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) common: Common&lt;X&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) recv_buffer: RecvQueue,
     <span class="doccomment">/// Was the socket previously connected? Should be `true` for any states that have previously
-    /// been in the &quot;syn-sent&quot; or &quot;syn-received&quot; states. The connection does not need to have been
-    /// successful (for example it may have timed out in the &quot;syn-sent&quot; state or may have been
+    /// been in the "syn-sent" or "syn-received" states. The connection does not need to have been
+    /// successful (for example it may have timed out in the "syn-sent" state or may have been
     /// reset).
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) was_connected: bool,
 }
@@ -2482,7 +2483,7 @@
     </span><span class="kw">pub fn </span>register_timer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         time: X::Instant,
-        f: <span class="kw">impl </span>FnOnce(TcpStateEnum&lt;X&gt;) -&gt; TcpStateEnum&lt;X&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+        f: <span class="kw">impl </span>FnOnce(TcpStateEnum&lt;X&gt;) -&gt; TcpStateEnum&lt;X&gt; + Send + Sync + <span class="lifetime">'static</span>,
     ) {
         <span class="comment">// the handle that identifies this state if the state is a child of some parent state
         </span><span class="kw">let </span>child_key = <span class="self">self</span>.child_key;
@@ -2490,9 +2491,9 @@
         <span class="comment">// takes an owned `TcpStateEnum` and returns a `TcpStateEnum`
         </span><span class="kw">let </span>timer_cb_inner = <span class="kw">move </span>|<span class="kw-2">mut </span>parent_state, state_type| {
             <span class="kw">match </span>state_type {
-                <span class="comment">// we&#39;re the parent and the timer was registered by us
+                <span class="comment">// we're the parent and the timer was registered by us
                 </span>TimerRegisteredBy::Parent =&gt; f(parent_state),
-                <span class="comment">// we&#39;re the parent and the timer was registered by a child
+                <span class="comment">// we're the parent and the timer was registered by a child
                 </span>TimerRegisteredBy::Child =&gt; {
                     <span class="comment">// if not in the listening state anymore, then the child must not exist
                     </span><span class="kw">let </span>TcpStateEnum::Listen(parent_listen_state) = <span class="kw-2">&amp;mut </span>parent_state <span class="kw">else </span>{
@@ -2500,12 +2501,12 @@
                         </span><span class="kw">return </span>parent_state;
                     };
 
-                    <span class="comment">// we need to lookup the child in `state` and run f() on the child&#39;s state
+                    <span class="comment">// we need to lookup the child in `state` and run f() on the child's state
                     // instead
 
                     </span><span class="kw">let </span>child_key = child_key.expect(
-                        <span class="string">&quot;The timer was supposedly registered by a child state, but there was no \
-                        key to identify the child&quot;</span>,
+                        <span class="string">"The timer was supposedly registered by a child state, but there was no \
+                        key to identify the child"</span>,
                     );
 
                     <span class="kw">let </span>rv = parent_listen_state.with_child(child_key, |state| (f(state), ()));
@@ -2549,10 +2550,10 @@
 <span class="doccomment">/// A pair of remote and local addresses, typically used to represent a connection (the 4-tuple).
 </span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RemoteLocalPair {
-    <span class="doccomment">/// The remote address (where a received packet was addressed from, or the address we&#39;re sending
+    <span class="doccomment">/// The remote address (where a received packet was addressed from, or the address we're sending
     /// a packet to).
     </span>remote: SocketAddrV4,
-    <span class="doccomment">/// The local address (where a received packet was addressed to, or the address we&#39;re sending a
+    <span class="doccomment">/// The local address (where a received packet was addressed to, or the address we're sending a
     /// packet from).
     </span>local: SocketAddrV4,
 }
@@ -2719,8 +2720,8 @@
         key
     }
 
-    <span class="doccomment">/// Make sure the parent&#39;s state is synchronized with the child&#39;s state. For example if the
-    /// child is in the &quot;established&quot; state, it should be in the parent&#39;s accept queue.
+    <span class="doccomment">/// Make sure the parent's state is synchronized with the child's state. For example if the
+    /// child is in the "established" state, it should be in the parent's accept queue.
     </span><span class="kw">fn </span>sync_child(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: ChildTcpKey) -&gt; <span class="prelude-ty">Result</span>&lt;(), ChildNotFound&gt; {
         <span class="kw">let </span>is_closed;
 
@@ -2737,7 +2738,7 @@
                     </span><span class="self">self</span>.to_send.push_back(key);
                 }
             } <span class="kw">else </span>{
-                <span class="comment">// doesn&#39;t want to send a packet, remove from the `to_send` list
+                <span class="comment">// doesn't want to send a packet, remove from the `to_send` list
                 </span>remove_from_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>.to_send, <span class="kw-2">&amp;</span>key);
             }
 
@@ -2746,17 +2747,17 @@
                 child.as_ref().unwrap(),
                 TcpStateEnum::Established(<span class="kw">_</span>) | TcpStateEnum::CloseWait(<span class="kw">_</span>)
             ) {
-                <span class="comment">// if in the &quot;established&quot; or &quot;close-wait&quot; state, but not in the accept queue
+                <span class="comment">// if in the "established" or "close-wait" state, but not in the accept queue
                 </span><span class="kw">if </span>!<span class="self">self</span>.accept_queue.contains(<span class="kw-2">&amp;</span>key) {
                     <span class="comment">// add to the accept queue
                     </span><span class="self">self</span>.accept_queue.push_back(key);
                 }
             } <span class="kw">else </span>{
-                <span class="comment">// not in the &quot;established&quot; or &quot;close-wait&quot; state; remove from the accept queue
+                <span class="comment">// not in the "established" or "close-wait" state; remove from the accept queue
                 </span>remove_from_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>.accept_queue, <span class="kw-2">&amp;</span>key);
             }
 
-            <span class="comment">// make sure that it&#39;s contained in the src map
+            <span class="comment">// make sure that it's contained in the src map
             </span><span class="macro">assert!</span>(<span class="self">self</span>.conn_map.contains_key(conn_addrs));
             <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.conn_map.get(conn_addrs).unwrap(), <span class="kw-2">&amp;</span>key);
 
@@ -2792,8 +2793,8 @@
         <span class="self">self</span>.children.get(key)<span class="question-mark">?</span>.state.as_ref()
     }
 
-    <span class="doccomment">/// Mutate the child&#39;s state, and automatically make sure that the parent&#39;s state is correctly
-    /// synced with the child&#39;s state (see [`sync_child`]).
+    <span class="doccomment">/// Mutate the child's state, and automatically make sure that the parent's state is correctly
+    /// synced with the child's state (see [`sync_child`]).
     </span><span class="kw">fn </span>with_child&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         key: ChildTcpKey,
@@ -2833,17 +2834,17 @@
 
             <span class="comment">// get any packets that it wants to send and add them to our send buffer; removing a
             // packet may cause the child to close which will make `key` invalid, which is why we
-            // don&#39;t unwrap here
+            // don't unwrap here
             </span><span class="kw">while let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>((header, payload))) = <span class="self">self</span>.with_child(key, |child| child.pop_packet()) {
                 <span class="macro">assert!</span>(payload.is_empty());
                 <span class="self">self</span>.send_buffer.push_back(header);
             }
         }
 
-        <span class="comment">// The `rst_close` should have moved the child states to either &quot;closed&quot; or &quot;rst&quot; and
+        <span class="comment">// The `rst_close` should have moved the child states to either "closed" or "rst" and
         // possibly queued some RST packets. Then we should have taken those packets from the child
         // state and moved them to our buffer, which would have then moved all child states to
-        // &quot;closed&quot;. Finally `with_child` would have seen that they closed and removed them from
+        // "closed". Finally `with_child` would have seen that they closed and removed them from
         // `self.children`.
         </span><span class="macro">assert!</span>(<span class="self">self</span>.children.is_empty());
 
@@ -2855,7 +2856,7 @@
             .collect();
 
         <span class="kw">let </span>new_state = <span class="kw">if </span>rst_packets.is_empty() {
-            <span class="comment">// no RST packets to send, so go directly to the &quot;closed&quot; state
+            <span class="comment">// no RST packets to send, so go directly to the "closed" state
             </span>ClosedState::new(<span class="self">self</span>.common, <span class="prelude-val">None</span>, <span class="comment">/* was_connected= */ </span><span class="bool-val">false</span>).into()
         } <span class="kw">else </span>{
             RstState::new(<span class="self">self</span>.common, rst_packets, <span class="comment">/* was_connected= */ </span><span class="bool-val">false</span>).into()
@@ -2878,8 +2879,8 @@
         backlog: u32,
         associate_fn: <span class="kw">impl </span>FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;T, E&gt;,
     ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;T, ListenError&lt;E&gt;&gt;) {
-        <span class="comment">// we don&#39;t need to associate, but we run this closure anyway; the caller can make this a
-        // no-op if it doesn&#39;t need to associate
+        <span class="comment">// we don't need to associate, but we run this closure anyway; the caller can make this a
+        // no-op if it doesn't need to associate
         </span><span class="kw">let </span>rv = <span class="kw">match </span>associate_fn() {
             <span class="prelude-val">Ok</span>(x) =&gt; x,
             <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(ListenError::FailedAssociation(e))),
@@ -2888,7 +2889,7 @@
         <span class="comment">// linux uses a limit of one greater than the provided backlog
         </span><span class="kw">let </span>max_backlog = backlog.saturating_add(<span class="number">1</span>);
 
-        <span class="comment">// we&#39;re already listening, so must already be associated; just update the backlog
+        <span class="comment">// we're already listening, so must already be associated; just update the backlog
         </span><span class="self">self</span>.max_backlog = max_backlog;
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(rv))
     }
@@ -2908,14 +2909,14 @@
 
         <span class="kw">let </span>child = <span class="self">self</span>.remove_child(child_key).unwrap();
 
-        <span class="comment">// if the child is in an acceptable state, it&#39;s wrapped in an `AcceptedTcpState` and
+        <span class="comment">// if the child is in an acceptable state, it's wrapped in an `AcceptedTcpState` and
         // returned to the caller
         </span><span class="kw">let </span>accepted_state = <span class="kw">match </span>child.try_into() {
             <span class="prelude-val">Ok</span>(x) =&gt; x,
             <span class="prelude-val">Err</span>(child) =&gt; {
-                <span class="comment">// the child is in a state that we can&#39;t return to the caller, so we messed up
+                <span class="comment">// the child is in a state that we can't return to the caller, so we messed up
                 // somewhere earlier
-                </span><span class="macro">panic!</span>(<span class="string">&quot;Unexpected child TCP state in accept queue: {:?}&quot;</span>, child);
+                </span><span class="macro">panic!</span>(<span class="string">"Unexpected child TCP state in accept queue: {:?}"</span>, child);
             }
         };
 
@@ -2941,16 +2942,16 @@
         // man page say that the backlog only applies to the accept queue, but other blogs[3,4] and
         // stack overflow[5] say that it applies to both queues.
         //
-        // The truth is probably more nuanced, and Linux technically doesn&#39;t have a &quot;syn queue&quot;, but
-        // this should be good enough for us. We&#39;ll apply the backlog as a limit to both queues
-        // (each queue can hold `backlog` entries). In our case, the &quot;syn queue&quot; length is
+        // The truth is probably more nuanced, and Linux technically doesn't have a "syn queue", but
+        // this should be good enough for us. We'll apply the backlog as a limit to both queues
+        // (each queue can hold `backlog` entries). In our case, the "syn queue" length is
         // `children.len() - accept_queue.len()`.
         //
         // If the accept queue is full, the application is slow at accept()ing new connections. As a
         // push-back mechanism drop all incoming SYN packets, and incoming ACK packets that are
-        // intended for a child in the &quot;syn-received&quot; state (since they would then get added to the
+        // intended for a child in the "syn-received" state (since they would then get added to the
         // accept queue, but the accept queue is full). If the syn queue is full, drop all incoming
-        // SYN packets (we don&#39;t support SYN cookies). This seems to be along the lines of what
+        // SYN packets (we don't support SYN cookies). This seems to be along the lines of what
         // Linux does.[4]
         //
         // [1]: https://veithen.io/2014/01/01/how-tcp-backlog-works-in-linux.html
@@ -2975,9 +2976,9 @@
 
         <span class="kw">let </span>conn_addrs = RemoteLocalPair::new(header.src(), header.dst());
 
-        <span class="comment">// forward the packet to a child state if it&#39;s from a known src address
+        <span class="comment">// forward the packet to a child state if it's from a known src address
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(child_key) = <span class="self">self</span>.conn_map.get(<span class="kw-2">&amp;</span>conn_addrs) {
-            <span class="comment">// if in the &quot;syn-received&quot; state, is an ACK packet, and the accept queue is full, drop
+            <span class="comment">// if in the "syn-received" state, is an ACK packet, and the accept queue is full, drop
             // the packet
             </span><span class="kw">if </span><span class="macro">matches!</span>(<span class="self">self</span>.child(<span class="kw-2">*</span>child_key), <span class="prelude-val">Some</span>(TcpStateEnum::SynReceived(<span class="kw">_</span>)))
                 &amp;&amp; header.flags.contains(TcpFlags::ACK)
@@ -2999,12 +3000,12 @@
 
         // drop non-SYN packets
         </span><span class="kw">if </span>!header.flags.contains(TcpFlags::SYN) {
-            <span class="comment">// it&#39;s either for an old child that no longer exists, or is for the listener and
-            // doesn&#39;t have the SYN flag for some reason
+            <span class="comment">// it's either for an old child that no longer exists, or is for the listener and
+            // doesn't have the SYN flag for some reason
             </span><span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>));
         }
 
-        <span class="comment">// we received a SYN packet, so register a new child in the &quot;syn-received&quot; state
+        <span class="comment">// we received a SYN packet, so register a new child in the "syn-received" state
         </span><span class="self">self</span>.register_child(header, payload);
 
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(<span class="number">0</span>))
@@ -3025,7 +3026,7 @@
                 </span>.with_child(child_key, |state| state.pop_packet())
                 .unwrap();
 
-            <span class="comment">// if the child was in the list, then we&#39;ll assume it must have a packet to send
+            <span class="comment">// if the child was in the list, then we'll assume it must have a packet to send
             </span><span class="kw">let </span>(header, payload) = rv.unwrap();
 
             <span class="comment">// might as well check this
@@ -3068,7 +3069,7 @@
     <span class="kw">fn </span>new(common: Common&lt;X&gt;, connection: Connection&lt;X::Instant&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>state = SynSentState { common, connection };
 
-        <span class="comment">// if still in the &quot;syn-sent&quot; state after 60 seconds, close it
+        <span class="comment">// if still in the "syn-sent" state after 60 seconds, close it
         </span><span class="kw">let </span>timeout = state.common.current_time() + X::Duration::from_secs(<span class="number">60</span>);
         state.common.register_timer(timeout, |state| {
             <span class="kw">if let </span>TcpStateEnum::SynSent(<span class="kw-2">mut </span>state) = state {
@@ -3088,7 +3089,7 @@
 
 <span class="kw">impl</span>&lt;X: Dependencies&gt; TcpStateTrait&lt;X&gt; <span class="kw">for </span>SynSentState&lt;X&gt; {
     <span class="kw">fn </span>close(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), CloseError&gt;) {
-        <span class="comment">// we haven&#39;t received a SYN yet, so we can&#39;t have received data and don&#39;t
+        <span class="comment">// we haven't received a SYN yet, so we can't have received data and don't
         // need to send an RST
         </span><span class="macro">debug_assert!</span>(!<span class="self">self</span>.connection.recv_buf_has_data());
 
@@ -3100,7 +3101,7 @@
     }
 
     <span class="kw">fn </span>rst_close(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), RstCloseError&gt;) {
-        <span class="comment">// we haven&#39;t received a SYN yet, so we can&#39;t have received data and don&#39;t
+        <span class="comment">// we haven't received a SYN yet, so we can't have received data and don't
         // need to send an RST
         </span><span class="macro">debug_assert!</span>(!<span class="self">self</span>.connection.recv_buf_has_data());
 
@@ -3117,7 +3118,7 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we haven&#39;t received a SYN yet, so we can&#39;t have received data and don&#39;t
+            <span class="comment">// we haven't received a SYN yet, so we can't have received data and don't
             // need to send an RST
             </span><span class="macro">debug_assert!</span>(!<span class="self">self</span>.connection.recv_buf_has_data());
 
@@ -3173,13 +3174,13 @@
             <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received SYN and ACK (active open), move to the &quot;established&quot; state
+        <span class="comment">// if received SYN and ACK (active open), move to the "established" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_syn() &amp;&amp; <span class="self">self</span>.connection.syn_was_acked() {
             <span class="kw">let </span>new_state = EstablishedState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received SYN and no ACK (simultaneous open), move to the &quot;syn-received&quot; state
+        <span class="comment">// if received SYN and no ACK (simultaneous open), move to the "syn-received" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_syn() {
             <span class="kw">let </span>new_state = SynReceivedState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
@@ -3227,7 +3228,7 @@
     <span class="kw">fn </span>new(common: Common&lt;X&gt;, connection: Connection&lt;X::Instant&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>state = SynReceivedState { common, connection };
 
-        <span class="comment">// if still in the &quot;syn-received&quot; state after 60 seconds, close it with a RST
+        <span class="comment">// if still in the "syn-received" state after 60 seconds, close it with a RST
         </span><span class="kw">let </span>timeout = state.common.current_time() + X::Duration::from_secs(<span class="number">60</span>);
         state.common.register_timer(timeout, |state| {
             <span class="kw">if let </span>TcpStateEnum::SynReceived(<span class="kw-2">mut </span>state) = state {
@@ -3334,7 +3335,7 @@
             <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received ACK, move to the &quot;established&quot; state
+        <span class="comment">// if received ACK, move to the "established" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.syn_was_acked() {
             <span class="kw">let </span>new_state = EstablishedState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
@@ -3473,7 +3474,7 @@
             <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received FIN, move to the &quot;close-wait&quot; state
+        <span class="comment">// if received FIN, move to the "close-wait" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() {
             <span class="kw">let </span>new_state = CloseWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
@@ -3538,7 +3539,7 @@
             <span class="comment">// if the connection receives any more data, it should send an RST
             </span><span class="self">self</span>.connection.send_rst_if_recv_payload();
 
-            <span class="comment">// we&#39;re already in the process of closing (active close)
+            <span class="comment">// we're already in the process of closing (active close)
             </span><span class="self">self</span>.into()
         };
 
@@ -3551,7 +3552,7 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we&#39;re already in the process of closing (active close)
+            <span class="comment">// we're already in the process of closing (active close)
         </span>}
 
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
@@ -3604,19 +3605,19 @@
             <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received FIN and ACK, move to the &quot;time-wait&quot; state
+        <span class="comment">// if received FIN and ACK, move to the "time-wait" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() &amp;&amp; <span class="self">self</span>.connection.fin_was_acked() {
             <span class="kw">let </span>new_state = TimeWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received FIN, move to the &quot;closing&quot; state
+        <span class="comment">// if received FIN, move to the "closing" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() {
             <span class="kw">let </span>new_state = ClosingState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received ACK, move to the &quot;fin-wait-two&quot; state
+        <span class="comment">// if received ACK, move to the "fin-wait-two" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.fin_was_acked() {
             <span class="kw">let </span>new_state = FinWaitTwoState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
@@ -3646,7 +3647,7 @@
             poll_state.insert(PollState::READABLE);
         }
 
-        <span class="comment">// we&#39;ve sent a FIN
+        <span class="comment">// we've sent a FIN
         </span>poll_state.insert(PollState::SEND_CLOSED);
         <span class="macro">assert!</span>(!poll_state.contains(PollState::WRITABLE));
 
@@ -3681,7 +3682,7 @@
             <span class="comment">// if the connection receives any more data, it should send an RST
             </span><span class="self">self</span>.connection.send_rst_if_recv_payload();
 
-            <span class="comment">// we&#39;re already in the process of closing (active close)
+            <span class="comment">// we're already in the process of closing (active close)
             </span><span class="self">self</span>.into()
         };
 
@@ -3694,7 +3695,7 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we&#39;re already in the process of closing (active close)
+            <span class="comment">// we're already in the process of closing (active close)
         </span>}
 
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
@@ -3747,7 +3748,7 @@
             <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received FIN, move to the &quot;time-wait&quot; state
+        <span class="comment">// if received FIN, move to the "time-wait" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.received_fin() {
             <span class="kw">let </span>new_state = TimeWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
@@ -3777,7 +3778,7 @@
             poll_state.insert(PollState::READABLE);
         }
 
-        <span class="comment">// we&#39;ve sent a FIN
+        <span class="comment">// we've sent a FIN
         </span>poll_state.insert(PollState::SEND_CLOSED);
         <span class="macro">assert!</span>(!poll_state.contains(PollState::WRITABLE));
 
@@ -3812,7 +3813,7 @@
             <span class="comment">// if the connection receives any more data, it should send an RST
             </span><span class="self">self</span>.connection.send_rst_if_recv_payload();
 
-            <span class="comment">// we&#39;re already in the process of closing (active close)
+            <span class="comment">// we're already in the process of closing (active close)
             </span><span class="self">self</span>.into()
         };
 
@@ -3825,7 +3826,7 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we&#39;re already in the process of closing (active close)
+            <span class="comment">// we're already in the process of closing (active close)
         </span>}
 
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
@@ -3850,7 +3851,7 @@
     ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;usize, RecvError&gt;) {
         <span class="kw">let </span>rv = <span class="self">self</span>.connection.recv(writer, len);
 
-        <span class="comment">// the peer won&#39;t send any more data (it sent a FIN), so if there&#39;s no more data in the
+        <span class="comment">// the peer won't send any more data (it sent a FIN), so if there's no more data in the
         // buffer, inform the socket
         </span><span class="kw">if </span><span class="macro">matches!</span>(rv, <span class="prelude-val">Err</span>(RecvError::Empty)) {
             <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(RecvError::StreamClosed));
@@ -3885,7 +3886,7 @@
             <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received ACK, move to the &quot;time-wait&quot; state
+        <span class="comment">// if received ACK, move to the "time-wait" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.fin_was_acked() {
             <span class="kw">let </span>new_state = TimeWaitState::new(<span class="self">self</span>.common, <span class="self">self</span>.connection);
             <span class="kw">return </span>(new_state.into(), <span class="prelude-val">Ok</span>(pushed_len));
@@ -3913,13 +3914,13 @@
     <span class="kw">fn </span>poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PollState {
         <span class="kw">let </span><span class="kw-2">mut </span>poll_state = PollState::CONNECTED;
 
-        <span class="comment">// we&#39;ve received a FIN
+        <span class="comment">// we've received a FIN
         </span>poll_state.insert(PollState::RECV_CLOSED);
         <span class="kw">if </span><span class="self">self</span>.connection.recv_buf_has_data() {
             poll_state.insert(PollState::READABLE);
         }
 
-        <span class="comment">// we&#39;ve sent a FIN
+        <span class="comment">// we've sent a FIN
         </span>poll_state.insert(PollState::SEND_CLOSED);
         <span class="macro">assert!</span>(!poll_state.contains(PollState::WRITABLE));
 
@@ -3946,7 +3947,7 @@
         <span class="comment">// taken from /proc/sys/net/ipv4/tcp_fin_timeout
         </span><span class="kw">let </span>timeout = X::Duration::from_secs(<span class="number">60</span>);
 
-        <span class="comment">// if still in the &quot;time-wait&quot; state after the timeout, close it
+        <span class="comment">// if still in the "time-wait" state after the timeout, close it
         </span><span class="kw">let </span>timeout = state.common.current_time() + timeout;
         state.common.register_timer(timeout, |state| {
             <span class="kw">if let </span>TcpStateEnum::TimeWait(state) = state {
@@ -3965,14 +3966,14 @@
 
 <span class="kw">impl</span>&lt;X: Dependencies&gt; TcpStateTrait&lt;X&gt; <span class="kw">for </span>TimeWaitState&lt;X&gt; {
     <span class="kw">fn </span>close(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), CloseError&gt;) {
-        <span class="comment">// Linux does not seem to send a RST packet if a &quot;time-wait&quot; socket is closed while having
-        // data in the receive buffer, probably because the peer should be in the &quot;closed&quot; state by
+        <span class="comment">// Linux does not seem to send a RST packet if a "time-wait" socket is closed while having
+        // data in the receive buffer, probably because the peer should be in the "closed" state by
         // this point
 
         // if the connection receives any more data, it should send an RST
         </span><span class="self">self</span>.connection.send_rst_if_recv_payload();
 
-        <span class="comment">// we&#39;re already in the process of closing (active close)
+        <span class="comment">// we're already in the process of closing (active close)
         </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
     }
 
@@ -3982,7 +3983,7 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we&#39;re already in the process of closing (active close)
+            <span class="comment">// we're already in the process of closing (active close)
         </span>}
 
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
@@ -4007,7 +4008,7 @@
     ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;usize, RecvError&gt;) {
         <span class="kw">let </span>rv = <span class="self">self</span>.connection.recv(writer, len);
 
-        <span class="comment">// the peer won&#39;t send any more data (it sent a FIN), so if there&#39;s no more data in the
+        <span class="comment">// the peer won't send any more data (it sent a FIN), so if there's no more data in the
         // buffer, inform the socket
         </span><span class="kw">if </span><span class="macro">matches!</span>(rv, <span class="prelude-val">Err</span>(RecvError::Empty)) {
             <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(RecvError::StreamClosed));
@@ -4063,13 +4064,13 @@
     <span class="kw">fn </span>poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PollState {
         <span class="kw">let </span><span class="kw-2">mut </span>poll_state = PollState::CONNECTED;
 
-        <span class="comment">// we&#39;ve received a FIN
+        <span class="comment">// we've received a FIN
         </span>poll_state.insert(PollState::RECV_CLOSED);
         <span class="kw">if </span><span class="self">self</span>.connection.recv_buf_has_data() {
             poll_state.insert(PollState::READABLE);
         }
 
-        <span class="comment">// we&#39;ve sent a FIN
+        <span class="comment">// we've sent a FIN
         </span>poll_state.insert(PollState::SEND_CLOSED);
         <span class="macro">assert!</span>(!poll_state.contains(PollState::WRITABLE));
 
@@ -4158,7 +4159,7 @@
     ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;usize, RecvError&gt;) {
         <span class="kw">let </span>rv = <span class="self">self</span>.connection.recv(writer, len);
 
-        <span class="comment">// the peer won&#39;t send any more data (it sent a FIN), so if there&#39;s no more data in the
+        <span class="comment">// the peer won't send any more data (it sent a FIN), so if there's no more data in the
         // buffer, inform the socket
         </span><span class="kw">if </span><span class="macro">matches!</span>(rv, <span class="prelude-val">Err</span>(RecvError::Empty)) {
             <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(RecvError::StreamClosed));
@@ -4217,7 +4218,7 @@
             poll_state.insert(PollState::WRITABLE);
         }
 
-        <span class="comment">// we&#39;ve received a FIN
+        <span class="comment">// we've received a FIN
         </span>poll_state.insert(PollState::RECV_CLOSED);
         <span class="kw">if </span><span class="self">self</span>.connection.recv_buf_has_data() {
             poll_state.insert(PollState::READABLE);
@@ -4254,7 +4255,7 @@
             <span class="comment">// if the connection receives any more data, it should send an RST
             </span><span class="self">self</span>.connection.send_rst_if_recv_payload();
 
-            <span class="comment">// we&#39;re already in the process of closing (passive close)
+            <span class="comment">// we're already in the process of closing (passive close)
             </span><span class="self">self</span>.into()
         };
 
@@ -4267,7 +4268,7 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we&#39;re already in the process of closing (passive close)
+            <span class="comment">// we're already in the process of closing (passive close)
         </span>}
 
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
@@ -4292,7 +4293,7 @@
     ) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;usize, RecvError&gt;) {
         <span class="kw">let </span>rv = <span class="self">self</span>.connection.recv(writer, len);
 
-        <span class="comment">// the peer won&#39;t send any more data (it sent a FIN), so if there&#39;s no more data in the
+        <span class="comment">// the peer won't send any more data (it sent a FIN), so if there's no more data in the
         // buffer, inform the socket
         </span><span class="kw">if </span><span class="macro">matches!</span>(rv, <span class="prelude-val">Err</span>(RecvError::Empty)) {
             <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(RecvError::StreamClosed));
@@ -4327,7 +4328,7 @@
             <span class="kw">return </span>(new_state, <span class="prelude-val">Ok</span>(pushed_len));
         }
 
-        <span class="comment">// if received ACK, move to the &quot;closed&quot; state
+        <span class="comment">// if received ACK, move to the "closed" state
         </span><span class="kw">if </span><span class="self">self</span>.connection.fin_was_acked() {
             <span class="kw">let </span>recv_buffer = <span class="self">self</span>.connection.into_recv_buffer();
             <span class="kw">let </span>new_state =
@@ -4355,13 +4356,13 @@
     <span class="kw">fn </span>poll(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PollState {
         <span class="kw">let </span><span class="kw-2">mut </span>poll_state = PollState::CONNECTED;
 
-        <span class="comment">// we&#39;ve received a FIN
+        <span class="comment">// we've received a FIN
         </span>poll_state.insert(PollState::RECV_CLOSED);
         <span class="kw">if </span><span class="self">self</span>.connection.recv_buf_has_data() {
             poll_state.insert(PollState::READABLE);
         }
 
-        <span class="comment">// we&#39;ve sent a FIN
+        <span class="comment">// we've sent a FIN
         </span>poll_state.insert(PollState::SEND_CLOSED);
         <span class="macro">assert!</span>(!poll_state.contains(PollState::WRITABLE));
 
@@ -4397,7 +4398,7 @@
 
 <span class="kw">impl</span>&lt;X: Dependencies&gt; TcpStateTrait&lt;X&gt; <span class="kw">for </span>RstState&lt;X&gt; {
     <span class="kw">fn </span>close(<span class="self">self</span>) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), CloseError&gt;) {
-        <span class="comment">// we&#39;re already in the process of closing; do nothing
+        <span class="comment">// we're already in the process of closing; do nothing
         </span>(<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
     }
 
@@ -4407,11 +4408,11 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Read || how == Shutdown::Both {
-            <span class="comment">// we&#39;ve been reset, so nothing to do
+            <span class="comment">// we've been reset, so nothing to do
         </span>}
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we&#39;re already in the process of closing; do nothing
+            <span class="comment">// we're already in the process of closing; do nothing
         </span>}
 
         <span class="comment">// TODO: should we return an error or do nothing?
@@ -4462,11 +4463,11 @@
         TcpStateEnum&lt;X&gt;,
         <span class="prelude-ty">Result</span>&lt;(TcpHeader, Payload), PopPacketError&gt;,
     ) {
-        <span class="comment">// if we&#39;re in this state we must have a packet queued
+        <span class="comment">// if we're in this state we must have a packet queued
         </span><span class="kw">let </span>header = <span class="self">self</span>.send_buffer.pop_front().unwrap();
         <span class="kw">let </span>packet = (header, Payload::default());
 
-        <span class="comment">// we&#39;re only supposed to send RST packets in this state
+        <span class="comment">// we're only supposed to send RST packets in this state
         </span><span class="macro">assert!</span>(packet.<span class="number">0</span>.flags.contains(TcpFlags::RST));
 
         <span class="comment">// if we have no more packets to send
@@ -4501,7 +4502,7 @@
     }
 
     <span class="kw">fn </span>wants_to_send(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="comment">// if we&#39;re in this state we must have a packet queued
+        <span class="comment">// if we're in this state we must have a packet queued
         </span><span class="macro">assert!</span>(!<span class="self">self</span>.send_buffer.is_empty());
         <span class="bool-val">true
     </span>}
@@ -4539,11 +4540,11 @@
         }
 
         <span class="kw">if </span>how == Shutdown::Read || how == Shutdown::Both {
-            <span class="comment">// we&#39;ve been reset, so nothing to do
+            <span class="comment">// we've been reset, so nothing to do
         </span>}
 
         <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
-            <span class="comment">// we&#39;re already in the process of closing; do nothing
+            <span class="comment">// we're already in the process of closing; do nothing
         </span>}
 
         <span class="comment">// TODO: should we return an error or do nothing?
@@ -4635,7 +4636,7 @@
     <span class="kw">let </span>new_state = connection_was_reset(common, connection);
 
     <span class="kw">let </span>TcpStateEnum::Rst(new_state) = new_state <span class="kw">else </span>{
-        <span class="macro">panic!</span>(<span class="string">&quot;We called `send_rst()` above but aren&#39;t now in the \&quot;rst\&quot; state: {new_state:?}&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">"We called `send_rst()` above but aren't now in the \"rst\" state: {new_state:?}"</span>);
     };
 
     new_state
@@ -4652,7 +4653,7 @@
 
     <span class="kw">let </span>now = common.current_time();
 
-    <span class="comment">// check if there&#39;s an RST packet to send
+    <span class="comment">// check if there's an RST packet to send
     </span><span class="kw">if let </span><span class="prelude-val">Ok</span>((header, payload)) = connection.pop_packet(now) {
         <span class="macro">assert!</span>(payload.is_empty());
         <span class="macro">debug_assert!</span>(connection.pop_packet(now).is_err());

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/process.rs`."><title>process.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/process.rs`."><title>process.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2296,7 +2297,7 @@
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::sync::atomic::Ordering;
 <span class="kw">use </span>std::sync::Arc;
-<span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>linux_api::errno::Errno;
@@ -2338,7 +2339,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::managed_thread::ManagedThread;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::formatter::FmtOptions;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
-<span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::utility::perf_timer::PerfTimer;
 <span class="kw">use </span><span class="kw">crate</span>::utility::{<span class="self">self</span>, debug_assert_cloexec};
 
@@ -2347,7 +2348,7 @@
 </span><span class="kw">pub struct </span>ProcessId(u32);
 
 <span class="kw">impl </span>ProcessId {
-    <span class="comment">// The first Process to run after boot is the &quot;init&quot; process, and has pid=1.
+    <span class="comment">// The first Process to run after boot is the "init" process, and has pid=1.
     // In Shadow simulations, this roughly corresponds to Shadow itself. e.g.
     // processes spawned by Shadow itself have a parent pid of 1.
     </span><span class="kw">pub const </span>INIT: <span class="self">Self </span>= ProcessId(<span class="number">1</span>);
@@ -2361,7 +2362,7 @@
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>ProcessId {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
@@ -2369,7 +2370,7 @@
     <span class="kw">type </span>Error = TryFromIntError;
 
     <span class="kw">fn </span>try_from(val: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        <span class="comment">// we don&#39;t actually want the value as a `pid_t`, we just want to make sure it can be
+        <span class="comment">// we don't actually want the value as a `pid_t`, we just want to make sure it can be
         // converted successfully
         </span><span class="kw">let _ </span>= libc::pid_t::try_from(val)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(ProcessId(val))
@@ -2406,7 +2407,7 @@
 </span><span class="kw">pub enum </span>ExitStatus {
     Normal(i32),
     Signaled(Signal),
-    <span class="doccomment">/// The process was killed by Shadow rather than exiting &quot;naturally&quot; as part
+    <span class="doccomment">/// The process was killed by Shadow rather than exiting "naturally" as part
     /// of the simulation. Currently this only happens when the process is still
     /// running when the simulation stop_time is reached.
     ///
@@ -2444,10 +2445,10 @@
     <span class="comment">// unique id of the program that this process should run
     </span>name: CString,
 
-    <span class="comment">// the name of the executable as provided in shadow&#39;s config, for logging purposes
+    <span class="comment">// the name of the executable as provided in shadow's config, for logging purposes
     </span>plugin_name: CString,
 
-    <span class="comment">// absolute path to the process&#39;s working directory.
+    <span class="comment">// absolute path to the process's working directory.
     // Currently we enforce that this is in sync with the native working directory
     // by disallowing `chdir`.
     // See https://github.com/shadow/shadow/issues/2960
@@ -2460,23 +2461,23 @@
     }
 
     <span class="kw">fn </span>physical_address(<span class="kw-2">&amp;</span><span class="self">self</span>, vptr: ForeignPtr&lt;()&gt;) -&gt; ManagedPhysicalMemoryAddr {
-        <span class="comment">// We currently don&#39;t keep a true system-wide virtual &lt;-&gt; physical address
+        <span class="comment">// We currently don't keep a true system-wide virtual &lt;-&gt; physical address
         // mapping. Instead we simply assume that no shadow processes map the same
         // underlying physical memory, and that therefore (pid, virtual address)
         // uniquely defines a physical address.
         //
         // If we ever want to support futexes in memory shared between processes,
-        // we&#39;ll need to change this.  The most foolproof way to do so is probably
+        // we'll need to change this.  The most foolproof way to do so is probably
         // to change ManagedPhysicalMemoryAddr to be a bigger struct that identifies where
         // the mapped region came from (e.g. what file), and the offset into that
-        // region. Such &quot;fat&quot; physical pointers might make memory management a
+        // region. Such "fat" physical pointers might make memory management a
         // little more cumbersome though, e.g. when using them as keys in the futex
         // table.
         //
         // Alternatively we could hash the region+offset to a 64-bit value, but
-        // then we&#39;d need to deal with potential collisions. On average we&#39;d expect
+        // then we'd need to deal with potential collisions. On average we'd expect
         // a collision after 2**32 physical addresses; i.e. they *probably*
-        // wouldn&#39;t happen in practice for realistic simulations.
+        // wouldn't happen in practice for realistic simulations.
 
         // Linux uses the bottom 48-bits for user-space virtual addresses, giving
         // us 16 bits for the pid.
@@ -2511,21 +2512,21 @@
 </span><span class="kw">pub struct </span>RunnableProcess {
     common: Common,
 
-    <span class="comment">// Expected end state, if any. We&#39;ll report an error if this is present and
-    // doesn&#39;t match the actual exit status.
+    <span class="comment">// Expected end state, if any. We'll report an error if this is present and
+    // doesn't match the actual exit status.
     //
     // This will be None e.g. for processes created via `fork` instead of
-    // spawned directly from Shadow&#39;s config file. In those cases it&#39;s the
-    // parent&#39;s responsibility to reap and interpret the exit status.
+    // spawned directly from Shadow's config file. In those cases it's the
+    // parent's responsibility to reap and interpret the exit status.
     </span>expected_final_state: <span class="prelude-ty">Option</span>&lt;ProcessFinalState&gt;,
 
     <span class="comment">// Shared memory allocation for shared state with shim.
-    </span>shim_shared_mem_block: ShMemBlock&lt;<span class="lifetime">&#39;static</span>, ProcessShmem&gt;,
+    </span>shim_shared_mem_block: ShMemBlock&lt;<span class="lifetime">'static</span>, ProcessShmem&gt;,
 
     <span class="comment">// Shared with forked Processes
     </span>strace_logging: <span class="prelude-ty">Option</span>&lt;Arc&lt;StraceLogging&gt;&gt;,
 
-    <span class="comment">// The shim&#39;s log file. This gets dup&#39;d into the ManagedProcess
+    <span class="comment">// The shim's log file. This gets dup'd into the ManagedProcess
     // where the shim can write to it directly. We persist it to handle the case
     // where we need to recreatea a ManagedProcess and have it continue writing
     // to the same file.
@@ -2533,16 +2534,16 @@
     // Shared with forked Processes
     </span>shimlog_file: Arc&lt;std::fs::File&gt;,
 
-    <span class="comment">// &quot;dumpable&quot; state, as manipulated via the prctl operations PR_SET_DUMPABLE
+    <span class="comment">// "dumpable" state, as manipulated via the prctl operations PR_SET_DUMPABLE
     // and PR_GET_DUMPABLE.
     </span>dumpable: Cell&lt;SuidDump&gt;,
 
     native_pid: Pid,
 
     <span class="comment">// timer that tracks the amount of CPU time we spend on plugin execution and processing
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
     </span>cpu_delay_timer: RefCell&lt;PerfTimer&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
     </span>total_run_time: Cell&lt;Duration&gt;,
 
     itimer_real: RefCell&lt;Timer&gt;,
@@ -2555,7 +2556,7 @@
 
     <span class="comment">// References to `Self::memory_manager` cached on behalf of C code using legacy
     // C memory access APIs.
-    // TODO: Remove these when we&#39;ve migrated Shadow off of the APIs that need
+    // TODO: Remove these when we've migrated Shadow off of the APIs that need
     // them (probably by migrating all the calling code to Rust).
     //
     // SAFETY: Must be before memory_manager for drop order.
@@ -2578,7 +2579,7 @@
 <span class="kw">impl </span>RunnableProcess {
     <span class="doccomment">/// Spawn a `ManagedThread` corresponding to the given `exec` syscall
     /// parameters.  Intended for use by the `exec` syscall handlers. Whether it
-    /// succeeds or fails, does *not* mutate `self`, though `self`&#39;s strace and
+    /// succeeds or fails, does *not* mutate `self`, though `self`'s strace and
     /// shim log files will be passed into the new `ManagedThread`.
     ///
     /// In case the native `exec` syscall fails, the corresponding error is returned.
@@ -2664,12 +2665,12 @@
     }
 
     <span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>memory_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = MemoryManager&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>memory_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = MemoryManager&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.memory_manager.borrow()
     }
 
     <span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>memory_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = MemoryManager&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>memory_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = MemoryManager&gt; + <span class="lifetime">'_ </span>{
         <span class="self">self</span>.memory_manager.borrow_mut()
     }
 
@@ -2696,7 +2697,7 @@
     </span><span class="kw">fn </span>first_live_thread(<span class="kw-2">&amp;</span><span class="self">self</span>, root: <span class="kw-2">&amp;</span>Root) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt;&gt; {
         Ref::filter_map(<span class="self">self</span>.threads.borrow(), |threads| {
             threads.values().next().map(|thread| {
-                <span class="comment">// There shouldn&#39;t be any non-running threads in the table.
+                <span class="comment">// There shouldn't be any non-running threads in the table.
                 </span><span class="macro">assert!</span>(thread.borrow(root).is_running());
                 thread
             })
@@ -2710,7 +2711,7 @@
     </span><span class="kw">pub fn </span>first_live_thread_borrow(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         root: <span class="kw-2">&amp;</span>Root,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">&#39;_</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.first_live_thread(root)
     }
 
@@ -2723,14 +2724,14 @@
     </span><span class="kw">pub fn </span>thread_borrow(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         virtual_tid: ThreadId,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">&#39;_</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.thread(virtual_tid)
     }
 
     <span class="comment">// Disposes of `self`, returning the internal `Common` for reuse.
     // Used internally when changing states.
     </span><span class="kw">fn </span>into_common(<span class="self">self</span>) -&gt; Common {
-        <span class="comment">// There shouldn&#39;t be any outstanding unsafe borrows when changing
+        <span class="comment">// There shouldn't be any outstanding unsafe borrows when changing
         // states, since that would indicate C code might still have a pointer
         // to memory.
         </span><span class="macro">assert!</span>(<span class="self">self</span>.unsafe_borrow_mut.take().is_none());
@@ -2741,14 +2742,14 @@
 
     <span class="doccomment">/// Starts the CPU delay timer.
     /// Panics if the timer is already running.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
     </span><span class="kw">pub fn </span>start_cpu_delay_timer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.cpu_delay_timer.borrow_mut().start()
     }
 
     <span class="doccomment">/// Stop the timer and return the most recent (not cumulative) duration.
     /// Panics if the timer was not already running.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
     </span><span class="kw">pub fn </span>stop_cpu_delay_timer(<span class="kw-2">&amp;</span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host) -&gt; Duration {
         <span class="kw">let </span><span class="kw-2">mut </span>timer = <span class="self">self</span>.cpu_delay_timer.borrow_mut();
         timer.stop();
@@ -2782,12 +2783,12 @@
                 }
             }
             <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>cond) = thread.syscall_condition_mut() <span class="kw">else </span>{
-                <span class="comment">// Defensively handle this gracefully, but it probably shouldn&#39;t happen.
+                <span class="comment">// Defensively handle this gracefully, but it probably shouldn't happen.
                 // The only thread in the process not blocked on a syscall should be
                 // the current-running thread (if any), but the caller should have
                 // delivered the signal synchronously instead of using this function
                 // in that case.
-                </span><span class="macro">warn!</span>(<span class="string">&quot;thread {:?} has no syscall_condition. How?&quot;</span>, thread.id());
+                </span><span class="macro">warn!</span>(<span class="string">"thread {:?} has no syscall_condition. How?"</span>, thread.id());
                 <span class="kw">continue</span>;
             };
             cond.wakeup_for_signal(host, signal);
@@ -2800,14 +2801,14 @@
     /// handler), and `None` otherwise (e.g. when called from a timer expiration event).
     ///
     /// An event will be scheduled to deliver the signal unless `current_thread`
-    /// is set, and belongs to the process `self`, and doesn&#39;t have the signal
+    /// is set, and belongs to the process `self`, and doesn't have the signal
     /// blocked.  In that the signal will be processed synchronously when
     /// returning from the current syscall.
     </span><span class="kw">pub fn </span>signal(<span class="kw-2">&amp;</span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host, current_thread: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Thread&gt;, siginfo_t: <span class="kw-2">&amp;</span>siginfo_t) {
         <span class="kw">let </span>signal = <span class="kw">match </span>siginfo_t.signal() {
             <span class="prelude-val">Ok</span>(s) =&gt; s,
             <span class="prelude-val">Err</span>(SignalFromI32Error(<span class="number">0</span>)) =&gt; <span class="kw">return</span>,
-            <span class="prelude-val">Err</span>(SignalFromI32Error(n)) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Bad signo {n}&quot;</span>),
+            <span class="prelude-val">Err</span>(SignalFromI32Error(n)) =&gt; <span class="macro">panic!</span>(<span class="string">"Bad signo {n}"</span>),
         };
 
         <span class="comment">// Scope for `process_shmem_protected`
@@ -2817,7 +2818,7 @@
                 </span>.shim_shared_mem_block
                 .protected
                 .borrow_mut(<span class="kw-2">&amp;</span>host_shmem.root);
-            <span class="comment">// SAFETY: We don&#39;t try to call any of the function pointers.
+            <span class="comment">// SAFETY: We don't try to call any of the function pointers.
             </span><span class="kw">let </span>action = <span class="kw">unsafe </span>{ process_shmem_protected.signal_action(signal) };
             <span class="kw">match unsafe </span>{ action.handler() } {
                 linux_api::signal::SignalHandler::Handler(<span class="kw">_</span>) =&gt; (),
@@ -2847,7 +2848,7 @@
                 <span class="kw">let </span>threadmem = thread.shmem();
                 <span class="kw">let </span>threadprotmem = threadmem.protected.borrow(<span class="kw-2">&amp;</span>host_shmem.root);
                 <span class="kw">if </span>!threadprotmem.blocked_signals.has(signal) {
-                    <span class="comment">// Target process is this process, and current thread hasn&#39;t blocked
+                    <span class="comment">// Target process is this process, and current thread hasn't blocked
                     // the signal.  It will be delivered to this thread when it resumes.
                     </span><span class="kw">return</span>;
                 }
@@ -2864,8 +2865,8 @@
         <span class="kw">let </span>tid = thread.borrow(host.root()).id();
         <span class="self">self</span>.threads.borrow_mut().insert(tid, thread);
 
-        <span class="comment">// Schedule thread to start. We&#39;re giving the caller&#39;s reference to thread
-        // to the TaskRef here, which is why we don&#39;t increment its ref count to
+        <span class="comment">// Schedule thread to start. We're giving the caller's reference to thread
+        // to the TaskRef here, which is why we don't increment its ref count to
         // create the TaskRef, but do decrement it on cleanup.
         </span><span class="kw">let </span>task = TaskRef::new(<span class="kw">move </span>|host| {
             host.resume(pid, tid);
@@ -2948,9 +2949,9 @@
             strace_logging,
             dumpable: <span class="self">self</span>.dumpable.clone(),
             native_pid,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
             </span>cpu_delay_timer: RefCell::new(PerfTimer::new()),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
             </span>total_run_time: Cell::new(Duration::ZERO),
             itimer_real,
             threads,
@@ -2967,7 +2968,7 @@
     }
 
     <span class="doccomment">/// Shared memory for this process.
-    </span><span class="kw">pub fn </span>shmem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = ShMemBlock&lt;<span class="lifetime">&#39;static</span>, ProcessShmem&gt;&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>shmem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = ShMemBlock&lt;<span class="lifetime">'static</span>, ProcessShmem&gt;&gt; + <span class="lifetime">'_ </span>{
         <span class="kw-2">&amp;</span><span class="self">self</span>.shim_shared_mem_block
     }
 }
@@ -2997,10 +2998,10 @@
     }
 
     <span class="doccomment">/// Process that can reap this zombie process, if any.
-    </span><span class="kw">pub fn </span>reaper&lt;<span class="lifetime">&#39;host</span>&gt;(
+    </span><span class="kw">pub fn </span>reaper&lt;<span class="lifetime">'host</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        host: <span class="kw-2">&amp;</span><span class="lifetime">&#39;host </span>Host,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Process&gt;&gt;&gt; + <span class="lifetime">&#39;host</span>&gt; {
+        host: <span class="kw-2">&amp;</span><span class="lifetime">'host </span>Host,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Process&gt;&gt;&gt; + <span class="lifetime">'host</span>&gt; {
         <span class="kw">let </span>parent_pid = <span class="self">self</span>.common.parent_pid.get();
         <span class="kw">if </span>parent_pid == ProcessId::INIT {
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -3008,23 +3009,23 @@
         <span class="kw">let </span>parentrc = host.process_borrow(parent_pid)<span class="question-mark">?</span>;
 
         <span class="comment">// If the parent has *explicitly* ignored the exit signal, then it
-        // doesn&#39;t reap.
+        // doesn't reap.
         //
         // `waitpid(2)`:
         // &gt; POSIX.1-2001 specifies that if the disposition of SIGCHLD is set to SIG_IGN or the SA_NOCLDWAIT flag is set for SIGCHLD  (see
         // &gt; sigaction(2)),  then  children  that  terminate  do not become zombies and a call to wait() or waitpid() will block until all
         // &gt; children have terminated, and then fail with errno set to ECHILD.  (The original POSIX standard left the behavior of  setting
-        // &gt; SIGCHLD to SIG_IGN unspecified.  Note that even though the default disposition of SIGCHLD is &quot;ignore&quot;, explicitly setting the
+        // &gt; SIGCHLD to SIG_IGN unspecified.  Note that even though the default disposition of SIGCHLD is "ignore", explicitly setting the
         // &gt; disposition to SIG_IGN results in different treatment of zombie process children.)
         //
         // TODO: validate that this applies to whatever signal is configured as the exit
-        // signal, even if it&#39;s not SIGCHLD.
+        // signal, even if it's not SIGCHLD.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(exit_signal) = <span class="self">self</span>.common.exit_signal {
             <span class="kw">let </span>parent = parentrc.borrow(host.root());
             <span class="kw">let </span>parent_shmem = parent.shmem();
             <span class="kw">let </span>host_shmem_lock = host.shim_shmem_lock_borrow().unwrap();
             <span class="kw">let </span>parent_shmem_protected = parent_shmem.protected.borrow(<span class="kw-2">&amp;</span>host_shmem_lock.root);
-            <span class="comment">// SAFETY: We don&#39;t dereference function pointers.
+            <span class="comment">// SAFETY: We don't dereference function pointers.
             </span><span class="kw">let </span>action = <span class="kw">unsafe </span>{ parent_shmem_protected.signal_action(exit_signal) };
             <span class="kw">if </span>action.is_ignore() {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -3036,24 +3037,24 @@
 
     <span class="kw">fn </span>notify_parent_of_exit(<span class="kw-2">&amp;</span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host) {
         <span class="kw">let </span><span class="prelude-val">Some</span>(exit_signal) = <span class="self">self</span>.common.exit_signal <span class="kw">else </span>{
-            <span class="macro">trace!</span>(<span class="string">&quot;Not notifying parent of exit: no signal specified&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"Not notifying parent of exit: no signal specified"</span>);
             <span class="kw">return</span>;
         };
         <span class="kw">let </span>parent_pid = <span class="self">self</span>.common.parent_pid.get();
         <span class="kw">if </span>parent_pid == ProcessId::INIT {
-            <span class="macro">trace!</span>(<span class="string">&quot;Not notifying parent of exit: parent is &#39;init&#39;&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"Not notifying parent of exit: parent is 'init'"</span>);
             <span class="kw">return</span>;
         }
         <span class="kw">let </span><span class="prelude-val">Some</span>(parent_rc) = host.process_borrow(parent_pid) <span class="kw">else </span>{
-            <span class="macro">trace!</span>(<span class="string">&quot;Not notifying parent of exit: parent {parent_pid:?} not found&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"Not notifying parent of exit: parent {parent_pid:?} not found"</span>);
             <span class="kw">return</span>;
         };
         <span class="kw">let </span>parent = parent_rc.borrow(host.root());
         <span class="kw">let </span>siginfo = <span class="self">self</span>.exit_siginfo(exit_signal);
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(parent_runnable) = parent.as_runnable() <span class="kw">else </span>{
-            <span class="macro">trace!</span>(<span class="string">&quot;Not notifying parent of exit: {parent_pid:?} not running&quot;</span>);
-            <span class="macro">debug_panic!</span>(<span class="string">&quot;Non-running parent process shouldn&#39;t be possible.&quot;</span>);
+            <span class="macro">trace!</span>(<span class="string">"Not notifying parent of exit: {parent_pid:?} not running"</span>);
+            <span class="macro">debug_panic!</span>(<span class="string">"Non-running parent process shouldn't be possible."</span>);
             <span class="attr">#[allow(unreachable_code)]
             </span>{
                 <span class="kw">return</span>;
@@ -3164,12 +3165,12 @@
 
 <span class="kw">fn </span>itimer_real_expiration(host: <span class="kw-2">&amp;</span>Host, pid: ProcessId) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(process) = host.process_borrow(pid) <span class="kw">else </span>{
-        <span class="macro">debug!</span>(<span class="string">&quot;Process {:?} no longer exists&quot;</span>, pid);
+        <span class="macro">debug!</span>(<span class="string">"Process {:?} no longer exists"</span>, pid);
         <span class="kw">return</span>;
     };
     <span class="kw">let </span>process = process.borrow(host.root());
     <span class="kw">let </span><span class="prelude-val">Some</span>(runnable) = process.as_runnable() <span class="kw">else </span>{
-        <span class="macro">debug!</span>(<span class="string">&quot;Process {:?} no longer running&quot;</span>, <span class="kw-2">&amp;*</span>process.name());
+        <span class="macro">debug!</span>(<span class="string">"Process {:?} no longer running"</span>, <span class="kw-2">&amp;*</span>process.name());
         <span class="kw">return</span>;
     };
     <span class="kw">let </span>timer = runnable.itimer_real.borrow();
@@ -3202,7 +3203,7 @@
     }
 
     <span class="doccomment">/// Borrows a reference to the internal [`RunnableProcess`] if `self` is runnable.
-    </span><span class="kw">pub fn </span>borrow_as_runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RunnableProcess&gt; + <span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>borrow_as_runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RunnableProcess&gt; + <span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.as_runnable()
     }
 
@@ -3214,12 +3215,12 @@
     }
 
     <span class="doccomment">/// Borrows a reference to the internal [`ZombieProcess`] if `self` is a zombie.
-    </span><span class="kw">pub fn </span>borrow_as_zombie(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = ZombieProcess&gt; + <span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>borrow_as_zombie(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = ZombieProcess&gt; + <span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.as_zombie()
     }
 
     <span class="doccomment">/// Spawn a new process. The process will be runnable via [`Self::resume`]
-    /// once it has been added to the `Host`&#39;s process list.
+    /// once it has been added to the `Host`'s process list.
     </span><span class="kw">pub fn </span>spawn(
         host: <span class="kw-2">&amp;</span>Host,
         plugin_name: CString,
@@ -3230,7 +3231,7 @@
         strace_logging_options: <span class="prelude-ty">Option</span>&lt;FmtOptions&gt;,
         expected_final_state: ProcessFinalState,
     ) -&gt; nix::Result&lt;RootedRc&lt;RootedRefCell&lt;Process&gt;&gt;&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;starting process &#39;{:?}&#39;&quot;</span>, plugin_name);
+        <span class="macro">debug!</span>(<span class="string">"starting process '{:?}'"</span>, plugin_name);
 
         <span class="kw">let </span>main_thread_id = host.get_new_thread_id();
         <span class="kw">let </span>process_id = ProcessId::from(main_thread_id);
@@ -3248,14 +3249,14 @@
         <span class="kw">let </span><span class="kw-2">mut </span>file_basename = PathBuf::new();
         file_basename.push(host.data_dir_path());
         file_basename.push(<span class="macro">format!</span>(
-            <span class="string">&quot;{exe_name}.{id}&quot;</span>,
+            <span class="string">"{exe_name}.{id}"</span>,
             exe_name = plugin_name.to_str().unwrap(),
             id = u32::from(process_id)
         ));
 
         <span class="kw">let </span>strace_logging = strace_logging_options.map(|options| {
             <span class="kw">let </span>file =
-                std::fs::File::create(<span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">&quot;strace&quot;</span>))
+                std::fs::File::create(<span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">"strace"</span>))
                     .unwrap();
             debug_assert_cloexec(<span class="kw-2">&amp;</span>file);
             Arc::new(StraceLogging {
@@ -3278,7 +3279,7 @@
             std::fs::canonicalize(host.data_dir_path()).unwrap(),
         );
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
         </span><span class="kw">let </span>cpu_delay_timer = {
             <span class="kw">let </span><span class="kw-2">mut </span>t = PerfTimer::new();
             t.stop();
@@ -3286,19 +3287,19 @@
         };
 
         <span class="comment">// TODO: measure execution time of creating the main_thread with
-        // cpu_delay_timer? We previously did, but it&#39;s a little complex to do so,
-        // and it shouldn&#39;t matter much.
+        // cpu_delay_timer? We previously did, but it's a little complex to do so,
+        // and it shouldn't matter much.
 
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>descriptor_table = desc_table.borrow_mut(host.root());
             <span class="self">Self</span>::open_stdio_file_helper(
                 <span class="kw-2">&amp;mut </span>descriptor_table,
                 libc::STDIN_FILENO.try_into().unwrap(),
-                <span class="string">&quot;/dev/null&quot;</span>.into(),
+                <span class="string">"/dev/null"</span>.into(),
                 OFlag::O_RDONLY,
             );
 
-            <span class="kw">let </span>name = <span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">&quot;stdout&quot;</span>);
+            <span class="kw">let </span>name = <span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">"stdout"</span>);
             <span class="self">Self</span>::open_stdio_file_helper(
                 <span class="kw-2">&amp;mut </span>descriptor_table,
                 libc::STDOUT_FILENO.try_into().unwrap(),
@@ -3306,7 +3307,7 @@
                 OFlag::O_WRONLY,
             );
 
-            <span class="kw">let </span>name = <span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">&quot;stderr&quot;</span>);
+            <span class="kw">let </span>name = <span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">"stderr"</span>);
             <span class="self">Self</span>::open_stdio_file_helper(
                 <span class="kw-2">&amp;mut </span>descriptor_table,
                 libc::STDERR_FILENO.try_into().unwrap(),
@@ -3316,7 +3317,7 @@
         }
 
         <span class="kw">let </span>shimlog_file = Arc::new(
-            std::fs::File::create(<span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">&quot;shimlog&quot;</span>))
+            std::fs::File::create(<span class="self">Self</span>::static_output_file_name(<span class="kw-2">&amp;</span>file_basename, <span class="string">"shimlog"</span>))
                 .unwrap(),
         );
         debug_assert_cloexec(<span class="kw-2">&amp;</span>shimlog_file);
@@ -3336,7 +3337,7 @@
         <span class="kw">let </span>main_thread =
             Thread::wrap_mthread(host, mthread, desc_table, process_id, main_thread_id).unwrap();
 
-        <span class="macro">debug!</span>(<span class="string">&quot;process &#39;{:?}&#39; started&quot;</span>, plugin_name);
+        <span class="macro">debug!</span>(<span class="string">"process '{:?}' started"</span>, plugin_name);
 
         <span class="kw">if </span>pause_for_debugging {
             <span class="comment">// will block until logger output has been flushed
@@ -3348,17 +3349,17 @@
             // Defensively pre-construct a single string so that `eprintln` is
             // more likely to use a single `write` call, to minimize the chance
             // of more lines being written to stdout in the meantime, and in
-            // case of C code writing to `STDERR` directly without taking Rust&#39;s
+            // case of C code writing to `STDERR` directly without taking Rust's
             // lock.
             </span><span class="kw">let </span>msg = <span class="macro">format!</span>(
-                <span class="string">&quot;\
+                <span class="string">"\
               \n** Pausing with SIGTSTP to enable debugger attachment to managed process\
-              \n** &#39;{plugin_name:?}&#39; (pid {native_pid}).\
+              \n** '{plugin_name:?}' (pid {native_pid}).\
               \n** If running Shadow under Bash, resume Shadow by pressing Ctrl-Z to background\
-              \n** this task, and then typing \&quot;fg\&quot;.\
-              \n** If running GDB, resume Shadow by typing \&quot;signal SIGCONT\&quot;.&quot;
+              \n** this task, and then typing \"fg\".\
+              \n** If running GDB, resume Shadow by typing \"signal SIGCONT\"."
             </span>);
-            <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, msg);
+            <span class="macro">eprintln!</span>(<span class="string">"{}"</span>, msg);
 
             nix::sys::signal::raise(nixsignal::Signal::SIGTSTP).unwrap();
         }
@@ -3399,9 +3400,9 @@
                         unsafe_borrow_mut: RefCell::new(<span class="prelude-val">None</span>),
                         unsafe_borrows: RefCell::new(Vec::new()),
                         threads,
-                        <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+                        <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
                         </span>cpu_delay_timer,
-                        <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+                        <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
                         </span>total_run_time: Cell::new(Duration::ZERO),
                         child_process_event_listeners: Default::default(),
                         shimlog_file,
@@ -3443,13 +3444,13 @@
         <span class="self">self</span>.common().host_id
     }
 
-    <span class="doccomment">/// Get process&#39;s &quot;dumpable&quot; state, as manipulated by the prctl operations `PR_SET_DUMPABLE` and
+    <span class="doccomment">/// Get process's "dumpable" state, as manipulated by the prctl operations `PR_SET_DUMPABLE` and
     /// `PR_GET_DUMPABLE`.
     </span><span class="kw">pub fn </span>dumpable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SuidDump {
         <span class="self">self</span>.as_runnable().unwrap().dumpable.get()
     }
 
-    <span class="doccomment">/// Set process&#39;s &quot;dumpable&quot; state, as manipulated by the prctl operations `PR_SET_DUMPABLE` and
+    <span class="doccomment">/// Set process's "dumpable" state, as manipulated by the prctl operations `PR_SET_DUMPABLE` and
     /// `PR_GET_DUMPABLE`.
     </span><span class="kw">pub fn </span>set_dumpable(<span class="kw-2">&amp;</span><span class="self">self</span>, val: SuidDump) {
         <span class="macro">assert!</span>(val == SuidDump::SUID_DUMP_DISABLE || val == SuidDump::SUID_DUMP_USER);
@@ -3457,13 +3458,13 @@
     }
 
     <span class="doccomment">/// Deprecated wrapper for `RunnableProcess::start_cpu_delay_timer`
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
     </span><span class="kw">pub fn </span>start_cpu_delay_timer(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.as_runnable().unwrap().start_cpu_delay_timer()
     }
 
     <span class="doccomment">/// Deprecated wrapper for `RunnableProcess::stop_cpu_delay_timer`
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
     </span><span class="kw">pub fn </span>stop_cpu_delay_timer(<span class="kw-2">&amp;</span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host) -&gt; Duration {
         <span class="self">self</span>.as_runnable().unwrap().stop_cpu_delay_timer(host)
     }
@@ -3475,19 +3476,19 @@
     <span class="doccomment">/// Resume execution of `tid` (if it exists).
     /// Should only be called from `Host::resume`.
     </span><span class="kw">pub fn </span>resume(<span class="kw-2">&amp;</span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host, tid: ThreadId) {
-        <span class="macro">trace!</span>(<span class="string">&quot;Continuing thread {} in process {}&quot;</span>, tid, <span class="self">self</span>.id());
+        <span class="macro">trace!</span>(<span class="string">"Continuing thread {} in process {}"</span>, tid, <span class="self">self</span>.id());
 
         <span class="kw">let </span>threadrc = {
             <span class="kw">let </span><span class="prelude-val">Some</span>(runnable) = <span class="self">self</span>.as_runnable() <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;Process {} is no longer running&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
+                <span class="macro">debug!</span>(<span class="string">"Process {} is no longer running"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
                 <span class="kw">return</span>;
             };
             <span class="kw">let </span>threads = runnable.threads.borrow();
             <span class="kw">let </span><span class="prelude-val">Some</span>(thread) = threads.get(<span class="kw-2">&amp;</span>tid) <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;Thread {} no longer exists&quot;</span>, tid);
+                <span class="macro">debug!</span>(<span class="string">"Thread {} no longer exists"</span>, tid);
                 <span class="kw">return</span>;
             };
-            <span class="comment">// Clone the thread reference, so that we don&#39;t hold a dynamically
+            <span class="comment">// Clone the thread reference, so that we don't hold a dynamically
             // borrowed reference to the thread list while running the thread.
             </span>thread.clone(host.root())
         };
@@ -3498,14 +3499,14 @@
 
         Worker::set_active_thread(<span class="kw-2">&amp;</span>threadrc);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
         </span><span class="self">self</span>.start_cpu_delay_timer();
 
         Process::set_shared_time(host);
 
         <span class="comment">// Discard any unapplied latency.
         // We currently only want this mechanism to force a yield if the thread itself
-        // never yields; we don&#39;t want unapplied latency to accumulate and force a yield
+        // never yields; we don't want unapplied latency to accumulate and force a yield
         // under normal circumstances.
         </span>host.shim_shmem_lock_borrow_mut()
             .unwrap()
@@ -3514,24 +3515,24 @@
         <span class="kw">let </span>ctx = ProcessContext::new(host, <span class="self">self</span>);
         <span class="kw">let </span>res = thread.resume(<span class="kw-2">&amp;</span>ctx);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
         </span>{
             <span class="kw">let </span>delay = <span class="self">self</span>.stop_cpu_delay_timer(host);
-            <span class="macro">debug!</span>(<span class="string">&quot;process &#39;{}&#39; ran for {:?}&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name(), delay);
+            <span class="macro">debug!</span>(<span class="string">"process '{}' ran for {:?}"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name(), delay);
         }
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;perf_timers&quot;</span>))]
-        </span><span class="macro">debug!</span>(<span class="string">&quot;process &#39;{}&#39; done continuing&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
+        <span class="attr">#[cfg(not(feature = <span class="string">"perf_timers"</span>))]
+        </span><span class="macro">debug!</span>(<span class="string">"process '{}' done continuing"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
 
         <span class="kw">match </span>res {
             <span class="kw">crate</span>::host::thread::ResumeResult::Blocked =&gt; {
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;thread {tid} in process &#39;{}&#39; still running, but blocked&quot;</span>,
+                    <span class="string">"thread {tid} in process '{}' still running, but blocked"</span>,
                     <span class="kw-2">&amp;*</span><span class="self">self</span>.name()
                 );
             }
             <span class="kw">crate</span>::host::thread::ResumeResult::ExitedThread(return_code) =&gt; {
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;thread {tid} in process &#39;{}&#39; exited with code {return_code}&quot;</span>,
+                    <span class="string">"thread {tid} in process '{}' exited with code {return_code}"</span>,
                     <span class="kw-2">&amp;*</span><span class="self">self</span>.name(),
                 );
                 <span class="kw">let </span>(threadrc, last_thread) = {
@@ -3547,7 +3548,7 @@
             }
             <span class="kw">crate</span>::host::thread::ResumeResult::ExitedProcess =&gt; {
                 <span class="macro">debug!</span>(
-                    <span class="string">&quot;Process {} exited while running thread {tid}&quot;</span>,
+                    <span class="string">"Process {} exited while running thread {tid}"</span>,
                     <span class="kw-2">&amp;*</span><span class="self">self</span>.name(),
                 );
                 <span class="self">self</span>.handle_process_exit(host, <span class="bool-val">false</span>);
@@ -3564,25 +3565,25 @@
         <span class="comment">// Scope for `runnable`
         </span>{
             <span class="kw">let </span><span class="prelude-val">Some</span>(runnable) = <span class="self">self</span>.as_runnable() <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;process {} has already stopped&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
+                <span class="macro">debug!</span>(<span class="string">"process {} has already stopped"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
                 <span class="kw">return</span>;
             };
-            <span class="macro">debug!</span>(<span class="string">&quot;terminating process {}&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
+            <span class="macro">debug!</span>(<span class="string">"terminating process {}"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
             </span>runnable.start_cpu_delay_timer();
 
             <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = nixsignal::kill(runnable.native_pid(), nixsignal::Signal::SIGKILL) {
-                <span class="macro">warn!</span>(<span class="string">&quot;kill: {:?}&quot;</span>, err);
+                <span class="macro">warn!</span>(<span class="string">"kill: {:?}"</span>, err);
             }
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
             </span>{
                 <span class="kw">let </span>delay = runnable.stop_cpu_delay_timer(host);
-                <span class="macro">debug!</span>(<span class="string">&quot;process &#39;{}&#39; stopped in {:?}&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name(), delay);
+                <span class="macro">debug!</span>(<span class="string">"process '{}' stopped in {:?}"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name(), delay);
             }
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;perf_timers&quot;</span>))]
-            </span><span class="macro">debug!</span>(<span class="string">&quot;process &#39;{}&#39; stopped&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
+            <span class="attr">#[cfg(not(feature = <span class="string">"perf_timers"</span>))]
+            </span><span class="macro">debug!</span>(<span class="string">"process '{}' stopped"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
         }
 
         <span class="comment">// Mutates `self.state`, so we need to have dropped `runnable`.
@@ -3598,7 +3599,7 @@
             ProcessState::Runnable(r) =&gt; r.signal(host, current_thread, siginfo_t),
             ProcessState::Zombie(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Sending a signal to a zombie process is a no-op.
-                </span><span class="macro">debug!</span>(<span class="string">&quot;Process {} no longer running&quot;</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
+                </span><span class="macro">debug!</span>(<span class="string">"Process {} no longer running"</span>, <span class="kw-2">&amp;*</span><span class="self">self</span>.name());
             }
         }
     }
@@ -3624,7 +3625,7 @@
         };
         <span class="kw">if </span>errorcode != <span class="number">0 </span>{
             <span class="macro">panic!</span>(
-                <span class="string">&quot;Opening {}: {:?}&quot;</span>,
+                <span class="string">"Opening {}: {:?}"</span>,
                 path.to_str().unwrap(),
                 linux_api::errno::Errno::try_from(-errorcode).unwrap()
             );
@@ -3638,7 +3639,7 @@
         <span class="kw">let </span>prev = descriptor_table.register_descriptor_with_fd(desc, fd);
         <span class="macro">assert!</span>(prev.is_none());
         <span class="macro">trace!</span>(
-            <span class="string">&quot;Successfully opened fd {} at {}&quot;</span>,
+            <span class="string">"Successfully opened fd {} at {}"</span>,
             fd,
             path.to_str().unwrap()
         );
@@ -3647,22 +3648,22 @@
     <span class="comment">// Needed during early init, before `Self` is created.
     </span><span class="kw">fn </span>static_output_file_name(file_basename: <span class="kw-2">&amp;</span>Path, extension: <span class="kw-2">&amp;</span>str) -&gt; PathBuf {
         <span class="kw">let </span><span class="kw-2">mut </span>path = file_basename.to_owned().into_os_string();
-        path.push(<span class="string">&quot;.&quot;</span>);
+        path.push(<span class="string">"."</span>);
         path.push(extension);
         path.into()
     }
 
-    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = str&gt; + <span class="lifetime">&#39;_ </span>{
+    <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = str&gt; + <span class="lifetime">'_ </span>{
         Ref::map(<span class="self">self</span>.common(), |c| c.name.to_str().unwrap())
     }
 
-    <span class="kw">pub fn </span>plugin_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = str&gt; + <span class="lifetime">&#39;_ </span>{
+    <span class="kw">pub fn </span>plugin_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = str&gt; + <span class="lifetime">'_ </span>{
         Ref::map(<span class="self">self</span>.common(), |c| c.plugin_name.to_str().unwrap())
     }
 
     <span class="doccomment">/// Deprecated wrapper for `RunnableProcess::memory_borrow_mut`
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>memory_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = MemoryManager&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>memory_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = MemoryManager&gt; + <span class="lifetime">'_ </span>{
         std_util::nested_ref::NestedRefMut::map(<span class="self">self</span>.as_runnable().unwrap(), |runnable| {
             runnable.memory_manager.borrow_mut()
         })
@@ -3670,7 +3671,7 @@
 
     <span class="doccomment">/// Deprecated wrapper for `RunnableProcess::memory_borrow`
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>memory_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = MemoryManager&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>memory_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = MemoryManager&gt; + <span class="lifetime">'_ </span>{
         std_util::nested_ref::NestedRef::map(<span class="self">self</span>.as_runnable().unwrap(), |runnable| {
             runnable.memory_manager.borrow()
         })
@@ -3693,7 +3694,7 @@
 
     <span class="doccomment">/// Deprecated wrapper for `RunnableProcess::realtime_timer_borrow`
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>realtime_timer_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = Timer&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>realtime_timer_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = Timer&gt; + <span class="lifetime">'_ </span>{
         std_util::nested_ref::NestedRef::map(<span class="self">self</span>.as_runnable().unwrap(), |runnable| {
             runnable.itimer_real.borrow()
         })
@@ -3701,7 +3702,7 @@
 
     <span class="doccomment">/// Deprecated wrapper for `RunnableProcess::realtime_timer_borrow_mut`
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>realtime_timer_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = Timer&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>realtime_timer_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>DerefMut&lt;Target = Timer&gt; + <span class="lifetime">'_ </span>{
         std_util::nested_ref::NestedRefMut::map(<span class="self">self</span>.as_runnable().unwrap(), |runnable| {
             runnable.itimer_real.borrow_mut()
         })
@@ -3712,7 +3713,7 @@
     </span><span class="kw">pub fn </span>first_live_thread_borrow(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         root: <span class="kw-2">&amp;</span>Root,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">&#39;_</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">'_</span>&gt; {
         std_util::nested_ref::NestedRef::filter_map(<span class="self">self</span>.as_runnable()<span class="question-mark">?</span>, |runnable| {
             runnable.first_live_thread(root)
         })
@@ -3722,7 +3723,7 @@
     </span><span class="kw">pub fn </span>thread_borrow(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         virtual_tid: ThreadId,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">&#39;_</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Deref&lt;Target = RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; + <span class="lifetime">'_</span>&gt; {
         std_util::nested_ref::NestedRef::filter_map(<span class="self">self</span>.as_runnable()<span class="question-mark">?</span>, |runnable| {
             runnable.thread(virtual_tid)
         })
@@ -3749,14 +3750,14 @@
     <span class="doccomment">/// Transitions `self` from a `RunnableProcess` to a `ZombieProcess`.
     </span><span class="kw">fn </span>handle_process_exit(<span class="kw-2">&amp;</span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host, killed_by_shadow: bool) {
         <span class="macro">debug!</span>(
-            <span class="string">&quot;process &#39;{}&#39; has completed or is otherwise no longer running&quot;</span>,
+            <span class="string">"process '{}' has completed or is otherwise no longer running"</span>,
             <span class="kw-2">&amp;*</span><span class="self">self</span>.name()
         );
 
         <span class="comment">// Take and dispose of all of the threads.
         // TODO: consider doing this while the `self.state` mutable reference is held
         // as with the other cleanup below. Right now this breaks some C code that expects
-        // to be able to lookup the thread&#39;s process name.
+        // to be able to lookup the thread's process name.
         </span>{
             <span class="kw">let </span>runnable = <span class="self">self</span>.as_runnable().unwrap();
             <span class="kw">let </span>threads = std::mem::take(<span class="kw-2">&amp;mut *</span>runnable.threads.borrow_mut());
@@ -3767,17 +3768,17 @@
         }
 
         <span class="comment">// Intentionally hold the borrow on self.state to ensure the state
-        // transition is &quot;atomic&quot;.
+        // transition is "atomic".
         </span><span class="kw">let </span><span class="kw-2">mut </span>opt_state = <span class="self">self</span>.state.borrow_mut();
 
         <span class="kw">let </span>state = opt_state.take().unwrap();
         <span class="kw">let </span>ProcessState::Runnable(runnable) = state <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;Tried to handle process exit of non-running process&quot;</span>);
+            <span class="macro">unreachable!</span>(<span class="string">"Tried to handle process exit of non-running process"</span>);
         };
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;perf_timers&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
         </span><span class="macro">debug!</span>(
-            <span class="string">&quot;total runtime for process &#39;{}&#39; was {:?}&quot;</span>,
+            <span class="string">"total runtime for process '{}' was {:?}"</span>,
             runnable.common.name(),
             runnable.total_run_time.get()
         );
@@ -3791,7 +3792,7 @@
                 ExitStatus::StoppedByShadow
             }
             (<span class="bool-val">true</span>, waitstatus) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Unexpected waitstatus after killed by shadow: {waitstatus:?}&quot;</span>);
+                <span class="macro">warn!</span>(<span class="string">"Unexpected waitstatus after killed by shadow: {waitstatus:?}"</span>);
                 ExitStatus::StoppedByShadow
             }
             (<span class="bool-val">false</span>, <span class="prelude-val">Ok</span>(WaitStatus::Exited(_pid, code))) =&gt; ExitStatus::Normal(code),
@@ -3800,16 +3801,16 @@
                 ExitStatus::Signaled(signal)
             }
             (<span class="bool-val">false</span>, <span class="prelude-val">Ok</span>(status)) =&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;Unexpected status: {status:?}&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"Unexpected status: {status:?}"</span>);
             }
             (<span class="bool-val">false</span>, <span class="prelude-val">Err</span>(e)) =&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;waitpid: {e:?}&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"waitpid: {e:?}"</span>);
             }
         };
 
         <span class="kw">let </span>(main_result_string, log_level) = {
             <span class="kw">let </span><span class="kw-2">mut </span>s = <span class="macro">format!</span>(
-                <span class="string">&quot;process &#39;{name}&#39; exited with status {exit_status:?}&quot;</span>,
+                <span class="string">"process '{name}' exited with status {exit_status:?}"</span>,
                 name = runnable.common.name()
             );
             <span class="kw">if let </span><span class="prelude-val">Some</span>(expected_final_state) = runnable.expected_final_state {
@@ -3817,7 +3818,7 @@
                     ExitStatus::Normal(i) =&gt; ProcessFinalState::Exited { exited: i },
                     ExitStatus::Signaled(s) =&gt; ProcessFinalState::Signaled {
                         <span class="comment">// This conversion will fail on realtime signals, but that
-                        // should currently be impossible since we don&#39;t support
+                        // should currently be impossible since we don't support
                         // sending realtime signals.
                         </span>signaled: s.try_into().unwrap(),
                     },
@@ -3827,14 +3828,14 @@
                     (s, log::Level::Debug)
                 } <span class="kw">else </span>{
                     Worker::increment_plugin_error_count();
-                    <span class="macro">write!</span>(s, <span class="string">&quot;; expected end state was {expected_final_state} but was {actual_final_state}&quot;</span>).unwrap();
+                    <span class="macro">write!</span>(s, <span class="string">"; expected end state was {expected_final_state} but was {actual_final_state}"</span>).unwrap();
                     (s, log::Level::Error)
                 }
             } <span class="kw">else </span>{
                 (s, log::Level::Debug)
             }
         };
-        <span class="macro">log::log!</span>(log_level, <span class="string">&quot;{}&quot;</span>, main_result_string);
+        <span class="macro">log::log!</span>(log_level, <span class="string">"{}"</span>, main_result_string);
 
         <span class="kw">let </span>zombie = ZombieProcess {
             common: runnable.into_common(),
@@ -3861,18 +3862,18 @@
     }
 
     <span class="doccomment">/// Deprecated wrapper for `RunnableProcess::shmem`
-    </span><span class="kw">pub fn </span>shmem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = ShMemBlock&lt;<span class="lifetime">&#39;static</span>, ProcessShmem&gt;&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>shmem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = ShMemBlock&lt;<span class="lifetime">'static</span>, ProcessShmem&gt;&gt; + <span class="lifetime">'_ </span>{
         Ref::map(<span class="self">self</span>.as_runnable().unwrap(), |r| <span class="kw-2">&amp;</span>r.shim_shared_mem_block)
     }
 
     <span class="doccomment">/// Resource usage, as returned e.g. by the `getrusage` syscall.
     </span><span class="kw">pub fn </span>rusage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::resource::rusage {
         <span class="macro">warn_once_then_debug!</span>(
-            <span class="string">&quot;resource usage (rusage) tracking unimplemented; Returning bogus zeroed values&quot;
+            <span class="string">"resource usage (rusage) tracking unimplemented; Returning bogus zeroed values"
         </span>);
         <span class="comment">// TODO: Actually track some of these.
         // Assuming we want to support `RUSAGE_THREAD` in the `getrusage`
-        // syscall, we&#39;ll actually want to track at the thread level, and either
+        // syscall, we'll actually want to track at the thread level, and either
         // increment at both thread and process level at the points where we do
         // the tracking, or dynamically iterate over the threads here and sum
         // the results.
@@ -3907,7 +3908,7 @@
         <span class="self">self</span>.common().exit_signal
     }
 
-    <span class="kw">pub fn </span>current_working_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = CString&gt; + <span class="lifetime">&#39;_ </span>{
+    <span class="kw">pub fn </span>current_working_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = CString&gt; + <span class="lifetime">'_ </span>{
         Ref::map(<span class="self">self</span>.common(), |common| <span class="kw-2">&amp;</span>common.working_dir)
     }
 
@@ -3915,11 +3916,11 @@
     /// the running managed process with `mthread`.
     </span><span class="kw">pub fn </span>update_for_exec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host, tid: ThreadId, mthread: ManagedThread) {
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>runnable) = <span class="self">self</span>.as_runnable_mut() <span class="kw">else </span>{
-            <span class="comment">// This could happen if another event runs before the &quot;execve completion&quot; event
+            <span class="comment">// This could happen if another event runs before the "execve completion" event
             // and kills the process. e.g. another thread in the process could run and
             // execute the `exit_group` syscall.
             </span><span class="macro">log::debug!</span>(
-                <span class="string">&quot;Process {:?} exited before it could complete execve&quot;</span>,
+                <span class="string">"Process {:?} exited before it could complete execve"</span>,
                 <span class="self">self</span>.id()
             );
             mthread.kill_and_drop();
@@ -3929,18 +3930,18 @@
 
         <span class="comment">// Kill the previous native process
         </span>nixsignal::kill(old_native_pid, nixsignal::Signal::SIGKILL)
-            .expect(<span class="string">&quot;Unable to send kill signal to managed process {old_native_pid}&quot;</span>);
+            .expect(<span class="string">"Unable to send kill signal to managed process {old_native_pid}"</span>);
         <span class="kw">match </span>nix::sys::wait::waitpid(old_native_pid, <span class="prelude-val">None</span>) {
             <span class="prelude-val">Ok</span>(nix::sys::wait::WaitStatus::Signaled(pid, sig, _c)) =&gt; {
                 <span class="macro">assert_eq!</span>(pid, old_native_pid);
                 <span class="macro">assert_eq!</span>(sig, nixsignal::Signal::SIGKILL);
             }
-            r =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected waitpid result: {r:?}&quot;</span>),
+            r =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected waitpid result: {r:?}"</span>),
         };
 
         <span class="kw">let </span>execing_thread = runnable.threads.borrow_mut().remove(<span class="kw-2">&amp;</span>tid).unwrap();
 
-        <span class="comment">// Dispose of all threads other than the thread that&#39;s running `exec`.
+        <span class="comment">// Dispose of all threads other than the thread that's running `exec`.
         </span><span class="kw">for </span>(_tid, thread) <span class="kw">in </span>runnable.threads.replace(BTreeMap::new()) {
             <span class="comment">// Notify the ManagedThread that the native process has exited.
             </span>thread.borrow(host.root()).mthread().handle_process_exit();
@@ -3950,8 +3951,8 @@
 
         <span class="comment">// Recreate the `MemoryManager`
         </span>{
-            <span class="comment">// We can&#39;t safely replace the memory manager if there are outstanding
-            // unsafe references in C code. There shouldn&#39;t be any, though, since
+            <span class="comment">// We can't safely replace the memory manager if there are outstanding
+            // unsafe references in C code. There shouldn't be any, though, since
             // this is only called from the `execve` and `execveat` syscall handlers,
             // which are in Rust.
             </span><span class="kw">let </span>unsafe_borrow_mut = runnable.unsafe_borrow_mut.borrow();
@@ -3967,7 +3968,7 @@
 
         <span class="kw">let </span>new_tid = runnable.common.thread_group_leader_id();
         <span class="macro">log::trace!</span>(
-            <span class="string">&quot;updating for exec; pid:{pid}, tid:{tid:?}, new_tid:{new_tid:?}&quot;</span>,
+            <span class="string">"updating for exec; pid:{pid}, tid:{tid:?}, new_tid:{new_tid:?}"</span>,
             pid = runnable.common.id
         );
         execing_thread
@@ -4035,10 +4036,10 @@
 
 <span class="doccomment">/// Tracks a memory reference made by a legacy C memory-read API.
 </span><span class="kw">struct </span>UnsafeBorrow {
-    <span class="comment">// Must come before `manager`, so that it&#39;s dropped first, since it&#39;s
+    <span class="comment">// Must come before `manager`, so that it's dropped first, since it's
     // borrowed from it.
-    </span>_memory: ProcessMemoryRef&lt;<span class="lifetime">&#39;static</span>, u8&gt;,
-    _manager: Ref&lt;<span class="lifetime">&#39;static</span>, MemoryManager&gt;,
+    </span>_memory: ProcessMemoryRef&lt;<span class="lifetime">'static</span>, u8&gt;,
+    _manager: Ref&lt;<span class="lifetime">'static</span>, MemoryManager&gt;,
 }
 
 <span class="kw">impl </span>UnsafeBorrow {
@@ -4058,11 +4059,11 @@
         // and `Process` ensures that this whole object is dropped before
         // `MemoryManager` can be moved, freed, etc.
         </span><span class="kw">let </span>manager = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;Ref&lt;<span class="lifetime">&#39;_</span>, MemoryManager&gt;, Ref&lt;<span class="lifetime">&#39;static</span>, MemoryManager&gt;&gt;(manager)
+            std::mem::transmute::&lt;Ref&lt;<span class="lifetime">'_</span>, MemoryManager&gt;, Ref&lt;<span class="lifetime">'static</span>, MemoryManager&gt;&gt;(manager)
         };
         <span class="kw">let </span>memory = manager.memory_ref(ptr)<span class="question-mark">?</span>;
         <span class="kw">let </span>memory = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;ProcessMemoryRef&lt;<span class="lifetime">&#39;_</span>, u8&gt;, ProcessMemoryRef&lt;<span class="lifetime">&#39;static</span>, u8&gt;&gt;(memory)
+            std::mem::transmute::&lt;ProcessMemoryRef&lt;<span class="lifetime">'_</span>, u8&gt;, ProcessMemoryRef&lt;<span class="lifetime">'static</span>, u8&gt;&gt;(memory)
         };
         <span class="kw">let </span>vptr = memory.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_void;
         runnable.unsafe_borrows.borrow_mut().push(<span class="self">Self </span>{
@@ -4088,12 +4089,12 @@
         // and `Process` ensures that this whole object is dropped before
         // `MemoryManager` can be moved, freed, etc.
         </span><span class="kw">let </span>manager = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;Ref&lt;<span class="lifetime">&#39;_</span>, MemoryManager&gt;, Ref&lt;<span class="lifetime">&#39;static</span>, MemoryManager&gt;&gt;(manager)
+            std::mem::transmute::&lt;Ref&lt;<span class="lifetime">'_</span>, MemoryManager&gt;, Ref&lt;<span class="lifetime">'static</span>, MemoryManager&gt;&gt;(manager)
         };
         <span class="kw">let </span>ptr = ptr.cast_u8();
         <span class="kw">let </span>memory = manager.memory_ref_prefix(ptr)<span class="question-mark">?</span>;
         <span class="kw">let </span>memory = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;ProcessMemoryRef&lt;<span class="lifetime">&#39;_</span>, u8&gt;, ProcessMemoryRef&lt;<span class="lifetime">&#39;static</span>, u8&gt;&gt;(memory)
+            std::mem::transmute::&lt;ProcessMemoryRef&lt;<span class="lifetime">'_</span>, u8&gt;, ProcessMemoryRef&lt;<span class="lifetime">'static</span>, u8&gt;&gt;(memory)
         };
         <span class="kw">if </span>!memory.contains(<span class="kw-2">&amp;</span><span class="number">0</span>) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENAMETOOLONG);
@@ -4112,7 +4113,7 @@
 <span class="comment">// Safety: Normally the Ref would make this non-Send, since it could end then
 // end up trying to manipulate the source RefCell (which is !Sync) from multiple
 // threads.  We ensure that these objects never escape Process, which itself is
-// non-Sync, ensuring this doesn&#39;t happen.
+// non-Sync, ensuring this doesn't happen.
 //
 // This is admittedly hand-wavy and making some assumptions about the
 // implementation of RefCell, but this whole type is temporary scaffolding to
@@ -4121,10 +4122,10 @@
 
 <span class="doccomment">/// Tracks a memory reference made by a legacy C memory-write API.
 </span><span class="kw">struct </span>UnsafeBorrowMut {
-    <span class="comment">// Must come before `manager`, so that it&#39;s dropped first, since it&#39;s
+    <span class="comment">// Must come before `manager`, so that it's dropped first, since it's
     // borrowed from it.
-    </span>memory: <span class="prelude-ty">Option</span>&lt;ProcessMemoryRefMut&lt;<span class="lifetime">&#39;static</span>, u8&gt;&gt;,
-    _manager: RefMut&lt;<span class="lifetime">&#39;static</span>, MemoryManager&gt;,
+    </span>memory: <span class="prelude-ty">Option</span>&lt;ProcessMemoryRefMut&lt;<span class="lifetime">'static</span>, u8&gt;&gt;,
+    _manager: RefMut&lt;<span class="lifetime">'static</span>, MemoryManager&gt;,
 }
 
 <span class="kw">impl </span>UnsafeBorrowMut {
@@ -4144,13 +4145,13 @@
         // and `Process` ensures that this whole object is dropped before
         // `MemoryManager` can be moved, freed, etc.
         </span><span class="kw">let </span><span class="kw-2">mut </span>manager = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, MemoryManager&gt;, RefMut&lt;<span class="lifetime">&#39;static</span>, MemoryManager&gt;&gt;(
+            std::mem::transmute::&lt;RefMut&lt;<span class="lifetime">'_</span>, MemoryManager&gt;, RefMut&lt;<span class="lifetime">'static</span>, MemoryManager&gt;&gt;(
                 manager,
             )
         };
         <span class="kw">let </span>memory = manager.memory_ref_mut_uninit(ptr)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>memory = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;ProcessMemoryRefMut&lt;<span class="lifetime">&#39;_</span>, u8&gt;, ProcessMemoryRefMut&lt;<span class="lifetime">&#39;static</span>, u8&gt;&gt;(
+            std::mem::transmute::&lt;ProcessMemoryRefMut&lt;<span class="lifetime">'_</span>, u8&gt;, ProcessMemoryRefMut&lt;<span class="lifetime">'static</span>, u8&gt;&gt;(
                 memory,
             )
         };
@@ -4179,13 +4180,13 @@
         // and `Process` ensures that this whole object is dropped before
         // `MemoryManager` can be moved, freed, etc.
         </span><span class="kw">let </span><span class="kw-2">mut </span>manager = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, MemoryManager&gt;, RefMut&lt;<span class="lifetime">&#39;static</span>, MemoryManager&gt;&gt;(
+            std::mem::transmute::&lt;RefMut&lt;<span class="lifetime">'_</span>, MemoryManager&gt;, RefMut&lt;<span class="lifetime">'static</span>, MemoryManager&gt;&gt;(
                 manager,
             )
         };
         <span class="kw">let </span>memory = manager.memory_ref_mut(ptr)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>memory = <span class="kw">unsafe </span>{
-            std::mem::transmute::&lt;ProcessMemoryRefMut&lt;<span class="lifetime">&#39;_</span>, u8&gt;, ProcessMemoryRefMut&lt;<span class="lifetime">&#39;static</span>, u8&gt;&gt;(
+            std::mem::transmute::&lt;ProcessMemoryRefMut&lt;<span class="lifetime">'_</span>, u8&gt;, ProcessMemoryRefMut&lt;<span class="lifetime">'static</span>, u8&gt;&gt;(
                 memory,
             )
         };
@@ -4212,7 +4213,7 @@
 <span class="comment">// Safety: Normally the RefMut would make this non-Send, since it could end then
 // end up trying to manipulate the source RefCell (which is !Sync) from multiple
 // threads.  We ensure that these objects never escape Process, which itself is
-// non-Sync, ensuring this doesn&#39;t happen.
+// non-Sync, ensuring this doesn't happen.
 //
 // This is admittedly hand-wavy and making some assumptions about the implementation of
 // RefCell, but this whole type is temporary scaffolding to support legacy C code.
@@ -4220,7 +4221,7 @@
 
 <span class="kw">fn </span>make_name(host: <span class="kw-2">&amp;</span>Host, exe_name: <span class="kw-2">&amp;</span>str, id: ProcessId) -&gt; CString {
     CString::new(<span class="macro">format!</span>(
-        <span class="string">&quot;{host_name}.{exe_name}.{id}&quot;</span>,
+        <span class="string">"{host_name}.{exe_name}.{id}"</span>,
         host_name = host.name(),
         exe_name = exe_name,
         id = u32::from(id)
@@ -4246,9 +4247,9 @@
     <span class="kw">use </span><span class="kw">crate</span>::utility::HostTreePointer;
 
     <span class="doccomment">/// Copy `n` bytes from `src` to `dst`. Returns 0 on success or -EFAULT if any of
-    /// the specified range couldn&#39;t be accessed. Always succeeds with n==0.
+    /// the specified range couldn't be accessed. Always succeeds with n==0.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_readPtr(
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_readPtr(
         proc: <span class="kw-2">*const </span>Process,
         dst: <span class="kw-2">*mut </span>c_void,
         src: UntypedForeignPtr,
@@ -4261,16 +4262,16 @@
         <span class="kw">match </span>proc.memory_borrow().copy_from_ptr(dst, src) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;Couldn&#39;t read {:?} into {:?}: {:?}&quot;</span>, src, dst, e);
+                <span class="macro">trace!</span>(<span class="string">"Couldn't read {:?} into {:?}: {:?}"</span>, src, dst, e);
                 e.to_negated_i32()
             }
         }
     }
 
     <span class="doccomment">/// Copy `n` bytes from `src` to `dst`. Returns 0 on success or -EFAULT if any of
-    /// the specified range couldn&#39;t be accessed. The write is flushed immediately.
+    /// the specified range couldn't be accessed. The write is flushed immediately.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_writePtr(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_writePtr(
         proc: <span class="kw-2">*const </span>Process,
         dst: UntypedForeignPtr,
         src: <span class="kw-2">*const </span>c_void,
@@ -4282,18 +4283,18 @@
         <span class="kw">match </span>proc.memory_borrow_mut().copy_to_ptr(dst, src) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;Couldn&#39;t write {:?} into {:?}: {:?}&quot;</span>, src, dst, e);
+                <span class="macro">trace!</span>(<span class="string">"Couldn't write {:?} into {:?}: {:?}"</span>, src, dst, e);
                 e.to_negated_i32()
             }
         }
     }
 
-    <span class="doccomment">/// Make the data at plugin_src available in shadow&#39;s address space.
+    <span class="doccomment">/// Make the data at plugin_src available in shadow's address space.
     ///
     /// The returned pointer is invalidated when one of the process memory flush
     /// methods is called; typically after a syscall has completed.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getReadablePtr(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getReadablePtr(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
         n: usize,
@@ -4309,11 +4310,11 @@
     /// The returned pointer is invalidated when one of the process memory flush
     /// methods is called; typically after a syscall has completed.
     ///
-    /// CAUTION: if the unspecified contents aren&#39;t overwritten, and the pointer
-    /// isn&#39;t explicitly freed via `process_freePtrsWithoutFlushing`, those
+    /// CAUTION: if the unspecified contents aren't overwritten, and the pointer
+    /// isn't explicitly freed via `process_freePtrsWithoutFlushing`, those
     /// unspecified contents may be written back into process memory.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getWriteablePtr(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getWriteablePtr(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
         n: usize,
@@ -4329,7 +4330,7 @@
     /// The returned pointer is invalidated when one of the process memory flush
     /// methods is called; typically after a syscall has completed.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getMutablePtr(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getMutablePtr(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
         n: usize,
@@ -4346,7 +4347,7 @@
     /// -ENAMETOOLONG if there was no NULL byte in the first `n` characters.
     /// -EFAULT if the string extends beyond the accessible address space.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_readString(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_readString(
         proc: <span class="kw-2">*const </span>Process,
         strbuf: <span class="kw-2">*mut </span>libc::c_char,
         ptr: UntypedForeignPtr,
@@ -4372,7 +4373,7 @@
     /// -ENAMETOOLONG if there was no NULL byte in the first `n` characters.
     /// -EFAULT if the string extends beyond the accessible address space.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getReadableString(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getReadableString(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
         n: usize,
@@ -4396,13 +4397,13 @@
 
     <span class="doccomment">/// Returns the processID that was assigned to us in process_new
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getProcessID(proc: <span class="kw-2">*const </span>Process) -&gt; libc::pid_t {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getProcessID(proc: <span class="kw-2">*const </span>Process) -&gt; libc::pid_t {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.id().into()
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getName(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>c_char {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getName(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>c_char {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.common().name.as_ptr()
     }
@@ -4412,21 +4413,21 @@
     /// The returned pointer is invalidated when the host shmem lock is released, e.g. via
     /// Host::unlock_shmem.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getSharedMem(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getSharedMem(
         proc: <span class="kw-2">*const </span>Process,
     ) -&gt; <span class="kw-2">*const </span>ShimShmemProcess {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
-        proc.as_runnable().unwrap().shim_shared_mem_block.deref() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_
-    </span>}
+        std::ptr::from_ref(proc.as_runnable().unwrap().shim_shared_mem_block.deref())
+    }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getWorkingDir(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>c_char {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getWorkingDir(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>c_char {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.common().working_dir.as_ptr()
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_straceLoggingMode(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_straceLoggingMode(
         proc: <span class="kw-2">*const </span>Process,
     ) -&gt; StraceFmtMode {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
@@ -4434,7 +4435,7 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getNativePid(proc: <span class="kw-2">*const </span>Process) -&gt; libc::pid_t {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getNativePid(proc: <span class="kw-2">*const </span>Process) -&gt; libc::pid_t {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.native_pid().as_raw()
     }
@@ -4446,7 +4447,7 @@
     ///
     /// Returns 0 on success or a negative errno on failure.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_flushPtrs(proc: <span class="kw-2">*const </span>Process) -&gt; i32 {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_flushPtrs(proc: <span class="kw-2">*const </span>Process) -&gt; i32 {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         <span class="kw">match </span>proc.free_unsafe_borrows_flush() {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
@@ -4457,16 +4458,16 @@
     <span class="doccomment">/// Frees all readable/writable foreign pointers. Unlike process_flushPtrs, any
     /// previously returned writable pointer is *not* written back. Useful
     /// if an uninitialized writable pointer was obtained via `process_getWriteablePtr`,
-    /// and we end up not wanting to write anything after all (in particular, don&#39;t
+    /// and we end up not wanting to write anything after all (in particular, don't
     /// write back whatever garbage data was in the uninialized bueffer).
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_freePtrsWithoutFlushing(proc: <span class="kw-2">*const </span>Process) {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_freePtrsWithoutFlushing(proc: <span class="kw-2">*const </span>Process) {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.free_unsafe_borrows_noflush();
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getThread(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getThread(
         proc: <span class="kw-2">*const </span>Process,
         tid: libc::pid_t,
     ) -&gt; <span class="kw-2">*const </span>Thread {
@@ -4484,7 +4485,7 @@
 
     <span class="doccomment">/// Returns a pointer to an arbitrary live thread in the process.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_firstLiveThread(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>Thread {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_firstLiveThread(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>Thread {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         Worker::with_active_host(|host| {
             <span class="kw">let </span><span class="prelude-val">Some</span>(thread) = proc.first_live_thread_borrow(host.root()) <span class="kw">else </span>{
@@ -4497,7 +4498,7 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_isRunning(proc: <span class="kw-2">*const </span>Process) -&gt; bool {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_isRunning(proc: <span class="kw-2">*const </span>Process) -&gt; bool {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.is_running()
     }
@@ -4505,12 +4506,12 @@
     <span class="comment">// FIXME: still needed? Time is now updated more granularly in the Thread code
     // when xferring control to/from shim.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_setSharedTime() {
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_setSharedTime() {
         Worker::with_active_host(Process::set_shared_time).unwrap();
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_getPhysicalAddress(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getPhysicalAddress(
         proc: <span class="kw-2">*const </span>Process,
         vptr: UntypedForeignPtr,
     ) -&gt; ManagedPhysicalMemoryAddr {
@@ -4526,7 +4527,7 @@
     ///
     /// Mandatory fields of `siginfo` must be initd.
     </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_signal(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_signal(
         target_proc: <span class="kw-2">*const </span>Process,
         current_running_thread: <span class="kw-2">*const </span>Thread,
         siginfo_t: <span class="kw-2">*const </span>linux_siginfo_t,
@@ -4539,7 +4540,7 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_addChildEventListener(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_addChildEventListener(
         host: <span class="kw-2">*const </span>Host,
         process: <span class="kw-2">*const </span>Process,
         listener: <span class="kw-2">*mut </span>cshadow::StatusListener,
@@ -4556,7 +4557,7 @@
     }
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">&quot;C-unwind&quot; </span><span class="kw">fn </span>process_removeChildEventListener(
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_removeChildEventListener(
         _host: <span class="kw-2">*const </span>Host,
         process: <span class="kw-2">*const </span>Process,
         listener: <span class="kw-2">*mut </span>cshadow::StatusListener,

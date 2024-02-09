@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/core/cpu.rs`."><title>cpu.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/core/cpu.rs`."><title>cpu.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -144,12 +145,12 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-</pre></div><pre class="rust"><code><span class="kw">pub struct </span>RangeListIter&lt;<span class="lifetime">&#39;a</span>&gt; {
+</pre></div><pre class="rust"><code><span class="kw">pub struct </span>RangeListIter&lt;<span class="lifetime">'a</span>&gt; {
     current_range: <span class="prelude-ty">Option</span>&lt;std::ops::RangeInclusive&lt;u32&gt;&gt;,
-    remaining: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    remaining: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>RangeListIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>RangeListIter&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = u32;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -158,20 +159,20 @@
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(current_range) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.current_range {
                 <span class="comment">// get the next num in the range
                 </span><span class="kw">let </span><span class="prelude-val">Some</span>(rv) = current_range.next() <span class="kw">else </span>{
-                    <span class="comment">// we&#39;ve returned all numbers in the range, so clear the range and start over
+                    <span class="comment">// we've returned all numbers in the range, so clear the range and start over
                     </span><span class="self">self</span>.current_range = <span class="prelude-val">None</span>;
                     <span class="kw">continue</span>;
                 };
 
                 <span class="comment">// return the next num in the range
                 </span><span class="kw">break </span><span class="prelude-val">Some</span>(rv);
-            <span class="comment">// we don&#39;t have an active range, but there are more ranges to process
+            <span class="comment">// we don't have an active range, but there are more ranges to process
             </span>} <span class="kw">else if </span>!<span class="self">self</span>.remaining.is_empty() {
-                <span class="kw">let </span>(next_range, remaining) = <span class="kw">match </span><span class="self">self</span>.remaining.split_once(<span class="string">&#39;,&#39;</span>) {
+                <span class="kw">let </span>(next_range, remaining) = <span class="kw">match </span><span class="self">self</span>.remaining.split_once(<span class="string">','</span>) {
                     <span class="comment">// there was at least one comma
                     </span><span class="prelude-val">Some</span>(x) =&gt; x,
                     <span class="comment">// there are no more commas
-                    </span><span class="prelude-val">None </span>=&gt; (<span class="self">self</span>.remaining, <span class="string">&quot;&quot;</span>),
+                    </span><span class="prelude-val">None </span>=&gt; (<span class="self">self</span>.remaining, <span class="string">""</span>),
                 };
 
                 <span class="self">self</span>.remaining = remaining;
@@ -180,7 +181,7 @@
                     <span class="kw">continue</span>;
                 }
 
-                <span class="kw">let </span><span class="kw-2">mut </span>split = next_range.split(<span class="string">&#39;-&#39;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>split = next_range.split(<span class="string">'-'</span>);
                 <span class="kw">let </span>start = split.next().unwrap();
                 <span class="kw">let </span>end = split.next();
                 <span class="macro">assert!</span>(split.next().is_none());
@@ -200,12 +201,12 @@
     }
 }
 
-<span class="doccomment">/// Take an input of a list of ranges like &#39;1-3,5,7-10&#39; and return an iterator of integers like
+<span class="doccomment">/// Take an input of a list of ranges like '1-3,5,7-10' and return an iterator of integers like
 /// \[1,2,3,5,7,8,9,10\]. The returned iterator will panic if the input is not nicely formatted (no
 /// whitespace, etc) or contains invalid characters.
 ///
 /// The iterator will return items in the order of the list, meaning that they are not guaranteed to
-/// be returned in increasing order and there may be duplicates. For example &quot;1,2,3,3,2&quot; would
+/// be returned in increasing order and there may be duplicates. For example "1,2,3,3,2" would
 /// return items \[1, 2, 3, 3, 2\].
 </span><span class="kw">pub fn </span>parse_range_list(range_list: <span class="kw-2">&amp;</span>str) -&gt; RangeListIter {
     RangeListIter {
@@ -216,19 +217,19 @@
 
 <span class="doccomment">/// Get the nodes from `/sys/devices/system/node/possible`.
 </span><span class="kw">pub fn </span>nodes() -&gt; Vec&lt;u32&gt; {
-    <span class="kw">let </span>name = <span class="string">&quot;/sys/devices/system/node/possible&quot;</span>;
+    <span class="kw">let </span>name = <span class="string">"/sys/devices/system/node/possible"</span>;
     parse_range_list(std::fs::read_to_string(name).unwrap().trim()).collect()
 }
 
 <span class="doccomment">/// Get the CPUs in a node from `/sys/devices/system/node/node{node}/cpulist`.
 </span><span class="kw">pub fn </span>cpus(node: u32) -&gt; Vec&lt;u32&gt; {
-    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;/sys/devices/system/node/node{node}/cpulist&quot;</span>);
+    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"/sys/devices/system/node/node{node}/cpulist"</span>);
     parse_range_list(std::fs::read_to_string(name).unwrap().trim()).collect()
 }
 
 <span class="doccomment">/// Get the core ID from `/sys/devices/system/cpu/cpu{cpu}/topology/core_id`.
 </span><span class="kw">pub fn </span>core(cpu: u32) -&gt; u32 {
-    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">&quot;/sys/devices/system/cpu/cpu{cpu}/topology/core_id&quot;</span>);
+    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"/sys/devices/system/cpu/cpu{cpu}/topology/core_id"</span>);
     std::fs::read_to_string(name)
         .unwrap()
         .trim()
@@ -238,7 +239,7 @@
 
 <span class="doccomment">/// Get the online CPUs from `/sys/devices/system/cpu/online`.
 </span><span class="kw">pub fn </span>online() -&gt; Vec&lt;u32&gt; {
-    <span class="kw">let </span>name = <span class="string">&quot;/sys/devices/system/cpu/online&quot;</span>;
+    <span class="kw">let </span>name = <span class="string">"/sys/devices/system/cpu/online"</span>;
     parse_range_list(std::fs::read_to_string(name).unwrap().trim()).collect()
 }
 
@@ -270,24 +271,24 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_range_list() {
-        check(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span>[]);
-        check(<span class="string">&quot;1&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
-        check(<span class="string">&quot;1,2&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>]);
-        check(<span class="string">&quot;1-2&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>]);
-        check(<span class="string">&quot;1-1&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
-        check(<span class="string">&quot;1,2,3&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
-        check(<span class="string">&quot;1-3&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
-        check(<span class="string">&quot;1,2-3,4&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
-        check(<span class="string">&quot;1,2-4,5&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
+        check(<span class="string">""</span>, <span class="kw-2">&amp;</span>[]);
+        check(<span class="string">"1"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
+        check(<span class="string">"1,2"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>]);
+        check(<span class="string">"1-2"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>]);
+        check(<span class="string">"1-1"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
+        check(<span class="string">"1,2,3"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
+        check(<span class="string">"1-3"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
+        check(<span class="string">"1,2-3,4"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
+        check(<span class="string">"1,2-4,5"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
         check(
-            <span class="string">&quot;0-5,7-9,13,15-19&quot;</span>,
+            <span class="string">"0-5,7-9,13,15-19"</span>,
             <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">13</span>, <span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>, <span class="number">18</span>, <span class="number">19</span>],
         );
-        check(<span class="string">&quot;1,,5&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">5</span>]);
-        check(<span class="string">&quot;1,1,5&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">5</span>]);
-        check(<span class="string">&quot;1-1,5&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">5</span>]);
-        check(<span class="string">&quot;1-1,0,5&quot;</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">0</span>, <span class="number">5</span>]);
-        check(<span class="string">&quot;1-0&quot;</span>, <span class="kw-2">&amp;</span>[]);
+        check(<span class="string">"1,,5"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">5</span>]);
+        check(<span class="string">"1,1,5"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">5</span>]);
+        check(<span class="string">"1-1,5"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">5</span>]);
+        check(<span class="string">"1-1,0,5"</span>, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">0</span>, <span class="number">5</span>]);
+        check(<span class="string">"1-0"</span>, <span class="kw-2">&amp;</span>[]);
     }
 }
 </code></pre></div></section></main></body></html>

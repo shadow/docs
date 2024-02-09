@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cbindgen-0.26.0/src/bindgen/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="cbindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cbindgen-0.26.0/src/bindgen/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="cbindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1032,12 +1033,12 @@
 <span class="kw">use </span><span class="kw">crate</span>::bindgen::utilities::{SynAbiHelpers, SynAttributeHelpers, SynItemHelpers};
 
 <span class="kw">const </span>STD_CRATES: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str] = <span class="kw-2">&amp;</span>[
-    <span class="string">&quot;std&quot;</span>,
-    <span class="string">&quot;std_unicode&quot;</span>,
-    <span class="string">&quot;alloc&quot;</span>,
-    <span class="string">&quot;collections&quot;</span>,
-    <span class="string">&quot;core&quot;</span>,
-    <span class="string">&quot;proc_macro&quot;</span>,
+    <span class="string">"std"</span>,
+    <span class="string">"std_unicode"</span>,
+    <span class="string">"alloc"</span>,
+    <span class="string">"collections"</span>,
+    <span class="string">"core"</span>,
+    <span class="string">"proc_macro"</span>,
 ];
 
 <span class="kw">type </span>ParseResult = <span class="prelude-ty">Result</span>&lt;Parse, Error&gt;;
@@ -1072,7 +1073,7 @@
     <span class="prelude-val">Ok</span>(context.out)
 }
 
-<span class="doccomment">/// Recursively parses a rust library starting at the root crate&#39;s directory.
+<span class="doccomment">/// Recursively parses a rust library starting at the root crate's directory.
 ///
 /// Inside a crate, `mod` and `extern crate` declarations are followed
 /// and parsed. To find an external crate, the parser uses the `cargo metadata`
@@ -1096,10 +1097,10 @@
 }
 
 <span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">struct </span>Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">struct </span>Parser&lt;<span class="lifetime">'a</span>&gt; {
     binding_crate_name: String,
     lib: <span class="prelude-ty">Option</span>&lt;Cargo&gt;,
-    config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Config,
+    config: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Config,
 
     parsed_crates: HashSet&lt;String&gt;,
     cache_src: HashMap&lt;FilePathBuf, Vec&lt;syn::Item&gt;&gt;,
@@ -1110,7 +1111,7 @@
     out: Parse,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Parser&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Parser&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>should_parse_dependency(<span class="kw-2">&amp;</span><span class="self">self</span>, pkg_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.parsed_crates.contains(pkg_name) {
             <span class="kw">return </span><span class="bool-val">false</span>;
@@ -1135,7 +1136,7 @@
         <span class="comment">// If we have a whitelist, check it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>include) = <span class="self">self</span>.config.parse.include {
             <span class="kw">if </span>!include.iter().any(|name| name == pkg_name) {
-                <span class="macro">debug!</span>(<span class="string">&quot;Excluding crate {}&quot;</span>, pkg_name);
+                <span class="macro">debug!</span>(<span class="string">"Excluding crate {}"</span>, pkg_name);
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
         }
@@ -1152,7 +1153,7 @@
 
     <span class="kw">fn </span>parse_crate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pkg: <span class="kw-2">&amp;</span>PackageRef) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="macro">assert!</span>(<span class="self">self</span>.lib.is_some());
-        <span class="macro">debug!</span>(<span class="string">&quot;Parsing crate {}&quot;</span>, pkg.name);
+        <span class="macro">debug!</span>(<span class="string">"Parsing crate {}"</span>, pkg.name);
         <span class="self">self</span>.parsed_crates.insert(pkg.name.clone());
 
         <span class="comment">// Check if we should use cargo expand for this crate
@@ -1169,9 +1170,9 @@
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="comment">// This should be an error, but is common enough to just elicit a warning
                     </span><span class="macro">warn!</span>(
-                        <span class="string">&quot;Parsing crate `{}`: can&#39;t find lib.rs with `cargo metadata`. \
+                        <span class="string">"Parsing crate `{}`: can't find lib.rs with `cargo metadata`. \
                         The crate may be available only on a particular platform, \
-                        so consider setting `fetch_all_dependencies` in your cbindgen configuration.&quot;</span>,
+                        so consider setting `fetch_all_dependencies` in your cbindgen configuration."</span>,
                         pkg.name
                     );
                 }
@@ -1216,7 +1217,7 @@
                     .map_err(|x| Error::CargoExpand(pkg.name.clone(), x))<span class="question-mark">?</span>;
                 <span class="kw">let </span>i = syn::parse_file(<span class="kw-2">&amp;</span>s).map_err(|x| Error::ParseSyntaxError {
                     crate_name: pkg.name.clone(),
-                    src_path: <span class="string">&quot;&quot;</span>.to_owned(),
+                    src_path: <span class="string">""</span>.to_owned(),
                     error: x,
                 })<span class="question-mark">?</span>;
                 <span class="self">self</span>.cache_expanded_crate.insert(pkg.name.clone(), i.items);
@@ -1267,7 +1268,7 @@
 
         <span class="kw">let </span>mod_dir = mod_path.parent().unwrap();
 
-        <span class="kw">let </span>is_mod_rs = depth == <span class="number">0 </span>|| mod_path.ends_with(<span class="string">&quot;mod.rs&quot;</span>);
+        <span class="kw">let </span>is_mod_rs = depth == <span class="number">0 </span>|| mod_path.ends_with(<span class="string">"mod.rs"</span>);
         <span class="kw">let </span>submod_dir = <span class="kw">if </span>is_mod_rs {
             mod_dir
         } <span class="kw">else </span>{
@@ -1338,8 +1339,8 @@
                 )<span class="question-mark">?</span>;
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(mod_dir) = mod_dir {
                 <span class="kw">let </span>submod_dir = submod_dir.unwrap();
-                <span class="kw">let </span>next_mod_path1 = submod_dir.join(next_mod_name.clone() + <span class="string">&quot;.rs&quot;</span>);
-                <span class="kw">let </span>next_mod_path2 = submod_dir.join(next_mod_name.clone()).join(<span class="string">&quot;mod.rs&quot;</span>);
+                <span class="kw">let </span>next_mod_path1 = submod_dir.join(next_mod_name.clone() + <span class="string">".rs"</span>);
+                <span class="kw">let </span>next_mod_path2 = submod_dir.join(next_mod_name.clone()).join(<span class="string">"mod.rs"</span>);
 
                 <span class="kw">if </span>next_mod_path1.exists() {
                     <span class="self">self</span>.parse_mod(pkg, next_mod_path1.as_path(), depth + <span class="number">1</span>)<span class="question-mark">?</span>;
@@ -1353,7 +1354,7 @@
                             attr.parse_meta()
                         {
                             <span class="kw">match </span>lit {
-                                syn::Lit::Str(<span class="kw-2">ref </span>path_lit) <span class="kw">if </span>path.is_ident(<span class="string">&quot;path&quot;</span>) =&gt; {
+                                syn::Lit::Str(<span class="kw-2">ref </span>path_lit) <span class="kw">if </span>path.is_ident(<span class="string">"path"</span>) =&gt; {
                                     path_attr_found = <span class="bool-val">true</span>;
                                     <span class="comment">// https://doc.rust-lang.org/reference/items/modules.html#the-path-attribute
                                     //
@@ -1362,8 +1363,8 @@
                                     //
                                     //     For path attributes inside inline module blocks, the relative location of the
                                     //     file path depends on the kind of source file the path attribute is located
-                                    //     in.  &quot;mod-rs&quot; source files are root modules (such as lib.rs or main.rs) and
-                                    //     modules with files named mod.rs. &quot;non-mod-rs&quot; source files are all other
+                                    //     in.  "mod-rs" source files are root modules (such as lib.rs or main.rs) and
+                                    //     modules with files named mod.rs. "non-mod-rs" source files are all other
                                     //     module files.
                                     //
                                     //     Paths for path attributes inside inline module blocks in a mod-rs file are
@@ -1384,18 +1385,18 @@
                         }
                     }
 
-                    <span class="comment">// This should be an error, but it&#39;s common enough to
+                    <span class="comment">// This should be an error, but it's common enough to
                     // just elicit a warning
                     </span><span class="kw">if </span>!path_attr_found {
                         <span class="macro">warn!</span>(
-                            <span class="string">&quot;Parsing crate `{}`: can&#39;t find mod {}`.&quot;</span>,
+                            <span class="string">"Parsing crate `{}`: can't find mod {}`."</span>,
                             pkg.name, next_mod_name
                         );
                     }
                 }
             } <span class="kw">else </span>{
                 <span class="macro">warn!</span>(
-                    <span class="string">&quot;Parsing expanded crate `{}`: can&#39;t find mod {}`.&quot;</span>,
+                    <span class="string">"Parsing expanded crate `{}`: can't find mod {}`."</span>,
                     pkg.name, next_mod_name
                 );
             }
@@ -1453,23 +1454,23 @@
             ))
         };
 
-        add_opaque(<span class="string">&quot;String&quot;</span>, <span class="macro">vec!</span>[]);
-        add_opaque(<span class="string">&quot;Box&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;RefCell&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;Rc&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;Arc&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;Result&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>, <span class="string">&quot;E&quot;</span>]);
-        add_opaque(<span class="string">&quot;Option&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;NonNull&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;Vec&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;HashMap&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;K&quot;</span>, <span class="string">&quot;V&quot;</span>, <span class="string">&quot;Hasher&quot;</span>]);
-        add_opaque(<span class="string">&quot;BTreeMap&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;K&quot;</span>, <span class="string">&quot;V&quot;</span>]);
-        add_opaque(<span class="string">&quot;HashSet&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;BTreeSet&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;LinkedList&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;VecDeque&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;ManuallyDrop&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
-        add_opaque(<span class="string">&quot;MaybeUninit&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;T&quot;</span>]);
+        add_opaque(<span class="string">"String"</span>, <span class="macro">vec!</span>[]);
+        add_opaque(<span class="string">"Box"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"RefCell"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"Rc"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"Arc"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"Result"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>, <span class="string">"E"</span>]);
+        add_opaque(<span class="string">"Option"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"NonNull"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"Vec"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"HashMap"</span>, <span class="macro">vec!</span>[<span class="string">"K"</span>, <span class="string">"V"</span>, <span class="string">"Hasher"</span>]);
+        add_opaque(<span class="string">"BTreeMap"</span>, <span class="macro">vec!</span>[<span class="string">"K"</span>, <span class="string">"V"</span>]);
+        add_opaque(<span class="string">"HashSet"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"BTreeSet"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"LinkedList"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"VecDeque"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"ManuallyDrop"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
+        add_opaque(<span class="string">"MaybeUninit"</span>, <span class="macro">vec!</span>[<span class="string">"T"</span>]);
     }
 
     <span class="kw">pub fn </span>extend_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Parse) {
@@ -1484,14 +1485,14 @@
         <span class="self">self</span>.source_files.extend_from_slice(<span class="kw-2">&amp;</span>other.source_files);
     }
 
-    <span class="kw">fn </span>load_syn_crate_mod&lt;<span class="lifetime">&#39;a</span>&gt;(
+    <span class="kw">fn </span>load_syn_crate_mod&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         config: <span class="kw-2">&amp;</span>Config,
         binding_crate_name: <span class="kw-2">&amp;</span>str,
         crate_name: <span class="kw-2">&amp;</span>str,
         mod_cfg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Cfg&gt;,
-        items: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[syn::Item],
-    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::ItemMod&gt; {
+        items: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[syn::Item],
+    ) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::ItemMod&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>impls_with_assoc_consts = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>nested_modules = Vec::new();
 
@@ -1592,7 +1593,7 @@
         );
     }
 
-    <span class="doccomment">/// Enters a `extern &quot;C&quot; { }` declaration and loads function declarations.
+    <span class="doccomment">/// Enters a `extern "C" { }` declaration and loads function declarations.
     </span><span class="kw">fn </span>load_syn_foreign_mod(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         config: <span class="kw-2">&amp;</span>Config,
@@ -1602,7 +1603,7 @@
         item: <span class="kw-2">&amp;</span>syn::ItemForeignMod,
     ) {
         <span class="kw">if </span>!item.abi.is_c() {
-            <span class="macro">info!</span>(<span class="string">&quot;Skip {} - (extern block must be extern C).&quot;</span>, crate_name);
+            <span class="macro">info!</span>(<span class="string">"Skip {} - (extern block must be extern C)."</span>, crate_name);
             <span class="kw">return</span>;
         }
 
@@ -1613,7 +1614,7 @@
                     .should_generate_top_level_item(crate_name, binding_crate_name)
                 {
                     <span class="macro">info!</span>(
-                        <span class="string">&quot;Skip {}::{} - (fn&#39;s outside of the binding crate are not used).&quot;</span>,
+                        <span class="string">"Skip {}::{} - (fn's outside of the binding crate are not used)."</span>,
                         crate_name, <span class="kw-2">&amp;</span>function.sig.ident
                     );
                     <span class="kw">return</span>;
@@ -1621,13 +1622,13 @@
                 <span class="kw">let </span>path = Path::new(function.sig.ident.unraw().to_string());
                 <span class="kw">match </span>Function::load(path, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>function.sig, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span>function.attrs, mod_cfg) {
                     <span class="prelude-val">Ok</span>(func) =&gt; {
-                        <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}.&quot;</span>, crate_name, <span class="kw-2">&amp;</span>function.sig.ident);
+                        <span class="macro">info!</span>(<span class="string">"Take {}::{}."</span>, crate_name, <span class="kw-2">&amp;</span>function.sig.ident);
 
                         <span class="self">self</span>.functions.push(func);
                     }
                     <span class="prelude-val">Err</span>(msg) =&gt; {
                         <span class="macro">error!</span>(
-                            <span class="string">&quot;Cannot use fn {}::{} ({}).&quot;</span>,
+                            <span class="string">"Cannot use fn {}::{} ({})."</span>,
                             crate_name, <span class="kw-2">&amp;</span>function.sig.ident, msg
                         );
                     }
@@ -1696,7 +1697,7 @@
             .should_generate_top_level_item(crate_name, binding_crate_name)
         {
             <span class="macro">info!</span>(
-                <span class="string">&quot;Skip {}::{} - (fn&#39;s outside of the binding crate are not used).&quot;</span>,
+                <span class="string">"Skip {}::{} - (fn's outside of the binding crate are not used)."</span>,
                 crate_name, <span class="kw-2">&amp;</span>sig.ident
             );
             <span class="kw">return</span>;
@@ -1709,7 +1710,7 @@
                 items.push(self_type.to_string());
             }
             items.push(sig.ident.unraw().to_string());
-            items.join(<span class="string">&quot;::&quot;</span>)
+            items.join(<span class="string">"::"</span>)
         };
 
         <span class="kw">let </span>is_extern_c = sig.abi.is_omitted() || sig.abi.is_c();
@@ -1720,41 +1721,41 @@
                 <span class="kw">let </span>path = Path::new(exported_name);
                 <span class="kw">match </span>Function::load(path, self_type, sig, <span class="bool-val">false</span>, attrs, mod_cfg) {
                     <span class="prelude-val">Ok</span>(func) =&gt; {
-                        <span class="macro">info!</span>(<span class="string">&quot;Take {}.&quot;</span>, loggable_item_name());
+                        <span class="macro">info!</span>(<span class="string">"Take {}."</span>, loggable_item_name());
                         <span class="self">self</span>.functions.push(func);
                     }
                     <span class="prelude-val">Err</span>(msg) =&gt; {
-                        <span class="macro">error!</span>(<span class="string">&quot;Cannot use fn {} ({}).&quot;</span>, loggable_item_name(), msg);
+                        <span class="macro">error!</span>(<span class="string">"Cannot use fn {} ({})."</span>, loggable_item_name(), msg);
                     }
                 }
             }
             (<span class="bool-val">true</span>, <span class="prelude-val">None</span>) =&gt; {
                 <span class="macro">warn!</span>(
-                    <span class="string">&quot;Skipping {} - (not `no_mangle`, and has no `export_name` attribute)&quot;</span>,
+                    <span class="string">"Skipping {} - (not `no_mangle`, and has no `export_name` attribute)"</span>,
                     loggable_item_name()
                 );
             }
             (<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(_exported_name)) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Skipping {} - (not `extern \&quot;C\&quot;`&quot;</span>, loggable_item_name());
+                <span class="macro">warn!</span>(<span class="string">"Skipping {} - (not `extern \"C\"`"</span>, loggable_item_name());
             }
             (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) =&gt; {}
         }
     }
 
     <span class="doccomment">/// Loads associated `const` declarations
-    </span><span class="kw">fn </span>load_syn_assoc_consts&lt;<span class="lifetime">&#39;a</span>, I&gt;(
+    </span><span class="kw">fn </span>load_syn_assoc_consts&lt;<span class="lifetime">'a</span>, I&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         crate_name: <span class="kw-2">&amp;</span>str,
         mod_cfg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Cfg&gt;,
         impl_ty: <span class="kw-2">&amp;</span>syn::Type,
         items: I,
     ) <span class="kw">where
-        </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::ImplItemConst&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>syn::ImplItemConst&gt;,
     {
         <span class="kw">let </span>ty = <span class="kw">match </span>Type::load(impl_ty) {
             <span class="prelude-val">Ok</span>(ty) =&gt; ty,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Skipping associated constants for {:?}: {:?}&quot;</span>, impl_ty, e);
+                <span class="macro">warn!</span>(<span class="string">"Skipping associated constants for {:?}: {:?}"</span>, impl_ty, e);
                 <span class="kw">return</span>;
             }
         };
@@ -1768,7 +1769,7 @@
             <span class="prelude-val">Some</span>(p) =&gt; p,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="macro">warn!</span>(
-                    <span class="string">&quot;Couldn&#39;t find path for {:?}, skipping associated constants&quot;</span>,
+                    <span class="string">"Couldn't find path for {:?}, skipping associated constants"</span>,
                     ty
                 );
                 <span class="kw">return</span>;
@@ -1778,7 +1779,7 @@
         <span class="kw">for </span>item <span class="kw">in </span>items.into_iter() {
             <span class="kw">if let </span>syn::Visibility::Public(<span class="kw">_</span>) = item.vis {
             } <span class="kw">else </span>{
-                <span class="macro">warn!</span>(<span class="string">&quot;Skip {}::{} - (not `pub`).&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+                <span class="macro">warn!</span>(<span class="string">"Skip {}::{} - (not `pub`)."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
                 <span class="kw">return</span>;
             }
 
@@ -1792,7 +1793,7 @@
                 <span class="prelude-val">Some</span>(impl_path.clone()),
             ) {
                 <span class="prelude-val">Ok</span>(constant) =&gt; {
-                    <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}::{}.&quot;</span>, crate_name, impl_path, <span class="kw-2">&amp;</span>item.ident);
+                    <span class="macro">info!</span>(<span class="string">"Take {}::{}::{}."</span>, crate_name, impl_path, <span class="kw-2">&amp;</span>item.ident);
                     <span class="kw">let </span><span class="kw-2">mut </span>any = <span class="bool-val">false</span>;
                     <span class="self">self</span>.structs.for_items_mut(<span class="kw-2">&amp;</span>impl_path, |item| {
                         any = <span class="bool-val">true</span>;
@@ -1802,13 +1803,13 @@
                     // not structs like enums or such as regular constants.
                     </span><span class="kw">if </span>!any &amp;&amp; !<span class="self">self</span>.constants.try_insert(constant) {
                         <span class="macro">error!</span>(
-                            <span class="string">&quot;Conflicting name for constant {}::{}::{}.&quot;</span>,
+                            <span class="string">"Conflicting name for constant {}::{}::{}."</span>,
                             crate_name, impl_path, <span class="kw-2">&amp;</span>item.ident,
                         );
                     }
                 }
                 <span class="prelude-val">Err</span>(msg) =&gt; {
-                    <span class="macro">warn!</span>(<span class="string">&quot;Skip {}::{} - ({})&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
+                    <span class="macro">warn!</span>(<span class="string">"Skip {}::{} - ({})"</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
                 }
             }
         }
@@ -1828,7 +1829,7 @@
             .should_generate_top_level_item(crate_name, binding_crate_name)
         {
             <span class="macro">info!</span>(
-                <span class="string">&quot;Skip {}::{} - (const&#39;s outside of the binding crate are not used).&quot;</span>,
+                <span class="string">"Skip {}::{} - (const's outside of the binding crate are not used)."</span>,
                 crate_name, <span class="kw-2">&amp;</span>item.ident
             );
             <span class="kw">return</span>;
@@ -1836,22 +1837,22 @@
 
         <span class="kw">if let </span>syn::Visibility::Public(<span class="kw">_</span>) = item.vis {
         } <span class="kw">else </span>{
-            <span class="macro">warn!</span>(<span class="string">&quot;Skip {}::{} - (not `pub`).&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+            <span class="macro">warn!</span>(<span class="string">"Skip {}::{} - (not `pub`)."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
             <span class="kw">return</span>;
         }
 
         <span class="kw">let </span>path = Path::new(item.ident.unraw().to_string());
         <span class="kw">match </span>Constant::load(path, mod_cfg, <span class="kw-2">&amp;</span>item.ty, <span class="kw-2">&amp;</span>item.expr, <span class="kw-2">&amp;</span>item.attrs, <span class="prelude-val">None</span>) {
             <span class="prelude-val">Ok</span>(constant) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}.&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{}."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
 
                 <span class="kw">let </span>full_name = constant.path.clone();
                 <span class="kw">if </span>!<span class="self">self</span>.constants.try_insert(constant) {
-                    <span class="macro">error!</span>(<span class="string">&quot;Conflicting name for constant {}&quot;</span>, full_name);
+                    <span class="macro">error!</span>(<span class="string">"Conflicting name for constant {}"</span>, full_name);
                 }
             }
             <span class="prelude-val">Err</span>(msg) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Skip {}::{} - ({})&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
+                <span class="macro">warn!</span>(<span class="string">"Skip {}::{} - ({})"</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
             }
         }
     }
@@ -1870,7 +1871,7 @@
             .should_generate_top_level_item(crate_name, binding_crate_name)
         {
             <span class="macro">info!</span>(
-                <span class="string">&quot;Skip {}::{} - (static&#39;s outside of the binding crate are not used).&quot;</span>,
+                <span class="string">"Skip {}::{} - (static's outside of the binding crate are not used)."</span>,
                 crate_name, <span class="kw-2">&amp;</span>item.ident
             );
             <span class="kw">return</span>;
@@ -1880,15 +1881,15 @@
             <span class="kw">let </span>path = Path::new(exported_name);
             <span class="kw">match </span>Static::load(path, item, mod_cfg) {
                 <span class="prelude-val">Ok</span>(constant) =&gt; {
-                    <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}.&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+                    <span class="macro">info!</span>(<span class="string">"Take {}::{}."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
                     <span class="self">self</span>.globals.try_insert(constant);
                 }
                 <span class="prelude-val">Err</span>(msg) =&gt; {
-                    <span class="macro">warn!</span>(<span class="string">&quot;Skip {}::{} - ({})&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
+                    <span class="macro">warn!</span>(<span class="string">"Skip {}::{} - ({})"</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
                 }
             }
         } <span class="kw">else </span>{
-            <span class="macro">warn!</span>(<span class="string">&quot;Skip {}::{} - (not `no_mangle`).&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+            <span class="macro">warn!</span>(<span class="string">"Skip {}::{} - (not `no_mangle`)."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
         }
     }
 
@@ -1902,11 +1903,11 @@
     ) {
         <span class="kw">match </span>Struct::load(<span class="kw-2">&amp;</span>config.layout, item, mod_cfg) {
             <span class="prelude-val">Ok</span>(st) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}.&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{}."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
                 <span class="self">self</span>.structs.try_insert(st);
             }
             <span class="prelude-val">Err</span>(msg) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{} - opaque ({}).&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{} - opaque ({})."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
                 <span class="kw">let </span>path = Path::new(item.ident.unraw().to_string());
                 <span class="self">self</span>.opaque_items.try_insert(
                     OpaqueItem::load(path, <span class="kw-2">&amp;</span>item.generics, <span class="kw-2">&amp;</span>item.attrs, mod_cfg).unwrap(),
@@ -1925,12 +1926,12 @@
     ) {
         <span class="kw">match </span>Union::load(<span class="kw-2">&amp;</span>config.layout, item, mod_cfg) {
             <span class="prelude-val">Ok</span>(st) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}.&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{}."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
 
                 <span class="self">self</span>.unions.try_insert(st);
             }
             <span class="prelude-val">Err</span>(msg) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{} - opaque ({}).&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{} - opaque ({})."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
                 <span class="kw">let </span>path = Path::new(item.ident.unraw().to_string());
                 <span class="self">self</span>.opaque_items.try_insert(
                     OpaqueItem::load(path, <span class="kw-2">&amp;</span>item.generics, <span class="kw-2">&amp;</span>item.attrs, mod_cfg).unwrap(),
@@ -1949,11 +1950,11 @@
     ) {
         <span class="kw">match </span>Enum::load(item, mod_cfg, config) {
             <span class="prelude-val">Ok</span>(en) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}.&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{}."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
                 <span class="self">self</span>.enums.try_insert(en);
             }
             <span class="prelude-val">Err</span>(msg) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{} - opaque ({}).&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{} - opaque ({})."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
                 <span class="kw">let </span>path = Path::new(item.ident.unraw().to_string());
                 <span class="self">self</span>.opaque_items.try_insert(
                     OpaqueItem::load(path, <span class="kw-2">&amp;</span>item.generics, <span class="kw-2">&amp;</span>item.attrs, mod_cfg).unwrap(),
@@ -1966,12 +1967,12 @@
     </span><span class="kw">fn </span>load_syn_ty(<span class="kw-2">&amp;mut </span><span class="self">self</span>, crate_name: <span class="kw-2">&amp;</span>str, mod_cfg: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Cfg&gt;, item: <span class="kw-2">&amp;</span>syn::ItemType) {
         <span class="kw">match </span>Typedef::load(item, mod_cfg) {
             <span class="prelude-val">Ok</span>(st) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{}.&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{}."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident);
 
                 <span class="self">self</span>.typedefs.try_insert(st);
             }
             <span class="prelude-val">Err</span>(msg) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Take {}::{} - opaque ({}).&quot;</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
+                <span class="macro">info!</span>(<span class="string">"Take {}::{} - opaque ({})."</span>, crate_name, <span class="kw-2">&amp;</span>item.ident, msg);
                 <span class="kw">let </span>path = Path::new(item.ident.unraw().to_string());
                 <span class="self">self</span>.opaque_items.try_insert(
                     OpaqueItem::load(path, <span class="kw-2">&amp;</span>item.generics, <span class="kw-2">&amp;</span>item.attrs, mod_cfg).unwrap(),
@@ -1992,14 +1993,14 @@
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         };
 
-        <span class="kw">if </span>name != <span class="string">&quot;bitflags&quot; </span>|| !config.macro_expansion.bitflags {
+        <span class="kw">if </span>name != <span class="string">"bitflags" </span>|| !config.macro_expansion.bitflags {
             <span class="kw">return</span>;
         }
 
         <span class="kw">let </span>bitflags = <span class="kw">match </span>bitflags::parse(item.mac.tokens.clone()) {
             <span class="prelude-val">Ok</span>(bf) =&gt; bf,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Failed to parse bitflags invocation: {:?}&quot;</span>, e);
+                <span class="macro">warn!</span>(<span class="string">"Failed to parse bitflags invocation: {:?}"</span>, e);
                 <span class="kw">return</span>;
             }
         };
@@ -2013,7 +2014,7 @@
                 <span class="self">self</span>.structs
                     .for_items_mut(<span class="kw-2">&amp;</span>Path::new(type_name.unraw().to_string()), |item| {
                         item.annotations
-                            .add_default(<span class="string">&quot;internal-derive-bitflags&quot;</span>, AnnotationValue::Bool(<span class="bool-val">true</span>));
+                            .add_default(<span class="string">"internal-derive-bitflags"</span>, AnnotationValue::Bool(<span class="bool-val">true</span>));
                     });
             }
         }

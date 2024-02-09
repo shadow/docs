@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/epoll/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/epoll/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -463,7 +464,7 @@
             pri_counter: u64::MAX,
             monitoring: HashMap::new(),
             ready: BinaryHeap::new(),
-            _counter: ObjectCounter::new(<span class="string">&quot;Epoll&quot;</span>),
+            _counter: ObjectCounter::new(<span class="string">"Epoll"</span>),
         };
 
         CallbackQueue::queue_and_run(|cb_queue| epoll.refresh_state(cb_queue));
@@ -515,7 +516,7 @@
         _mem: <span class="kw-2">&amp;mut </span>MemoryManager,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
-        <span class="comment">// EpollFDs don&#39;t support reading.
+        <span class="comment">// EpollFDs don't support reading.
         </span><span class="prelude-val">Err</span>(Errno::EINVAL.into())
     }
 
@@ -527,7 +528,7 @@
         _mem: <span class="kw-2">&amp;mut </span>MemoryManager,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
-        <span class="comment">// EpollFDs don&#39;t support writing.
+        <span class="comment">// EpollFDs don't support writing.
         </span><span class="prelude-val">Err</span>(Errno::EINVAL.into())
     }
 
@@ -537,9 +538,9 @@
         _arg_ptr: ForeignPtr&lt;()&gt;,
         _mem: <span class="kw-2">&amp;mut </span>MemoryManager,
     ) -&gt; SyscallResult {
-        <span class="comment">// After checking the epoll man pages and the Linux source for eventpoll.c, we don&#39;t think
+        <span class="comment">// After checking the epoll man pages and the Linux source for eventpoll.c, we don't think
         // epoll descriptors support any ioctl operations.
-        </span><span class="macro">warn_once_then_trace!</span>(<span class="string">&quot;Epoll does not support any ioctl requests.&quot;</span>);
+        </span><span class="macro">warn_once_then_trace!</span>(<span class="string">"Epoll does not support any ioctl requests."</span>);
         <span class="comment">// From ioctl(2): ENOTTY The specified request does not apply to the kind of object that the
         // file descriptor fd references. Verified that epoll descriptors return this on Linux.
         </span><span class="prelude-val">Err</span>(Errno::ENOTTY.into())
@@ -562,18 +563,18 @@
         <span class="kw">let </span>state = target_file.borrow().state();
         <span class="kw">let </span>key = Key::new(target_fd, target_file);
 
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Epoll editing fd {target_fd} while in state {state:?}&quot;</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"Epoll editing fd {target_fd} while in state {state:?}"</span>);
 
         <span class="kw">match </span>op {
             EpollCtlOp::EPOLL_CTL_ADD =&gt; {
-                <span class="comment">// Check if we&#39;re trying to add a file that&#39;s already been closed. Typically a file
+                <span class="comment">// Check if we're trying to add a file that's already been closed. Typically a file
                 // that is referenced in the descriptor table should never be a closed file, but
-                // Shadow&#39;s C TCP sockets do close themselves even if there are still file handles
+                // Shadow's C TCP sockets do close themselves even if there are still file handles
                 // (see `_tcp_endOfFileSignalled`), so we need to check this.
                 //
                 // TODO change this to an assertion when legacy tcp is removed.
                 </span><span class="kw">if </span>state.contains(FileState::CLOSED) {
-                    <span class="macro">log::warn!</span>(<span class="string">&quot;Attempted to add a closed file {target_fd} to epoll&quot;</span>);
+                    <span class="macro">log::warn!</span>(<span class="string">"Attempted to add a closed file {target_fd} to epoll"</span>);
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
                 }
 
@@ -587,8 +588,8 @@
                     entry.set_legacy();
                 }
 
-                <span class="comment">// From epoll_ctl(2): Returns EEXIST when &quot;op was EPOLL_CTL_ADD, and the supplied
-                // file descriptor fd is already registered with this epoll instance.&quot;
+                <span class="comment">// From epoll_ctl(2): Returns EEXIST when "op was EPOLL_CTL_ADD, and the supplied
+                // file descriptor fd is already registered with this epoll instance."
                 </span><span class="kw">match </span><span class="self">self</span>.monitoring.entry(key.clone()) {
                     HashMapEntry::Occupied(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EEXIST.into()),
                     HashMapEntry::Vacant(x) =&gt; x.insert(entry),
@@ -625,7 +626,7 @@
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
             + Send
             + Sync
-            + <span class="lifetime">&#39;static</span>,
+            + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="self">self</span>.event_source
             .add_listener(monitoring_state, monitoring_signals, filter, notify_fn)
@@ -724,7 +725,7 @@
         signals: FileSignals,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) {
-        <span class="comment">// Notify entry of file state change if we&#39;re still monitoring it.
+        <span class="comment">// Notify entry of file state change if we're still monitoring it.
         </span><span class="kw">match </span><span class="self">self</span>.monitoring.get_mut(<span class="kw-2">&amp;</span>key.clone()) {
             <span class="prelude-val">Some</span>(entry) =&gt; entry.notify(state, changed, signals),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
@@ -742,7 +743,7 @@
         </span><span class="self">self</span>.refresh_state(cb_queue);
     }
 
-    <span class="doccomment">/// Ensures that the entry is in the ready set if it should be, or not if it shouldn&#39;t be.
+    <span class="doccomment">/// Ensures that the entry is in the ready set if it should be, or not if it shouldn't be.
     </span><span class="kw">fn </span>refresh_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Key) {
         <span class="kw">let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.monitoring.get_mut(<span class="kw-2">&amp;</span>key.clone()) <span class="kw">else </span>{
             <span class="kw">return</span>;
@@ -751,14 +752,14 @@
         <span class="comment">// The entry will not be ready if the file closed.
         </span><span class="kw">if </span>entry.has_ready_events() {
             <span class="kw">if </span>entry.priority().is_none() {
-                <span class="comment">// It&#39;s ready but not in the ready set yet.
+                <span class="comment">// It's ready but not in the ready set yet.
                 </span><span class="kw">let </span>pri = <span class="self">self</span>.pri_counter;
                 <span class="self">self</span>.pri_counter -= <span class="number">1</span>;
                 <span class="self">self</span>.ready.push(PriorityKey::new(pri, key));
                 entry.set_priority(<span class="prelude-val">Some</span>(pri));
             }
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(pri) = entry.priority() {
-            <span class="comment">// It&#39;s not ready anymore but it&#39;s in the ready set, so remove it.
+            <span class="comment">// It's not ready anymore but it's in the ready set, so remove it.
             </span><span class="self">self</span>.ready.retain(|e| e.priority() != pri);
             entry.set_priority(<span class="prelude-val">None</span>);
         }
@@ -793,12 +794,12 @@
 
             <span class="comment">// It might still be ready even after we report.
             </span><span class="kw">if </span>entry.has_ready_events() {
-                <span class="comment">// It&#39;s ready again. Assign a new priority to ensure fairness with other entries.
+                <span class="comment">// It's ready again. Assign a new priority to ensure fairness with other entries.
                 </span><span class="kw">let </span>pri = <span class="self">self</span>.pri_counter;
                 <span class="self">self</span>.pri_counter -= <span class="number">1</span>;
                 <span class="kw">let </span>pri_key = PriorityKey::new(pri, key);
 
-                <span class="comment">// Use temp vec so we don&#39;t report the same entry twice in the same round.
+                <span class="comment">// Use temp vec so we don't report the same entry twice in the same round.
                 </span>keep.push(pri_key);
 
                 <span class="comment">// The entry will be in the ready set, keep its priority consistent.
@@ -809,7 +810,7 @@
         <span class="comment">// Add everything that is still ready back to the ready set.
         </span><span class="self">self</span>.ready.extend(keep);
 
-        <span class="comment">// We&#39;ve mutated the ready list; we may need to trigger callbacks.
+        <span class="comment">// We've mutated the ready list; we may need to trigger callbacks.
         </span><span class="self">self</span>.refresh_state(cb_queue);
 
         <span class="comment">// The events to be returned to the managed process.

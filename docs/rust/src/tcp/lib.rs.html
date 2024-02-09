@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/tcp/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tcp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -791,7 +792,7 @@
 //!     fn register_timer(
 //!         &amp;self,
 //!         time: Self::Instant,
-//!         f: impl FnOnce(&amp;mut tcp::TcpState&lt;Self&gt;, tcp::TimerRegisteredBy) + Send + Sync + &#39;static,
+//!         f: impl FnOnce(&amp;mut tcp::TcpState&lt;Self&gt;, tcp::TimerRegisteredBy) + Send + Sync + 'static,
 //!     ) {
 //!         let tcp_state = self.state.upgrade().unwrap();
 //!
@@ -822,11 +823,11 @@
 //! let mut tcp_state = tcp_state.borrow_mut();
 //!
 //! // connect to port 80
-//! let dst_addr = &quot;127.0.0.1:80&quot;.parse().unwrap();
+//! let dst_addr = "127.0.0.1:80".parse().unwrap();
 //! tcp_state.connect(dst_addr, || {
 //!     // here we would ask the network interface for an unused port (implicit bind),
 //!     // or where we would use the port assigned to a raw IP socket
-//!     let bind_addr = &quot;127.0.0.1:2532&quot;.parse().unwrap();
+//!     let bind_addr = "127.0.0.1:2532".parse().unwrap();
 //!     Ok::&lt;_, ()&gt;((bind_addr, ()))
 //! }).unwrap();
 //!
@@ -882,25 +883,25 @@
     /// parent state or one of its child states.
     ///
     /// If a child state has not yet been accept()ed, it will be owned by a parent state. When a
-    /// child state registers a timer, the timer&#39;s callback will run on the parent state and the
+    /// child state registers a timer, the timer's callback will run on the parent state and the
     /// callback will be given the `TimerRegisteredBy::Child` argument so that the callback can
     /// delegate accordingly.
     </span><span class="kw">fn </span>register_timer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         time: <span class="self">Self</span>::Instant,
-        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>TcpState&lt;<span class="self">Self</span>&gt;, TimerRegisteredBy) + Send + Sync + <span class="lifetime">&#39;static</span>,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>TcpState&lt;<span class="self">Self</span>&gt;, TimerRegisteredBy) + Send + Sync + <span class="lifetime">'static</span>,
     );
 
     <span class="doccomment">/// Get the current time.
     </span><span class="kw">fn </span>current_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Instant;
 
     <span class="doccomment">/// Create a new `Dependencies` for use by a child state. When a timer is registered by the
-    /// child state using this new object, the timer&#39;s callback will be run on the parent&#39;s state
+    /// child state using this new object, the timer's callback will be run on the parent's state
     /// with the `TimerRegisteredBy::Child` argument so that the parent knows to run the callback on
     /// one of its child states.
     ///
     /// When a child state has been accept()ed, it will no longer be owned by the parent state and
-    /// the parent state has no way to access this child state. The child state&#39;s `Dependencies`
+    /// the parent state has no way to access this child state. The child state's `Dependencies`
     /// should be updated during the [`finalize`](AcceptedTcpState::finalize) call (on the
     /// [`AcceptedTcpState`] returned from [`accept`](TcpState::accept)) to run callbacks directly
     /// on this state instead, and the callbacks should be given `TimerRegisteredBy::Parent` (the
@@ -935,7 +936,7 @@
     /// depending on what state the socket is currently in.
     ///
     /// TODO:
-    /// RFC 9293: &quot;The side of a connection issuing a reset should enter the TIME-WAIT state, [...]&quot;
+    /// RFC 9293: "The side of a connection issuing a reset should enter the TIME-WAIT state, [...]"
     </span><span class="kw">fn </span>rst_close(<span class="self">self</span>) -&gt; (TcpStateEnum&lt;X&gt;, <span class="prelude-ty">Result</span>&lt;(), RstCloseError&gt;) {
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(RstCloseError::InvalidState))
     }
@@ -976,7 +977,7 @@
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(RecvError::InvalidState))
     }
 
-    <span class="doccomment">/// Returns the number of bytes added to the TCP state&#39;s receive buffer. This may be
+    <span class="doccomment">/// Returns the number of bytes added to the TCP state's receive buffer. This may be
     /// smaller (ex: duplicate packet) or larger (ex: there is a non-empty reassembly queue)
     /// than the packet payload length.
     </span><span class="kw">fn </span>push_packet(
@@ -1009,7 +1010,7 @@
 </span><span class="kw">pub struct </span>TcpState&lt;X: Dependencies&gt;(<span class="prelude-ty">Option</span>&lt;TcpStateEnum&lt;X&gt;&gt;);
 
 <span class="comment">// this exposes many of the methods from `TcpStateTrait`, but not necessarily all of them (for
-// example we don&#39;t expose `rst_close()`).
+// example we don't expose `rst_close()`).
 </span><span class="kw">impl</span>&lt;X: Dependencies&gt; TcpState&lt;X&gt; {
     <span class="kw">pub fn </span>new(deps: X, config: TcpConfig) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>new_state = InitState::new(deps, config);
@@ -1203,12 +1204,12 @@
 }
 
 <span class="doccomment">/// An accept()ed TCP state. This is used to ensure that the caller uses
-/// [`finalize`](Self::finalize) to update the state&#39;s `Dependencies` since the state is no longer
+/// [`finalize`](Self::finalize) to update the state's `Dependencies` since the state is no longer
 /// owned by the listening socket.
-</span><span class="comment">// we use a wrapper struct around an enum so that public code can&#39;t access the inner state object
+</span><span class="comment">// we use a wrapper struct around an enum so that public code can't access the inner state object
 </span><span class="kw">pub struct </span>AcceptedTcpState&lt;X: Dependencies&gt;(AcceptedTcpStateInner&lt;X&gt;);
 
-<span class="doccomment">/// An &quot;established&quot; or &quot;close-wait&quot; TCP state can be accept()ed, so we need to be able to store
+<span class="doccomment">/// An "established" or "close-wait" TCP state can be accept()ed, so we need to be able to store
 /// either state.
 </span><span class="kw">enum </span>AcceptedTcpStateInner&lt;X: Dependencies&gt; {
     Established(EstablishedState&lt;X&gt;),
@@ -1216,7 +1217,7 @@
 }
 
 <span class="kw">impl</span>&lt;X: Dependencies&gt; AcceptedTcpState&lt;X&gt; {
-    <span class="doccomment">/// This allows the caller to update the state&#39;s `Dependencies`.
+    <span class="doccomment">/// This allows the caller to update the state's `Dependencies`.
     ///
     /// This must be called immediately after [`TcpState::accept`], otherwise the accept()ed socket
     /// may miss some of its timer events.
@@ -1309,9 +1310,9 @@
     <span class="doccomment">/// A previous connection attempt is in progress.
     </span>InProgress,
     <span class="doccomment">/// A connection has previously been attempted and was either successful or unsuccessful (it may
-    /// or may not have reached the &quot;established&quot; state). The connection may be established, timed
+    /// or may not have reached the "established" state). The connection may be established, timed
     /// out, closing, half-closed, closed, etc. This does not include connection attempts that are
-    /// in progress (&quot;syn-sent&quot; or &quot;syn-received&quot; states).
+    /// in progress ("syn-sent" or "syn-received" states).
     </span>AlreadyConnected,
     <span class="doccomment">/// Is already listening for new connections.
     </span>IsListening,
@@ -1372,14 +1373,14 @@
         <span class="doccomment">/// There is a pending error that can be read using [`TcpState::clear_error`].
         </span><span class="kw">const </span>ERROR = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
         <span class="doccomment">/// The connection has been closed for receiving. This is not mutually exclusive with
-        /// `READABLE` (even if it&#39;s closed for receiving, there may still be buffered data to
+        /// `READABLE` (even if it's closed for receiving, there may still be buffered data to
         /// read). Some possible causes are:
         /// - Received a FIN packet.
         /// - Sent or received a RST packet.
         /// - TCP was closed.
         </span><span class="kw">const </span>RECV_CLOSED = <span class="number">1 </span>&lt;&lt; <span class="number">3</span>;
         <span class="doccomment">/// The connection has been closed for sending. This should be mutually exclusive with
-        /// `WRITABLE` (there would be no point in writing data if it&#39;s closed for sending). Some
+        /// `WRITABLE` (there would be no point in writing data if it's closed for sending). Some
         /// possible causes are:
         /// - Sent a FIN packet.
         /// - Sent or received a RST packet.
@@ -1391,17 +1392,17 @@
         <span class="doccomment">/// A listening socket has a new incoming connection that can be accepted.
         </span><span class="kw">const </span>READY_TO_ACCEPT = <span class="number">1 </span>&lt;&lt; <span class="number">6</span>;
         <span class="doccomment">/// Connection is in the process of opening. More specifically this means that it is in
-        /// either the &quot;syn-sent&quot; or &quot;syn-received&quot; states.
+        /// either the "syn-sent" or "syn-received" states.
         </span><span class="kw">const </span>CONNECTING = <span class="number">1 </span>&lt;&lt; <span class="number">7</span>;
         <span class="doccomment">/// A connection has previously been attempted and was either successful or unsuccessful (it
-        /// may or may not have reached the &quot;established&quot; state). The connection may be established,
+        /// may or may not have reached the "established" state). The connection may be established,
         /// timed out, closing, half-closed, closed, etc. This does not include connection attempts
-        /// that are in progress (&quot;syn-sent&quot; or &quot;syn-received&quot; states).
+        /// that are in progress ("syn-sent" or "syn-received" states).
         </span><span class="kw">const </span>CONNECTED = <span class="number">1 </span>&lt;&lt; <span class="number">8</span>;
-        <span class="doccomment">/// TCP is fully closed (in the &quot;closed&quot; state). This may not be set immediately after a
-        /// `close()` call, for example if `close()` was called while in the &quot;established&quot; state,
-        /// and now is in the &quot;fin-wait-1&quot; state. This does not include the initial state (we don&#39;t
-        /// consider a new TCP to be &quot;closed&quot;).
+        <span class="doccomment">/// TCP is fully closed (in the "closed" state). This may not be set immediately after a
+        /// `close()` call, for example if `close()` was called while in the "established" state,
+        /// and now is in the "fin-wait-1" state. This does not include the initial state (we don't
+        /// consider a new TCP to be "closed").
         </span><span class="kw">const </span>CLOSED = <span class="number">1 </span>&lt;&lt; <span class="number">9</span>;
     }
 }
@@ -1474,14 +1475,14 @@
 /// must be at most [`u32::MAX`], otherwise operations on the payload or other code using the
 /// payload may panic.
 </span><span class="comment">// TODO: Intuitively this seems like a good place to use a `SmallVec` to optimize the common case
-// where there are a small number of chunks per packet. But I&#39;m leaving this until we can test `Vec`
-// vs `SmallVec` in a benchmark to see if there&#39;s any performance improvement in practice.
+// where there are a small number of chunks per packet. But I'm leaving this until we can test `Vec`
+// vs `SmallVec` in a benchmark to see if there's any performance improvement in practice.
 </span><span class="attr">#[derive(Clone, Debug, Default)]
 </span><span class="kw">pub struct </span>Payload(<span class="kw">pub </span>Vec&lt;Bytes&gt;);
 
-<span class="comment">// We don&#39;t implement `PartialEq` or `Eq` since it&#39;s not clear what equality means. Are payloads
+<span class="comment">// We don't implement `PartialEq` or `Eq` since it's not clear what equality means. Are payloads
 // equal if they just contain the same bytes, or are they equal only if the chunks are exactly the
-// same? For example is the payload `[&quot;hello&quot;, &quot;world&quot;]` the same as `[&quot;helloworld&quot;]`?
+// same? For example is the payload `["hello", "world"]` the same as `["helloworld"]`?
 </span><span class="macro">static_assertions::assert_not_impl_any!</span>(Payload: PartialEq, Eq);
 
 <span class="kw">impl </span>Payload {
@@ -1513,7 +1514,7 @@
         }
 
         <span class="kw">if </span>num_chunks == <span class="number">1 </span>{
-            <span class="comment">// there&#39;s only one chunk, so just return a reference to the chunk
+            <span class="comment">// there's only one chunk, so just return a reference to the chunk
             </span><span class="kw">return </span><span class="self">self</span>.<span class="number">0</span>[<span class="number">0</span>].clone();
         }
 

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/utility/sockaddr.rs`."><title>sockaddr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/utility/sockaddr.rs`."><title>sockaddr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -773,6 +774,10 @@
 <a href="#773" id="773">773</a>
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Borrow;
 <span class="kw">use </span>std::borrow::BorrowMut;
 <span class="kw">use </span>std::ffi::CStr;
@@ -832,10 +837,10 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="comment">// &#39;new_addr&#39; starts will all bytes initialized
+        <span class="comment">// 'new_addr' starts will all bytes initialized
         </span><span class="kw">let </span><span class="kw-2">mut </span>new_addr = [MaybeUninit::new(<span class="number">0u8</span>); STORAGE_LEN];
 
-        <span class="comment">// after the copy, &#39;new_addr&#39; may have uninitialized bytes if `addr` had padding bytes
+        <span class="comment">// after the copy, 'new_addr' may have uninitialized bytes if `addr` had padding bytes
         </span><span class="kw">unsafe </span>{ std::ptr::copy_nonoverlapping(addr, new_addr.as_mut_ptr(), len <span class="kw">as </span>usize) };
 
         <span class="prelude-val">Some</span>(SockaddrStorage {
@@ -858,7 +863,7 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="comment">// SAFETY: we don&#39;t know what bytes of the address have initialized/uninitialized memory,
+        <span class="comment">// SAFETY: we don't know what bytes of the address have initialized/uninitialized memory,
         // but we should be guarenteed the the `ss_family` field is initialized for any socket type.
         </span><span class="kw">let </span>family = <span class="kw">unsafe </span>{ <span class="self">self</span>.addr.storage }.ss_family;
         AddressFamily::from_i32(family.into())
@@ -879,7 +884,9 @@
         </span><span class="macro">assert_eq_size!</span>(libc::sockaddr_in, nix::sys::socket::SockaddrIn);
         <span class="macro">assert_eq_align!</span>(libc::sockaddr_in, nix::sys::socket::SockaddrIn);
 
-        <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.addr.inet <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>nix::sys::socket::SockaddrIn) })
+        <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{
+            <span class="kw-2">&amp;*</span>(std::ptr::from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.addr.inet) <span class="kw">as </span><span class="kw-2">*const </span>nix::sys::socket::SockaddrIn)
+        })
     }
 
     <span class="doccomment">/// Get a new `SockaddrStorage` with a copy of the ipv4 socket address.
@@ -907,7 +914,9 @@
         </span><span class="macro">assert_eq_size!</span>(libc::sockaddr_in6, nix::sys::socket::SockaddrIn6);
         <span class="macro">assert_eq_align!</span>(libc::sockaddr_in6, nix::sys::socket::SockaddrIn6);
 
-        <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.addr.inet6 <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>nix::sys::socket::SockaddrIn6) })
+        <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{
+            <span class="kw-2">&amp;*</span>(std::ptr::from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.addr.inet6) <span class="kw">as </span><span class="kw-2">*const </span>nix::sys::socket::SockaddrIn6)
+        })
     }
 
     <span class="doccomment">/// Get a new `SockaddrStorage` with a copy of the ipv6 socket address.
@@ -949,7 +958,7 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SockaddrStorage {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>as_inet = <span class="self">self</span>.as_inet();
         <span class="kw">let </span>as_inet6 = <span class="self">self</span>.as_inet6();
         <span class="kw">let </span>as_unix = <span class="self">self</span>.as_unix();
@@ -963,21 +972,21 @@
         <span class="kw">let </span>addr = options.into_iter().find_map(std::convert::identity);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>addr) = addr {
-            f.debug_struct(<span class="string">&quot;SockaddrStorage&quot;</span>)
-                .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
-                .field(<span class="string">&quot;addr&quot;</span>, addr)
+            f.debug_struct(<span class="string">"SockaddrStorage"</span>)
+                .field(<span class="string">"len"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
+                .field(<span class="string">"addr"</span>, addr)
                 .finish()
         } <span class="kw">else </span>{
-            f.debug_struct(<span class="string">&quot;SockaddrStorage&quot;</span>)
-                .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
-                .field(<span class="string">&quot;family&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.family())
+            f.debug_struct(<span class="string">"SockaddrStorage"</span>)
+                .field(<span class="string">"len"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
+                .field(<span class="string">"family"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.family())
                 .finish_non_exhaustive()
         }
     }
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>SockaddrStorage {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>as_inet = <span class="self">self</span>.as_inet();
         <span class="kw">let </span>as_inet6 = <span class="self">self</span>.as_inet6();
         <span class="kw">let </span>as_unix = <span class="self">self</span>.as_unix();
@@ -991,11 +1000,11 @@
         <span class="kw">let </span>addr = options.into_iter().find_map(std::convert::identity);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>addr) = addr {
-            <span class="macro">write!</span>(f, <span class="string">&quot;{addr}&quot;</span>)
+            <span class="macro">write!</span>(f, <span class="string">"{addr}"</span>)
         } <span class="kw">else </span>{
-            f.debug_struct(<span class="string">&quot;SockaddrStorage&quot;</span>)
-                .field(<span class="string">&quot;len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
-                .field(<span class="string">&quot;family&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.family())
+            f.debug_struct(<span class="string">"SockaddrStorage"</span>)
+                .field(<span class="string">"len"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.len)
+                .field(<span class="string">"family"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.family())
                 .finish_non_exhaustive()
         }
     }
@@ -1075,7 +1084,7 @@
     </span><span class="kw">pub fn </span>as_path(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CStr&gt; {
         <span class="kw">let </span>path = <span class="self">self</span>.sun_path()<span class="question-mark">?</span>;
 
-        <span class="comment">// if the address length is too short, or it&#39;s an abstract named address
+        <span class="comment">// if the address length is too short, or it's an abstract named address
         </span><span class="kw">if </span>path.is_empty() || path[<span class="number">0</span>] == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
@@ -1171,7 +1180,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>addr: libc::sockaddr_un = <span class="kw">unsafe </span>{ std::mem::zeroed() };
 
         <span class="kw">if </span>path.len() &gt;= std::mem::size_of_val(<span class="kw-2">&amp;</span>addr.sun_path) {
-            <span class="comment">// pathname unix sockets should be nul terminated, but there&#39;s no room for the nul
+            <span class="comment">// pathname unix sockets should be nul terminated, but there's no room for the nul
             </span><span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
@@ -1221,10 +1230,10 @@
 <span class="kw">where
     </span>T: Borrow&lt;libc::sockaddr_un&gt;,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;SockaddrUnix&quot;</span>)
-            .field(<span class="string">&quot;sun_family&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.addr.borrow().sun_family)
-            .field(<span class="string">&quot;sun_path&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sun_path())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"SockaddrUnix"</span>)
+            .field(<span class="string">"sun_family"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.addr.borrow().sun_family)
+            .field(<span class="string">"sun_path"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sun_path())
             .finish()
     }
 }
@@ -1233,23 +1242,23 @@
 <span class="kw">where
     </span>T: Borrow&lt;libc::sockaddr_un&gt;,
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="self">self</span>.as_path() {
-            f.debug_struct(<span class="string">&quot;sockaddr_un&quot;</span>).field(<span class="string">&quot;path&quot;</span>, <span class="kw-2">&amp;</span>path).finish()
+            f.debug_struct(<span class="string">"sockaddr_un"</span>).field(<span class="string">"path"</span>, <span class="kw-2">&amp;</span>path).finish()
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self</span>.as_abstract() {
             <span class="kw">let </span>name: Vec&lt;u8&gt; = name
                 .iter()
                 .flat_map(|x| std::ascii::escape_default(<span class="kw-2">*</span>x))
                 .collect();
             <span class="kw">let </span>name = String::from_utf8(name).unwrap();
-            f.debug_struct(<span class="string">&quot;sockaddr_un&quot;</span>)
-                .field(<span class="string">&quot;abstract&quot;</span>, <span class="kw-2">&amp;</span>name)
+            f.debug_struct(<span class="string">"sockaddr_un"</span>)
+                .field(<span class="string">"abstract"</span>, <span class="kw-2">&amp;</span>name)
                 .finish()
         } <span class="kw">else if </span><span class="self">self</span>.is_unnamed() {
-            <span class="macro">write!</span>(f, <span class="string">&quot;sockaddr_un {{ unnamed }}&quot;</span>)
+            <span class="macro">write!</span>(f, <span class="string">"sockaddr_un {{ unnamed }}"</span>)
         } <span class="kw">else </span>{
-            f.debug_struct(<span class="string">&quot;sockaddr_un&quot;</span>)
-                .field(<span class="string">&quot;sun_path&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sun_path())
+            f.debug_struct(<span class="string">"sockaddr_un"</span>)
+                .field(<span class="string">"sun_path"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.sun_path())
                 .finish()
         }
     }
@@ -1295,7 +1304,7 @@
             s_addr: libc::INADDR_LOOPBACK.to_be(),
         };
 
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;</span>addr <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
+        <span class="kw">let </span>ptr = std::ptr::from_ref(<span class="kw-2">&amp;</span>addr) <span class="kw">as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
         <span class="kw">let </span>len = std::mem::size_of_val(<span class="kw-2">&amp;</span>addr).try_into().unwrap();
 
         <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ SockaddrStorage::from_ptr(ptr, len) }.unwrap();
@@ -1315,7 +1324,7 @@
         addr.sun_path = [<span class="number">1</span>; <span class="number">108</span>];
         addr.sun_path[..<span class="number">4</span>].copy_from_slice(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">0</span>]);
 
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;</span>addr <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
+        <span class="kw">let </span>ptr = std::ptr::from_ref(<span class="kw-2">&amp;</span>addr) <span class="kw">as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
         <span class="kw">let </span>len = std::mem::size_of_val(<span class="kw-2">&amp;</span>addr).try_into().unwrap();
 
         <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ SockaddrStorage::from_ptr(ptr, len) }.unwrap();
@@ -1336,7 +1345,7 @@
             s_addr: libc::INADDR_LOOPBACK.to_be(),
         };
 
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;</span>addr_in <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
+        <span class="kw">let </span>ptr = std::ptr::from_ref(<span class="kw-2">&amp;</span>addr_in) <span class="kw">as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
         <span class="kw">let </span>len = std::mem::size_of_val(<span class="kw-2">&amp;</span>addr_in).try_into().unwrap();
 
         <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ SockaddrStorage::from_ptr(ptr, len) }.unwrap();
@@ -1375,7 +1384,7 @@
         addr.sun_path = [<span class="number">1</span>; <span class="number">108</span>];
         addr.sun_path[..pathname.len()].copy_from_slice(<span class="kw-2">&amp;</span>pathname);
 
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;</span>addr <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
+        <span class="kw">let </span>ptr = std::ptr::from_ref(<span class="kw-2">&amp;</span>addr) <span class="kw">as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
         <span class="kw">let </span>len_useful_info = <span class="macro">memoffset::offset_of!</span>(libc::sockaddr_un, sun_path) + pathname.len();
         <span class="kw">let </span>len_useful_info = len_useful_info.try_into().unwrap();
         <span class="kw">let </span>len_struct = std::mem::size_of_val(<span class="kw-2">&amp;</span>addr).try_into().unwrap();
@@ -1437,7 +1446,7 @@
         addr.sun_path[<span class="number">0</span>] = <span class="number">0</span>;
         addr.sun_path[<span class="number">1</span>..][..name.len()].copy_from_slice(u8_to_i8_slice(<span class="kw-2">&amp;</span>name));
 
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;</span>addr <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
+        <span class="kw">let </span>ptr = std::ptr::from_ref(<span class="kw-2">&amp;</span>addr) <span class="kw">as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
 
         <span class="comment">// the correct sockaddr length for this abstract unix socket address
         </span><span class="kw">let </span>len_real = <span class="macro">memoffset::offset_of!</span>(libc::sockaddr_un, sun_path) + <span class="number">1 </span>+ name.len();
@@ -1499,7 +1508,7 @@
         addr.sun_family = libc::AF_UNIX <span class="kw">as </span>u16;
         addr.sun_path = [<span class="number">1</span>; <span class="number">108</span>];
 
-        <span class="kw">let </span>ptr = <span class="kw-2">&amp;</span>addr <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
+        <span class="kw">let </span>ptr = std::ptr::from_ref(<span class="kw-2">&amp;</span>addr) <span class="kw">as </span><span class="kw-2">*const </span>MaybeUninit&lt;u8&gt;;
 
         <span class="comment">// the correct sockaddr length for this unnamed unix socket address
         </span><span class="kw">let </span>len_real = <span class="macro">memoffset::offset_of!</span>(libc::sockaddr_un, sun_path);
@@ -1526,7 +1535,7 @@
 
         <span class="kw">let </span>addr = addr.as_unix().unwrap();
 
-        <span class="comment">// the sun_path value isn&#39;t a valid pathname or abstract address, and it&#39;s not unnamed
+        <span class="comment">// the sun_path value isn't a valid pathname or abstract address, and it's not unnamed
         // because of the length (len_struct &gt; 2)
         </span><span class="macro">assert!</span>(!addr.is_unnamed());
         <span class="macro">assert!</span>(addr.as_abstract().is_none());

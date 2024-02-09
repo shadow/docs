@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/unix.rs`."><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/unix.rs`."><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2572,7 +2573,7 @@
         <span class="comment">// we could call UnixSocket::recvmsg() here, but for now we expect that there are no code
         // paths that would call UnixSocket::readv() since the readv() syscall handler should have
         // called UnixSocket::recvmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called UnixSocket::readv() on a unix socket.&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called UnixSocket::readv() on a unix socket."</span>);
     }
 
     <span class="kw">pub fn </span>writev(
@@ -2586,7 +2587,7 @@
         <span class="comment">// we could call UnixSocket::sendmsg() here, but for now we expect that there are no code
         // paths that would call UnixSocket::writev() since the writev() syscall handler should have
         // called UnixSocket::sendmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called UnixSocket::writev() on a unix socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called UnixSocket::writev() on a unix socket"</span>);
     }
 
     <span class="kw">pub fn </span>sendmsg(
@@ -2666,7 +2667,7 @@
         _how: Shutdown,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;shutdown() syscall not yet supported for unix sockets; Returning ENOSYS&quot;</span>);
+        <span class="macro">log::warn!</span>(<span class="string">"shutdown() syscall not yet supported for unix sockets; Returning ENOSYS"</span>);
         <span class="prelude-val">Err</span>(Errno::ENOSYS.into())
     }
 
@@ -2679,7 +2680,7 @@
         _memory_manager: <span class="kw-2">&amp;mut </span>MemoryManager,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::socklen_t, SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;getsockopt() syscall not yet supported for unix sockets; Returning ENOSYS&quot;</span>);
+        <span class="macro">log::warn!</span>(<span class="string">"getsockopt() syscall not yet supported for unix sockets; Returning ENOSYS"</span>);
         <span class="prelude-val">Err</span>(Errno::ENOSYS.into())
     }
 
@@ -2691,7 +2692,7 @@
         _optlen: libc::socklen_t,
         _memory_manager: <span class="kw-2">&amp;</span>MemoryManager,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;setsockopt() syscall not yet supported for unix sockets; Returning ENOSYS&quot;</span>);
+        <span class="macro">log::warn!</span>(<span class="string">"setsockopt() syscall not yet supported for unix sockets; Returning ENOSYS"</span>);
         <span class="prelude-val">Err</span>(Errno::ENOSYS.into())
     }
 
@@ -2741,7 +2742,7 @@
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
             + Send
             + Sync
-            + <span class="lifetime">&#39;static</span>,
+            + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="self">self</span>.common.event_source.add_listener(
             monitoring_state,
@@ -2850,7 +2851,7 @@
                 <span class="comment">// dgram unix sockets are immediately able to receive data, so initialize the
                 // receive buffer
 
-                // increment the buffer&#39;s reader count
+                // increment the buffer's reader count
                 </span><span class="kw">let </span>reader_handle = common.recv_buffer.borrow_mut().add_reader(<span class="kw-2">&amp;mut </span>cb_queue);
 
                 <span class="kw">let </span>weak = Weak::clone(socket);
@@ -2871,7 +2872,7 @@
                 );
 
                 <span class="comment">// make sure no events were generated since if there were events to run, they would
-                // probably not run correctly if the socket&#39;s Arc is not fully created yet (as in
+                // probably not run correctly if the socket's Arc is not fully created yet (as in
                 // the case of `Arc::new_cyclic`)
                 </span><span class="macro">assert!</span>(cb_queue.is_empty());
 
@@ -3295,7 +3296,7 @@
         _common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;close() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"close() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into()))
     }
 
@@ -3306,7 +3307,7 @@
         _addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         _rng: <span class="kw">impl </span>rand::Rng,
     ) -&gt; SyscallResult {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;bind() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"bind() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
     }
 
@@ -3318,7 +3319,7 @@
         _mem: <span class="kw-2">&amp;mut </span>MemoryManager,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;sendmsg() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"sendmsg() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
     }
 
@@ -3330,7 +3331,7 @@
         _mem: <span class="kw-2">&amp;mut </span>MemoryManager,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RecvmsgReturn, SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;recvmsg() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"recvmsg() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
     }
 
@@ -3341,7 +3342,7 @@
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) {
         <span class="macro">panic!</span>(
-            <span class="string">&quot;inform_bytes_read() while in state {}&quot;</span>,
+            <span class="string">"inform_bytes_read() while in state {}"</span>,
             std::any::type_name::&lt;<span class="self">Self</span>&gt;()
         );
     }
@@ -3353,7 +3354,7 @@
         _arg_ptr: ForeignPtr&lt;()&gt;,
         _memory_manager: <span class="kw-2">&amp;mut </span>MemoryManager,
     ) -&gt; SyscallResult {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;ioctl() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"ioctl() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
     }
 
@@ -3363,7 +3364,7 @@
         _backlog: i32,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;listen() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"listen() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into()))
     }
 
@@ -3374,7 +3375,7 @@
         _addr: <span class="kw-2">&amp;</span>SockaddrStorage,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;connect() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"connect() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into()))
     }
 
@@ -3386,7 +3387,7 @@
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
         <span class="macro">log::warn!</span>(
-            <span class="string">&quot;connect_unnamed() while in state {}&quot;</span>,
+            <span class="string">"connect_unnamed() while in state {}"</span>,
             std::any::type_name::&lt;<span class="self">Self</span>&gt;()
         );
         (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into()))
@@ -3397,7 +3398,7 @@
         _common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;OpenFile, SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"accept() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
     }
 
@@ -3410,7 +3411,7 @@
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;UnixSocket&gt;&gt;, IncomingConnError&gt; {
         <span class="macro">log::warn!</span>(
-            <span class="string">&quot;queue_incoming_conn() while in state {}&quot;</span>,
+            <span class="string">"queue_incoming_conn() while in state {}"</span>,
             std::any::type_name::&lt;<span class="self">Self</span>&gt;()
         );
         <span class="prelude-val">Err</span>(IncomingConnError::NotSupported)
@@ -3480,7 +3481,7 @@
             (UnixSocketType::Stream, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(Errno::ENOTCONN.into()),
             (UnixSocketType::SeqPacket, <span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(Errno::ENOTCONN.into()),
             (UnixSocketType::Dgram, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(
-                <span class="string">&quot;A dgram unix socket is in the connection-oriented {:?} state&quot;</span>,
+                <span class="string">"A dgram unix socket is in the connection-oriented {:?} state"</span>,
                 std::any::type_name::&lt;<span class="self">Self</span>&gt;()
             ),
         }
@@ -3498,7 +3499,7 @@
             UnixSocketType::Stream =&gt; <span class="prelude-val">Err</span>(Errno::EINVAL.into()),
             UnixSocketType::SeqPacket =&gt; <span class="prelude-val">Err</span>(Errno::ENOTCONN.into()),
             UnixSocketType::Dgram =&gt; <span class="macro">panic!</span>(
-                <span class="string">&quot;A dgram unix socket is in the connection-oriented {:?} state&quot;</span>,
+                <span class="string">"A dgram unix socket is in the connection-oriented {:?} state"</span>,
                 std::any::type_name::&lt;<span class="self">Self</span>&gt;()
             ),
         }
@@ -3532,7 +3533,7 @@
             queue_limit: backlog_to_queue_size(backlog),
         };
 
-        <span class="comment">// refresh the socket&#39;s file state
+        <span class="comment">// refresh the socket's file state
         </span>new_state.refresh_file_state(common, FileSignals::empty(), cb_queue);
 
         (new_state.into(), <span class="prelude-val">Ok</span>(()))
@@ -3562,7 +3563,7 @@
         <span class="comment">// need to tell the server to queue a new child socket, and then link the current socket
         // with the new child socket
 
-        // inform the server socket of the incoming connection and get the server socket&#39;s new child
+        // inform the server socket of the incoming connection and get the server socket's new child
         // socket
         </span><span class="kw">let </span>server_mut = <span class="kw-2">&amp;mut *</span>server.borrow_mut();
         <span class="kw">let </span>peer = <span class="kw">match </span>server_mut.protocol_state.queue_incoming_conn(
@@ -3592,7 +3593,7 @@
             }
         };
 
-        <span class="comment">// our send buffer will be the peer&#39;s receive buffer
+        <span class="comment">// our send buffer will be the peer's receive buffer
         </span><span class="kw">let </span>send_buffer = Arc::clone(peer.borrow().recv_buffer());
 
         <span class="kw">let </span>weak = Arc::downgrade(socket);
@@ -3608,7 +3609,7 @@
             },
         );
 
-        <span class="comment">// increment the buffer&#39;s writer count
+        <span class="comment">// increment the buffer's writer count
         </span><span class="kw">let </span>writer_handle = send_buffer.borrow_mut().add_writer(cb_queue);
 
         <span class="kw">let </span>weak = Arc::downgrade(socket);
@@ -3627,7 +3628,7 @@
             },
         );
 
-        <span class="comment">// increment the buffer&#39;s reader count
+        <span class="comment">// increment the buffer's reader count
         </span><span class="kw">let </span>reader_handle = common.recv_buffer.borrow_mut().add_reader(cb_queue);
 
         <span class="kw">let </span>new_state = ConnOrientedConnected {
@@ -3674,7 +3675,7 @@
                 },
             );
 
-            <span class="comment">// increment the buffer&#39;s writer count
+            <span class="comment">// increment the buffer's writer count
             </span>writer_handle = send_buffer.borrow_mut().add_writer(cb_queue);
         }
 
@@ -3694,7 +3695,7 @@
             },
         );
 
-        <span class="comment">// increment the buffer&#39;s reader count
+        <span class="comment">// increment the buffer's reader count
         </span><span class="kw">let </span>reader_handle = common.recv_buffer.borrow_mut().add_reader(cb_queue);
 
         <span class="kw">let </span>new_state = ConnOrientedConnected {
@@ -3717,7 +3718,7 @@
         _common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;OpenFile, SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"accept() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EINVAL.into())
     }
 }
@@ -3746,8 +3747,8 @@
         </span>new_state.set(FileState::SOCKET_ALLOWING_CONNECT, !<span class="self">self</span>.queue_is_full());
 
         <span class="comment">// Note: This can cause a thundering-herd condition where multiple blocked connect() calls
-        // are all notified at the same time, even if there isn&#39;t enough space to allow all of them.
-        // In practice this should be uncommon so we don&#39;t worry about it, and avoids requiring that
+        // are all notified at the same time, even if there isn't enough space to allow all of them.
+        // In practice this should be uncommon so we don't worry about it, and avoids requiring that
         // the server keep a list of all connecting clients.
 
         </span>common.update_state(
@@ -3766,7 +3767,7 @@
         <span class="kw">for </span>sock <span class="kw">in </span><span class="self">self</span>.queue {
             <span class="comment">// close all queued sockets
             </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = sock.borrow_mut().close(cb_queue) {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;Unexpected error while closing queued unix socket: {:?}&quot;</span>, e);
+                <span class="macro">log::warn!</span>(<span class="string">"Unexpected error while closing queued unix socket: {:?}"</span>, e);
             }
         }
 
@@ -3783,7 +3784,7 @@
     ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
         <span class="self">self</span>.queue_limit = backlog_to_queue_size(backlog);
 
-        <span class="comment">// refresh the socket&#39;s file state
+        <span class="comment">// refresh the socket's file state
         </span><span class="self">self</span>.refresh_file_state(common, FileSignals::empty(), cb_queue);
 
         (<span class="self">self</span>.into(), <span class="prelude-val">Ok</span>(()))
@@ -3809,7 +3810,7 @@
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EWOULDBLOCK.into()),
         };
 
-        <span class="comment">// refresh the socket&#39;s file state
+        <span class="comment">// refresh the socket's file state
         </span><span class="self">self</span>.refresh_file_state(common, FileSignals::empty(), cb_queue);
 
         <span class="prelude-val">Ok</span>(OpenFile::new(File::Socket(Socket::Unix(child_socket))))
@@ -3831,7 +3832,7 @@
         <span class="macro">assert!</span>(common.state.contains(FileState::SOCKET_ALLOWING_CONNECT));
 
         <span class="kw">let </span>child_socket = UnixSocket::new(
-            <span class="comment">// copy the parent&#39;s status
+            <span class="comment">// copy the parent's status
             </span>common.status,
             common.socket_type,
             <span class="kw-2">&amp;</span>common.namespace,
@@ -3852,7 +3853,7 @@
             },
         );
 
-        <span class="comment">// increment the buffer&#39;s writer count
+        <span class="comment">// increment the buffer's writer count
         </span><span class="kw">let </span>writer_handle = child_send_buffer.borrow_mut().add_writer(cb_queue);
 
         <span class="kw">let </span>weak = Arc::downgrade(<span class="kw-2">&amp;</span>child_socket);
@@ -3871,11 +3872,11 @@
             },
         );
 
-        <span class="comment">// increment the buffer&#39;s reader count
+        <span class="comment">// increment the buffer's reader count
         </span><span class="kw">let </span>reader_handle = child_recv_buffer.borrow_mut().add_reader(cb_queue);
 
         <span class="kw">let </span>new_child_state = ConnOrientedConnected {
-            <span class="comment">// use the parent&#39;s bind address
+            <span class="comment">// use the parent's bind address
             </span>bound_addr: <span class="prelude-val">Some</span>(<span class="self">self</span>.bound_addr),
             peer_addr: from_address,
             peer: Arc::clone(peer),
@@ -3885,10 +3886,10 @@
             _send_buffer_handle: send_buffer_handle,
         };
 
-        <span class="comment">// update the child socket&#39;s state
+        <span class="comment">// update the child socket's state
         </span>child_socket.borrow_mut().protocol_state = new_child_state.into();
 
-        <span class="comment">// defer refreshing the child socket&#39;s file-state until later
+        <span class="comment">// defer refreshing the child socket's file-state until later
         </span><span class="kw">let </span>weak = Arc::downgrade(<span class="kw-2">&amp;</span>child_socket);
         cb_queue.add(<span class="kw">move </span>|cb_queue| {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(child_socket) = weak.upgrade() {
@@ -3901,7 +3902,7 @@
         <span class="comment">// add the child socket to the accept queue
         </span><span class="self">self</span>.queue.push_back(child_socket);
 
-        <span class="comment">// refresh the server socket&#39;s file state
+        <span class="comment">// refresh the server socket's file state
         </span><span class="self">self</span>.refresh_file_state(common, FileSignals::empty(), cb_queue);
 
         <span class="comment">// return a reference to the enqueued child socket
@@ -3981,7 +3982,7 @@
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
         <span class="kw">if </span>!args.control_ptr.ptr().is_null() {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unix sockets don&#39;t yet support control data for sendmsg()&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Unix sockets don't yet support control data for sendmsg()"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -4002,7 +4003,7 @@
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RecvmsgReturn, SyscallError&gt; {
         <span class="kw">if </span>!args.control_ptr.ptr().is_null() {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unix sockets don&#39;t yet support control data for recvmsg()&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Unix sockets don't yet support control data for recvmsg()"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -4011,7 +4012,7 @@
         <span class="kw">let </span>num_removed_from_buf = u64::try_from(num_removed_from_buf).unwrap();
 
         <span class="kw">if </span>num_removed_from_buf &gt; <span class="number">0 </span>{
-            <span class="comment">// defer informing the peer until we&#39;re done processing the current socket
+            <span class="comment">// defer informing the peer until we're done processing the current socket
             </span><span class="kw">let </span>peer = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.peer);
             cb_queue.add(<span class="kw">move </span>|cb_queue| {
                 peer.borrow_mut()
@@ -4054,7 +4055,7 @@
         _common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;OpenFile, SyscallError&gt; {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;accept() while in state {}&quot;</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
+        <span class="macro">log::warn!</span>(<span class="string">"accept() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EINVAL.into())
     }
 }
@@ -4089,7 +4090,7 @@
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
         <span class="comment">// why are we trying to close an already closed file? we probably want a bt here...
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Trying to close an already closed socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Trying to close an already closed socket"</span>);
     }
 
     <span class="kw">fn </span>inform_bytes_read(
@@ -4098,7 +4099,7 @@
         _num: u64,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) {
-        <span class="comment">// do nothing since we&#39;re already closed
+        <span class="comment">// do nothing since we're already closed
     </span>}
 }
 
@@ -4149,7 +4150,7 @@
             .remove_reader(<span class="self">self</span>.reader_handle, cb_queue);
 
         <span class="kw">for </span>byte_data <span class="kw">in </span><span class="self">self</span>.recv_data.into_iter() {
-            <span class="comment">// defer informing the senders until we&#39;re done processing the current socket
+            <span class="comment">// defer informing the senders until we're done processing the current socket
             </span>cb_queue.add(<span class="kw">move </span>|cb_queue| {
                 byte_data
                     .from_socket
@@ -4188,7 +4189,7 @@
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt; {
         <span class="kw">if </span>!args.control_ptr.ptr().is_null() {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unix sockets don&#39;t yet support control data for sendmsg()&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Unix sockets don't yet support control data for sendmsg()"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -4206,7 +4207,7 @@
                 state.as_mut().unwrap().recv_data.push_back(byte_data);
             }
             <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
-                <span class="string">&quot;Sending bytes to a socket in state {}&quot;</span>,
+                <span class="string">"Sending bytes to a socket in state {}"</span>,
                 std::any::type_name::&lt;<span class="self">Self</span>&gt;()
             ),
         }
@@ -4225,7 +4226,7 @@
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;RecvmsgReturn, SyscallError&gt; {
         <span class="kw">if </span>!args.control_ptr.ptr().is_null() {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Unix sockets don&#39;t yet support control data for recvmsg()&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Unix sockets don't yet support control data for recvmsg()"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -4236,7 +4237,7 @@
         <span class="kw">let </span>byte_data = <span class="self">self</span>.recv_data.pop_front().unwrap();
         <span class="macro">assert!</span>(num_removed_from_buf == byte_data.num_bytes);
 
-        <span class="comment">// defer informing the sender until we&#39;re done processing the current socket
+        <span class="comment">// defer informing the sender until we're done processing the current socket
         </span>cb_queue.add(<span class="kw">move </span>|cb_queue| {
             byte_data
                 .from_socket
@@ -4356,7 +4357,7 @@
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
         <span class="comment">// why are we trying to close an already closed file? we probably want a bt here...
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Trying to close an already closed socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Trying to close an already closed socket"</span>);
     }
 
     <span class="kw">fn </span>inform_bytes_read(
@@ -4365,16 +4366,16 @@
         _num: u64,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) {
-        <span class="comment">// do nothing since we&#39;re already closed
+        <span class="comment">// do nothing since we're already closed
     </span>}
 }
 
 <span class="doccomment">/// Common data and functionality that is useful for all states.
 </span><span class="kw">struct </span>UnixSocketCommon {
     recv_buffer: Arc&lt;AtomicRefCell&lt;SharedBuf&gt;&gt;,
-    <span class="doccomment">/// The max number of &quot;in flight&quot; bytes (sent but not yet read from the receiving socket).
+    <span class="doccomment">/// The max number of "in flight" bytes (sent but not yet read from the receiving socket).
     </span>send_limit: u64,
-    <span class="doccomment">/// The number of &quot;in flight&quot; bytes.
+    <span class="doccomment">/// The number of "in flight" bytes.
     </span>sent_len: u64,
     event_source: StateEventSource,
     state: FileState,
@@ -4404,7 +4405,7 @@
             );
 
             <span class="comment">// panic in debug builds since the backtrace will be helpful for debugging
-            </span><span class="macro">debug_panic!</span>(<span class="string">&quot;When closing a unix socket, the CLOSED flag was not set&quot;</span>);
+            </span><span class="macro">debug_panic!</span>(<span class="string">"When closing a unix socket, the CLOSED flag was not set"</span>);
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -4419,7 +4420,7 @@
         <span class="comment">// get the unix address
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(addr) = addr.and_then(|x| x.as_unix()) <span class="kw">else </span>{
             <span class="macro">log::warn!</span>(
-                <span class="string">&quot;Attempted to bind unix socket to non-unix address {:?}&quot;</span>,
+                <span class="string">"Attempted to bind unix socket to non-unix address {:?}"</span>,
                 addr
             );
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
@@ -4441,7 +4442,7 @@
                 </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE.into()),
             }
         } <span class="kw">else if </span>addr.is_unnamed() {
-            <span class="comment">// if given an &quot;unnamed&quot; address
+            <span class="comment">// if given an "unnamed" address
             </span><span class="kw">let </span>namespace = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.namespace);
             <span class="kw">match </span>AbstractUnixNamespace::autobind(
                 <span class="kw-2">&amp;</span>namespace,
@@ -4454,7 +4455,7 @@
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE.into()),
             }
         } <span class="kw">else </span>{
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Only abstract names are currently supported for unix sockets&quot;</span>);
+            <span class="macro">log::warn!</span>(<span class="string">"Only abstract names are currently supported for unix sockets"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
         };
 
@@ -4517,22 +4518,22 @@
         mem: <span class="kw-2">&amp;mut </span>MemoryManager,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;usize, SyscallError&gt; {
-        <span class="comment">// MSG_NOSIGNAL is currently a no-op, since we haven&#39;t implemented the behavior
-        // it&#39;s meant to disable.
-        // TODO: Once we&#39;ve implemented generating a SIGPIPE when the peer on a
+        <span class="comment">// MSG_NOSIGNAL is currently a no-op, since we haven't implemented the behavior
+        // it's meant to disable.
+        // TODO: Once we've implemented generating a SIGPIPE when the peer on a
         // stream-oriented socket has closed the connection, MSG_NOSIGNAL should
         // disable it.
-        // Ignore the MSG_TRUNC flag since it doesn&#39;t do anything when sending.
+        // Ignore the MSG_TRUNC flag since it doesn't do anything when sending.
         </span><span class="kw">let </span>supported_flags = MsgFlags::MSG_DONTWAIT | MsgFlags::MSG_NOSIGNAL | MsgFlags::MSG_TRUNC;
 
-        <span class="comment">// if there&#39;s a flag we don&#39;t support, it&#39;s probably best to raise an error rather than do
+        <span class="comment">// if there's a flag we don't support, it's probably best to raise an error rather than do
         // the wrong thing
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(flags) <span class="kw">else </span>{
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Unrecognized send flags: {:#b}&quot;</span>, flags);
+            <span class="macro">log::warn!</span>(<span class="string">"Unrecognized send flags: {:#b}"</span>, flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
         <span class="kw">if </span>flags.intersects(!supported_flags) {
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Unsupported send flags: {:?}&quot;</span>, flags);
+            <span class="macro">log::warn!</span>(<span class="string">"Unsupported send flags: {:?}"</span>, flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -4540,7 +4541,7 @@
             flags.insert(MsgFlags::MSG_DONTWAIT);
         }
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t return from the syscall handler
+        <span class="comment">// run in a closure so that an early return doesn't return from the syscall handler
         </span><span class="kw">let </span>result = (|| {
             <span class="kw">let </span>peer_ref = peer.borrow();
             <span class="kw">let </span><span class="kw-2">mut </span>send_buffer = peer_ref.recv_buffer().borrow_mut();
@@ -4611,7 +4612,7 @@
             <span class="prelude-val">Ok</span>(num_copied)
         })();
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result.as_ref().err() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Errno::EWOULDBLOCK)
             &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT)
         {
@@ -4635,14 +4636,14 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize, libc::c_int), SyscallError&gt; {
         <span class="kw">let </span>supported_flags = MsgFlags::MSG_DONTWAIT | MsgFlags::MSG_TRUNC;
 
-        <span class="comment">// if there&#39;s a flag we don&#39;t support, it&#39;s probably best to raise an error rather than do
+        <span class="comment">// if there's a flag we don't support, it's probably best to raise an error rather than do
         // the wrong thing
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(flags) <span class="kw">else </span>{
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Unrecognized recv flags: {:#b}&quot;</span>, flags);
+            <span class="macro">log::warn!</span>(<span class="string">"Unrecognized recv flags: {:#b}"</span>, flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
         <span class="kw">if </span>flags.intersects(!supported_flags) {
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Unsupported recv flags: {:?}&quot;</span>, flags);
+            <span class="macro">log::warn!</span>(<span class="string">"Unsupported recv flags: {:?}"</span>, flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -4650,18 +4651,18 @@
             flags.insert(MsgFlags::MSG_DONTWAIT);
         }
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t return from the syscall handler
+        <span class="comment">// run in a closure so that an early return doesn't return from the syscall handler
         </span><span class="kw">let </span>result = (|| {
             <span class="kw">let </span><span class="kw-2">mut </span>recv_buffer = <span class="self">self</span>.recv_buffer.borrow_mut();
 
             <span class="comment">// the read would block if all:
             //  1. the recv buffer has no data
-            //  2. it&#39;s a connectionless socket OR the connection-oriented destination socket is not
+            //  2. it's a connectionless socket OR the connection-oriented destination socket is not
             //     closed
             </span><span class="kw">if </span>!recv_buffer.has_data()
                 &amp;&amp; (<span class="self">self</span>.socket_type == UnixSocketType::Dgram || recv_buffer.num_writers() &gt; <span class="number">0</span>)
             {
-                <span class="comment">// return EWOULDBLOCK even if &#39;bytes&#39; has length 0
+                <span class="comment">// return EWOULDBLOCK even if 'bytes' has length 0
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EWOULDBLOCK);
             }
 
@@ -4680,17 +4681,17 @@
                     msg_flags |= libc::MSG_TRUNC;
                 }
 
-                <span class="comment">// we&#39;re a message-based socket and MSG_TRUNC is set, so return the total size of
+                <span class="comment">// we're a message-based socket and MSG_TRUNC is set, so return the total size of
                 // the message, not the number of bytes we read
                 </span><span class="prelude-val">Ok</span>((num_removed_from_buf, num_removed_from_buf, msg_flags))
             } <span class="kw">else </span>{
-                <span class="comment">// We&#39;re a stream-based socket. Unlike TCP sockets, unix stream sockets ignore the
+                <span class="comment">// We're a stream-based socket. Unlike TCP sockets, unix stream sockets ignore the
                 // MSG_TRUNC flag.
                 </span><span class="prelude-val">Ok</span>((num_copied, num_removed_from_buf, msg_flags))
             }
         })();
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result.as_ref().err() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Errno::EWOULDBLOCK)
             &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT)
         {
@@ -4710,7 +4711,7 @@
         _arg_ptr: ForeignPtr&lt;()&gt;,
         _memory_manager: <span class="kw-2">&amp;mut </span>MemoryManager,
     ) -&gt; SyscallResult {
-        <span class="macro">log::warn!</span>(<span class="string">&quot;We do not yet handle ioctl request {request:?} on unix sockets&quot;</span>);
+        <span class="macro">log::warn!</span>(<span class="string">"We do not yet handle ioctl request {request:?} on unix sockets"</span>);
         <span class="prelude-val">Err</span>(Errno::EINVAL.into())
     }
 
@@ -4760,7 +4761,7 @@
             .lookup(socket_type, name)
             .ok_or(linux_api::errno::Errno::ECONNREFUSED)
     } <span class="kw">else </span>{
-        <span class="macro">warn_once_then_debug!</span>(<span class="string">&quot;Unix sockets with pathname addresses are not yet supported&quot;</span>);
+        <span class="macro">warn_once_then_debug!</span>(<span class="string">"Unix sockets with pathname addresses are not yet supported"</span>);
         <span class="prelude-val">Err</span>(linux_api::errno::Errno::ENOENT)
     }
 }
@@ -4770,7 +4771,7 @@
     // https://elixir.free-electrons.com/linux/v5.11.22/source/net/unix/af_unix.c#L628
     </span><span class="kw">let </span>backlog = backlog <span class="kw">as </span>u32;
 
-    <span class="comment">// the linux &#39;__sys_listen()&#39; applies the somaxconn max to all protocols, including unix sockets
+    <span class="comment">// the linux '__sys_listen()' applies the somaxconn max to all protocols, including unix sockets
     </span><span class="kw">let </span>queue_limit = std::cmp::min(backlog, c::SHADOW_SOMAXCONN);
 
     <span class="comment">// linux uses a limit of one greater than the provided backlog (ex: a backlog value of 0 allows
@@ -4778,7 +4779,7 @@
     </span>queue_limit.saturating_add(<span class="number">1</span>)
 }
 
-<span class="comment">// WARNING: don&#39;t add new enum variants without updating &#39;AbstractUnixNamespace::new()&#39;
+<span class="comment">// WARNING: don't add new enum variants without updating 'AbstractUnixNamespace::new()'
 </span><span class="attr">#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>UnixSocketType {
     Stream,
@@ -4807,7 +4808,7 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">&quot;Invalid socket type {}; unix sockets only support SOCK_STREAM, SOCK_DGRAM, and SOCK_SEQPACKET&quot;</span>,
+            <span class="string">"Invalid socket type {}; unix sockets only support SOCK_STREAM, SOCK_DGRAM, and SOCK_SEQPACKET"</span>,
             <span class="self">self</span>.<span class="number">0
         </span>)
     }

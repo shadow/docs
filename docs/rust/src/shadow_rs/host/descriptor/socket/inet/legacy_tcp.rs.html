@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/inet/legacy_tcp.rs`."><title>legacy_tcp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/host/descriptor/socket/inet/legacy_tcp.rs`."><title>legacy_tcp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1358,7 +1359,7 @@
             socket: HostTreePointer::new(legacy_tcp),
             has_open_file: <span class="bool-val">false</span>,
             thread_of_blocked_connect: <span class="prelude-val">None</span>,
-            _counter: ObjectCounter::new(<span class="string">&quot;LegacyTcpSocket&quot;</span>),
+            _counter: ObjectCounter::new(<span class="string">"LegacyTcpSocket"</span>),
         };
 
         <span class="kw">let </span>rv = Arc::new(AtomicRefCell::new(socket));
@@ -1394,11 +1395,11 @@
     <span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileStatus {
         <span class="kw">let </span>o_flags = <span class="kw">unsafe </span>{ c::legacyfile_getFlags(<span class="self">self</span>.as_legacy_file()) };
         <span class="kw">let </span>o_flags =
-            linux_api::fcntl::OFlag::from_bits(o_flags).expect(<span class="string">&quot;Not a valid OFlag: {o_flags:?}&quot;</span>);
+            linux_api::fcntl::OFlag::from_bits(o_flags).expect(<span class="string">"Not a valid OFlag: {o_flags:?}"</span>);
         <span class="kw">let </span>(status, extra_flags) = FileStatus::from_o_flags(o_flags);
         <span class="macro">assert!</span>(
             extra_flags.is_empty(),
-            <span class="string">&quot;Rust wrapper doesn&#39;t support {extra_flags:?} flags&quot;</span>,
+            <span class="string">"Rust wrapper doesn't support {extra_flags:?} flags"</span>,
         );
         status
     }
@@ -1432,7 +1433,7 @@
         _recv_time: EmulatedTime,
     ) {
         Worker::with_active_host(|host| {
-            <span class="comment">// the C code should ref the inner `Packet`, so it&#39;s fine to drop the `PacketRc`
+            <span class="comment">// the C code should ref the inner `Packet`, so it's fine to drop the `PacketRc`
             </span><span class="kw">unsafe </span>{
                 c::legacysocket_pushInPacket(<span class="self">self</span>.as_legacy_socket(), host, packet.borrow_inner())
             };
@@ -1553,9 +1554,9 @@
             }
         }
 
-        <span class="comment">// make sure the socket doesn&#39;t have a peer
+        <span class="comment">// make sure the socket doesn't have a peer
         </span>{
-            <span class="comment">// Since we&#39;re not bound, we&#39;re not connected and have no peer. We may have a peer in
+            <span class="comment">// Since we're not bound, we're not connected and have no peer. We may have a peer in
             // the future if `connect()` is called on this socket.
             </span><span class="kw">let </span>socket = socket.borrow();
             <span class="kw">let </span>socket = socket.as_legacy_socket();
@@ -1577,11 +1578,11 @@
             rng,
         )<span class="question-mark">?</span>;
 
-        <span class="comment">// the handle normally disassociates the socket when dropped, but the C TCP code does it&#39;s
-        // own manual disassociation, so we&#39;ll just let it do its own thing
+        <span class="comment">// the handle normally disassociates the socket when dropped, but the C TCP code does it's
+        // own manual disassociation, so we'll just let it do its own thing
         </span>std::mem::forget(handle);
 
-        <span class="comment">// update the socket&#39;s local address
+        <span class="comment">// update the socket's local address
         </span><span class="kw">let </span>socket = socket.borrow_mut();
         <span class="kw">let </span>socket = socket.as_legacy_socket();
         <span class="kw">unsafe </span>{
@@ -1606,7 +1607,7 @@
         <span class="comment">// we could call LegacyTcpSocket::recvmsg() here, but for now we expect that there are no
         // code paths that would call LegacyTcpSocket::readv() since the readv() syscall handler
         // should have called LegacyTcpSocket::recvmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called LegacyTcpSocket::readv() on a TCP socket.&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called LegacyTcpSocket::readv() on a TCP socket."</span>);
     }
 
     <span class="kw">pub fn </span>writev(
@@ -1620,7 +1621,7 @@
         <span class="comment">// we could call LegacyTcpSocket::sendmsg() here, but for now we expect that there are no
         // code paths that would call LegacyTcpSocket::writev() since the writev() syscall handler
         // should have called LegacyTcpSocket::sendmsg() instead
-        </span><span class="macro">panic!</span>(<span class="string">&quot;Called LegacyTcpSocket::writev() on a TCP socket&quot;</span>);
+        </span><span class="macro">panic!</span>(<span class="string">"Called LegacyTcpSocket::writev() on a TCP socket"</span>);
     }
 
     <span class="kw">pub fn </span>sendmsg(
@@ -1637,15 +1638,15 @@
         <span class="kw">if </span>socket_ref.state().contains(FileState::CLOSED) {
             <span class="comment">// A file that is referenced in the descriptor table should never be a closed file. File
             // handles (fds) are handles to open files, so if we have a file handle to a closed
-            // file, then there&#39;s an error somewhere in Shadow. Shadow&#39;s TCP sockets do close
+            // file, then there's an error somewhere in Shadow. Shadow's TCP sockets do close
             // themselves even if there are still file handles (see `_tcp_endOfFileSignalled`), so
-            // we can&#39;t make this a panic.
-            </span><span class="macro">log::warn!</span>(<span class="string">&quot;Sending on a closed TCP socket&quot;</span>);
+            // we can't make this a panic.
+            </span><span class="macro">log::warn!</span>(<span class="string">"Sending on a closed TCP socket"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(args.flags) <span class="kw">else </span>{
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Unrecognized send flags: {:#b}&quot;</span>, args.flags);
+            <span class="macro">log::warn!</span>(<span class="string">"Unrecognized send flags: {:#b}"</span>, args.flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -1653,14 +1654,14 @@
             flags.insert(MsgFlags::MSG_DONTWAIT);
         }
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t skip checking if we should block
+        <span class="comment">// run in a closure so that an early return doesn't skip checking if we should block
         </span><span class="kw">let </span>result = (|| {
             <span class="kw">let </span><span class="kw-2">mut </span>bytes_sent = <span class="number">0</span>;
 
             <span class="kw">for </span>iov <span class="kw">in </span>args.iovs {
                 <span class="kw">let </span>errcode = <span class="kw">unsafe </span>{ c::tcp_getConnectionError(tcp) };
 
-                <span class="macro">log::trace!</span>(<span class="string">&quot;Connection error state is currently {errcode}&quot;</span>);
+                <span class="macro">log::trace!</span>(<span class="string">"Connection error state is currently {errcode}"</span>);
 
                 <span class="attr">#[allow(clippy::if_same_then_else)]
                 </span><span class="kw">if </span>errcode &gt; <span class="number">0 </span>{
@@ -1674,7 +1675,7 @@
                     }
                 } <span class="kw">else if </span>errcode == <span class="number">0 </span>{
                     <span class="comment">// They connected, but never read the success code with a second call to
-                    // connect(). That&#39;s OK, proceed to send as usual.
+                    // connect(). That's OK, proceed to send as usual.
                 </span>} <span class="kw">else if </span>errcode == -libc::EISCONN {
                     <span class="comment">// they are connected, and we can send now
                 </span>} <span class="kw">else if </span>errcode == -libc::EALREADY {
@@ -1687,7 +1688,7 @@
                     }
                 }
 
-                <span class="comment">// SAFETY: We&#39;re passing an immutable pointer to the memory manager. We should not
+                <span class="comment">// SAFETY: We're passing an immutable pointer to the memory manager. We should not
                 // have any other mutable references to the memory manager at this point.
                 </span><span class="kw">let </span>rv = Worker::with_active_host(|host| <span class="kw">unsafe </span>{
                     c::tcp_sendUserData(
@@ -1713,7 +1714,7 @@
                 bytes_sent += rv;
 
                 <span class="kw">if </span>usize::try_from(rv).unwrap() &lt; iov.len {
-                    <span class="comment">// stop if we didn&#39;t write all of the data in the iov
+                    <span class="comment">// stop if we didn't write all of the data in the iov
                     </span><span class="kw">break</span>;
                 }
             }
@@ -1721,7 +1722,7 @@
             <span class="prelude-val">Ok</span>(bytes_sent)
         })();
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result == <span class="prelude-val">Err</span>(Errno::EWOULDBLOCK) &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(SyscallError::new_blocked_on_file(
                 File::Socket(Socket::Inet(InetSocket::LegacyTcp(socket.clone()))),
@@ -1745,18 +1746,18 @@
         <span class="kw">if </span>socket_ref.state().contains(FileState::CLOSED) {
             <span class="comment">// A file that is referenced in the descriptor table should never be a closed file. File
             // handles (fds) are handles to open files, so if we have a file handle to a closed
-            // file, then there&#39;s an error somewhere in Shadow. Shadow&#39;s TCP sockets do close
+            // file, then there's an error somewhere in Shadow. Shadow's TCP sockets do close
             // themselves even if there are still file handles (see `_tcp_endOfFileSignalled`), so
-            // we can&#39;t make this a panic.
+            // we can't make this a panic.
             </span><span class="kw">if unsafe </span>{ c::tcp_getConnectionError(tcp) != -libc::EISCONN } {
                 <span class="comment">// connection error will be -ENOTCONN when reading is done
-                </span><span class="macro">log::warn!</span>(<span class="string">&quot;Receiving on a closed TCP socket&quot;</span>);
+                </span><span class="macro">log::warn!</span>(<span class="string">"Receiving on a closed TCP socket"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
             }
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>flags) = MsgFlags::from_bits(args.flags) <span class="kw">else </span>{
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Unrecognized recv flags: {:#b}&quot;</span>, args.flags);
+            <span class="macro">log::warn!</span>(<span class="string">"Unrecognized recv flags: {:#b}"</span>, args.flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -1764,7 +1765,7 @@
             flags.insert(MsgFlags::MSG_DONTWAIT);
         }
 
-        <span class="comment">// run in a closure so that an early return doesn&#39;t skip checking if we should block
+        <span class="comment">// run in a closure so that an early return doesn't skip checking if we should block
         </span><span class="kw">let </span>result = (|| {
             <span class="kw">let </span><span class="kw-2">mut </span>bytes_read = <span class="number">0</span>;
 
@@ -1796,7 +1797,7 @@
                     }
                 }
 
-                <span class="comment">// SAFETY: We&#39;re passing a mutable pointer to the memory manager. We should not have
+                <span class="comment">// SAFETY: We're passing a mutable pointer to the memory manager. We should not have
                 // any other mutable references to the memory manager at this point.
                 </span><span class="kw">let </span>rv = Worker::with_active_host(|host| <span class="kw">unsafe </span>{
                     c::tcp_receiveUserData(
@@ -1822,7 +1823,7 @@
                 bytes_read += rv;
 
                 <span class="kw">if </span>usize::try_from(rv).unwrap() &lt; iov.len {
-                    <span class="comment">// stop if we didn&#39;t receive all of the data in the iov
+                    <span class="comment">// stop if we didn't receive all of the data in the iov
                     </span><span class="kw">break</span>;
                 }
             }
@@ -1835,7 +1836,7 @@
             })
         })();
 
-        <span class="comment">// if the syscall would block and we don&#39;t have the MSG_DONTWAIT flag
+        <span class="comment">// if the syscall would block and we don't have the MSG_DONTWAIT flag
         </span><span class="kw">if </span>result.as_ref().err() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>Errno::EWOULDBLOCK)
             &amp;&amp; !flags.contains(MsgFlags::MSG_DONTWAIT)
         {
@@ -1888,10 +1889,10 @@
 
                 <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
             }
-            <span class="comment">// this isn&#39;t supported by tcp
+            <span class="comment">// this isn't supported by tcp
             </span>IoctlRequest::SIOCGSTAMP =&gt; <span class="prelude-val">Err</span>(Errno::ENOENT.into()),
             IoctlRequest::FIONBIO =&gt; {
-                <span class="macro">panic!</span>(<span class="string">&quot;This should have been handled by the ioctl syscall handler&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"This should have been handled by the ioctl syscall handler"</span>);
             }
             IoctlRequest::TCGETS
             | IoctlRequest::TCSETS
@@ -1908,7 +1909,7 @@
             }
             request =&gt; {
                 <span class="macro">warn_once_then_debug!</span>(
-                    <span class="string">&quot;We do not yet handle ioctl request {request:?} on tcp sockets&quot;
+                    <span class="string">"We do not yet handle ioctl request {request:?} on tcp sockets"
                 </span>);
                 <span class="prelude-val">Err</span>(Errno::EINVAL.into())
             }
@@ -1928,14 +1929,14 @@
         </span><span class="kw">let </span>is_listening_allowed =
             <span class="kw">unsafe </span>{ c::tcp_isListeningAllowed(socket_ref.as_legacy_tcp()) } == <span class="number">1</span>;
         <span class="kw">if </span>!is_listening_allowed {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Cannot listen on previously used socket&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Cannot listen on previously used socket"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into());
         }
 
         <span class="comment">// if we are already listening, just update the backlog and return 0
         </span><span class="kw">let </span>is_valid_listener = <span class="kw">unsafe </span>{ c::tcp_isValidListener(socket_ref.as_legacy_tcp()) } == <span class="number">1</span>;
         <span class="kw">if </span>is_valid_listener {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Socket already set up as a listener; updating backlog&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Socket already set up as a listener; updating backlog"</span>);
             <span class="kw">unsafe </span>{ c::tcp_updateServerBacklog(socket_ref.as_legacy_tcp(), backlog) };
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
@@ -1943,7 +1944,7 @@
         <span class="comment">// a listening socket must be bound
         </span><span class="kw">let </span>is_bound = <span class="kw">unsafe </span>{ c::legacysocket_isBound(socket_ref.as_legacy_socket()) } == <span class="number">1</span>;
         <span class="kw">if </span>!is_bound {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Implicitly binding listener socket&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Implicitly binding listener socket"</span>);
 
             <span class="comment">// implicit bind: bind to all interfaces at an ephemeral port
             </span><span class="kw">let </span>local_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, <span class="number">0</span>);
@@ -1962,7 +1963,7 @@
             )<span class="question-mark">?</span>;
 
             <span class="comment">// the handle normally disassociates the socket when dropped, but the C TCP code does
-            // it&#39;s own manual disassociation, so we&#39;ll just let it do its own thing
+            // it's own manual disassociation, so we'll just let it do its own thing
             </span>std::mem::forget(handle);
 
             <span class="kw">unsafe </span>{
@@ -2002,11 +2003,11 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tid) = socket_ref.thread_of_blocked_connect {
             <span class="comment">// check if there is already a blocking connect() call on another thread
             </span><span class="kw">if </span>tid != Worker::active_thread_id().unwrap() {
-                <span class="comment">// connect(2) says &quot;Generally,  connection-based protocol sockets may successfully
-                // connect() only once&quot;, but the application is attempting to call connect() in two
-                // threads on a blocking socket at the same time. Let&#39;s just return an error and
+                <span class="comment">// connect(2) says "Generally,  connection-based protocol sockets may successfully
+                // connect() only once", but the application is attempting to call connect() in two
+                // threads on a blocking socket at the same time. Let's just return an error and
                 // hope no one ever does this.
-                </span><span class="macro">log::warn!</span>(<span class="string">&quot;Two threads are attempting to connect() on a blocking socket&quot;</span>);
+                </span><span class="macro">log::warn!</span>(<span class="string">"Two threads are attempting to connect() on a blocking socket"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADFD.into());
             }
         }
@@ -2025,8 +2026,8 @@
         <span class="kw">let </span>host_default_ip = net_ns.default_ip;
 
         <span class="comment">// NOTE: it would be nice to use `Ipv4Addr::is_loopback` in this code rather than comparing
-        // to `Ipv4Addr::LOCALHOST`, but the rest of Shadow probably can&#39;t handle other loopback
-        // addresses (ex: 127.0.0.2) and it&#39;s probably best not to change this behaviour
+        // to `Ipv4Addr::LOCALHOST`, but the rest of Shadow probably can't handle other loopback
+        // addresses (ex: 127.0.0.2) and it's probably best not to change this behaviour
 
         // make sure we will be able to route this later
         // TODO: should we just send the SYN and let the connection fail normally?
@@ -2034,9 +2035,9 @@
             <span class="kw">let </span>is_routable = Worker::is_routable(host_default_ip.into(), (<span class="kw-2">*</span>peer_addr.ip()).into());
 
             <span class="kw">if </span>!is_routable {
-                <span class="comment">// can&#39;t route it - there is no node with this address
+                <span class="comment">// can't route it - there is no node with this address
                 </span><span class="macro">log::warn!</span>(
-                    <span class="string">&quot;Attempting to connect to address &#39;{peer_addr}&#39; for which no host exists&quot;
+                    <span class="string">"Attempting to connect to address '{peer_addr}' for which no host exists"
                 </span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ECONNREFUSED.into());
             }
@@ -2045,7 +2046,7 @@
         <span class="comment">// a connected tcp socket must be bound
         </span><span class="kw">let </span>is_bound = <span class="kw">unsafe </span>{ c::legacysocket_isBound(socket_ref.as_legacy_socket()) } == <span class="number">1</span>;
         <span class="kw">if </span>!is_bound {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Implicitly binding listener socket&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Implicitly binding listener socket"</span>);
 
             <span class="comment">// implicit bind: bind to an ephemeral port (use default interface unless the remote
             // peer is on loopback)
@@ -2066,7 +2067,7 @@
             )<span class="question-mark">?</span>;
 
             <span class="comment">// the handle normally disassociates the socket when dropped, but the C TCP code does
-            // it&#39;s own manual disassociation, so we&#39;ll just let it do its own thing
+            // it's own manual disassociation, so we'll just let it do its own thing
             </span>std::mem::forget(handle);
 
             <span class="kw">unsafe </span>{
@@ -2153,7 +2154,7 @@
 
         <span class="comment">// we must be listening in order to accept
         </span><span class="kw">if </span>!is_valid_listener {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;Socket is not listening&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Socket is not listening"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -2176,7 +2177,7 @@
         <span class="macro">assert!</span>(errcode &lt;= <span class="number">0</span>);
 
         <span class="kw">if </span>errcode &lt; <span class="number">0 </span>{
-            <span class="macro">log::trace!</span>(<span class="string">&quot;TCP error when accepting connection&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"TCP error when accepting connection"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::try_from(-errcode).unwrap().into());
         }
 
@@ -2185,7 +2186,7 @@
 
         <span class="comment">// The rust socket syscall interface expects us to return the socket object so that it can
         // add it to the descriptor table, but the TCP code has already added it to the descriptor
-        // table (see https://github.com/shadow/shadow/issues/1780). We&#39;ll remove the socket from
+        // table (see https://github.com/shadow/shadow/issues/1780). We'll remove the socket from
         // the descriptor table, return it to the syscall handler, and let the syscall handler
         // re-add it to the descriptor table. It may end up with a different fd handle, but that
         // should be fine since nothing should be relying on the socket having a specific/fixed fd
@@ -2203,7 +2204,7 @@
         .unwrap();
 
         <span class="kw">let </span>CompatFile::New(open_file) = new_descriptor.into_file() <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;The TCP code should have added the TCP socket to the descriptor table as a rust socket&quot;</span>);
+            <span class="macro">panic!</span>(<span class="string">"The TCP code should have added the TCP socket to the descriptor table as a rust socket"</span>);
         };
 
         <span class="comment">// sanity check: make sure new socket peer address matches address returned from
@@ -2212,7 +2213,7 @@
             <span class="kw">let </span>File::Socket(Socket::Inet(InetSocket::LegacyTcp(new_socket))) =
                 open_file.inner_file()
             <span class="kw">else </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;Expected this to be a LegacyTcpSocket&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"Expected this to be a LegacyTcpSocket"</span>);
             };
 
             <span class="kw">let </span>new_socket = new_socket.borrow();
@@ -2279,7 +2280,7 @@
                 <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
             }
             (libc::SOL_TCP, libc::TCP_NODELAY) =&gt; {
-                <span class="comment">// shadow doesn&#39;t support nagle&#39;s algorithm, so shadow always behaves as if
+                <span class="comment">// shadow doesn't support nagle's algorithm, so shadow always behaves as if
                 // TCP_NODELAY is enabled
                 </span><span class="kw">let </span>val = <span class="number">1</span>;
 
@@ -2299,7 +2300,7 @@
 
                 <span class="kw">let </span>name: <span class="kw-2">*const </span>libc::c_char =
                     <span class="kw">unsafe </span>{ c::tcpcong_nameStr(c::tcp_cong(<span class="self">self</span>.as_legacy_tcp())) };
-                <span class="macro">assert!</span>(!name.is_null(), <span class="string">&quot;shadow&#39;s congestion type has no name&quot;</span>);
+                <span class="macro">assert!</span>(!name.is_null(), <span class="string">"shadow's congestion type has no name"</span>);
                 <span class="kw">let </span>name = <span class="kw">unsafe </span>{ CStr::from_ptr(name) };
                 <span class="kw">let </span>name = name.to_bytes_with_nul();
 
@@ -2395,7 +2396,7 @@
                 <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;getsockopt called with unsupported level {level} and opt {optname}&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"getsockopt called with unsupported level {level} and opt {optname}"</span>);
                 <span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into())
             }
         }
@@ -2411,7 +2412,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">match </span>(level, optname) {
             (libc::SOL_TCP, libc::TCP_NODELAY) =&gt; {
-                <span class="comment">// Shadow doesn&#39;t support nagle&#39;s algorithm, so Shadow always behaves as if
+                <span class="comment">// Shadow doesn't support nagle's algorithm, so Shadow always behaves as if
                 // TCP_NODELAY is enabled. Some programs will fail if `setsockopt(fd, SOL_TCP,
                 // TCP_NODELAY, &amp;1, sizeof(int))` returns an error, so we treat this as a no-op for
                 // compatibility.
@@ -2427,10 +2428,10 @@
 
                 <span class="kw">if </span>enable != <span class="number">0 </span>{
                     <span class="comment">// wants to enable TCP_NODELAY
-                    </span><span class="macro">log::debug!</span>(<span class="string">&quot;Ignoring TCP_NODELAY&quot;</span>);
+                    </span><span class="macro">log::debug!</span>(<span class="string">"Ignoring TCP_NODELAY"</span>);
                 } <span class="kw">else </span>{
                     <span class="comment">// wants to disable TCP_NODELAY
-                    </span><span class="macro">log::warn!</span>(<span class="string">&quot;Cannot disable TCP_NODELAY since shadow does not implement Nagle&#39;s algorithm.&quot;</span>);
+                    </span><span class="macro">log::warn!</span>(<span class="string">"Cannot disable TCP_NODELAY since shadow does not implement Nagle's algorithm."</span>);
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
                 }
             }
@@ -2447,8 +2448,8 @@
                 <span class="kw">let </span>optval_ptr = ForeignArrayPtr::new(optval_ptr, optlen);
                 memory_manager.copy_from_ptr(name, optval_ptr)<span class="question-mark">?</span>;
 
-                <span class="comment">// truncate the name at the first NUL character if there is one, but don&#39;t include
-                // the NUL since in linux the strings don&#39;t need a NUL
+                <span class="comment">// truncate the name at the first NUL character if there is one, but don't include
+                // the NUL since in linux the strings don't need a NUL
                 </span><span class="kw">let </span>name = name
                     .iter()
                     .position(|x| <span class="kw-2">*</span>x == <span class="number">0</span>)
@@ -2458,11 +2459,11 @@
                 <span class="kw">let </span>reno = <span class="kw">unsafe </span>{ CStr::from_ptr(c::TCP_CONG_RENO_NAME) }.to_bytes();
 
                 <span class="kw">if </span>name != reno {
-                    <span class="macro">log::warn!</span>(<span class="string">&quot;Shadow sockets only support &#39;{reno:?}&#39; for TCP_CONGESTION&quot;</span>);
+                    <span class="macro">log::warn!</span>(<span class="string">"Shadow sockets only support '{reno:?}' for TCP_CONGESTION"</span>);
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOENT.into());
                 }
 
-                <span class="comment">// shadow doesn&#39;t support other congestion types, so do nothing
+                <span class="comment">// shadow doesn't support other congestion types, so do nothing
             </span>}
             (libc::SOL_SOCKET, libc::SO_SNDBUF) =&gt; {
                 <span class="kw">type </span>OptType = libc::c_int;
@@ -2485,8 +2486,8 @@
                 // man 7 socket is incorrect.
                 </span><span class="kw">let </span>val = std::cmp::max(val, <span class="number">4096</span>);
 
-                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don&#39;t change
-                // Shadow&#39;s behaviour, but also prevents an application from setting this to
+                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don't change
+                // Shadow's behaviour, but also prevents an application from setting this to
                 // something unnecessarily large like INT_MAX.
                 </span><span class="kw">let </span>val = std::cmp::min(val, <span class="number">268435456</span>); <span class="comment">// 2^28 = 256 MiB
 
@@ -2514,8 +2515,8 @@
                 // man 7 socket is incorrect.
                 </span><span class="kw">let </span>val = std::cmp::max(val, <span class="number">2048</span>);
 
-                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don&#39;t change
-                // Shadow&#39;s behaviour, but also prevents an application from setting this to
+                <span class="comment">// This upper limit was added as an arbitrarily high number so that we don't change
+                // Shadow's behaviour, but also prevents an application from setting this to
                 // something unnecessarily large like INT_MAX.
                 </span><span class="kw">let </span>val = std::cmp::min(val, <span class="number">268435456</span>); <span class="comment">// 2^28 = 256 MiB
 
@@ -2524,23 +2525,23 @@
             }
             (libc::SOL_SOCKET, libc::SO_REUSEADDR) =&gt; {
                 <span class="comment">// TODO: implement this, tor and tgen use it
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_REUSEADDR not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_REUSEADDR not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_REUSEPORT) =&gt; {
                 <span class="comment">// TODO: implement this, tgen uses it
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_REUSEPORT not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_REUSEPORT not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_KEEPALIVE) =&gt; {
                 <span class="comment">// TODO: implement this, libevent uses it in
                 // evconnlistener_new_bind()
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_KEEPALIVE not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_KEEPALIVE not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_BROADCAST) =&gt; {
                 <span class="comment">// TODO: implement this, pkg.go.dev/net uses it
-                </span><span class="macro">log::trace!</span>(<span class="string">&quot;setsockopt SO_BROADCAST not yet implemented&quot;</span>);
+                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_BROADCAST not yet implemented"</span>);
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;setsockopt called with unsupported level {level} and opt {optname}&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"setsockopt called with unsupported level {level} and opt {optname}"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
             }
         }
@@ -2556,7 +2557,7 @@
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
             + Send
             + Sync
-            + <span class="lifetime">&#39;static</span>,
+            + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="kw">let </span>event_source = <span class="kw">unsafe </span>{ c::legacyfile_getEventSource(<span class="self">self</span>.as_legacy_file()) };
         <span class="kw">let </span>event_source = <span class="kw">unsafe </span>{ event_source.as_ref() }.unwrap();

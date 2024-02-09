@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/network/packet.rs`."><title>packet.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/network/packet.rs`."><title>packet.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -680,8 +681,8 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>PacketRc {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;Packet&quot;</span>).finish_non_exhaustive()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"Packet"</span>).finish_non_exhaustive()
     }
 }
 
@@ -705,7 +706,7 @@
 <span class="kw">impl </span>PacketRc {
     <span class="attr">#[allow(clippy::new_without_default)]
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="comment">// creating a new packet shouldn&#39;t require the host, so for now we&#39;ll get the host from the
+        <span class="comment">// creating a new packet shouldn't require the host, so for now we'll get the host from the
         // worker rather than require it as an argument
         </span><span class="self">Self</span>::from_raw(Worker::with_active_host(|host| <span class="kw">unsafe </span>{ c::packet_new(host) }).unwrap())
     }
@@ -739,7 +740,7 @@
             }
         }
 
-        <span class="comment">// TODO: not sure if linux uses milliseconds, but it probably doesn&#39;t matter as long as we
+        <span class="comment">// TODO: not sure if linux uses milliseconds, but it probably doesn't matter as long as we
         // convert it back to a u32 the same way when receiving packets
         </span><span class="kw">let </span>timestamp = SimulationTime::from_millis(header.timestamp.unwrap_or(<span class="number">0</span>).into());
         <span class="kw">let </span>timestamp_echo = SimulationTime::from_millis(header.timestamp_echo.unwrap_or(<span class="number">0</span>).into());
@@ -775,7 +776,7 @@
         <span class="kw">let </span>header = <span class="kw">unsafe </span>{ c::packet_getTCPHeader(<span class="self">self</span>.c_ptr.ptr()) };
         <span class="kw">let </span>header = <span class="kw">unsafe </span>{ header.as_ref()<span class="question-mark">? </span>};
 
-        <span class="comment">// TODO: not sure if linux uses milliseconds, but it probably doesn&#39;t matter as long as we
+        <span class="comment">// TODO: not sure if linux uses milliseconds, but it probably doesn't matter as long as we
         // converted it to a SimulationTime the same way when sending the packet
         </span><span class="kw">let </span>timestamp = SimulationTime::from_c_simtime(header.timestampValue)
             .unwrap()
@@ -784,7 +785,7 @@
             .unwrap()
             .as_millis();
 
-        <span class="comment">// need to get the selective acks from a glist, so we&#39;ll panic a lot here to simplify things
+        <span class="comment">// need to get the selective acks from a glist, so we'll panic a lot here to simplify things
 
         </span><span class="kw">let </span><span class="kw-2">mut </span>selective_acks = header.selectiveACKs;
 
@@ -811,8 +812,8 @@
         <span class="kw">let </span>selective_acks: Vec&lt;<span class="kw">_</span>&gt; = sack_iter.collect();
         <span class="kw">let </span>selective_acks = tcp::util::SmallArrayBackedSlice::new(<span class="kw-2">&amp;</span>selective_acks).unwrap();
 
-        <span class="comment">// the C packet doesn&#39;t have the distinction between no sack option or a sack option of
-        // length 0, so we&#39;ll assume that an empty list is the same as no list
+        <span class="comment">// the C packet doesn't have the distinction between no sack option or a sack option of
+        // length 0, so we'll assume that an empty list is the same as no list
         </span><span class="kw">let </span>selective_acks = <span class="kw">if </span>!selective_acks.is_empty() {
             <span class="prelude-val">Some</span>(selective_acks)
         } <span class="kw">else </span>{
@@ -887,9 +888,9 @@
 
     <span class="doccomment">/// Copy the payload to the managed process. Even if this returns an error, some unspecified
     /// number of bytes may have already been copied.
-    </span><span class="kw">pub fn </span>copy_payload&lt;<span class="lifetime">&#39;a</span>&gt;(
+    </span><span class="kw">pub fn </span>copy_payload&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        iovs: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IoVec&gt;,
+        iovs: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>IoVec&gt;,
         mem: <span class="kw-2">&amp;mut </span>MemoryManager,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;usize, linux_api::errno::Errno&gt; {
         <span class="kw">let </span>iovs = iovs.into_iter();
@@ -1031,7 +1032,7 @@
         <span class="kw">let </span>iana_protocol: u8 = <span class="kw">match </span>protocol {
             c::_ProtocolType_PTCP =&gt; <span class="number">6</span>,
             c::_ProtocolType_PUDP =&gt; <span class="number">17</span>,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected packet protocol&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected packet protocol"</span>),
         };
         <span class="kw">let </span>header_checksum: u16 = <span class="number">0x0</span>;
         <span class="kw">let </span>source_ip: [u8; <span class="number">4</span>] =
@@ -1063,13 +1064,13 @@
         </span><span class="kw">match </span>protocol {
             c::_ProtocolType_PTCP =&gt; display_tcp_bytes(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;mut </span>writer)<span class="question-mark">?</span>,
             c::_ProtocolType_PUDP =&gt; display_udp_bytes(<span class="kw-2">*</span><span class="self">self</span>, <span class="kw-2">&amp;mut </span>writer)<span class="question-mark">?</span>,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected packet protocol&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected packet protocol"</span>),
         }
 
         <span class="comment">// write payload data
 
         </span><span class="kw">if </span>payload_len &gt; <span class="number">0 </span>{
-            <span class="comment">// shadow&#39;s packet payloads are guarded by a mutex, so it&#39;s easiest to make a copy of them
+            <span class="comment">// shadow's packet payloads are guarded by a mutex, so it's easiest to make a copy of them
             </span><span class="kw">let </span><span class="kw-2">mut </span>payload_buf = <span class="macro">vec!</span>[<span class="number">0u8</span>; payload_len.into()];
             <span class="kw">let </span>count = <span class="kw">unsafe </span>{
                 c::packet_copyPayloadShadow(
@@ -1082,7 +1083,7 @@
             <span class="macro">assert_eq!</span>(
                 count,
                 u32::from(payload_len),
-                <span class="string">&quot;Packet payload somehow changed size&quot;
+                <span class="string">"Packet payload somehow changed size"
             </span>);
 
             <span class="comment">// packet payload: `payload_len` bytes
@@ -1230,14 +1231,14 @@
             tcp::TcpFlags::FIN =&gt; new_flags |= c::ProtocolTCPFlags_PTCP_FIN,
             tcp::TcpFlags::SYN =&gt; new_flags |= c::ProtocolTCPFlags_PTCP_SYN,
             tcp::TcpFlags::RST =&gt; new_flags |= c::ProtocolTCPFlags_PTCP_RST,
-            tcp::TcpFlags::PSH =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unsupported TCP flag: {flag:?}&quot;</span>),
+            tcp::TcpFlags::PSH =&gt; <span class="macro">panic!</span>(<span class="string">"Unsupported TCP flag: {flag:?}"</span>),
             tcp::TcpFlags::ACK =&gt; new_flags |= c::ProtocolTCPFlags_PTCP_ACK,
-            tcp::TcpFlags::URG =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unsupported TCP flag: {flag:?}&quot;</span>),
-            tcp::TcpFlags::ECE =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unsupported TCP flag: {flag:?}&quot;</span>),
-            tcp::TcpFlags::CWR =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unsupported TCP flag: {flag:?}&quot;</span>),
+            tcp::TcpFlags::URG =&gt; <span class="macro">panic!</span>(<span class="string">"Unsupported TCP flag: {flag:?}"</span>),
+            tcp::TcpFlags::ECE =&gt; <span class="macro">panic!</span>(<span class="string">"Unsupported TCP flag: {flag:?}"</span>),
+            tcp::TcpFlags::CWR =&gt; <span class="macro">panic!</span>(<span class="string">"Unsupported TCP flag: {flag:?}"</span>),
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
-                <span class="string">&quot;Each bit is covered by a flag, so the iterator either returned multiple flags at \
-                once or no flags: {flag:?}&quot;
+                <span class="string">"Each bit is covered by a flag, so the iterator either returned multiple flags at \
+                once or no flags: {flag:?}"
             </span>),
         }
     }
@@ -1268,7 +1269,7 @@
         flags &amp;= !c::ProtocolTCPFlags_PTCP_FIN;
     }
 
-    <span class="macro">assert_eq!</span>(flags, c::ProtocolTCPFlags_PTCP_NONE, <span class="string">&quot;Unexpected TCP flags&quot;</span>);
+    <span class="macro">assert_eq!</span>(flags, c::ProtocolTCPFlags_PTCP_NONE, <span class="string">"Unexpected TCP flags"</span>);
 
     new_flags
 }

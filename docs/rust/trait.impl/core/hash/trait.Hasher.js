@@ -1,4 +1,4 @@
 (function() {var implementors = {
-"adler":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.75.0/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"adler/struct.Adler32.html\" title=\"struct adler::Adler32\">Adler32</a>"]],
-"rustc_hash":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.75.0/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"rustc_hash/struct.FxHasher.html\" title=\"struct rustc_hash::FxHasher\">FxHasher</a>"]]
+"adler":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.76.0/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"adler/struct.Adler32.html\" title=\"struct adler::Adler32\">Adler32</a>"]],
+"rustc_hash":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.76.0/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"rustc_hash/struct.FxHasher.html\" title=\"struct rustc_hash::FxHasher\">FxHasher</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

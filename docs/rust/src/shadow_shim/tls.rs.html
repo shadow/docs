@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shim/src/tls.rs`."><title>tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/shim/src/tls.rs`."><title>tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="shadow_shim" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -861,15 +862,15 @@
     /// the libc function `__tls_get_addr`. That function is *not* guaranteed to be
     /// async-signal-safe (See `signal-safety(7)`), and can end up making system
     /// calls and doing memory allocation. This has caused problems with some versions of
-    /// glibc (Can&#39;t find the issue #...), and recently when running managed
+    /// glibc (Can't find the issue #...), and recently when running managed
     /// processed compiled with asan &lt;https://github.com/shadow/shadow/issues/2790&gt;.
     ///
     /// SAFETY: `__tls_get_addr` in the linked version of libc must not make
     /// system calls or do anything async-signal unsafe. This basically
-    /// can&#39;t be ensured, but is often true in practice.
+    /// can't be ensured, but is often true in practice.
     </span><span class="comment">//
     // TODO: I *think* if we want to avoid the shim linking with libc at all,
-    // we&#39;ll need to disable this mode at compile-time by removing it or making
+    // we'll need to disable this mode at compile-time by removing it or making
     // it a compile-time feature.
     </span>Native,
     <span class="doccomment">/// This mode takes advantage of ELF native thread local storage, but only
@@ -877,26 +878,26 @@
     /// into libc or store anything directly in the native thread local storage.
     ///
     /// In particular, based on 3.4.6 and 3.4.2 of [ELF-TLS], we know that we
-    /// can retrieve the &quot;thread pointer&quot; by loading offset zero of the `fs`
+    /// can retrieve the "thread pointer" by loading offset zero of the `fs`
     /// register; i.e. `%fs:0`.
     ///
     /// The contents of the data pointed to by the thread pointer are an
-    /// implementation detail of the compiler, linker, and libc, so we don&#39;t
+    /// implementation detail of the compiler, linker, and libc, so we don't
     /// depend on it. However it seems reasonable to assume that this address is
-    /// unique to each live thread, and doesn&#39;t change during the lifetime of a
+    /// unique to each live thread, and doesn't change during the lifetime of a
     /// thread. Therefore we use the address as a thread-identifier, which we in
     /// turn use as key to our own allocated thread-local-storage.
     ///
     /// This mode is nearly as fast as native, but:
-    /// * Assumes that if the &quot;thread pointer&quot; in `%fs:0` is non-NULL for a
+    /// * Assumes that if the "thread pointer" in `%fs:0` is non-NULL for a
     /// given thread, that it is stable and unique for the lifetime of that
     /// thread.  This seems like a fairly reasonable assumption, and seems to
-    /// hold so far, but isn&#39;t guaranteed.
+    /// hold so far, but isn't guaranteed.
     /// * Requires that each thread using thread local storage from this module
     /// calls [`ThreadLocalStorage::unregister_current_thread`] before exiting, since the thread pointer
     /// may subsequently be used for another thread.
     ///
-    /// [ELF-TLS]: &quot;ELF Handling For Thread-Local Storage&quot;, by Ulrich Drepper.
+    /// [ELF-TLS]: "ELF Handling For Thread-Local Storage", by Ulrich Drepper.
     /// &lt;https://www.akkadia.org/drepper/tls.pdf&gt;
     ///
     /// SAFETY: Requires that each thread using this thread local storage
@@ -906,7 +907,7 @@
     /// pointer to identify each thread, it uses the system thread ID as retrieved by
     /// the `gettid` syscall.
     ///
-    /// Unlike `NativeTlsId`, this approach doesn&#39;t rely on any assumptions about
+    /// Unlike `NativeTlsId`, this approach doesn't rely on any assumptions about
     /// the implementation details of thread local storage in the managed process.
     /// It also *usually* still works without calling [`ThreadLocalStorage::unregister_current_thread`],
     /// but technically still requires it to guarantee soundness, since thread
@@ -941,17 +942,17 @@
 <span class="kw">impl </span>ElfThreadPointer {
     <span class="doccomment">/// Thread pointer for the current thread, if one is set.
     </span><span class="kw">pub fn </span>current() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="comment">// Based on 3.4.6 and 3.4.2 of [ELF-TLS], we retrieve the &quot;thread
-        // pointer&quot; by loading offset zero of the `fs` register; i.e. `%fs:0`.
+        <span class="comment">// Based on 3.4.6 and 3.4.2 of [ELF-TLS], we retrieve the "thread
+        // pointer" by loading offset zero of the `fs` register; i.e. `%fs:0`.
         </span><span class="kw">let </span>fs: usize;
-        <span class="kw">unsafe </span>{ <span class="macro">core::arch::asm!</span>(<span class="string">&quot;mov {fs}, $fs:0x0&quot;</span>, fs = out(reg) fs) };
+        <span class="kw">unsafe </span>{ <span class="macro">core::arch::asm!</span>(<span class="string">"mov {fs}, $fs:0x0"</span>, fs = out(reg) fs) };
         NonZeroUsize::new(fs).map(<span class="self">Self</span>)
     }
 }
 
 <span class="comment">// The alignment we choose here becomes the max alignment we can support for
 // [`ShimTlsVar`]. 16 is enough for most types, and is e.g. the alignment of
-// pointers returned by glibc&#39;s `malloc`, but we can increase as needed.
+// pointers returned by glibc's `malloc`, but we can increase as needed.
 </span><span class="attr">#[repr(C, align(<span class="number">16</span>))]
 </span><span class="kw">struct </span>TlsOneThreadStorage {
     <span class="comment">// Used as a backing store for instances of `ShimTlsVarStorage`. Must be
@@ -973,7 +974,7 @@
     /// * `alloc` must *only* be accessed through this function.
     </span><span class="kw">pub unsafe fn </span>from_static_lifetime_zeroed_allocation(
         alloc: <span class="kw-2">*mut </span>TlsOneThreadStorageAllocation,
-    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="self">Self </span>{
+    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="self">Self </span>{
         <span class="kw">type </span>Output = TlsOneThreadStorage;
         <span class="macro">static_assertions::assert_eq_align!</span>(TlsOneThreadStorageAllocation, Output);
         <span class="macro">static_assertions::assert_eq_size!</span>(TlsOneThreadStorageAllocation, Output);
@@ -988,9 +989,9 @@
     }
 }
 
-<span class="doccomment">/// This is a &quot;proxy&quot; type to `TlsOneThreadStorage` with the same size and alignment.
+<span class="doccomment">/// This is a "proxy" type to `TlsOneThreadStorage` with the same size and alignment.
 /// Unlike `TlsOneThreadStorage`, it is exposed to C, that C code can provide
-/// a &quot;thread-local allocator&quot; that we delegate to in [`Mode::Native`].
+/// a "thread-local allocator" that we delegate to in [`Mode::Native`].
 </span><span class="attr">#[repr(C, align(<span class="number">16</span>))]
 #[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>TlsOneThreadStorageAllocation {
@@ -1027,7 +1028,7 @@
         // address. i.e.  this bit should be unset.
         //
         // Since Pids are 32-bits, we can therefore use this bit to distinguish the
-        // two &quot;types&quot; of thread IDs.
+        // two "types" of thread IDs.
         </span><span class="kw">const </span>KERNEL_SPACE_BIT: usize = <span class="number">1 </span>&lt;&lt; <span class="number">63</span>;
         <span class="kw">match </span><span class="self">self </span>{
             FastThreadId::ElfThreadPointer(ElfThreadPointer(fs)) =&gt; {
@@ -1051,7 +1052,7 @@
         }
         <span class="attr">#[cfg(miri)]
         </span>{
-            <span class="comment">// In miri we can&#39;t use inline assembly the get the fs register or
+            <span class="comment">// In miri we can't use inline assembly the get the fs register or
             // get a numeric thread ID. We have to generate synthetic IDs from
             // `std::thread::ThreadId` instead.
 
@@ -1111,7 +1112,7 @@
     ///
     /// See [`Mode`] for detailed safety requirements. No matter the preferred
     /// mode, we fall back to [`Mode::Gettid`] if native thread local storage
-    /// isn&#39;t set up for a given thread, so that mode&#39;s requirements must always
+    /// isn't set up for a given thread, so that mode's requirements must always
     /// be met: each thread using this thread local storage must call
     /// [`Self::unregister_current_thread`] before exiting.
     </span><span class="kw">pub const unsafe fn </span>new(preferred_mode: Mode) -&gt; <span class="self">Self </span>{
@@ -1124,7 +1125,7 @@
 
     <span class="kw">fn </span>alloc_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, align: usize, size: usize) -&gt; usize {
         <span class="comment">// The alignment we ensure here is an offset from the base of a [`ShimThreadLocalStorage`].
-        // It won&#39;t be meaningful if [`ShimThreadLocalStorage`] has a smaller alignment requirement
+        // It won't be meaningful if [`ShimThreadLocalStorage`] has a smaller alignment requirement
         // than this variable.
         </span><span class="macro">assert!</span>(align &lt;= core::mem::align_of::&lt;TlsOneThreadStorage&gt;());
         <span class="kw">let </span><span class="kw-2">mut </span>next_offset_val = <span class="self">self</span>.next_offset.load(atomic::Ordering::Relaxed);
@@ -1140,7 +1141,7 @@
 
             <span class="kw">let </span>next_next_offset_val = this_var_offset + size;
             <span class="kw">if </span>next_next_offset_val &gt; BYTES_PER_THREAD {
-                <span class="macro">panic!</span>(<span class="string">&quot;Exceeded hard-coded limit of {BYTES_PER_THREAD} per thread of thread local storage&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"Exceeded hard-coded limit of {BYTES_PER_THREAD} per thread of thread local storage"</span>);
             }
 
             <span class="kw">match </span><span class="self">self</span>.next_offset.compare_exchange(
@@ -1151,7 +1152,7 @@
             ) {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>this_var_offset,
                 <span class="prelude-val">Err</span>(v) =&gt; {
-                    <span class="comment">// We raced with another thread. This *shouldn&#39;t* happen in
+                    <span class="comment">// We raced with another thread. This *shouldn't* happen in
                     // the shadow shim, since only one thread is allowed to run
                     // at a time, but handle it gracefully. Update the current
                     // value of the atomic and try again.
@@ -1185,13 +1186,13 @@
         }
     }
 
-    <span class="doccomment">/// Release this thread&#39;s thread local storage and exit the thread.
+    <span class="doccomment">/// Release this thread's thread local storage and exit the thread.
     ///
     /// Should be called by every thread that accesses thread local storage.
     /// This is a no-op when using native thread-local storage, but is required for
     /// correctness otherwise, since thread IDs can be reused.
     ///
-    /// Panics if there are still any live references to this thread&#39;s [`ShimTlsVar`]s.
+    /// Panics if there are still any live references to this thread's [`ShimTlsVar`]s.
     ///
     /// # Safety
     ///
@@ -1200,7 +1201,7 @@
     </span><span class="kw">pub unsafe fn </span>unregister_current_thread(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.storages.initd() {
             <span class="comment">// Nothing to do. Even if another thread happens to be initializing
-            // concurrently, we know the *current* thread isn&#39;t registered.
+            // concurrently, we know the *current* thread isn't registered.
             </span><span class="kw">return</span>;
         }
 
@@ -1212,13 +1213,13 @@
         </span><span class="kw">unsafe </span>{ storages.remove(id.to_nonzero_usize()) };
     }
 
-    <span class="doccomment">/// An opaque key referencing this thread&#39;s thread-local-storage.
+    <span class="doccomment">/// An opaque key referencing this thread's thread-local-storage.
     ///
     /// `None` if the current thread uses native TLS.
     </span><span class="kw">pub fn </span>current_key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ThreadLocalStorageKey&gt; {
         <span class="kw">match </span><span class="self">self</span>.preferred_mode {
             Mode::Native <span class="kw">if </span>ElfThreadPointer::current().is_some() =&gt; {
-                <span class="comment">// Native (libc) TLS seems to be set up properly. We&#39;ll use that,
+                <span class="comment">// Native (libc) TLS seems to be set up properly. We'll use that,
                 // so there is no storage key.
                 </span><span class="prelude-val">None
             </span>}
@@ -1244,7 +1245,7 @@
     /// creating the current thread.
     </span><span class="kw">pub unsafe fn </span>fork_from(<span class="kw-2">&amp;</span><span class="self">self</span>, prev_key: <span class="prelude-ty">Option</span>&lt;ThreadLocalStorageKey&gt;) {
         <span class="kw">let </span>prev_storage = prev_key.map(|id| {
-            <span class="comment">// SAFETY: Previous thread doesn&#39;t exist in this process.
+            <span class="comment">// SAFETY: Previous thread doesn't exist in this process.
             </span><span class="kw">unsafe </span>{ <span class="self">self</span>.storages.remove(id.<span class="number">0</span>.to_nonzero_usize()).unwrap() }
         });
 
@@ -1258,7 +1259,7 @@
         <span class="kw">match </span>(prev_storage, curr_key) {
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
                 <span class="comment">// Both parent and current use native storage. Caller guarantees
-                // that it&#39;s the same storage (e.g. no CLONE_SETTLS flag).
+                // that it's the same storage (e.g. no CLONE_SETTLS flag).
             </span>}
             (<span class="prelude-val">Some</span>(prev_storage), <span class="prelude-val">Some</span>(curr_key)) =&gt; {
                 <span class="comment">// Move storage to new key.
@@ -1273,7 +1274,7 @@
                 // table -&gt; native might not be too bad. We should be able to write
                 // the storage we retrieved from the table into native TLS.
                 //
-                // Not sure how to implement native -&gt; table. I think we&#39;d need
+                // Not sure how to implement native -&gt; table. I think we'd need
                 // to make the backing storage clonable, and clone it from the
                 // parent process so that we can access it from the child.
                 </span><span class="macro">unimplemented!</span>()
@@ -1282,12 +1283,12 @@
     }
 }
 
-<span class="kw">enum </span>TlsOneThreadBackingStoreRef&lt;<span class="lifetime">&#39;tls</span>&gt; {
-    Native(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>TlsOneThreadStorage),
-    Mapped(atomic_tls_map::Ref&lt;<span class="lifetime">&#39;tls</span>, MmapBox&lt;TlsOneThreadStorage&gt;&gt;),
+<span class="kw">enum </span>TlsOneThreadBackingStoreRef&lt;<span class="lifetime">'tls</span>&gt; {
+    Native(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>TlsOneThreadStorage),
+    Mapped(atomic_tls_map::Ref&lt;<span class="lifetime">'tls</span>, MmapBox&lt;TlsOneThreadStorage&gt;&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tls</span>&gt; Deref <span class="kw">for </span>TlsOneThreadBackingStoreRef&lt;<span class="lifetime">&#39;tls</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>&gt; Deref <span class="kw">for </span>TlsOneThreadBackingStoreRef&lt;<span class="lifetime">'tls</span>&gt; {
     <span class="kw">type </span>Target = TlsOneThreadStorage;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
@@ -1298,26 +1299,26 @@
     }
 }
 
-<span class="doccomment">/// One of these is placed in each thread&#39;s thread-local-storage, for each
+<span class="doccomment">/// One of these is placed in each thread's thread-local-storage, for each
 /// `ShimTlsVar`.
 ///
 /// It is designed to be safely *zeroable*, and for all zeroes to be the correct
-/// initial state, indicating that the actual value of the variable hasn&#39;t yet
+/// initial state, indicating that the actual value of the variable hasn't yet
 /// been initialized. This is because the first access for each of these
 /// variables is from the middle of an array of zeroed bytes in
 /// `ShimThreadLocalStorage`.
 ///
 /// TODO: Consider adding a process-global identifier for each [`ShimTlsVar`],
-/// and a map mapping each of those to the init state. We then wouldn&#39;t
-/// need the internal `initd` flag, and maybe wouldn&#39;t need this type at all.
-/// It would mean another map-lookup on every thread-local access, but it&#39;d
+/// and a map mapping each of those to the init state. We then wouldn't
+/// need the internal `initd` flag, and maybe wouldn't need this type at all.
+/// It would mean another map-lookup on every thread-local access, but it'd
 /// probably ok.
 </span><span class="kw">struct </span>ShimTlsVarStorage&lt;T&gt; {
     <span class="comment">// Whether the var has been initialized for this thread.
     //
     // For `bool`, the bit pattern 0 is guaranteed to represent
     // `false`, and `Cell` has the same layout as its inner type. Hence,
-    // interpreting 0-bytes as `Self` is sound and correctly indicates that it hasn&#39;t
+    // interpreting 0-bytes as `Self` is sound and correctly indicates that it hasn't
     // been initialized.
     // &lt;https://doc.rust-lang.org/std/cell/struct.Cell.html#memory-layout&gt;
     // &lt;https://doc.rust-lang.org/reference/types/boolean.html&gt;
@@ -1329,7 +1330,7 @@
     <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="macro">assert!</span>(<span class="self">self</span>.initd.get());
 
-        <span class="comment">// SAFETY: We&#39;ve ensured this value is initialized, and that
+        <span class="comment">// SAFETY: We've ensured this value is initialized, and that
         // there are no exclusive references created after initialization.
         </span><span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.value.get()).assume_init_ref() }
     }
@@ -1340,8 +1341,8 @@
 
             // SAFETY: This thread has exclusive access to the underlying storage.
             // This is the only place we ever construct a mutable reference to this
-            // value, and we know we&#39;ve never constructed a reference before, since
-            // the data isn&#39;t initialized.
+            // value, and we know we've never constructed a reference before, since
+            // the data isn't initialized.
             </span><span class="kw">let </span>value: <span class="kw-2">&amp;mut </span>MaybeUninit&lt;T&gt; = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span><span class="self">self</span>.value.get() };
             value.write(initializer());
             <span class="self">self</span>.initd.set(<span class="bool-val">true</span>);
@@ -1350,16 +1351,16 @@
 }
 
 <span class="doccomment">/// An initializer for internal use with `LazyLock`. We need an explicit type
-/// instead of just a closure so that we can name the type  in `ShimTlsVar`&#39;s
+/// instead of just a closure so that we can name the type  in `ShimTlsVar`'s
 /// definition.
-</span><span class="kw">struct </span>OffsetInitializer&lt;<span class="lifetime">&#39;tls</span>&gt; {
-    tls: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tls </span>ThreadLocalStorage,
+</span><span class="kw">struct </span>OffsetInitializer&lt;<span class="lifetime">'tls</span>&gt; {
+    tls: <span class="kw-2">&amp;</span><span class="lifetime">'tls </span>ThreadLocalStorage,
     align: usize,
     size: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tls</span>&gt; OffsetInitializer&lt;<span class="lifetime">&#39;tls</span>&gt; {
-    <span class="kw">pub const fn </span>new&lt;T&gt;(tls: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tls </span>ThreadLocalStorage) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>&gt; OffsetInitializer&lt;<span class="lifetime">'tls</span>&gt; {
+    <span class="kw">pub const fn </span>new&lt;T&gt;(tls: <span class="kw-2">&amp;</span><span class="lifetime">'tls </span>ThreadLocalStorage) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             tls,
             align: core::mem::align_of::&lt;ShimTlsVarStorage&lt;T&gt;&gt;(),
@@ -1368,7 +1369,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tls</span>&gt; lazy_lock::Producer&lt;usize&gt; <span class="kw">for </span>OffsetInitializer&lt;<span class="lifetime">&#39;tls</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>&gt; lazy_lock::Producer&lt;usize&gt; <span class="kw">for </span>OffsetInitializer&lt;<span class="lifetime">'tls</span>&gt; {
     <span class="comment">// Finds and assigns the next free and suitably aligned offset within
     // thread-local-storage for a value of type `T`, initialized with function
     // `F`.
@@ -1384,27 +1385,27 @@
 /// this value itself is dropped.
 </span><span class="comment">//
 // TODO: Consider changing API to only provide a `with` method instead of
-// allowing access to `&#39;static` references. This would let us validate in
+// allowing access to `'static` references. This would let us validate in
 // [`ThreadLocalStorage::unregister_current_thread`] that no variables are
 // currently being accessed and enforce that none are accessed afterwards, and
-// potentially let us run `Drop` impls (though I think we&#39;d also need an
+// potentially let us run `Drop` impls (though I think we'd also need an
 // allocator for the latter).
-</span><span class="kw">pub struct </span>ShimTlsVar&lt;<span class="lifetime">&#39;tls</span>, T, F = <span class="kw">fn</span>() -&gt; T&gt;
+</span><span class="kw">pub struct </span>ShimTlsVar&lt;<span class="lifetime">'tls</span>, T, F = <span class="kw">fn</span>() -&gt; T&gt;
 <span class="kw">where
     </span>F: Fn() -&gt; T,
 {
-    tls: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tls </span>ThreadLocalStorage,
+    tls: <span class="kw-2">&amp;</span><span class="lifetime">'tls </span>ThreadLocalStorage,
     <span class="comment">// We wrap in a lazy lock to support const initialization of `Self`.
-    </span>offset: LazyLock&lt;usize, OffsetInitializer&lt;<span class="lifetime">&#39;tls</span>&gt;&gt;,
+    </span>offset: LazyLock&lt;usize, OffsetInitializer&lt;<span class="lifetime">'tls</span>&gt;&gt;,
     f: F,
     _phantom: PhantomData&lt;T&gt;,
 }
 <span class="comment">// SAFETY: Still `Sync` even if T is `!Sync`, since each thread gets its own
 // instance of the value. `F` must still be `Sync`, though, since that *is*
 // shared across threads.
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">&#39;tls</span>, T, F&gt; Sync <span class="kw">for </span>ShimTlsVar&lt;<span class="lifetime">&#39;tls</span>, T, F&gt; <span class="kw">where </span>F: Sync + Fn() -&gt; T {}
+</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'tls</span>, T, F&gt; Sync <span class="kw">for </span>ShimTlsVar&lt;<span class="lifetime">'tls</span>, T, F&gt; <span class="kw">where </span>F: Sync + Fn() -&gt; T {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tls</span>, T, F&gt; ShimTlsVar&lt;<span class="lifetime">&#39;tls</span>, T, F&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>, T, F&gt; ShimTlsVar&lt;<span class="lifetime">'tls</span>, T, F&gt;
 <span class="kw">where
     </span>F: Fn() -&gt; T,
 {
@@ -1412,7 +1413,7 @@
     /// initialized with `f` on first access by each thread.
     ///
     /// Typically this should go in a `static`.
-    </span><span class="kw">pub const fn </span>new(tls: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tls </span>ThreadLocalStorage, f: F) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(tls: <span class="kw-2">&amp;</span><span class="lifetime">'tls </span>ThreadLocalStorage, f: F) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             tls,
             offset: LazyLock::const_new(OffsetInitializer::new::&lt;T&gt;(tls)),
@@ -1423,40 +1424,40 @@
 
     <span class="doccomment">/// Access the inner value.
     ///
-    /// The returned wrapper can&#39;t be sent to or shared with other threads,
+    /// The returned wrapper can't be sent to or shared with other threads,
     /// since the underlying storage is invalidated when the originating thread
     /// calls [`ThreadLocalStorage::unregister_current_thread`].
-    </span><span class="kw">pub fn </span>get&lt;<span class="lifetime">&#39;var</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;var </span><span class="self">self</span>) -&gt; TlsVarRef&lt;<span class="lifetime">&#39;tls</span>, <span class="lifetime">&#39;var</span>, T, F&gt; {
+    </span><span class="kw">pub fn </span>get&lt;<span class="lifetime">'var</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'var </span><span class="self">self</span>) -&gt; TlsVarRef&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F&gt; {
         <span class="comment">// SAFETY: This offset into TLS storage is a valid instance of
-        // `ShimTlsVarStorage&lt;T&gt;`. We&#39;ve ensured the correct size and alignment,
+        // `ShimTlsVarStorage&lt;T&gt;`. We've ensured the correct size and alignment,
         // and the backing bytes have been initialized to 0.
         </span><span class="kw">unsafe </span>{ TlsVarRef::new(<span class="self">self</span>) }
     }
 }
 
-<span class="doccomment">/// A reference to a single thread&#39;s instance of a TLS variable [`ShimTlsVar`].
-</span><span class="kw">pub struct </span>TlsVarRef&lt;<span class="lifetime">&#39;tls</span>, <span class="lifetime">&#39;var</span>, T, F: Fn() -&gt; T&gt; {
-    storage: TlsOneThreadBackingStoreRef&lt;<span class="lifetime">&#39;tls</span>&gt;,
+<span class="doccomment">/// A reference to a single thread's instance of a TLS variable [`ShimTlsVar`].
+</span><span class="kw">pub struct </span>TlsVarRef&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F: Fn() -&gt; T&gt; {
+    storage: TlsOneThreadBackingStoreRef&lt;<span class="lifetime">'tls</span>&gt;,
     offset: usize,
 
     <span class="comment">// Force to be !Sync and !Send.
     </span>_phantom: core::marker::PhantomData&lt;<span class="kw-2">*mut </span>T&gt;,
     <span class="comment">// Defensively bind to lifetime of `ShimTlsVar`.  Currently not technically
-    // required, since we don&#39;t &quot;deallocate&quot; the backing storage of a `ShimTlsVar`
-    // that&#39;s uninitialized, and a no-op in &quot;standard&quot; usage since `ShimTlsVar`s
-    // generally have a `&#39;static` lifetime, but let&#39;s avoid a potential
-    // surprising lifetime extension that we shouldn&#39;t need.
-    </span>_phantom_lifetime: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;var </span>ShimTlsVar&lt;<span class="lifetime">&#39;tls</span>, T, F&gt;&gt;,
+    // required, since we don't "deallocate" the backing storage of a `ShimTlsVar`
+    // that's uninitialized, and a no-op in "standard" usage since `ShimTlsVar`s
+    // generally have a `'static` lifetime, but let's avoid a potential
+    // surprising lifetime extension that we shouldn't need.
+    </span>_phantom_lifetime: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'var </span>ShimTlsVar&lt;<span class="lifetime">'tls</span>, T, F&gt;&gt;,
 }
 <span class="comment">// Double check `!Send` and `!Sync`.
-</span><span class="macro">static_assertions::assert_not_impl_any!</span>(TlsVarRef&lt;<span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>, (), <span class="kw">fn</span>() -&gt; ()&gt;: Send, Sync);
+</span><span class="macro">static_assertions::assert_not_impl_any!</span>(TlsVarRef&lt;<span class="lifetime">'static</span>, <span class="lifetime">'static</span>, (), <span class="kw">fn</span>() -&gt; ()&gt;: Send, Sync);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tls</span>, <span class="lifetime">&#39;var</span>, T, F: Fn() -&gt; T&gt; TlsVarRef&lt;<span class="lifetime">&#39;tls</span>, <span class="lifetime">&#39;var</span>, T, F&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F: Fn() -&gt; T&gt; TlsVarRef&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F&gt; {
     <span class="doccomment">/// # Safety
     ///
     /// There must be an initialized instance of `ShimTlsVarStorage&lt;T&gt; at the
     /// address of `&amp;storage.bytes[offset]`.
-    </span><span class="kw">unsafe fn </span>new(var: <span class="kw-2">&amp;</span><span class="lifetime">&#39;var </span>ShimTlsVar&lt;<span class="lifetime">&#39;tls</span>, T, F&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">unsafe fn </span>new(var: <span class="kw-2">&amp;</span><span class="lifetime">'var </span>ShimTlsVar&lt;<span class="lifetime">'tls</span>, T, F&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>storage = var.tls.current_thread_storage();
         <span class="kw">let </span>offset = <span class="kw-2">*</span>var.offset.force();
         <span class="kw">let </span>this = <span class="self">Self </span>{
@@ -1485,14 +1486,14 @@
         <span class="comment">// SAFETY: The TLS bytes for each thread are initialized to 0, and
         // all-zeroes is a valid value of `ShimTlsVarStorage&lt;T&gt;`.
         //
-        // We&#39;ve ensure proper alignment when calculating the offset,
+        // We've ensure proper alignment when calculating the offset,
         // and verified in the assertion just above.
         </span><span class="kw">let </span>this_var: <span class="kw-2">&amp;</span>ShimTlsVarStorage&lt;T&gt; = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>this_var };
         this_var
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;tls</span>, <span class="lifetime">&#39;var</span>, T, F: Fn() -&gt; T&gt; Deref <span class="kw">for </span>TlsVarRef&lt;<span class="lifetime">&#39;tls</span>, <span class="lifetime">&#39;var</span>, T, F&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F: Fn() -&gt; T&gt; Deref <span class="kw">for </span>TlsVarRef&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
@@ -1548,7 +1549,7 @@
     }
 
     <span class="attr">#[test]
-    #[should_panic(expected = <span class="string">&quot;Removed key while references still held&quot;</span>)]
+    #[should_panic(expected = <span class="string">"Removed key while references still held"</span>)]
     </span><span class="kw">fn </span>test_panic() {
         <span class="kw">let </span>tls = <span class="kw">unsafe </span>{ ThreadLocalStorage::new(Mode::Gettid) };
         <span class="kw">let </span>var: ShimTlsVar&lt;u32&gt; = ShimTlsVar::new(<span class="kw-2">&amp;</span>tls, || <span class="number">0</span>);
@@ -1597,9 +1598,9 @@
     </span><span class="kw">fn </span>test_multithread_mutate_small_alignment() {
         <span class="kw">for </span>mode <span class="kw">in </span>MODES {
             <span class="kw">let </span>tls = <span class="kw">unsafe </span>{ ThreadLocalStorage::new(<span class="kw-2">*</span>mode) };
-            <span class="comment">// Normally it&#39;d make more sense to use cheaper interior mutability
+            <span class="comment">// Normally it'd make more sense to use cheaper interior mutability
             // such as `RefCell` or `Cell`, but here we want to ensure the alignment is 1
-            // to validate that we don&#39;t overlap storage.
+            // to validate that we don't overlap storage.
             </span><span class="kw">let </span>my_var: ShimTlsVar&lt;AtomicI8&gt; = ShimTlsVar::new(<span class="kw-2">&amp;</span>tls, || AtomicI8::new(<span class="number">0</span>));
             std::thread::scope(|scope| {
                 <span class="kw">let </span>tls = <span class="kw-2">&amp;</span>tls;
@@ -1639,7 +1640,7 @@
                         <span class="macro">assert_eq!</span>(my_i32.get().load(atomic::Ordering::Relaxed), <span class="number">0</span>);
                         <span class="macro">assert_eq!</span>(my_i16.get().load(atomic::Ordering::Relaxed), <span class="number">0</span>);
 
-                        <span class="comment">// Order shouldn&#39;t matter here, but change it from above anyway.
+                        <span class="comment">// Order shouldn't matter here, but change it from above anyway.
                         </span>my_i32.get().store(i, atomic::Ordering::Relaxed);
                         my_i8.get().store(i <span class="kw">as </span>i8, atomic::Ordering::Relaxed);
                         my_i16.get().store(i <span class="kw">as </span>i16, atomic::Ordering::Relaxed);

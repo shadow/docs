@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/thread/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.31/src/thread/prctl.rs`."><title>prctl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1027,7 +1028,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::backend::c::{c_int, c_uint, c_void};
 <span class="kw">use </span><span class="kw">crate</span>::backend::prctl::syscalls;
 <span class="kw">use </span><span class="kw">crate</span>::ffi::CStr;
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::ffi::CString;
 <span class="kw">use </span><span class="kw">crate</span>::io;
 <span class="kw">use </span><span class="kw">crate</span>::pid::Pid;
@@ -1042,7 +1043,7 @@
 
 </span><span class="kw">const </span>PR_GET_KEEPCAPS: c_int = <span class="number">7</span>;
 
-<span class="doccomment">/// Get the current state of the calling thread&#39;s `keep capabilities` flag.
+<span class="doccomment">/// Get the current state of the calling thread's `keep capabilities` flag.
 ///
 /// # References
 ///  - [`prctl(PR_GET_KEEPCAPS,...)`]
@@ -1055,7 +1056,7 @@
 
 <span class="kw">const </span>PR_SET_KEEPCAPS: c_int = <span class="number">8</span>;
 
-<span class="doccomment">/// Set the state of the calling thread&#39;s `keep capabilities` flag.
+<span class="doccomment">/// Set the state of the calling thread's `keep capabilities` flag.
 ///
 /// # References
 ///  - [`prctl(PR_SET_KEEPCAPS,...)`]
@@ -1070,7 +1071,7 @@
 // PR_GET_NAME/PR_SET_NAME
 //
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">const </span>PR_GET_NAME: c_int = <span class="number">16</span>;
 
 <span class="doccomment">/// Get the name of the calling thread.
@@ -1080,7 +1081,7 @@
 ///
 /// [`prctl(PR_GET_NAME,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
-#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">pub fn </span>name() -&gt; io::Result&lt;CString&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0_u8</span>; <span class="number">16</span>];
     <span class="kw">unsafe </span>{ prctl_2args(PR_GET_NAME, buffer.as_mut_ptr().cast())<span class="question-mark">? </span>};
@@ -1204,7 +1205,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     </span>DACReadSearch = linux_raw_sys::general::CAP_DAC_READ_SEARCH,
     <span class="doccomment">/// Overrides all restrictions about allowed operations on files, where
     /// file owner ID must be equal to the user ID, except where
-    /// [`Capability::FileSetID`] is applicable. It doesn&#39;t override MAC
+    /// [`Capability::FileSetID`] is applicable. It doesn't override MAC
     /// and DAC restrictions.
     </span>FileOwner = linux_raw_sys::general::CAP_FOWNER,
     <span class="doccomment">/// Overrides the following restrictions that the effective user ID shall
@@ -1228,8 +1229,8 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     ///  - Transfer any capability in your permitted set to any pid.
     ///  - remove any capability in your permitted set from any pid. With VFS
     ///    support for capabilities (neither of above, but)
-    ///  - Add any capability from current&#39;s capability bounding set to the
-    ///    current process&#39; inheritable set.
+    ///  - Add any capability from current's capability bounding set to the
+    ///    current process' inheritable set.
     ///  - Allow taking bits out of capability bounding set.
     ///  - Allow modification of the securebits for a process.
     </span>SetPermittedCapabilities = linux_raw_sys::general::CAP_SETPCAP,
@@ -1255,7 +1256,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     /// [`Capability::NetAdmin`]).
     </span>NetRaw = linux_raw_sys::general::CAP_NET_RAW,
     <span class="doccomment">/// Allow locking of shared memory segments. Allow mlock and mlockall
-    /// (which doesn&#39;t really have anything to do with IPC).
+    /// (which doesn't really have anything to do with IPC).
     </span>IPCLock = linux_raw_sys::general::CAP_IPC_LOCK,
     <span class="doccomment">/// Override IPC ownership checks.
     </span>IPCOwner = linux_raw_sys::general::CAP_IPC_OWNER,
@@ -1278,7 +1279,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     /// `VM86_REQUEST_IRQ`. Allow to read/write pci config on alpha. Allow
     /// `irix_prctl` on mips (setstacksize). Allow flushing all cache on
     /// m68k (`sys_cacheflush`). Allow removing semaphores. Used instead of
-    /// [`Capability::ChangeOwnership`] to &quot;chown&quot; IPC message queues,
+    /// [`Capability::ChangeOwnership`] to "chown" IPC message queues,
     /// semaphores and shared memory. Allow locking/unlocking of shared
     /// memory segment. Allow turning swap on/off. Allow forged pids on
     /// socket credentials passing. Allow setting readahead and
@@ -1342,7 +1343,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     /// checks on modifications to that policy or the data required to maintain
     /// it, this is the capability it should use to do so.
     </span>MACAdmin = linux_raw_sys::general::CAP_MAC_ADMIN,
-    <span class="doccomment">/// Allow configuring the kernel&#39;s `syslog` (`printk` behaviour).
+    <span class="doccomment">/// Allow configuring the kernel's `syslog` (`printk` behaviour).
     </span>SystemLog = linux_raw_sys::general::CAP_SYSLOG,
     <span class="doccomment">/// Allow triggering something that will wake the system.
     </span>WakeAlarm = linux_raw_sys::general::CAP_WAKE_ALARM,
@@ -1391,7 +1392,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     </span>CheckpointRestore = linux_raw_sys::general::CAP_CHECKPOINT_RESTORE,
 }
 
-<span class="doccomment">/// Check if the specified capability is in the calling thread&#39;s capability
+<span class="doccomment">/// Check if the specified capability is in the calling thread's capability
 /// bounding set.
 ///
 /// # References
@@ -1407,7 +1408,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 
 <span class="doccomment">/// If the calling thread has the [`Capability::SetPermittedCapabilities`]
 /// capability within its user namespace, then drop the specified capability
-/// from the thread&#39;s capability bounding set.
+/// from the thread's capability bounding set.
 ///
 /// # References
 ///  - [`prctl(PR_CAPBSET_DROP,...)`]
@@ -1435,8 +1436,8 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
         </span><span class="kw">const </span>NO_ROOT = <span class="number">1_u32 </span>&lt;&lt; <span class="number">0</span>;
         <span class="doccomment">/// Set [`NO_ROOT`] irreversibly.
         </span><span class="kw">const </span>NO_ROOT_LOCKED = <span class="number">1_u32 </span>&lt;&lt; <span class="number">1</span>;
-        <span class="doccomment">/// Setting this flag stops the kernel from adjusting the process&#39;
-        /// permitted, effective, and ambient capability sets when the thread&#39;s
+        <span class="doccomment">/// Setting this flag stops the kernel from adjusting the process'
+        /// permitted, effective, and ambient capability sets when the thread's
         /// effective and filesystem UIDs are switched between zero and nonzero
         /// values.
         </span><span class="kw">const </span>NO_SETUID_FIXUP = <span class="number">1_u32 </span>&lt;&lt; <span class="number">2</span>;
@@ -1449,7 +1450,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
         <span class="doccomment">/// Set [`KEEP_CAPS`] irreversibly.
         </span><span class="kw">const </span>KEEP_CAPS_LOCKED = <span class="number">1_u32 </span>&lt;&lt; <span class="number">5</span>;
         <span class="doccomment">/// Setting this flag disallows raising ambient capabilities via the
-        /// `prctl`&#39;s `PR_CAP_AMBIENT_RAISE` operation.
+        /// `prctl`'s `PR_CAP_AMBIENT_RAISE` operation.
         </span><span class="kw">const </span>NO_CAP_AMBIENT_RAISE = <span class="number">1_u32 </span>&lt;&lt; <span class="number">6</span>;
         <span class="doccomment">/// Set [`NO_CAP_AMBIENT_RAISE`] irreversibly.
         </span><span class="kw">const </span>NO_CAP_AMBIENT_RAISE_LOCKED = <span class="number">1_u32 </span>&lt;&lt; <span class="number">7</span>;
@@ -1534,7 +1535,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 
 <span class="kw">const </span>PR_SET_NO_NEW_PRIVS: c_int = <span class="number">38</span>;
 
-<span class="doccomment">/// Set the calling thread&#39;s `no_new_privs` attribute.
+<span class="doccomment">/// Set the calling thread's `no_new_privs` attribute.
 ///
 /// # References
 ///  - [`prctl(PR_SET_NO_NEW_PRIVS,...)`]
@@ -1552,7 +1553,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 </span><span class="kw">const </span>PR_GET_TID_ADDRESS: c_int = <span class="number">40</span>;
 
 <span class="doccomment">/// Get the `clear_child_tid` address set by `set_tid_address`
-/// and `clone`&#39;s `CLONE_CHILD_CLEARTID` flag.
+/// and `clone`'s `CLONE_CHILD_CLEARTID` flag.
 ///
 /// # References
 ///  - [`prctl(PR_GET_TID_ADDRESS,...)`]
@@ -1665,7 +1666,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     </span><span class="kw">pub </span>vector_length_inherited_across_execve: bool,
 }
 
-<span class="doccomment">/// Get the thread&#39;s current SVE vector length configuration.
+<span class="doccomment">/// Get the thread's current SVE vector length configuration.
 ///
 /// # References
 ///  - [`prctl(PR_SVE_GET_VL,...)`]
@@ -1684,7 +1685,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 
 <span class="kw">const </span>PR_SVE_SET_VL_ONEXEC: u32 = <span class="number">1_u32 </span>&lt;&lt; <span class="number">18</span>;
 
-<span class="doccomment">/// Configure the thread&#39;s vector length of Scalable Vector Extension.
+<span class="doccomment">/// Configure the thread's vector length of Scalable Vector Extension.
 ///
 /// # References
 ///  - [`prctl(PR_SVE_SET_VL,...)`]
@@ -1723,7 +1724,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 
 </span><span class="kw">const </span>PR_PAC_RESET_KEYS: c_int = <span class="number">54</span>;
 
-<span class="doccomment">/// Securely reset the thread&#39;s pointer authentication keys to fresh random
+<span class="doccomment">/// Securely reset the thread's pointer authentication keys to fresh random
 /// values generated by the kernel.
 ///
 /// # References

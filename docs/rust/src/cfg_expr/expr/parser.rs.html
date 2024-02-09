@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-expr-0.15.5/src/expr/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="cfg_expr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cfg-expr-0.15.5/src/expr/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="cfg_expr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -461,7 +462,7 @@
     /// parse it into a form where it can be evaluated
     ///
     /// ```
-    /// assert!(cfg_expr::Expression::parse(r#&quot;cfg(all(unix, target_arch = &quot;x86_64&quot;))&quot;#).is_ok());
+    /// assert!(cfg_expr::Expression::parse(r#"cfg(all(unix, target_arch = "x86_64"))"#).is_ok());
     /// ```
     </span><span class="kw">pub fn </span>parse(original: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ParseError&gt; {
         <span class="kw">let </span>lexer = Lexer::new(original);
@@ -483,20 +484,20 @@
         <span class="kw">let </span><span class="kw-2">mut </span>expr_queue = SmallVec::&lt;[ExprNode; <span class="number">5</span>]&gt;::new();
 
         <span class="comment">// Keep track of the last token to simplify validation of the token stream
-        </span><span class="kw">let </span><span class="kw-2">mut </span>last_token: <span class="prelude-ty">Option</span>&lt;Token&lt;<span class="lifetime">&#39;_</span>&gt;&gt; = <span class="prelude-val">None</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>last_token: <span class="prelude-ty">Option</span>&lt;Token&lt;<span class="lifetime">'_</span>&gt;&gt; = <span class="prelude-val">None</span>;
 
         <span class="kw">let </span>parse_predicate = |key: (<span class="kw-2">&amp;</span>str, std::ops::Range&lt;usize&gt;),
                                val: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>str, std::ops::Range&lt;usize&gt;)&gt;|
          -&gt; <span class="prelude-ty">Result</span>&lt;InnerPredicate, ParseError&gt; {
             <span class="comment">// Warning: It is possible for arbitrarily-set configuration
             // options to have the same value as compiler-set configuration
-            // options. For example, it is possible to do rustc --cfg &quot;unix&quot; program.rs
+            // options. For example, it is possible to do rustc --cfg "unix" program.rs
             // while compiling to a Windows target, and have both unix and windows
             // configuration options set at the same time. It is unwise to actually
             // do this.
             //
-            // rustc is very permissive in this regard, but I&#39;d rather be really
-            // strict, as it&#39;s much easier to loosen restrictions over time than add
+            // rustc is very permissive in this regard, but I'd rather be really
+            // strict, as it's much easier to loosen restrictions over time than add
             // new ones
             </span><span class="macro">macro_rules! </span>err_if_val {
                 () =&gt; {
@@ -517,12 +518,12 @@
 
             <span class="prelude-val">Ok</span>(<span class="kw">match </span>key {
                 <span class="comment">// These are special cases in the cfg language that are
-                // semantically the same as `target_family = &quot;&lt;family&gt;&quot;`,
+                // semantically the same as `target_family = "&lt;family&gt;"`,
                 // so we just make them not special
-                // NOTE: other target families like &quot;wasm&quot; are NOT allowed
+                // NOTE: other target families like "wasm" are NOT allowed
                 // as naked predicates; they must be specified through
                 // `target_family`
-                </span><span class="string">&quot;unix&quot; </span>| <span class="string">&quot;windows&quot; </span>=&gt; {
+                </span><span class="string">"unix" </span>| <span class="string">"windows" </span>=&gt; {
                     <span class="macro">err_if_val!</span>();
 
                     InnerPredicate::Target(InnerTarget {
@@ -530,19 +531,19 @@
                         span: <span class="prelude-val">Some</span>(span),
                     })
                 }
-                <span class="string">&quot;test&quot; </span>=&gt; {
+                <span class="string">"test" </span>=&gt; {
                     <span class="macro">err_if_val!</span>();
                     InnerPredicate::Test
                 }
-                <span class="string">&quot;debug_assertions&quot; </span>=&gt; {
+                <span class="string">"debug_assertions" </span>=&gt; {
                     <span class="macro">err_if_val!</span>();
                     InnerPredicate::DebugAssertions
                 }
-                <span class="string">&quot;proc_macro&quot; </span>=&gt; {
+                <span class="string">"proc_macro" </span>=&gt; {
                     <span class="macro">err_if_val!</span>();
                     InnerPredicate::ProcMacro
                 }
-                <span class="string">&quot;feature&quot; </span>=&gt; {
+                <span class="string">"feature" </span>=&gt; {
                     <span class="comment">// rustc allows bare feature without a value, but the only way
                     // such a predicate would ever evaluate to true would be if they
                     // explicitly set --cfg feature, which would be terrible, so we
@@ -553,12 +554,12 @@
                             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
                                 original: original.to_owned(),
                                 span,
-                                reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">&quot;= \&quot;&lt;feature_name&gt;\&quot;&quot;</span>]),
+                                reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">"= \"&lt;feature_name&gt;\""</span>]),
                             });
                         }
                     }
                 }
-                <span class="string">&quot;panic&quot; </span>=&gt; <span class="kw">match </span>val {
+                <span class="string">"panic" </span>=&gt; <span class="kw">match </span>val {
                     <span class="prelude-val">Some</span>((<span class="kw">_</span>, vspan)) =&gt; InnerPredicate::Target(InnerTarget {
                         which: Which::Panic,
                         span: <span class="prelude-val">Some</span>(vspan),
@@ -567,17 +568,17 @@
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
                             original: original.to_owned(),
                             span,
-                            reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">&quot;= \&quot;&lt;panic_strategy&gt;\&quot;&quot;</span>]),
+                            reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">"= \"&lt;panic_strategy&gt;\""</span>]),
                         });
                     }
                 },
-                target_key <span class="kw">if </span>key.starts_with(<span class="string">&quot;target_&quot;</span>) =&gt; {
+                target_key <span class="kw">if </span>key.starts_with(<span class="string">"target_"</span>) =&gt; {
                     <span class="kw">let </span>(val, vspan) = <span class="kw">match </span>val {
                         <span class="prelude-val">None </span>=&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
                                 original: original.to_owned(),
                                 span,
-                                reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">&quot;= \&quot;&lt;target_cfg_value&gt;\&quot;&quot;</span>]),
+                                reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">"= \"&lt;target_cfg_value&gt;\""</span>]),
                             });
                         }
                         <span class="prelude-val">Some</span>((val, vspan)) =&gt; (val, vspan),
@@ -593,23 +594,23 @@
                     }
 
                     <span class="kw">let </span>tp = <span class="kw">match </span><span class="kw-2">&amp;</span>target_key[<span class="number">7</span>..] {
-                        <span class="string">&quot;abi&quot; </span>=&gt; <span class="macro">tp!</span>(Abi),
-                        <span class="string">&quot;arch&quot; </span>=&gt; <span class="macro">tp!</span>(Arch),
-                        <span class="string">&quot;feature&quot; </span>=&gt; {
+                        <span class="string">"abi" </span>=&gt; <span class="macro">tp!</span>(Abi),
+                        <span class="string">"arch" </span>=&gt; <span class="macro">tp!</span>(Arch),
+                        <span class="string">"feature" </span>=&gt; {
                             <span class="kw">if </span>val.is_empty() {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
                                     original: original.to_owned(),
                                     span: vspan,
-                                    reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">&quot;&lt;feature&gt;&quot;</span>]),
+                                    reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">"&lt;feature&gt;"</span>]),
                                 });
                             }
 
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(InnerPredicate::TargetFeature(vspan));
                         }
-                        <span class="string">&quot;os&quot; </span>=&gt; <span class="macro">tp!</span>(Os),
-                        <span class="string">&quot;family&quot; </span>=&gt; <span class="macro">tp!</span>(Family),
-                        <span class="string">&quot;env&quot; </span>=&gt; <span class="macro">tp!</span>(Env),
-                        <span class="string">&quot;endian&quot; </span>=&gt; InnerTarget {
+                        <span class="string">"os" </span>=&gt; <span class="macro">tp!</span>(Os),
+                        <span class="string">"family" </span>=&gt; <span class="macro">tp!</span>(Family),
+                        <span class="string">"env" </span>=&gt; <span class="macro">tp!</span>(Env),
+                        <span class="string">"endian" </span>=&gt; InnerTarget {
                             which: Which::Endian(val.parse().map_err(|_err| ParseError {
                                 original: original.to_owned(),
                                 span: vspan,
@@ -617,7 +618,7 @@
                             })<span class="question-mark">?</span>),
                             span: <span class="prelude-val">None</span>,
                         },
-                        <span class="string">&quot;has_atomic&quot; </span>=&gt; InnerTarget {
+                        <span class="string">"has_atomic" </span>=&gt; InnerTarget {
                             which: Which::HasAtomic(val.parse().map_err(|_err| ParseError {
                                 original: original.to_owned(),
                                 span: vspan,
@@ -625,7 +626,7 @@
                             })<span class="question-mark">?</span>),
                             span: <span class="prelude-val">None</span>,
                         },
-                        <span class="string">&quot;pointer_width&quot; </span>=&gt; InnerTarget {
+                        <span class="string">"pointer_width" </span>=&gt; InnerTarget {
                             which: Which::PointerWidth(val.parse().map_err(|_err| ParseError {
                                 original: original.to_owned(),
                                 span: vspan,
@@ -633,21 +634,21 @@
                             })<span class="question-mark">?</span>),
                             span: <span class="prelude-val">None</span>,
                         },
-                        <span class="string">&quot;vendor&quot; </span>=&gt; <span class="macro">tp!</span>(Vendor),
+                        <span class="string">"vendor" </span>=&gt; <span class="macro">tp!</span>(Vendor),
                         <span class="kw">_ </span>=&gt; {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
                                 original: original.to_owned(),
                                 span,
                                 reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[
-                                    <span class="string">&quot;target_arch&quot;</span>,
-                                    <span class="string">&quot;target_feature&quot;</span>,
-                                    <span class="string">&quot;target_os&quot;</span>,
-                                    <span class="string">&quot;target_family&quot;</span>,
-                                    <span class="string">&quot;target_env&quot;</span>,
-                                    <span class="string">&quot;target_endian&quot;</span>,
-                                    <span class="string">&quot;target_has_atomic&quot;</span>,
-                                    <span class="string">&quot;target_pointer_width&quot;</span>,
-                                    <span class="string">&quot;target_vendor&quot;</span>,
+                                    <span class="string">"target_arch"</span>,
+                                    <span class="string">"target_feature"</span>,
+                                    <span class="string">"target_os"</span>,
+                                    <span class="string">"target_family"</span>,
+                                    <span class="string">"target_env"</span>,
+                                    <span class="string">"target_endian"</span>,
+                                    <span class="string">"target_has_atomic"</span>,
+                                    <span class="string">"target_pointer_width"</span>,
+                                    <span class="string">"target_vendor"</span>,
                                 ]),
                             })
                         }
@@ -665,14 +666,14 @@
         <span class="macro">macro_rules! </span>token_err {
             (<span class="macro-nonterminal">$span</span>:expr) =&gt; {{
                 <span class="kw">let </span>expected: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str] = <span class="kw">match </span>last_token {
-                    <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;&lt;key&gt;&quot;</span>, <span class="string">&quot;all&quot;</span>, <span class="string">&quot;any&quot;</span>, <span class="string">&quot;not&quot;</span>],
-                    <span class="prelude-val">Some</span>(Token::All | Token::Any | Token::Not) =&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;(&quot;</span>],
-                    <span class="prelude-val">Some</span>(Token::CloseParen) =&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;)&quot;</span>, <span class="string">&quot;,&quot;</span>],
-                    <span class="prelude-val">Some</span>(Token::Comma) =&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;)&quot;</span>, <span class="string">&quot;&lt;key&gt;&quot;</span>],
-                    <span class="prelude-val">Some</span>(Token::Equals) =&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;\&quot;&quot;</span>],
-                    <span class="prelude-val">Some</span>(Token::Key(<span class="kw">_</span>)) =&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;=&quot;</span>, <span class="string">&quot;,&quot;</span>, <span class="string">&quot;)&quot;</span>],
-                    <span class="prelude-val">Some</span>(Token::Value(<span class="kw">_</span>)) =&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;,&quot;</span>, <span class="string">&quot;)&quot;</span>],
-                    <span class="prelude-val">Some</span>(Token::OpenParen) =&gt; <span class="kw-2">&amp;</span>[<span class="string">&quot;&lt;key&gt;&quot;</span>, <span class="string">&quot;)&quot;</span>, <span class="string">&quot;all&quot;</span>, <span class="string">&quot;any&quot;</span>, <span class="string">&quot;not&quot;</span>],
+                    <span class="prelude-val">None </span>=&gt; <span class="kw-2">&amp;</span>[<span class="string">"&lt;key&gt;"</span>, <span class="string">"all"</span>, <span class="string">"any"</span>, <span class="string">"not"</span>],
+                    <span class="prelude-val">Some</span>(Token::All | Token::Any | Token::Not) =&gt; <span class="kw-2">&amp;</span>[<span class="string">"("</span>],
+                    <span class="prelude-val">Some</span>(Token::CloseParen) =&gt; <span class="kw-2">&amp;</span>[<span class="string">")"</span>, <span class="string">","</span>],
+                    <span class="prelude-val">Some</span>(Token::Comma) =&gt; <span class="kw-2">&amp;</span>[<span class="string">")"</span>, <span class="string">"&lt;key&gt;"</span>],
+                    <span class="prelude-val">Some</span>(Token::Equals) =&gt; <span class="kw-2">&amp;</span>[<span class="string">"\""</span>],
+                    <span class="prelude-val">Some</span>(Token::Key(<span class="kw">_</span>)) =&gt; <span class="kw-2">&amp;</span>[<span class="string">"="</span>, <span class="string">","</span>, <span class="string">")"</span>],
+                    <span class="prelude-val">Some</span>(Token::Value(<span class="kw">_</span>)) =&gt; <span class="kw-2">&amp;</span>[<span class="string">","</span>, <span class="string">")"</span>],
+                    <span class="prelude-val">Some</span>(Token::OpenParen) =&gt; <span class="kw-2">&amp;</span>[<span class="string">"&lt;key&gt;"</span>, <span class="string">")"</span>, <span class="string">"all"</span>, <span class="string">"any"</span>, <span class="string">"not"</span>],
                 };
 
                 <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
@@ -689,7 +690,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>root_predicate_count = <span class="number">0</span>;
 
         <span class="comment">// Basic implementation of the https://en.wikipedia.org/wiki/Shunting-yard_algorithm
-        </span><span class="lifetime">&#39;outer</span>: <span class="kw">for </span>lt <span class="kw">in </span>lexer {
+        </span><span class="lifetime">'outer</span>: <span class="kw">for </span>lt <span class="kw">in </span>lexer {
             <span class="kw">let </span>lt = lt<span class="question-mark">?</span>;
             <span class="kw">match </span><span class="kw-2">&amp;</span>lt.token {
                 Token::Key(k) =&gt; {
@@ -702,7 +703,7 @@
                 Token::Value(v) =&gt; {
                     <span class="kw">if </span><span class="macro">matches!</span>(last_token, <span class="prelude-val">Some</span>(Token::Equals)) {
                         <span class="comment">// We only record the span for keys and values
-                        // so that the expression doesn&#39;t need a lifetime
+                        // so that the expression doesn't need a lifetime
                         // but in the value case we need to strip off
                         // the quotes so that the proper raw string is
                         // provided to callers when evaluating the expression
@@ -772,7 +773,7 @@
                                 Func::All(<span class="kw">_</span>) =&gt; Func::All(num_predicates),
                                 Func::Any(<span class="kw">_</span>) =&gt; Func::Any(num_predicates),
                                 Func::Not =&gt; {
-                                    <span class="comment">// not() doesn&#39;t take a predicate list, but only a single predicate,
+                                    <span class="comment">// not() doesn't take a predicate list, but only a single predicate,
                                     // so ensure we have exactly 1
                                     </span><span class="kw">if </span>num_predicates != <span class="number">1 </span>{
                                         <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
@@ -800,10 +801,10 @@
                             <span class="comment">// This is the only place we go back to the top of the outer loop,
                             // so make sure we correctly record this token
                             </span>last_token = <span class="prelude-val">Some</span>(Token::CloseParen);
-                            <span class="kw">continue </span><span class="lifetime">&#39;outer</span>;
+                            <span class="kw">continue </span><span class="lifetime">'outer</span>;
                         }
 
-                        <span class="comment">// We didn&#39;t have an opening parentheses if we get here
+                        <span class="comment">// We didn't have an opening parentheses if we get here
                         </span><span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
                             original: original.to_owned(),
                             span: lt.span,
@@ -847,7 +848,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(ParseError {
                 original: original.to_owned(),
                 span: original.len()..original.len(),
-                reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">&quot;\&quot;&lt;value&gt;\&quot;&quot;</span>]),
+                reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">"\"&lt;value&gt;\""</span>]),
             });
         }
 
@@ -863,7 +864,7 @@
                 <span class="prelude-val">Err</span>(ParseError {
                     original: original.to_owned(),
                     span: top.span,
-                    reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">&quot;(&quot;</span>]),
+                    reason: Reason::Unexpected(<span class="kw-2">&amp;</span>[<span class="string">"("</span>]),
                 })
             }
         } <span class="kw">else </span>{

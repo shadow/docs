@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/clang.rs`."><title>clang.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/bindgen-0.69.1/clang.rs`."><title>clang.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="bindgen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2348,7 +2349,7 @@
 /// Values of this type can be used to check for different attributes using the `has_attrs`
 /// function.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Attribute {
-    name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8],
+    name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8],
     kind: <span class="prelude-ty">Option</span>&lt;CXCursorKind&gt;,
     token_kind: CXTokenKind,
 }
@@ -2356,22 +2357,22 @@
 <span class="kw">impl </span>Attribute {
     <span class="doccomment">/// A `warn_unused_result` attribute.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MUST_USE: <span class="self">Self </span>= <span class="self">Self </span>{
-        name: <span class="string">b&quot;warn_unused_result&quot;</span>,
-        <span class="comment">// FIXME(emilio): clang-sys doesn&#39;t expose `CXCursor_WarnUnusedResultAttr` (from clang 9).
+        name: <span class="string">b"warn_unused_result"</span>,
+        <span class="comment">// FIXME(emilio): clang-sys doesn't expose `CXCursor_WarnUnusedResultAttr` (from clang 9).
         </span>kind: <span class="prelude-val">Some</span>(<span class="number">440</span>),
         token_kind: CXToken_Identifier,
     };
 
     <span class="doccomment">/// A `_Noreturn` attribute.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NO_RETURN: <span class="self">Self </span>= <span class="self">Self </span>{
-        name: <span class="string">b&quot;_Noreturn&quot;</span>,
+        name: <span class="string">b"_Noreturn"</span>,
         kind: <span class="prelude-val">None</span>,
         token_kind: CXToken_Keyword,
     };
 
     <span class="doccomment">/// A `[[noreturn]]` attribute.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NO_RETURN_CPP: <span class="self">Self </span>= <span class="self">Self </span>{
-        name: <span class="string">b&quot;noreturn&quot;</span>,
+        name: <span class="string">b"noreturn"</span>,
         kind: <span class="prelude-val">None</span>,
         token_kind: CXToken_Identifier,
     };
@@ -2379,7 +2380,7 @@
 
 <span class="doccomment">/// A cursor into the Clang AST, pointing to an AST node.
 ///
-/// We call the AST node pointed to by the cursor the cursor&#39;s &quot;referent&quot;.
+/// We call the AST node pointed to by the cursor the cursor's "referent".
 </span><span class="attr">#[derive(Copy, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Cursor {
     x: CXCursor,
@@ -2389,7 +2390,7 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             fmt,
-            <span class="string">&quot;Cursor({} kind: {}, loc: {}, usr: {:?})&quot;</span>,
+            <span class="string">"Cursor({} kind: {}, loc: {}, usr: {:?})"</span>,
             <span class="self">self</span>.spelling(),
             kind_to_str(<span class="self">self</span>.kind()),
             <span class="self">self</span>.location(),
@@ -2399,7 +2400,7 @@
 }
 
 <span class="kw">impl </span>Cursor {
-    <span class="doccomment">/// Get the Unified Symbol Resolution for this cursor&#39;s referent, if
+    <span class="doccomment">/// Get the Unified Symbol Resolution for this cursor's referent, if
     /// available.
     ///
     /// The USR can be used to compare entities across translation units.
@@ -2412,22 +2413,22 @@
         }
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent a declaration?
+    <span class="doccomment">/// Is this cursor's referent a declaration?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_isDeclaration(<span class="self">self</span>.kind()) != <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent an anonymous record or so?
+    <span class="doccomment">/// Is this cursor's referent an anonymous record or so?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_anonymous(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_Cursor_isAnonymous(<span class="self">self</span>.x) != <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Get this cursor&#39;s referent&#39;s spelling.
+    <span class="doccomment">/// Get this cursor's referent's spelling.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spelling(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">unsafe </span>{ cxstring_into_string(clang_getCursorSpelling(<span class="self">self</span>.x)) }
     }
 
-    <span class="doccomment">/// Get this cursor&#39;s referent&#39;s display name.
+    <span class="doccomment">/// Get this cursor's referent's display name.
     ///
     /// This is not necessarily a valid identifier. It includes extra
     /// information, such as parameters for a function, etc.
@@ -2435,7 +2436,7 @@
         <span class="kw">unsafe </span>{ cxstring_into_string(clang_getCursorDisplayName(<span class="self">self</span>.x)) }
     }
 
-    <span class="doccomment">/// Get the mangled name of this cursor&#39;s referent.
+    <span class="doccomment">/// Get the mangled name of this cursor's referent.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mangling(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">unsafe </span>{ cxstring_into_string(clang_Cursor_getMangling(<span class="self">self</span>.x)) }
     }
@@ -2467,10 +2468,10 @@
         file.name().is_none()
     }
 
-    <span class="doccomment">/// Get the `Cursor` for this cursor&#39;s referent&#39;s lexical parent.
+    <span class="doccomment">/// Get the `Cursor` for this cursor's referent's lexical parent.
     ///
     /// The lexical parent is the parent of the definition. The semantic parent
-    /// is the parent of the declaration. Generally, the lexical parent doesn&#39;t
+    /// is the parent of the declaration. Generally, the lexical parent doesn't
     /// have any effect on semantics, while the semantic parent does.
     ///
     /// In the following snippet, the `Foo` class would be the semantic parent
@@ -2492,7 +2493,7 @@
         }
     }
 
-    <span class="doccomment">/// Get the referent&#39;s semantic parent, if one is available.
+    <span class="doccomment">/// Get the referent's semantic parent, if one is available.
     ///
     /// See documentation for `lexical_parent` for details on semantic vs
     /// lexical parents.
@@ -2508,7 +2509,7 @@
         <span class="prelude-val">Some</span>(sp)
     }
 
-    <span class="doccomment">/// Get the referent&#39;s semantic parent.
+    <span class="doccomment">/// Get the referent's semantic parent.
     ///
     /// See documentation for `lexical_parent` for details on semantic vs
     /// lexical parents.
@@ -2516,7 +2517,7 @@
         <span class="self">self</span>.fallible_semantic_parent().unwrap()
     }
 
-    <span class="doccomment">/// Return the number of template arguments used by this cursor&#39;s referent,
+    <span class="doccomment">/// Return the number of template arguments used by this cursor's referent,
     /// if the referent is either a template instantiation. Returns `None`
     /// otherwise.
     ///
@@ -2550,9 +2551,9 @@
             })
     }
 
-    <span class="doccomment">/// Get a cursor pointing to this referent&#39;s containing translation unit.
+    <span class="doccomment">/// Get a cursor pointing to this referent's containing translation unit.
     ///
-    /// Note that we shouldn&#39;t create a `TranslationUnit` struct here, because
+    /// Note that we shouldn't create a `TranslationUnit` struct here, because
     /// bindgen assumes there will only be one of them alive at a time, and
     /// disposes it on drop. That can change if this would be required, but I
     /// think we can survive fine without it.
@@ -2589,7 +2590,7 @@
 
     <span class="doccomment">/// There are a few kinds of types that we need to treat specially, mainly
     /// not tracking the type declaration but the location of the cursor, given
-    /// clang doesn&#39;t expose a proper declaration for these types.
+    /// clang doesn't expose a proper declaration for these types.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_template_like(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.kind(),
@@ -2656,7 +2657,7 @@
         )
     }
 
-    <span class="doccomment">/// Does the referent&#39;s type or value depend on a template parameter?
+    <span class="doccomment">/// Does the referent's type or value depend on a template parameter?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_dependent_on_template_parameter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">fn </span>visitor(
             found_template_parameter: <span class="kw-2">&amp;mut </span>bool,
@@ -2727,7 +2728,7 @@
         }
     }
 
-    <span class="doccomment">/// Get the referent&#39;s parsed comment.
+    <span class="doccomment">/// Get the referent's parsed comment.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>comment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Comment {
         <span class="kw">unsafe </span>{
             Comment {
@@ -2736,7 +2737,7 @@
         }
     }
 
-    <span class="doccomment">/// Get the referent&#39;s type.
+    <span class="doccomment">/// Get the referent's type.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cur_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Type {
         <span class="kw">unsafe </span>{
             Type {
@@ -2745,7 +2746,7 @@
         }
     }
 
-    <span class="doccomment">/// Given that this cursor&#39;s referent is a reference to another type, or is
+    <span class="doccomment">/// Given that this cursor's referent is a reference to another type, or is
     /// a declaration, get the cursor pointing to the referenced type or type of
     /// the declared thing.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>definition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cursor&gt; {
@@ -2762,7 +2763,7 @@
         }
     }
 
-    <span class="doccomment">/// Given that this cursor&#39;s referent is reference type, get the cursor
+    <span class="doccomment">/// Given that this cursor's referent is reference type, get the cursor
     /// pointing to the referenced type.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>referenced(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cursor&gt; {
         <span class="kw">unsafe </span>{
@@ -2807,13 +2808,13 @@
         }
     }
 
-    <span class="doccomment">/// Assuming that this cursor&#39;s referent is a template declaration, get the
+    <span class="doccomment">/// Assuming that this cursor's referent is a template declaration, get the
     /// kind of cursor that would be generated for its specializations.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>template_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CXCursorKind {
         <span class="kw">unsafe </span>{ clang_getTemplateCursorKind(<span class="self">self</span>.x) }
     }
 
-    <span class="doccomment">/// Traverse this cursor&#39;s referent and its children.
+    <span class="doccomment">/// Traverse this cursor's referent and its children.
     ///
     /// Call the given function on each AST node traversed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>visit&lt;Visitor&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>visitor: Visitor)
@@ -2826,7 +2827,7 @@
         }
     }
 
-    <span class="doccomment">/// Traverse all of this cursor&#39;s children, sorted by where they appear in source code.
+    <span class="doccomment">/// Traverse all of this cursor's children, sorted by where they appear in source code.
     ///
     /// Call the given function on each AST node traversed.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>visit_sorted&lt;Visitor&gt;(
@@ -2836,7 +2837,7 @@
     ) <span class="kw">where
         </span>Visitor: FnMut(<span class="kw-2">&amp;mut </span>BindgenContext, Cursor),
     {
-        <span class="comment">// FIXME(#2556): The current source order stuff doesn&#39;t account well for different levels
+        <span class="comment">// FIXME(#2556): The current source order stuff doesn't account well for different levels
         // of includes, or includes that show up at the same byte offset because they are passed in
         // via CLI.
         </span><span class="kw">const </span>SOURCE_ORDER_ENABLED: bool = <span class="bool-val">false</span>;
@@ -2869,9 +2870,9 @@
 
     <span class="doccomment">/// Compare source order of two cursors, considering `#include` directives.
     ///
-    /// Built-in items provided by the compiler (which don&#39;t have a source file),
+    /// Built-in items provided by the compiler (which don't have a source file),
     /// are sorted first. Remaining files are sorted by their position in the source file.
-    /// If the items&#39; source files differ, they are sorted by the position of the first
+    /// If the items' source files differ, they are sorted by the position of the first
     /// `#include` for their source file. If no source files are included, `None` is returned.
     </span><span class="kw">fn </span>cmp_by_source_order(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2916,7 +2917,7 @@
         }
     }
 
-    <span class="doccomment">/// Collect all of this cursor&#39;s children into a vec and return them.
+    <span class="doccomment">/// Collect all of this cursor's children into a vec and return them.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>collect_children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Cursor&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>children = <span class="macro">vec!</span>[];
         <span class="self">self</span>.visit(|c| {
@@ -2952,7 +2953,7 @@
     </span>}
 
     <span class="doccomment">/// Returns whether the given location contains a cursor with the given
-    /// kind in the first level of nesting underneath (doesn&#39;t look
+    /// kind in the first level of nesting underneath (doesn't look
     /// recursively).
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>contains_cursor(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: CXCursorKind) -&gt; bool {
         <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
@@ -2981,14 +2982,14 @@
 
     <span class="doccomment">/// Is the referent a deleted function?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_deleted_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="comment">// Unfortunately, libclang doesn&#39;t yet have an API for checking if a
+        <span class="comment">// Unfortunately, libclang doesn't yet have an API for checking if a
         // member function is deleted, but the following should be a good
         // enough approximation.
         // Deleted functions are implicitly inline according to paragraph 4 of
         // [dcl.fct.def.delete] in the C++ standard. Normal inline functions
         // have a definition in the same translation unit, so if this is an
-        // inline function without a definition, and it&#39;s not a defaulted
-        // function, we can reasonably safely conclude that it&#39;s a deleted
+        // inline function without a definition, and it's not a defaulted
+        // function, we can reasonably safely conclude that it's a deleted
         // function.
         </span><span class="self">self</span>.is_inlined_function() &amp;&amp;
             <span class="self">self</span>.definition().is_none() &amp;&amp;
@@ -3000,7 +3001,7 @@
         <span class="kw">unsafe </span>{ clang_Cursor_isBitField(<span class="self">self</span>.x) != <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Get a cursor to the bit field&#39;s width expression, or `None` if it&#39;s not
+    <span class="doccomment">/// Get a cursor to the bit field's width expression, or `None` if it's not
     /// a bit field.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bit_width_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cursor&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_bit_field() {
@@ -3010,7 +3011,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="prelude-val">None</span>;
         <span class="self">self</span>.visit(|cur| {
             <span class="comment">// The first child may or may not be a TypeRef, depending on whether
-            // the field&#39;s type is builtin. Skip it.
+            // the field's type is builtin. Skip it.
             </span><span class="kw">if </span>cur.kind() == CXCursor_TypeRef {
                 <span class="kw">return </span>CXChildVisit_Continue;
             }
@@ -3024,10 +3025,10 @@
         result
     }
 
-    <span class="doccomment">/// Get the width of this cursor&#39;s referent bit field, or `None` if the
+    <span class="doccomment">/// Get the width of this cursor's referent bit field, or `None` if the
     /// referent is not a bit field or if the width could not be evaluated.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bit_width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
-        <span class="comment">// It is not safe to check the bit width without ensuring it doesn&#39;t
+        <span class="comment">// It is not safe to check the bit width without ensuring it doesn't
         // depend on a template parameter. See
         // https://github.com/rust-lang/rust-bindgen/issues/2239
         </span><span class="kw">if </span><span class="self">self</span>.bit_width_expr()<span class="question-mark">?</span>.is_dependent_on_template_parameter() {
@@ -3044,7 +3045,7 @@
         }
     }
 
-    <span class="doccomment">/// Get the integer representation type used to hold this cursor&#39;s referent
+    <span class="doccomment">/// Get the integer representation type used to hold this cursor's referent
     /// enum type.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enum_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Type&gt; {
         <span class="kw">unsafe </span>{
@@ -3059,9 +3060,9 @@
         }
     }
 
-    <span class="doccomment">/// Get the boolean constant value for this cursor&#39;s enum variant referent.
+    <span class="doccomment">/// Get the boolean constant value for this cursor's enum variant referent.
     ///
-    /// Returns None if the cursor&#39;s referent is not an enum variant.
+    /// Returns None if the cursor's referent is not an enum variant.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enum_val_boolean(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span><span class="self">self</span>.kind() == CXCursor_EnumConstantDecl {
@@ -3072,9 +3073,9 @@
         }
     }
 
-    <span class="doccomment">/// Get the signed constant value for this cursor&#39;s enum variant referent.
+    <span class="doccomment">/// Get the signed constant value for this cursor's enum variant referent.
     ///
-    /// Returns None if the cursor&#39;s referent is not an enum variant.
+    /// Returns None if the cursor's referent is not an enum variant.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enum_val_signed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span><span class="self">self</span>.kind() == CXCursor_EnumConstantDecl {
@@ -3086,9 +3087,9 @@
         }
     }
 
-    <span class="doccomment">/// Get the unsigned constant value for this cursor&#39;s enum variant referent.
+    <span class="doccomment">/// Get the unsigned constant value for this cursor's enum variant referent.
     ///
-    /// Returns None if the cursor&#39;s referent is not an enum variant.
+    /// Returns None if the cursor's referent is not an enum variant.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>enum_val_unsigned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">if </span><span class="self">self</span>.kind() == CXCursor_EnumConstantDecl {
@@ -3137,7 +3138,7 @@
         found_attrs
     }
 
-    <span class="doccomment">/// Given that this cursor&#39;s referent is a `typedef`, get the `Type` that is
+    <span class="doccomment">/// Given that this cursor's referent is a `typedef`, get the `Type` that is
     /// being aliased.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>typedef_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Type&gt; {
         <span class="kw">let </span>inner = Type {
@@ -3151,22 +3152,22 @@
         </span>}
     }
 
-    <span class="doccomment">/// Get the linkage kind for this cursor&#39;s referent.
+    <span class="doccomment">/// Get the linkage kind for this cursor's referent.
     ///
     /// This only applies to functions and variables.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>linkage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CXLinkageKind {
         <span class="kw">unsafe </span>{ clang_getCursorLinkage(<span class="self">self</span>.x) }
     }
 
-    <span class="doccomment">/// Get the visibility of this cursor&#39;s referent.
+    <span class="doccomment">/// Get the visibility of this cursor's referent.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>visibility(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CXVisibilityKind {
         <span class="kw">unsafe </span>{ clang_getCursorVisibility(<span class="self">self</span>.x) }
     }
 
-    <span class="doccomment">/// Given that this cursor&#39;s referent is a function, return cursors to its
+    <span class="doccomment">/// Given that this cursor's referent is a function, return cursors to its
     /// parameters.
     ///
-    /// Returns None if the cursor&#39;s referent is not a function/method call or
+    /// Returns None if the cursor's referent is not a function/method call or
     /// declaration.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Cursor&gt;&gt; {
         <span class="comment">// match self.kind() {
@@ -3181,10 +3182,10 @@
         })
     }
 
-    <span class="doccomment">/// Given that this cursor&#39;s referent is a function/method call or
+    <span class="doccomment">/// Given that this cursor's referent is a function/method call or
     /// declaration, return the number of arguments it takes.
     ///
-    /// Returns Err if the cursor&#39;s referent is not a function/method call or
+    /// Returns Err if the cursor's referent is not a function/method call or
     /// declaration.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>num_args(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;u32, ()&gt; {
         <span class="kw">unsafe </span>{
@@ -3197,12 +3198,12 @@
         }
     }
 
-    <span class="doccomment">/// Get the access specifier for this cursor&#39;s referent.
+    <span class="doccomment">/// Get the access specifier for this cursor's referent.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>access_specifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CX_CXXAccessSpecifier {
         <span class="kw">unsafe </span>{ clang_getCXXAccessSpecifier(<span class="self">self</span>.x) }
     }
 
-    <span class="doccomment">/// Is the cursor&#39;s referrent publically accessible in C++?
+    <span class="doccomment">/// Is the cursor's referrent publically accessible in C++?
     ///
     /// Returns true if self.access_specifier() is `CX_CXXPublic` or
     /// `CX_CXXInvalidAccessSpecifier`.
@@ -3211,7 +3212,7 @@
         access == CX_CXXPublic || access == CX_CXXInvalidAccessSpecifier
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent a field declaration that is marked as
+    <span class="doccomment">/// Is this cursor's referent a field declaration that is marked as
     /// `mutable`?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_mutable_field(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_CXXField_isMutable(<span class="self">self</span>.x) != <span class="number">0 </span>}
@@ -3228,27 +3229,27 @@
         }
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent a member function that is declared `static`?
+    <span class="doccomment">/// Is this cursor's referent a member function that is declared `static`?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method_is_static(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_CXXMethod_isStatic(<span class="self">self</span>.x) != <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent a member function that is declared `const`?
+    <span class="doccomment">/// Is this cursor's referent a member function that is declared `const`?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method_is_const(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_CXXMethod_isConst(<span class="self">self</span>.x) != <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent a member function that is virtual?
+    <span class="doccomment">/// Is this cursor's referent a member function that is virtual?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method_is_virtual(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_CXXMethod_isVirtual(<span class="self">self</span>.x) != <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent a member function that is pure virtual?
+    <span class="doccomment">/// Is this cursor's referent a member function that is pure virtual?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method_is_pure_virtual(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_CXXMethod_isPureVirtual(<span class="self">self</span>.x) != <span class="number">0 </span>}
     }
 
-    <span class="doccomment">/// Is this cursor&#39;s referent a struct or class with virtual members?
+    <span class="doccomment">/// Is this cursor's referent a struct or class with virtual members?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_virtual_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ clang_isVirtualBase(<span class="self">self</span>.x) != <span class="number">0 </span>}
     }
@@ -3285,7 +3286,7 @@
 
     <span class="doccomment">/// Obtain the real path name of a cursor of InclusionDirective kind.
     ///
-    /// Returns None if the cursor does not include a file, otherwise the file&#39;s full name
+    /// Returns None if the cursor does not include a file, otherwise the file's full name
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_included_file_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         <span class="kw">let </span>file = <span class="kw">unsafe </span>{ clang_sys::clang_getIncludedFile(<span class="self">self</span>.x) };
         <span class="kw">if </span>file.is_null() {
@@ -3299,15 +3300,15 @@
 }
 
 <span class="doccomment">/// A struct that owns the tokenizer result from a given cursor.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RawTokens&lt;<span class="lifetime">&#39;a</span>&gt; {
-    cursor: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cursor,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RawTokens&lt;<span class="lifetime">'a</span>&gt; {
+    cursor: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Cursor,
     tu: CXTranslationUnit,
     tokens: <span class="kw-2">*mut </span>CXToken,
     token_count: c_uint,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; RawTokens&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>new(cursor: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cursor) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; RawTokens&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>new(cursor: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Cursor) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>tokens = ptr::null_mut();
         <span class="kw">let </span><span class="kw-2">mut </span>token_count = <span class="number">0</span>;
         <span class="kw">let </span>range = cursor.extent();
@@ -3337,7 +3338,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>RawTokens&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Drop <span class="kw">for </span>RawTokens&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.tokens.is_null() {
             <span class="kw">unsafe </span>{
@@ -3387,7 +3388,7 @@
             // expressions, so we strip them down here.
             </span>CXToken_Comment =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Found unexpected token kind: {:?}&quot;</span>, <span class="self">self</span>);
+                <span class="macro">warn!</span>(<span class="string">"Found unexpected token kind: {:?}"</span>, <span class="self">self</span>);
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
         };
@@ -3406,12 +3407,12 @@
 }
 
 <span class="doccomment">/// An iterator over a set of Tokens.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ClangTokenIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ClangTokenIterator&lt;<span class="lifetime">'a</span>&gt; {
     tu: CXTranslationUnit,
-    raw: slice::Iter&lt;<span class="lifetime">&#39;a</span>, CXToken&gt;,
+    raw: slice::Iter&lt;<span class="lifetime">'a</span>, CXToken&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Iterator <span class="kw">for </span>ClangTokenIterator&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Iterator <span class="kw">for </span>ClangTokenIterator&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">type </span>Item = ClangToken;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -3430,18 +3431,18 @@
 }
 
 <span class="doccomment">/// Checks whether the name looks like an identifier, i.e. is alphanumeric
-/// (including &#39;_&#39;) and does not start with a digit.
+/// (including '_') and does not start with a digit.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_valid_identifier(name: <span class="kw-2">&amp;</span>str) -&gt; bool {
     <span class="kw">let </span><span class="kw-2">mut </span>chars = name.chars();
     <span class="kw">let </span>first_valid = chars
         .next()
-        .map(|c| c.is_alphabetic() || c == <span class="string">&#39;_&#39;</span>)
+        .map(|c| c.is_alphabetic() || c == <span class="string">'_'</span>)
         .unwrap_or(<span class="bool-val">false</span>);
 
-    first_valid &amp;&amp; chars.all(|c| c.is_alphanumeric() || c == <span class="string">&#39;_&#39;</span>)
+    first_valid &amp;&amp; chars.all(|c| c.is_alphanumeric() || c == <span class="string">'_'</span>)
 }
 
-<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>visit_children&lt;Visitor&gt;(
+<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>visit_children&lt;Visitor&gt;(
     cur: CXCursor,
     _parent: CXCursor,
     data: CXClientData,
@@ -3469,7 +3470,7 @@
     }
 }
 
-<span class="doccomment">/// The type of a node in clang&#39;s AST.
+<span class="doccomment">/// The type of a node in clang's AST.
 </span><span class="attr">#[derive(Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Type {
     x: CXType,
@@ -3487,7 +3488,7 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             fmt,
-            <span class="string">&quot;Type({}, kind: {}, cconv: {}, decl: {:?}, canon: {:?})&quot;</span>,
+            <span class="string">"Type({}, kind: {}, cconv: {}, decl: {:?}, canon: {:?})"</span>,
             <span class="self">self</span>.spelling(),
             type_to_str(<span class="self">self</span>.kind()),
             <span class="self">self</span>.call_conv(),
@@ -3531,12 +3532,12 @@
 }
 
 <span class="kw">impl </span>Type {
-    <span class="doccomment">/// Get this type&#39;s kind.
+    <span class="doccomment">/// Get this type's kind.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CXTypeKind {
         <span class="self">self</span>.x.kind
     }
 
-    <span class="doccomment">/// Get a cursor pointing to this type&#39;s declaration.
+    <span class="doccomment">/// Get a cursor pointing to this type's declaration.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>declaration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cursor {
         <span class="kw">unsafe </span>{
             Cursor {
@@ -3575,9 +3576,9 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spelling(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span>s = <span class="kw">unsafe </span>{ cxstring_into_string(clang_getTypeSpelling(<span class="self">self</span>.x)) };
         <span class="comment">// Clang 5.0 introduced changes in the spelling API so it returned the
-        // full qualified name. Let&#39;s undo that here.
-        </span><span class="kw">if </span>s.split(<span class="string">&quot;::&quot;</span>).all(is_valid_identifier) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = s.split(<span class="string">&quot;::&quot;</span>).last() {
+        // full qualified name. Let's undo that here.
+        </span><span class="kw">if </span>s.split(<span class="string">"::"</span>).all(is_valid_identifier) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = s.split(<span class="string">"::"</span>).last() {
                 <span class="kw">return </span>s.to_owned();
             }
         }
@@ -3832,7 +3833,7 @@
     <span class="doccomment">/// Is this type a fully instantiated template?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_fully_instantiated_template(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// Yep, the spelling of this containing type-parameter is extremely
-        // nasty... But can happen in &lt;type_traits&gt;. Unfortunately I couldn&#39;t
+        // nasty... But can happen in &lt;type_traits&gt;. Unfortunately I couldn't
         // reduce it enough :(
         </span><span class="self">self</span>.template_args().map_or(<span class="bool-val">false</span>, |args| args.len() &gt; <span class="number">0</span>) &amp;&amp;
             !<span class="macro">matches!</span>(
@@ -3857,7 +3858,7 @@
         </span><span class="kw">fn </span>hacky_parse_associated_type&lt;S: AsRef&lt;str&gt;&gt;(spelling: S) -&gt; bool {
             <span class="macro">lazy_static! </span>{
                 <span class="kw">static </span><span class="kw-2">ref </span>ASSOC_TYPE_RE: regex::Regex = regex::Regex::new(
-                    <span class="string">r&quot;typename type\-parameter\-\d+\-\d+::.+&quot;
+                    <span class="string">r"typename type\-parameter\-\d+\-\d+::.+"
                 </span>)
                 .unwrap();
             }
@@ -3886,13 +3887,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="doccomment">/// Get the type&#39;s canonical declaration cursor.
+    <span class="doccomment">/// Get the type's canonical declaration cursor.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cursor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Cursor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">1
     </span>}
 }
 
-<span class="doccomment">/// An iterator for a type&#39;s template arguments.
+<span class="doccomment">/// An iterator for a type's template arguments.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TypeTemplateArgIterator {
     x: CXType,
     length: u32,
@@ -3948,16 +3949,16 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span>(file, line, col, <span class="kw">_</span>) = <span class="self">self</span>.location();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = file.name() {
-            <span class="macro">write!</span>(f, <span class="string">&quot;{}:{}:{}&quot;</span>, name, line, col)
+            <span class="macro">write!</span>(f, <span class="string">"{}:{}:{}"</span>, name, line, col)
         } <span class="kw">else </span>{
-            <span class="string">&quot;builtin definitions&quot;</span>.fmt(f)
+            <span class="string">"builtin definitions"</span>.fmt(f)
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>SourceLocation {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>)
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>)
     }
 }
 
@@ -3974,7 +3975,7 @@
         <span class="kw">unsafe </span>{ clang_Comment_getKind(<span class="self">self</span>.x) }
     }
 
-    <span class="doccomment">/// Get this comment&#39;s children comment
+    <span class="doccomment">/// Get this comment's children comment
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CommentChildrenIterator {
         CommentChildrenIterator {
             parent: <span class="self">self</span>.x,
@@ -3999,7 +4000,7 @@
     }
 }
 
-<span class="doccomment">/// An iterator for a comment&#39;s children
+<span class="doccomment">/// An iterator for a comment's children
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CommentChildrenIterator {
     parent: CXComment,
     length: c_uint,
@@ -4029,7 +4030,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) value: String,
 }
 
-<span class="doccomment">/// An iterator for a comment&#39;s attributes
+<span class="doccomment">/// An iterator for a comment's attributes
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CommentAttributesIterator {
     x: CXComment,
     length: c_uint,
@@ -4077,7 +4078,7 @@
 
 <span class="kw">fn </span>cxstring_to_string_leaky(s: CXString) -&gt; String {
     <span class="kw">if </span>s.data.is_null() {
-        <span class="kw">return </span><span class="string">&quot;&quot;</span>.to_owned();
+        <span class="kw">return </span><span class="string">""</span>.to_owned();
     }
     <span class="kw">let </span>c_str = <span class="kw">unsafe </span>{ CStr::from_ptr(clang_getCString(s) <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>) };
     c_str.to_string_lossy().into_owned()
@@ -4099,7 +4100,7 @@
     <span class="doccomment">/// Construct a new `Index`.
     ///
     /// The `pch` parameter controls whether declarations in pre-compiled
-    /// headers are included when enumerating a translation unit&#39;s &quot;locals&quot;.
+    /// headers are included when enumerating a translation unit's "locals".
     ///
     /// The `diag` parameter controls whether debugging diagnostics are enabled.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(pch: bool, diag: bool) -&gt; Index {
@@ -4113,7 +4114,7 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Index {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(fmt, <span class="string">&quot;Index {{ }}&quot;</span>)
+        <span class="macro">write!</span>(fmt, <span class="string">"Index {{ }}"</span>)
     }
 }
 
@@ -4125,14 +4126,14 @@
     }
 }
 
-<span class="doccomment">/// A translation unit (or &quot;compilation unit&quot;).
+<span class="doccomment">/// A translation unit (or "compilation unit").
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TranslationUnit {
     x: CXTranslationUnit,
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>TranslationUnit {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(fmt, <span class="string">&quot;TranslationUnit {{ }}&quot;</span>)
+        <span class="macro">write!</span>(fmt, <span class="string">"TranslationUnit {{ }}"</span>)
     }
 }
 
@@ -4187,7 +4188,7 @@
         }
     }
 
-    <span class="doccomment">/// Get a cursor pointing to the root of this translation unit&#39;s AST.
+    <span class="doccomment">/// Get a cursor pointing to the root of this translation unit's AST.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cursor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cursor {
         <span class="kw">unsafe </span>{
             Cursor {
@@ -4267,7 +4268,7 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(
             fmt,
-            <span class="string">&quot;UnsavedFile(name: {:?}, contents: {:?})&quot;</span>,
+            <span class="string">"UnsavedFile(name: {:?}, contents: {:?})"</span>,
             <span class="self">self</span>.name, <span class="self">self</span>.contents
         )
     }
@@ -4287,34 +4288,34 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ast_dump(c: <span class="kw-2">&amp;</span>Cursor, depth: isize) -&gt; CXChildVisitResult {
     <span class="kw">fn </span>print_indent&lt;S: AsRef&lt;str&gt;&gt;(depth: isize, s: S) {
         <span class="kw">for _ in </span><span class="number">0</span>..depth {
-            <span class="macro">print!</span>(<span class="string">&quot;    &quot;</span>);
+            <span class="macro">print!</span>(<span class="string">"    "</span>);
         }
-        <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, s.as_ref());
+        <span class="macro">println!</span>(<span class="string">"{}"</span>, s.as_ref());
     }
 
     <span class="kw">fn </span>print_cursor&lt;S: AsRef&lt;str&gt;&gt;(depth: isize, prefix: S, c: <span class="kw-2">&amp;</span>Cursor) {
         <span class="kw">let </span>prefix = prefix.as_ref();
         print_indent(
             depth,
-            <span class="macro">format!</span>(<span class="string">&quot; {}kind = {}&quot;</span>, prefix, kind_to_str(c.kind())),
+            <span class="macro">format!</span>(<span class="string">" {}kind = {}"</span>, prefix, kind_to_str(c.kind())),
         );
         print_indent(
             depth,
-            <span class="macro">format!</span>(<span class="string">&quot; {}spelling = \&quot;{}\&quot;&quot;</span>, prefix, c.spelling()),
+            <span class="macro">format!</span>(<span class="string">" {}spelling = \"{}\""</span>, prefix, c.spelling()),
         );
-        print_indent(depth, <span class="macro">format!</span>(<span class="string">&quot; {}location = {}&quot;</span>, prefix, c.location()));
+        print_indent(depth, <span class="macro">format!</span>(<span class="string">" {}location = {}"</span>, prefix, c.location()));
         print_indent(
             depth,
-            <span class="macro">format!</span>(<span class="string">&quot; {}is-definition? {}&quot;</span>, prefix, c.is_definition()),
+            <span class="macro">format!</span>(<span class="string">" {}is-definition? {}"</span>, prefix, c.is_definition()),
         );
         print_indent(
             depth,
-            <span class="macro">format!</span>(<span class="string">&quot; {}is-declaration? {}&quot;</span>, prefix, c.is_declaration()),
+            <span class="macro">format!</span>(<span class="string">" {}is-declaration? {}"</span>, prefix, c.is_declaration()),
         );
         print_indent(
             depth,
             <span class="macro">format!</span>(
-                <span class="string">&quot; {}is-inlined-function? {}&quot;</span>,
+                <span class="string">" {}is-inlined-function? {}"</span>,
                 prefix,
                 c.is_inlined_function()
             ),
@@ -4325,52 +4326,52 @@
             print_indent(
                 depth,
                 <span class="macro">format!</span>(
-                    <span class="string">&quot; {}template-kind = {}&quot;</span>,
+                    <span class="string">" {}template-kind = {}"</span>,
                     prefix,
                     kind_to_str(templ_kind)
                 ),
             );
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(usr) = c.usr() {
-            print_indent(depth, <span class="macro">format!</span>(<span class="string">&quot; {}usr = \&quot;{}\&quot;&quot;</span>, prefix, usr));
+            print_indent(depth, <span class="macro">format!</span>(<span class="string">" {}usr = \"{}\""</span>, prefix, usr));
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(num) = c.num_args() {
-            print_indent(depth, <span class="macro">format!</span>(<span class="string">&quot; {}number-of-args = {}&quot;</span>, prefix, num));
+            print_indent(depth, <span class="macro">format!</span>(<span class="string">" {}number-of-args = {}"</span>, prefix, num));
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = c.num_template_args() {
             print_indent(
                 depth,
-                <span class="macro">format!</span>(<span class="string">&quot; {}number-of-template-args = {}&quot;</span>, prefix, num),
+                <span class="macro">format!</span>(<span class="string">" {}number-of-template-args = {}"</span>, prefix, num),
             );
         }
 
         <span class="kw">if </span>c.is_bit_field() {
             <span class="kw">let </span>width = <span class="kw">match </span>c.bit_width() {
                 <span class="prelude-val">Some</span>(w) =&gt; w.to_string(),
-                <span class="prelude-val">None </span>=&gt; <span class="string">&quot;&lt;unevaluable&gt;&quot;</span>.to_string(),
+                <span class="prelude-val">None </span>=&gt; <span class="string">"&lt;unevaluable&gt;"</span>.to_string(),
             };
-            print_indent(depth, <span class="macro">format!</span>(<span class="string">&quot; {}bit-width = {}&quot;</span>, prefix, width));
+            print_indent(depth, <span class="macro">format!</span>(<span class="string">" {}bit-width = {}"</span>, prefix, width));
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = c.enum_type() {
             print_indent(
                 depth,
-                <span class="macro">format!</span>(<span class="string">&quot; {}enum-type = {}&quot;</span>, prefix, type_to_str(ty.kind())),
+                <span class="macro">format!</span>(<span class="string">" {}enum-type = {}"</span>, prefix, type_to_str(ty.kind())),
             );
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = c.enum_val_signed() {
-            print_indent(depth, <span class="macro">format!</span>(<span class="string">&quot; {}enum-val = {}&quot;</span>, prefix, val));
+            print_indent(depth, <span class="macro">format!</span>(<span class="string">" {}enum-val = {}"</span>, prefix, val));
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = c.typedef_type() {
             print_indent(
                 depth,
-                <span class="macro">format!</span>(<span class="string">&quot; {}typedef-type = {}&quot;</span>, prefix, type_to_str(ty.kind())),
+                <span class="macro">format!</span>(<span class="string">" {}typedef-type = {}"</span>, prefix, type_to_str(ty.kind())),
             );
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = c.ret_type() {
             print_indent(
                 depth,
-                <span class="macro">format!</span>(<span class="string">&quot; {}ret-type = {}&quot;</span>, prefix, type_to_str(ty.kind())),
+                <span class="macro">format!</span>(<span class="string">" {}ret-type = {}"</span>, prefix, type_to_str(ty.kind())),
             );
         }
 
@@ -4379,7 +4380,7 @@
                 <span class="macro">println!</span>();
                 print_cursor(
                     depth,
-                    String::from(prefix) + <span class="string">&quot;referenced.&quot;</span>,
+                    String::from(prefix) + <span class="string">"referenced."</span>,
                     <span class="kw-2">&amp;</span>refd,
                 );
             }
@@ -4390,7 +4391,7 @@
             <span class="macro">println!</span>();
             print_cursor(
                 depth,
-                String::from(prefix) + <span class="string">&quot;canonical.&quot;</span>,
+                String::from(prefix) + <span class="string">"canonical."</span>,
                 <span class="kw-2">&amp;</span>canonical,
             );
         }
@@ -4400,7 +4401,7 @@
                 <span class="macro">println!</span>();
                 print_cursor(
                     depth,
-                    String::from(prefix) + <span class="string">&quot;specialized.&quot;</span>,
+                    String::from(prefix) + <span class="string">"specialized."</span>,
                     <span class="kw-2">&amp;</span>specialized,
                 );
             }
@@ -4410,7 +4411,7 @@
             <span class="macro">println!</span>();
             print_cursor(
                 depth,
-                String::from(prefix) + <span class="string">&quot;semantic-parent.&quot;</span>,
+                String::from(prefix) + <span class="string">"semantic-parent."</span>,
                 <span class="kw-2">&amp;</span>parent,
             );
         }
@@ -4420,16 +4421,16 @@
         <span class="kw">let </span>prefix = prefix.as_ref();
 
         <span class="kw">let </span>kind = ty.kind();
-        print_indent(depth, <span class="macro">format!</span>(<span class="string">&quot; {}kind = {}&quot;</span>, prefix, type_to_str(kind)));
+        print_indent(depth, <span class="macro">format!</span>(<span class="string">" {}kind = {}"</span>, prefix, type_to_str(kind)));
         <span class="kw">if </span>kind == CXType_Invalid {
             <span class="kw">return</span>;
         }
 
-        print_indent(depth, <span class="macro">format!</span>(<span class="string">&quot; {}cconv = {}&quot;</span>, prefix, ty.call_conv()));
+        print_indent(depth, <span class="macro">format!</span>(<span class="string">" {}cconv = {}"</span>, prefix, ty.call_conv()));
 
         print_indent(
             depth,
-            <span class="macro">format!</span>(<span class="string">&quot; {}spelling = \&quot;{}\&quot;&quot;</span>, prefix, ty.spelling()),
+            <span class="macro">format!</span>(<span class="string">" {}spelling = \"{}\""</span>, prefix, ty.spelling()),
         );
         <span class="kw">let </span>num_template_args =
             <span class="kw">unsafe </span>{ clang_Type_getNumTemplateArguments(ty.x) };
@@ -4437,7 +4438,7 @@
             print_indent(
                 depth,
                 <span class="macro">format!</span>(
-                    <span class="string">&quot; {}number-of-template-args = {}&quot;</span>,
+                    <span class="string">" {}number-of-template-args = {}"</span>,
                     prefix, num_template_args
                 ),
             );
@@ -4445,59 +4446,59 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = ty.num_elements() {
             print_indent(
                 depth,
-                <span class="macro">format!</span>(<span class="string">&quot; {}number-of-elements = {}&quot;</span>, prefix, num),
+                <span class="macro">format!</span>(<span class="string">" {}number-of-elements = {}"</span>, prefix, num),
             );
         }
         print_indent(
             depth,
-            <span class="macro">format!</span>(<span class="string">&quot; {}is-variadic? {}&quot;</span>, prefix, ty.is_variadic()),
+            <span class="macro">format!</span>(<span class="string">" {}is-variadic? {}"</span>, prefix, ty.is_variadic()),
         );
 
         <span class="kw">let </span>canonical = ty.canonical_type();
         <span class="kw">if </span>canonical != <span class="kw-2">*</span>ty {
             <span class="macro">println!</span>();
-            print_type(depth, String::from(prefix) + <span class="string">&quot;canonical.&quot;</span>, <span class="kw-2">&amp;</span>canonical);
+            print_type(depth, String::from(prefix) + <span class="string">"canonical."</span>, <span class="kw-2">&amp;</span>canonical);
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(pointee) = ty.pointee_type() {
             <span class="kw">if </span>pointee != <span class="kw-2">*</span>ty {
                 <span class="macro">println!</span>();
-                print_type(depth, String::from(prefix) + <span class="string">&quot;pointee.&quot;</span>, <span class="kw-2">&amp;</span>pointee);
+                print_type(depth, String::from(prefix) + <span class="string">"pointee."</span>, <span class="kw-2">&amp;</span>pointee);
             }
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(elem) = ty.elem_type() {
             <span class="kw">if </span>elem != <span class="kw-2">*</span>ty {
                 <span class="macro">println!</span>();
-                print_type(depth, String::from(prefix) + <span class="string">&quot;elements.&quot;</span>, <span class="kw-2">&amp;</span>elem);
+                print_type(depth, String::from(prefix) + <span class="string">"elements."</span>, <span class="kw-2">&amp;</span>elem);
             }
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ret) = ty.ret_type() {
             <span class="kw">if </span>ret != <span class="kw-2">*</span>ty {
                 <span class="macro">println!</span>();
-                print_type(depth, String::from(prefix) + <span class="string">&quot;return.&quot;</span>, <span class="kw-2">&amp;</span>ret);
+                print_type(depth, String::from(prefix) + <span class="string">"return."</span>, <span class="kw-2">&amp;</span>ret);
             }
         }
 
         <span class="kw">let </span>named = ty.named();
         <span class="kw">if </span>named != <span class="kw-2">*</span>ty &amp;&amp; named.is_valid() {
             <span class="macro">println!</span>();
-            print_type(depth, String::from(prefix) + <span class="string">&quot;named.&quot;</span>, <span class="kw-2">&amp;</span>named);
+            print_type(depth, String::from(prefix) + <span class="string">"named."</span>, <span class="kw-2">&amp;</span>named);
         }
     }
 
-    print_indent(depth, <span class="string">&quot;(&quot;</span>);
-    print_cursor(depth, <span class="string">&quot;&quot;</span>, c);
+    print_indent(depth, <span class="string">"("</span>);
+    print_cursor(depth, <span class="string">""</span>, c);
 
     <span class="macro">println!</span>();
     <span class="kw">let </span>ty = c.cur_type();
-    print_type(depth, <span class="string">&quot;type.&quot;</span>, <span class="kw-2">&amp;</span>ty);
+    print_type(depth, <span class="string">"type."</span>, <span class="kw-2">&amp;</span>ty);
 
     <span class="kw">let </span>declaration = ty.declaration();
     <span class="kw">if </span>declaration != <span class="kw-2">*</span>c &amp;&amp; declaration.kind() != CXCursor_NoDeclFound {
         <span class="macro">println!</span>();
-        print_cursor(depth, <span class="string">&quot;type.declaration.&quot;</span>, <span class="kw-2">&amp;</span>declaration);
+        print_cursor(depth, <span class="string">"type.declaration."</span>, <span class="kw-2">&amp;</span>declaration);
     }
 
     <span class="comment">// Recurse.
@@ -4510,7 +4511,7 @@
         ast_dump(<span class="kw-2">&amp;</span>s, depth + <span class="number">1</span>)
     });
 
-    print_indent(depth, <span class="string">&quot;)&quot;</span>);
+    print_indent(depth, <span class="string">")"</span>);
 
     CXChildVisit_Continue
 }

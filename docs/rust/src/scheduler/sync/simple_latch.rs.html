@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/sync/simple_latch.rs`."><title>simple_latch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/scheduler/src/sync/simple_latch.rs`."><title>simple_latch.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="scheduler" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -272,7 +273,6 @@
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
 <a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::atomic::{AtomicU32, Ordering};
 <span class="kw">use </span>std::sync::Arc;
 
@@ -283,7 +283,7 @@
 /// waited with [`wait()`](LatchWaiter::wait) on the latch. In other words, you must not call
 /// `open()` multiple times without making sure that all waiters have successfully returned from
 /// `wait()` each time. This typically requires some other synchronization to make sure that the
-/// waiters have waited. If the latch and its waiters aren&#39;t kept in sync, the waiters will usually
+/// waiters have waited. If the latch and its waiters aren't kept in sync, the waiters will usually
 /// panic, but in some cases may behave incorrectly[^note].
 ///
 /// [^note]: Since this latch uses a 32-bit wrapping integer to track the positions of the latch and
@@ -328,8 +328,8 @@
     /// performance in some workloads.
     </span><span class="kw">pub fn </span>waiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, spin_yield: bool) -&gt; LatchWaiter {
         LatchWaiter {
-            <span class="comment">// we&#39;re the only one who can mutate the atomic,
-            // so there&#39;s no race condition here
+            <span class="comment">// we're the only one who can mutate the atomic,
+            // so there's no race condition here
             </span>gen: <span class="self">self</span>.latch_gen.load(Ordering::Relaxed),
             latch_gen: Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.latch_gen),
             spin_yield,
@@ -352,7 +352,7 @@
             <span class="prelude-val">None</span>,
             <span class="number">0</span>,
         )
-        .expect(<span class="string">&quot;FUTEX_WAKE failed&quot;</span>);
+        .expect(<span class="string">"FUTEX_WAKE failed"</span>);
     }
 }
 
@@ -371,10 +371,10 @@
             <span class="kw">match </span>latch_gen.wrapping_sub(<span class="self">self</span>.gen) {
                 <span class="comment">// the latch has been opened and we can advance to the next generation
                 </span><span class="number">1 </span>=&gt; <span class="kw">break</span>,
-                <span class="comment">// the latch has not been opened and we&#39;re at the same generation
+                <span class="comment">// the latch has not been opened and we're at the same generation
                 </span><span class="number">0 </span>=&gt; {}
-                <span class="comment">// the latch has been opened multiple times and we haven&#39;t been kept in sync
-                </span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Latch has been opened multiple times without us waiting&quot;</span>),
+                <span class="comment">// the latch has been opened multiple times and we haven't been kept in sync
+                </span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Latch has been opened multiple times without us waiting"</span>),
             }
 
             <span class="kw">if </span>!<span class="self">self</span>.spin_yield {
@@ -388,10 +388,10 @@
                 );
                 <span class="macro">assert!</span>(
                     <span class="macro">matches!</span>(rv, <span class="prelude-val">Ok</span>(<span class="kw">_</span>) | <span class="prelude-val">Err</span>(Errno::EAGAIN | Errno::EINTR)),
-                    <span class="string">&quot;FUTEX_WAIT failed with {rv:?}&quot;
+                    <span class="string">"FUTEX_WAIT failed with {rv:?}"
                 </span>);
             } <span class="kw">else </span>{
-                <span class="comment">// we don&#39;t know if a pause instruction is beneficial or not here, but it doesn&#39;t
+                <span class="comment">// we don't know if a pause instruction is beneficial or not here, but it doesn't
                 // seem to hurt performance
                 // https://www.intel.com/content/www/us/en/docs/cpp-compiler/developer-guide-reference/2021-9/pause-intrinsic.html
                 </span>std::hint::spin_loop();
@@ -404,8 +404,8 @@
 }
 
 <span class="comment">// Perform a futex operation using libc. Miri only understands futex syscalls made through the
-// [`libc::syscall`] function so we need to use it here. I don&#39;t see any reason to mark this as
-// &quot;unsafe&quot;, but I didn&#39;t look through all of the possible futex operations.
+// [`libc::syscall`] function so we need to use it here. I don't see any reason to mark this as
+// "unsafe", but I didn't look through all of the possible futex operations.
 </span><span class="kw">pub fn </span>libc_futex(
     uaddr: <span class="kw-2">&amp;</span>AtomicU32,
     op: core::ffi::c_int,
@@ -416,8 +416,7 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;core::ffi::c_int, Errno&gt; {
     <span class="kw">let </span>uaddr: <span class="kw-2">*mut </span>u32 = uaddr.as_ptr();
     <span class="kw">let </span>utime: <span class="kw-2">*const </span>libc::timespec = utime
-        <span class="comment">// TODO: in rust 1.76 use `core::ptr::from_ref`
-        </span>.map(|x| x <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>)
+        .map(std::ptr::from_ref)
         .unwrap_or(core::ptr::null_mut());
     <span class="kw">let </span>uaddr2: <span class="kw-2">*mut </span>u32 = uaddr2
         .map(AtomicU32::as_ptr)
@@ -426,9 +425,9 @@
     <span class="kw">let </span>rv = <span class="kw">unsafe </span>{ libc::syscall(libc::SYS_futex, uaddr, op, val, utime, uaddr2, val3) };
 
     <span class="kw">if </span>rv &gt;= <span class="number">0 </span>{
-        <span class="comment">// the linux x86-64 syscall implementation returns an int so I don&#39;t think this should ever
+        <span class="comment">// the linux x86-64 syscall implementation returns an int so I don't think this should ever
         // fail
-        </span><span class="prelude-val">Ok</span>(rv.try_into().expect(<span class="string">&quot;futex() returned invalid int&quot;</span>))
+        </span><span class="prelude-val">Ok</span>(rv.try_into().expect(<span class="string">"futex() returned invalid int"</span>))
     } <span class="kw">else </span>{
         <span class="kw">let </span>errno = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>libc::__errno_location() };
         <span class="macro">debug_assert_eq!</span>(rv, -<span class="number">1</span>);

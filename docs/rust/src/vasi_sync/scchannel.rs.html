@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/vasi-sync/src/scchannel.rs`."><title>scchannel.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="vasi_sync" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `lib/vasi-sync/src/scchannel.rs`."><title>scchannel.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="vasi_sync" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -375,7 +376,7 @@
             WRITING =&gt; ChannelContentsState::Writing,
             READY =&gt; ChannelContentsState::Ready,
             READING =&gt; ChannelContentsState::Reading,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Bad value {value}&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Bad value {value}"</span>),
         }
     }
 }
@@ -477,9 +478,9 @@
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>SelfContainedChannelError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            SelfContainedChannelError::WriterIsClosed =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;WriterIsClosed&quot;</span>),
+            SelfContainedChannelError::WriterIsClosed =&gt; <span class="macro">write!</span>(f, <span class="string">"WriterIsClosed"</span>),
         }
     }
 }
@@ -494,21 +495,21 @@
 /// single-consumer channel.
 /// * Never call `send` when there is already a message pending.
 ///
-/// Loosely inspired by the channel implementation examples in &quot;Rust Atomics and
-/// Locks&quot; by Mara Box (O&#39;Reilly). Copyright 2023 Mara Box, 978-1-098-11944-7.
-/// (From the preface: &quot;You may use all example code offered with this book for
-/// any purpose&quot;).
+/// Loosely inspired by the channel implementation examples in "Rust Atomics and
+/// Locks" by Mara Box (O'Reilly). Copyright 2023 Mara Box, 978-1-098-11944-7.
+/// (From the preface: "You may use all example code offered with this book for
+/// any purpose").
 ///
 /// TODO: Several candidate optimizations have been evaluated and discarded, but
 /// are left in the commit history for posterity along with their corresponding
 /// microbenchmark results.
 ///
-/// One that might be worth revisiting is to remove the internal &quot;Reading&quot; and
-/// &quot;Writing&quot; states and either make the interfaces `unsafe` (since it becomes
-/// the caller&#39;s responsibility to avoid parallel reads or writes), or add
+/// One that might be worth revisiting is to remove the internal "Reading" and
+/// "Writing" states and either make the interfaces `unsafe` (since it becomes
+/// the caller's responsibility to avoid parallel reads or writes), or add
 /// checked creation of `!Sync` Reader and Writer objects. This optimization
-/// appeared to have a 22% benefit in the &quot;ping pong&quot; microbenchmark on a large
-/// simulation machine, but only a 3.5% benefit in the &quot;ping pong pinned&quot;
+/// appeared to have a 22% benefit in the "ping pong" microbenchmark on a large
+/// simulation machine, but only a 3.5% benefit in the "ping pong pinned"
 /// microbenchmark; the latter is expected to be more representative of real
 /// large simulation runs (i.e. pinning should be enabled).
 </span><span class="attr">#[cfg_attr(not(loom), derive(VirtualAddressSpaceIndependent))]
@@ -614,7 +615,7 @@
                     state = updated_state;
                     <span class="kw">continue</span>;
                 }
-                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected futex error {:?}&quot;</span>, e),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected futex error {:?}"</span>, e),
             };
         }
         <span class="self">self</span>.state
@@ -643,7 +644,7 @@
         <span class="prelude-val">Ok</span>(val)
     }
 
-    <span class="doccomment">/// Closes the &quot;write&quot; end of the channel. This will cause any current
+    <span class="doccomment">/// Closes the "write" end of the channel. This will cause any current
     /// and subsequent `receive` operations to fail once the channel is empty.
     ///
     /// This method *can* be called in parallel with other methods on the
@@ -682,9 +683,9 @@
         <span class="comment">// Conservatively use Acquire-ordering here to synchronize with the
         // Release-ordered store in `send`.
         //
-        // This shouldn&#39;t be strictly necessary - for us to have a `&amp;mut` reference, some
+        // This shouldn't be strictly necessary - for us to have a `&amp;mut` reference, some
         // external synchronization must have already happened over the whole channel. Indeed
-        // the original Box implementation uses get_mut here, which doesn&#39;t have an atomic
+        // the original Box implementation uses get_mut here, which doesn't have an atomic
         // operation at all.
         </span><span class="kw">let </span>state = <span class="self">self</span>.state.load(sync::atomic::Ordering::Acquire);
         <span class="kw">if </span>state.contents_state == ChannelContentsState::Ready {

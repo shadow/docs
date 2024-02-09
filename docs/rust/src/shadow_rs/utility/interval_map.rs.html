@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/utility/interval_map.rs`."><title>interval_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `main/utility/interval_map.rs`."><title>interval_map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -782,28 +783,28 @@
     ///       b     e
     /// from: |---v-|
     /// to:     |-v-|
-    ///         b&#39;
+    ///         b'
     /// ```
     ///
-    /// Contains: ((b,e), b&#39;)
+    /// Contains: ((b,e), b')
     </span>ModifiedBegin(Interval, usize),
     <span class="doccomment">/// ```text
     ///       b     e
     /// from: |---v-|
     /// to:   |-v-|
-    ///           e&#39;
+    ///           e'
     /// ```
     ///
-    /// Contains: ((b,e), e&#39;)
+    /// Contains: ((b,e), e')
     </span>ModifiedEnd(Interval, usize),
     <span class="doccomment">/// ```text
     ///        b             e
     /// from:  |-----v-------|
     /// to:    |-v--|  |--v--|
-    ///        b   e&#39;  b&#39;    e
+    ///        b   e'  b'    e
     /// ```
     ///
-    /// Contains: ((b,e), (b,e&#39;), (b&#39;,e)
+    /// Contains: ((b,e), (b,e'), (b',e)
     </span>Split(Interval, Interval, Interval),
     <span class="doccomment">/// ```text
     ///       b     e
@@ -815,13 +816,13 @@
     </span>Removed(Interval, V),
 }
 
-<span class="kw">pub struct </span>ItemIter&lt;<span class="lifetime">&#39;a</span>, V&gt; {
-    map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IntervalMap&lt;V&gt;,
+<span class="kw">pub struct </span>ItemIter&lt;<span class="lifetime">'a</span>, V&gt; {
+    map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>IntervalMap&lt;V&gt;,
     i: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, V&gt; Iterator <span class="kw">for </span>ItemIter&lt;<span class="lifetime">&#39;a</span>, V&gt; {
-    <span class="kw">type </span>Item = (Interval, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>V);
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, V&gt; Iterator <span class="kw">for </span>ItemIter&lt;<span class="lifetime">'a</span>, V&gt; {
+    <span class="kw">type </span>Item = (Interval, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>V);
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
         <span class="kw">let </span>i = <span class="self">self</span>.i;
@@ -835,12 +836,12 @@
     }
 }
 
-<span class="kw">pub struct </span>KeyIter&lt;<span class="lifetime">&#39;a</span>, V&gt; {
-    map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>IntervalMap&lt;V&gt;,
+<span class="kw">pub struct </span>KeyIter&lt;<span class="lifetime">'a</span>, V&gt; {
+    map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>IntervalMap&lt;V&gt;,
     i: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, V&gt; Iterator <span class="kw">for </span>KeyIter&lt;<span class="lifetime">&#39;a</span>, V&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, V&gt; Iterator <span class="kw">for </span>KeyIter&lt;<span class="lifetime">'a</span>, V&gt; {
     <span class="kw">type </span>Item = Interval;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -917,28 +918,28 @@
         <span class="comment">// TODO: Support empty intervals?
         </span><span class="macro">assert!</span>(start &lt; end);
 
-        <span class="comment">// List of mutations we had to perform to do the splice, which we&#39;ll ultimately return.
+        <span class="comment">// List of mutations we had to perform to do the splice, which we'll ultimately return.
         </span><span class="kw">let </span><span class="kw-2">mut </span>mutations = Vec::new();
 
-        <span class="comment">// Vectors that we&#39;ll ultimately splice insto self.{starts,ends,vals}.
+        <span class="comment">// Vectors that we'll ultimately splice insto self.{starts,ends,vals}.
         </span><span class="kw">let </span><span class="kw-2">mut </span>starts_insertions = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>ends_insertions = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>vals_insertions = Vec::new();
 
-        <span class="comment">// We&#39;ll splice in the provided value, if any.
+        <span class="comment">// We'll splice in the provided value, if any.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(v) = val {
             starts_insertions.push(start);
             ends_insertions.push(end);
             vals_insertions.push(v);
         };
 
-        <span class="comment">// We&#39;re eventually going to call Vec::splice on our vectors, and
+        <span class="comment">// We're eventually going to call Vec::splice on our vectors, and
         // this will be the starting index.
         </span><span class="kw">let </span>splice_start = <span class="kw">match </span><span class="self">self</span>.starts.binary_search(<span class="kw-2">&amp;</span>start) {
             <span class="prelude-val">Ok</span>(i) | <span class="prelude-val">Err</span>(i) =&gt; i,
         };
 
-        <span class="comment">// Check whether there&#39;s an interval before the splice point,
+        <span class="comment">// Check whether there's an interval before the splice point,
         // and if so whether it overlaps.
         </span><span class="kw">if </span>splice_start &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.ends[splice_start - <span class="number">1</span>] &gt; start {
             <span class="kw">let </span>overlapping_idx = splice_start - <span class="number">1</span>;
@@ -980,7 +981,7 @@
             <span class="prelude-val">Err</span>(i) =&gt; i,
         };
 
-        <span class="comment">// Check whether we need to clip the startning of splice_end&#39;s interval.
+        <span class="comment">// Check whether we need to clip the startning of splice_end's interval.
         </span><span class="kw">let </span><span class="kw-2">mut </span>modified_start: <span class="prelude-ty">Option</span>&lt;Mutation&lt;V&gt;&gt; = <span class="prelude-val">None</span>;
         <span class="kw">if </span>splice_end &lt; <span class="self">self</span>.starts.len()
             &amp;&amp; <span class="self">self</span>.starts[splice_end] &lt; end
@@ -992,7 +993,7 @@
             // - (start, end)  : -----
             //           ---&gt;  :      ---
             </span><span class="self">self</span>.starts[overlapping_idx] = end;
-            <span class="comment">// We don&#39;t push this onto `mutations` yet because we want to keep it sorted, and this
+            <span class="comment">// We don't push this onto `mutations` yet because we want to keep it sorted, and this
             // will always be the last mutation.
             </span>modified_start = <span class="prelude-val">Some</span>(Mutation::ModifiedBegin(
                 overlapping_int,
@@ -1077,14 +1078,14 @@
         </span><span class="kw">for </span>i <span class="kw">in </span>m.keys() {
             <span class="comment">// TODO: support empty interval keys?
             </span><span class="kw">if </span>i.start &gt;= i.end {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Invalid interval {:?}&quot;</span>, i));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Invalid interval {:?}"</span>, i));
             }
         }
 
-        <span class="comment">// Intervals don&#39;t overlap
+        <span class="comment">// Intervals don't overlap
         </span><span class="kw">for </span>(i1, i2) <span class="kw">in </span>m.keys().zip(m.keys().skip(<span class="number">1</span>)) {
             <span class="kw">if </span>i1.end &gt; i2.start {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Overlapping intervals {:?} and {:?}&quot;</span>, i1, i2));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"Overlapping intervals {:?} and {:?}"</span>, i1, i2));
             }
         }
 
@@ -1108,19 +1109,19 @@
         <span class="kw">let </span>new_len = m.keys().count();
         <span class="kw">if </span>new_len_sum &lt; old_len_sum {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;length-sum shrunk from {} to {}&quot;</span>,
+                <span class="string">"length-sum shrunk from {} to {}"</span>,
                 old_len_sum, new_len_sum
             ));
         }
         <span class="kw">if </span>new_len_sum &lt; (interval.end - interval.start) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;length-sum {} is smaller than inserted interval length {}&quot;</span>,
+                <span class="string">"length-sum {} is smaller than inserted interval length {}"</span>,
                 new_len_sum,
                 interval.end - interval.start
             ));
         }
         <span class="kw">if </span>new_len == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;new length is zero&quot;</span>.to_string());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"new length is zero"</span>.to_string());
         }
 
         <span class="prelude-val">Ok</span>(mutations)
@@ -1142,13 +1143,13 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>m_clone = m.clone();
                 <span class="comment">// Catch panics (failures) so that we can print the failing test case.
                 </span><span class="kw">let </span>res = std::panic::catch_unwind(<span class="kw">move </span>|| {
-                    insert_and_sanity_check(<span class="kw-2">&amp;mut </span>m_clone, start..end, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, i, j))
+                    insert_and_sanity_check(<span class="kw-2">&amp;mut </span>m_clone, start..end, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{}.{}"</span>, i, j))
                         .unwrap();
                     m_clone
                 });
                 <span class="kw">if </span>res.is_err() {
                     <span class="macro">println!</span>(
-                        <span class="string">&quot;Failed inserting {} -&gt; {} into {:?}&quot;</span>,
+                        <span class="string">"Failed inserting {} -&gt; {} into {:?}"</span>,
                         start,
                         end,
                         m.iter().map(|(i, s)| (i, s.clone())).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
@@ -1184,156 +1185,156 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_into_empty() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        insert_and_validate(<span class="kw-2">&amp;mut </span>m, <span class="number">10</span>..<span class="number">20</span>, <span class="string">&quot;x&quot;</span>, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">20</span>, <span class="string">&quot;x&quot;</span>)]);
+        insert_and_validate(<span class="kw-2">&amp;mut </span>m, <span class="number">10</span>..<span class="number">20</span>, <span class="string">"x"</span>, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">20</span>, <span class="string">"x"</span>)]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_after() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">1</span>..<span class="number">3</span>, <span class="string">&quot;i1&quot;</span>.to_string());
-        insert_and_validate(<span class="kw-2">&amp;mut </span>m, <span class="number">4</span>..<span class="number">6</span>, <span class="string">&quot;i2&quot;</span>, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="string">&quot;i1&quot;</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="string">&quot;i2&quot;</span>)]);
+        m.insert(<span class="number">1</span>..<span class="number">3</span>, <span class="string">"i1"</span>.to_string());
+        insert_and_validate(<span class="kw-2">&amp;mut </span>m, <span class="number">4</span>..<span class="number">6</span>, <span class="string">"i2"</span>, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="string">"i1"</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="string">"i2"</span>)]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_before() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">4</span>..<span class="number">6</span>, <span class="string">&quot;i1&quot;</span>.to_string());
-        insert_and_validate(<span class="kw-2">&amp;mut </span>m, <span class="number">1</span>..<span class="number">3</span>, <span class="string">&quot;i2&quot;</span>, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="string">&quot;i2&quot;</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="string">&quot;i1&quot;</span>)]);
+        m.insert(<span class="number">4</span>..<span class="number">6</span>, <span class="string">"i1"</span>.to_string());
+        insert_and_validate(<span class="kw-2">&amp;mut </span>m, <span class="number">1</span>..<span class="number">3</span>, <span class="string">"i2"</span>, <span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="string">"i2"</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="string">"i1"</span>)]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_just_before() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">10</span>..<span class="number">20</span>,
-            <span class="string">&quot;second&quot;</span>,
+            <span class="string">"second"</span>,
             <span class="kw-2">&amp;</span>[],
-            <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">20</span>, <span class="string">&quot;second&quot;</span>), (<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">20</span>, <span class="string">"second"</span>), (<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_over_start() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">10</span>..<span class="number">21</span>,
-            <span class="string">&quot;second&quot;</span>,
+            <span class="string">"second"</span>,
             <span class="kw-2">&amp;</span>[Mutation::ModifiedBegin(<span class="number">20</span>..<span class="number">30</span>, <span class="number">21</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">21</span>, <span class="string">&quot;second&quot;</span>), (<span class="number">21</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">21</span>, <span class="string">"second"</span>), (<span class="number">21</span>..<span class="number">30</span>, <span class="string">"first"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_on_start() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">20</span>..<span class="number">21</span>,
-            <span class="string">&quot;second&quot;</span>,
+            <span class="string">"second"</span>,
             <span class="kw-2">&amp;</span>[Mutation::ModifiedBegin(<span class="number">20</span>..<span class="number">30</span>, <span class="number">21</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">21</span>, <span class="string">&quot;second&quot;</span>), (<span class="number">21</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">21</span>, <span class="string">"second"</span>), (<span class="number">21</span>..<span class="number">30</span>, <span class="string">"first"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_just_after() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">30</span>..<span class="number">40</span>,
-            <span class="string">&quot;second&quot;</span>,
+            <span class="string">"second"</span>,
             <span class="kw-2">&amp;</span>[],
-            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>), (<span class="number">30</span>..<span class="number">40</span>, <span class="string">&quot;second&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>), (<span class="number">30</span>..<span class="number">40</span>, <span class="string">"second"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_over_end() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">29</span>..<span class="number">31</span>,
-            <span class="string">&quot;second&quot;</span>,
+            <span class="string">"second"</span>,
             <span class="kw-2">&amp;</span>[Mutation::ModifiedEnd(<span class="number">20</span>..<span class="number">30</span>, <span class="number">29</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">29</span>, <span class="string">&quot;first&quot;</span>), (<span class="number">29</span>..<span class="number">31</span>, <span class="string">&quot;second&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">29</span>, <span class="string">"first"</span>), (<span class="number">29</span>..<span class="number">31</span>, <span class="string">"second"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_on_end() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">29</span>..<span class="number">30</span>,
-            <span class="string">&quot;second&quot;</span>,
+            <span class="string">"second"</span>,
             <span class="kw-2">&amp;</span>[Mutation::ModifiedEnd(<span class="number">20</span>..<span class="number">30</span>, <span class="number">29</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">29</span>, <span class="string">&quot;first&quot;</span>), (<span class="number">29</span>..<span class="number">30</span>, <span class="string">&quot;second&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">29</span>, <span class="string">"first"</span>), (<span class="number">29</span>..<span class="number">30</span>, <span class="string">"second"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_removing() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">10</span>..<span class="number">40</span>,
-            <span class="string">&quot;second&quot;</span>,
-            <span class="kw-2">&amp;</span>[Mutation::Removed(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string())],
-            <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">40</span>, <span class="string">&quot;second&quot;</span>)],
+            <span class="string">"second"</span>,
+            <span class="kw-2">&amp;</span>[Mutation::Removed(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string())],
+            <span class="kw-2">&amp;</span>[(<span class="number">10</span>..<span class="number">40</span>, <span class="string">"second"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_forcing_split() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">24</span>..<span class="number">25</span>,
-            <span class="string">&quot;second&quot;</span>,
+            <span class="string">"second"</span>,
             <span class="kw-2">&amp;</span>[Mutation::Split(<span class="number">20</span>..<span class="number">30</span>, <span class="number">20</span>..<span class="number">24</span>, <span class="number">25</span>..<span class="number">30</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">24</span>, <span class="string">&quot;first&quot;</span>), (<span class="number">24</span>..<span class="number">25</span>, <span class="string">&quot;second&quot;</span>), (<span class="number">25</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">24</span>, <span class="string">"first"</span>), (<span class="number">24</span>..<span class="number">25</span>, <span class="string">"second"</span>), (<span class="number">25</span>..<span class="number">30</span>, <span class="string">"first"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_over_exact() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">1</span>..<span class="number">2</span>, <span class="string">&quot;old&quot;</span>.to_string());
+        m.insert(<span class="number">1</span>..<span class="number">2</span>, <span class="string">"old"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">1</span>..<span class="number">2</span>,
-            <span class="string">&quot;new&quot;</span>,
-            <span class="kw-2">&amp;</span>[Mutation::Removed(<span class="number">1</span>..<span class="number">2</span>, <span class="string">&quot;old&quot;</span>.to_string())],
-            <span class="kw-2">&amp;</span>[(<span class="number">1</span>..<span class="number">2</span>, <span class="string">&quot;new&quot;</span>)],
+            <span class="string">"new"</span>,
+            <span class="kw-2">&amp;</span>[Mutation::Removed(<span class="number">1</span>..<span class="number">2</span>, <span class="string">"old"</span>.to_string())],
+            <span class="kw-2">&amp;</span>[(<span class="number">1</span>..<span class="number">2</span>, <span class="string">"new"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_insert_all_mutations() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">0</span>..<span class="number">10</span>, <span class="string">&quot;first&quot;</span>.to_string());
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;second&quot;</span>.to_string());
-        m.insert(<span class="number">40</span>..<span class="number">50</span>, <span class="string">&quot;third&quot;</span>.to_string());
+        m.insert(<span class="number">0</span>..<span class="number">10</span>, <span class="string">"first"</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"second"</span>.to_string());
+        m.insert(<span class="number">40</span>..<span class="number">50</span>, <span class="string">"third"</span>.to_string());
         insert_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">5</span>..<span class="number">45</span>,
-            <span class="string">&quot;clobbering&quot;</span>,
+            <span class="string">"clobbering"</span>,
             <span class="kw-2">&amp;</span>[
                 Mutation::ModifiedEnd(<span class="number">0</span>..<span class="number">10</span>, <span class="number">5</span>),
-                Mutation::Removed(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;second&quot;</span>.to_string()),
+                Mutation::Removed(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"second"</span>.to_string()),
                 Mutation::ModifiedBegin(<span class="number">40</span>..<span class="number">50</span>, <span class="number">45</span>),
             ],
-            <span class="kw-2">&amp;</span>[(<span class="number">0</span>..<span class="number">5</span>, <span class="string">&quot;first&quot;</span>), (<span class="number">5</span>..<span class="number">45</span>, <span class="string">&quot;clobbering&quot;</span>), (<span class="number">45</span>..<span class="number">50</span>, <span class="string">&quot;third&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">0</span>..<span class="number">5</span>, <span class="string">"first"</span>), (<span class="number">5</span>..<span class="number">45</span>, <span class="string">"clobbering"</span>), (<span class="number">45</span>..<span class="number">50</span>, <span class="string">"third"</span>)],
         );
     }
 
@@ -1352,7 +1353,7 @@
 
         <span class="kw">let </span>new_len = interval_sum(m.keys());
         <span class="kw">if </span>new_len &gt; old_len {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;new_len {} &gt; old_len {}&quot;</span>, new_len, old_len));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">"new_len {} &gt; old_len {}"</span>, new_len, old_len));
         }
 
         <span class="prelude-val">Ok</span>(mutations)
@@ -1380,14 +1381,14 @@
                     insert_and_sanity_check(
                         <span class="kw-2">&amp;mut </span>m_clone,
                         insert_start..insert_end,
-                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, i, j),
+                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{}.{}"</span>, i, j),
                     )
                     .unwrap();
                     m_clone
                 });
                 <span class="kw">if </span>res.is_err() {
                     <span class="macro">println!</span>(
-                        <span class="string">&quot;Failed after inserting {} -&gt; {} and clearing {} -&gt; {} in {:?}&quot;</span>,
+                        <span class="string">"Failed after inserting {} -&gt; {} and clearing {} -&gt; {} in {:?}"</span>,
                         insert_start,
                         insert_end,
                         clear_start,
@@ -1426,47 +1427,47 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_clear_over_start() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         clear_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">10</span>..<span class="number">21</span>,
             <span class="kw-2">&amp;</span>[Mutation::ModifiedBegin(<span class="number">20</span>..<span class="number">30</span>, <span class="number">21</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">21</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">21</span>..<span class="number">30</span>, <span class="string">"first"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_clear_over_end() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         clear_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">29</span>..<span class="number">31</span>,
             <span class="kw-2">&amp;</span>[Mutation::ModifiedEnd(<span class="number">20</span>..<span class="number">30</span>, <span class="number">29</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">29</span>, <span class="string">&quot;first&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">29</span>, <span class="string">"first"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_clear_forcing_split() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         clear_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">24</span>..<span class="number">25</span>,
             <span class="kw-2">&amp;</span>[Mutation::Split(<span class="number">20</span>..<span class="number">30</span>, <span class="number">20</span>..<span class="number">24</span>, <span class="number">25</span>..<span class="number">30</span>)],
-            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">24</span>, <span class="string">&quot;first&quot;</span>), (<span class="number">25</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>)],
+            <span class="kw-2">&amp;</span>[(<span class="number">20</span>..<span class="number">24</span>, <span class="string">"first"</span>), (<span class="number">25</span>..<span class="number">30</span>, <span class="string">"first"</span>)],
         );
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_clear_removing() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::new();
-        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string());
+        m.insert(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string());
         clear_and_validate(
             <span class="kw-2">&amp;mut </span>m,
             <span class="number">10</span>..<span class="number">40</span>,
-            <span class="kw-2">&amp;</span>[Mutation::Removed(<span class="number">20</span>..<span class="number">30</span>, <span class="string">&quot;first&quot;</span>.to_string())],
+            <span class="kw-2">&amp;</span>[Mutation::Removed(<span class="number">20</span>..<span class="number">30</span>, <span class="string">"first"</span>.to_string())],
             <span class="kw-2">&amp;</span>[],
         );
     }
@@ -1480,11 +1481,11 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_get_single_interval() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::&lt;String&gt;::new();
-        m.insert(<span class="number">1</span>..<span class="number">4</span>, <span class="string">&quot;interval&quot;</span>.to_string());
+        m.insert(<span class="number">1</span>..<span class="number">4</span>, <span class="string">"interval"</span>.to_string());
         <span class="macro">assert_eq!</span>(m.get(<span class="number">0</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">1</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">&quot;interval&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">2</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">&quot;interval&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">3</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">&quot;interval&quot;</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">1</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">"interval"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">2</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">"interval"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">3</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">"interval"</span>.to_string())));
         <span class="macro">assert_eq!</span>(m.get(<span class="number">4</span>), <span class="prelude-val">None</span>);
         <span class="macro">assert_eq!</span>(m.get(<span class="number">5</span>), <span class="prelude-val">None</span>);
     }
@@ -1492,54 +1493,54 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_get_two_intervals_with_gap() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::&lt;String&gt;::new();
-        m.insert(<span class="number">1</span>..<span class="number">4</span>, <span class="string">&quot;i1&quot;</span>.to_string());
-        m.insert(<span class="number">5</span>..<span class="number">9</span>, <span class="string">&quot;i2&quot;</span>.to_string());
+        m.insert(<span class="number">1</span>..<span class="number">4</span>, <span class="string">"i1"</span>.to_string());
+        m.insert(<span class="number">5</span>..<span class="number">9</span>, <span class="string">"i2"</span>.to_string());
         <span class="macro">assert_eq!</span>(m.get(<span class="number">0</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">1</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">2</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">3</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">1</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">2</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">3</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">4</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>.to_string())));
         <span class="macro">assert_eq!</span>(m.get(<span class="number">4</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">5</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">6</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">7</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">8</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">5</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">6</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">7</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">8</span>), <span class="prelude-val">Some</span>((<span class="number">5</span>..<span class="number">9</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>.to_string())));
         <span class="macro">assert_eq!</span>(m.get(<span class="number">9</span>), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_get_two_intervals_without_gap() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::&lt;String&gt;::new();
-        m.insert(<span class="number">1</span>..<span class="number">3</span>, <span class="string">&quot;i1&quot;</span>.to_string());
-        m.insert(<span class="number">3</span>..<span class="number">6</span>, <span class="string">&quot;i2&quot;</span>.to_string());
+        m.insert(<span class="number">1</span>..<span class="number">3</span>, <span class="string">"i1"</span>.to_string());
+        m.insert(<span class="number">3</span>..<span class="number">6</span>, <span class="string">"i2"</span>.to_string());
         <span class="macro">assert_eq!</span>(m.get(<span class="number">0</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">1</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">2</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">3</span>), <span class="prelude-val">Some</span>((<span class="number">3</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">4</span>), <span class="prelude-val">Some</span>((<span class="number">3</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>.to_string())));
-        <span class="macro">assert_eq!</span>(m.get(<span class="number">5</span>), <span class="prelude-val">Some</span>((<span class="number">3</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">1</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">2</span>), <span class="prelude-val">Some</span>((<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">3</span>), <span class="prelude-val">Some</span>((<span class="number">3</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">4</span>), <span class="prelude-val">Some</span>((<span class="number">3</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>.to_string())));
+        <span class="macro">assert_eq!</span>(m.get(<span class="number">5</span>), <span class="prelude-val">Some</span>((<span class="number">3</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>.to_string())));
         <span class="macro">assert_eq!</span>(m.get(<span class="number">6</span>), <span class="prelude-val">None</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_iter_from() {
         <span class="kw">let </span><span class="kw-2">mut </span>m = IntervalMap::&lt;<span class="kw-2">&amp;</span>str&gt;::new();
-        m.insert(<span class="number">1</span>..<span class="number">3</span>, <span class="string">&quot;i1&quot;</span>);
-        m.insert(<span class="number">4</span>..<span class="number">6</span>, <span class="string">&quot;i2&quot;</span>);
+        m.insert(<span class="number">1</span>..<span class="number">3</span>, <span class="string">"i1"</span>);
+        m.insert(<span class="number">4</span>..<span class="number">6</span>, <span class="string">"i2"</span>);
         <span class="macro">assert_eq!</span>(
             m.iter_from(<span class="number">0</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-            <span class="macro">vec!</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>)]
+            <span class="macro">vec!</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>)]
         );
         <span class="macro">assert_eq!</span>(
             m.iter_from(<span class="number">1</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-            <span class="macro">vec!</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>)]
+            <span class="macro">vec!</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>)]
         );
         <span class="macro">assert_eq!</span>(
             m.iter_from(<span class="number">2</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-            <span class="macro">vec!</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i1&quot;</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>)]
+            <span class="macro">vec!</span>[(<span class="number">1</span>..<span class="number">3</span>, <span class="kw-2">&amp;</span><span class="string">"i1"</span>), (<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>)]
         );
-        <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">3</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>)]);
-        <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">4</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>)]);
-        <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">5</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">&quot;i2&quot;</span>)]);
+        <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">3</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>)]);
+        <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">4</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>)]);
+        <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">5</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[(<span class="number">4</span>..<span class="number">6</span>, <span class="kw-2">&amp;</span><span class="string">"i2"</span>)]);
         <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">6</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[]);
         <span class="macro">assert_eq!</span>(m.iter_from(<span class="number">7</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="macro">vec!</span>[]);
     }
