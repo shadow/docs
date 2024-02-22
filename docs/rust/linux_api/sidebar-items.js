@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["epoll","errno","exit","fcntl","futex","inet","ioctls","ldt","limits","mman","poll","posix_types","prctl","resource","rseq","sched","signal","syscall","sysinfo","time","ucontext","utsname","wait"]};
+window.SIDEBAR_ITEMS = {"mod":["capability","epoll","errno","exit","fcntl","futex","inet","ioctls","ldt","limits","mman","poll","posix_types","prctl","resource","rseq","rtnetlink","sched","signal","syscall","sysinfo","time","ucontext","utsname","wait"]};

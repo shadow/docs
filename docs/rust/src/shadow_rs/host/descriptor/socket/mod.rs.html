@@ -385,11 +385,37 @@
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>inet::{InetSocket, InetSocketRef, InetSocketRefMut};
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
+<span class="kw">use </span>netlink::NetlinkSocket;
 <span class="kw">use </span>nix::sys::socket::Shutdown;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 <span class="kw">use </span>unix::UnixSocket;
@@ -409,6 +435,7 @@
 
 <span class="kw">pub mod </span>abstract_unix_ns;
 <span class="kw">pub mod </span>inet;
+<span class="kw">pub mod </span>netlink;
 <span class="kw">pub mod </span>unix;
 
 <span class="macro">bitflags::bitflags! </span>{
@@ -425,6 +452,7 @@
 </span><span class="kw">pub enum </span>Socket {
     Unix(Arc&lt;AtomicRefCell&lt;UnixSocket&gt;&gt;),
     Inet(InetSocket),
+    Netlink(Arc&lt;AtomicRefCell&lt;NetlinkSocket&gt;&gt;),
 }
 
 <span class="kw">impl </span>Socket {
@@ -432,6 +460,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRef::Unix(f.borrow()),
             <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRef::Inet(f.borrow()),
+            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRef::Netlink(f.borrow()),
         }
     }
 
@@ -439,6 +468,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRef::Unix(f.try_borrow()<span class="question-mark">?</span>),
             <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRef::Inet(f.try_borrow()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRef::Netlink(f.try_borrow()<span class="question-mark">?</span>),
         })
     }
 
@@ -446,6 +476,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Unix(f.borrow_mut()),
             <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Inet(f.borrow_mut()),
+            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Netlink(f.borrow_mut()),
         }
     }
 
@@ -453,6 +484,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Unix(f.try_borrow_mut()<span class="question-mark">?</span>),
             <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Inet(f.try_borrow_mut()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Netlink(f.try_borrow_mut()<span class="question-mark">?</span>),
         })
     }
 
@@ -460,6 +492,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(f) =&gt; Arc::as_ptr(f) <span class="kw">as </span>usize,
             <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; f.canonical_handle(),
+            <span class="self">Self</span>::Netlink(f) =&gt; Arc::as_ptr(f) <span class="kw">as </span>usize,
         }
     }
 
@@ -472,6 +505,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; UnixSocket::bind(socket, addr, net_ns, rng),
             <span class="self">Self</span>::Inet(socket) =&gt; InetSocket::bind(socket, addr, net_ns, rng),
+            <span class="self">Self</span>::Netlink(socket) =&gt; NetlinkSocket::bind(socket, addr, net_ns, rng),
         }
     }
 
@@ -485,6 +519,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; UnixSocket::listen(socket, backlog, net_ns, rng, cb_queue),
             <span class="self">Self</span>::Inet(socket) =&gt; InetSocket::listen(socket, backlog, net_ns, rng, cb_queue),
+            <span class="self">Self</span>::Netlink(socket) =&gt; NetlinkSocket::listen(socket, backlog, net_ns, rng, cb_queue),
         }
     }
 
@@ -498,6 +533,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; UnixSocket::connect(socket, addr, net_ns, rng, cb_queue),
             <span class="self">Self</span>::Inet(socket) =&gt; InetSocket::connect(socket, addr, net_ns, rng, cb_queue),
+            <span class="self">Self</span>::Netlink(socket) =&gt; NetlinkSocket::connect(socket, addr, net_ns, rng, cb_queue),
         }
     }
 
@@ -516,6 +552,9 @@
             <span class="self">Self</span>::Inet(socket) =&gt; {
                 InetSocket::sendmsg(socket, args, memory_manager, net_ns, rng, cb_queue)
             }
+            <span class="self">Self</span>::Netlink(socket) =&gt; {
+                NetlinkSocket::sendmsg(socket, args, memory_manager, net_ns, rng, cb_queue)
+            }
         }
     }
 
@@ -528,6 +567,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; UnixSocket::recvmsg(socket, args, memory_manager, cb_queue),
             <span class="self">Self</span>::Inet(socket) =&gt; InetSocket::recvmsg(socket, args, memory_manager, cb_queue),
+            <span class="self">Self</span>::Netlink(socket) =&gt; NetlinkSocket::recvmsg(socket, args, memory_manager, cb_queue),
         }
     }
 }
@@ -537,6 +577,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Unix"</span>)<span class="question-mark">?</span>,
             <span class="self">Self</span>::Inet(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Inet"</span>)<span class="question-mark">?</span>,
+            <span class="self">Self</span>::Netlink(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Netlink"</span>)<span class="question-mark">?</span>,
         }
 
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(file) = <span class="self">self</span>.try_borrow() {
@@ -555,28 +596,30 @@
 <span class="kw">pub enum </span>SocketRef&lt;<span class="lifetime">'a</span>&gt; {
     Unix(atomic_refcell::AtomicRef&lt;<span class="lifetime">'a</span>, UnixSocket&gt;),
     Inet(InetSocketRef&lt;<span class="lifetime">'a</span>&gt;),
+    Netlink(atomic_refcell::AtomicRef&lt;<span class="lifetime">'a</span>, NetlinkSocket&gt;),
 }
 
 <span class="kw">pub enum </span>SocketRefMut&lt;<span class="lifetime">'a</span>&gt; {
     Unix(atomic_refcell::AtomicRefMut&lt;<span class="lifetime">'a</span>, UnixSocket&gt;),
     Inet(InetSocketRefMut&lt;<span class="lifetime">'a</span>&gt;),
+    Netlink(atomic_refcell::AtomicRefMut&lt;<span class="lifetime">'a</span>, NetlinkSocket&gt;),
 }
 
 <span class="comment">// file functions
 </span><span class="kw">impl </span>SocketRef&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileState
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileMode
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileStatus
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>has_open_file(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>supports_sa_restart(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
     );
 }
@@ -587,6 +630,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Netlink(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
         }
     }
 
@@ -594,44 +638,45 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Netlink(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
         }
     }
 
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; nix::sys::socket::AddressFamily
     );
 }
 
 <span class="comment">// file functions
 </span><span class="kw">impl </span>SocketRefMut&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileState
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileMode
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileStatus
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>has_open_file(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (val), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (val), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>set_has_open_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: bool)
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>supports_sa_restart(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (cb_queue), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (cb_queue), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (status), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (status), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>set_status(<span class="kw-2">&amp;mut </span><span class="self">self</span>, status: FileStatus)
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (request, arg_ptr, memory_manager), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (request, arg_ptr, memory_manager), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>ioctl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, request: IoctlRequest, arg_ptr: ForeignPtr&lt;()&gt;, memory_manager: <span class="kw-2">&amp;mut </span>MemoryManager) -&gt; SyscallResult
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (monitoring_state, monitoring_signals, filter, notify_fn), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (monitoring_state, monitoring_signals, filter, notify_fn), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>add_listener(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
             monitoring_state: FileState,
@@ -640,17 +685,17 @@
             notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue) + Send + Sync + <span class="lifetime">'static</span>,
         ) -&gt; StateListenHandle
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (ptr), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (ptr), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>add_legacy_listener(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ptr: HostTreePointer&lt;c::StatusListener&gt;)
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (ptr), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (ptr), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>remove_legacy_listener(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ptr: <span class="kw-2">*mut </span>c::StatusListener)
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (iovs, offset, flags, mem, cb_queue), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (iovs, offset, flags, mem, cb_queue), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>readv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iovs: <span class="kw-2">&amp;</span>[IoVec], offset: <span class="prelude-ty">Option</span>&lt;libc::off_t&gt;, flags: libc::c_int,
                      mem: <span class="kw-2">&amp;mut </span>MemoryManager, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt;
     );
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (iovs, offset, flags, mem, cb_queue), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (iovs, offset, flags, mem, cb_queue), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>writev(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iovs: <span class="kw-2">&amp;</span>[IoVec], offset: <span class="prelude-ty">Option</span>&lt;libc::off_t&gt;, flags: libc::c_int,
                       mem: <span class="kw-2">&amp;mut </span>MemoryManager, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;libc::ssize_t, SyscallError&gt;
     );
@@ -662,6 +707,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Netlink(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
         }
     }
 
@@ -669,20 +715,21 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Netlink(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
         }
     }
 
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; nix::sys::socket::AddressFamily
     );
 
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (level, optname, optval_ptr, optlen, memory_manager, cb_queue), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (level, optname, optval_ptr, optlen, memory_manager, cb_queue), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>getsockopt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: libc::c_int, optname: libc::c_int, optval_ptr: ForeignPtr&lt;()&gt;,
                           optlen: libc::socklen_t, memory_manager: <span class="kw-2">&amp;mut </span>MemoryManager, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue)
         -&gt; <span class="prelude-ty">Result</span>&lt;libc::socklen_t, SyscallError&gt;
     );
 
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (level, optname, optval_ptr, optlen, memory_manager), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (level, optname, optval_ptr, optlen, memory_manager), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>setsockopt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, level: libc::c_int, optname: libc::c_int, optval_ptr: ForeignPtr&lt;()&gt;,
                           optlen: libc::socklen_t, memory_manager: <span class="kw-2">&amp;</span>MemoryManager)
         -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;
@@ -697,10 +744,11 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.accept(net_ns, rng, cb_queue),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.accept(net_ns, rng, cb_queue),
+            <span class="self">Self</span>::Netlink(socket) =&gt; socket.accept(net_ns, rng, cb_queue),
         }
     }
 
-    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (how, cb_queue), Unix, Inet;
+    <span class="macro">enum_passthrough!</span>(<span class="self">self</span>, (how, cb_queue), Unix, Inet, Netlink;
         <span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>, how: Shutdown, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;
     );
 }
@@ -710,6 +758,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Unix"</span>)<span class="question-mark">?</span>,
             <span class="self">Self</span>::Inet(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Inet"</span>)<span class="question-mark">?</span>,
+            <span class="self">Self</span>::Netlink(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Netlink"</span>)<span class="question-mark">?</span>,
         }
 
         <span class="macro">write!</span>(
@@ -726,6 +775,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Unix"</span>)<span class="question-mark">?</span>,
             <span class="self">Self</span>::Inet(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Inet"</span>)<span class="question-mark">?</span>,
+            <span class="self">Self</span>::Netlink(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Netlink"</span>)<span class="question-mark">?</span>,
         }
 
         <span class="macro">write!</span>(

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["LINUX_CAPABILITY_VERSION_3"],"fn":["capget","capset"],"struct":["__user_cap_data_struct","__user_cap_header_struct"],"type":["user_cap_data","user_cap_header"]};

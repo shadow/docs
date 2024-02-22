@@ -305,6 +305,16 @@
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A buffer for files that need to share a buffer with other files. Example use-cases are pipes and
 //! unix sockets. This buffer supports notifying files when readers or writers are added or removed.
 
@@ -383,6 +393,16 @@
 
     <span class="kw">pub fn </span>num_writers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
         <span class="self">self</span>.num_writers
+    }
+
+    <span class="kw">pub fn </span>peek&lt;W: std::io::Write&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: W) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize), std::io::Error&gt; {
+        <span class="kw">let </span>(num_copied, num_removed_from_buf) = <span class="kw">match </span><span class="self">self</span>.queue.peek(bytes)<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>((num_copied, num_removed_from_buf, _chunk_type)) =&gt; {
+                (num_copied, num_removed_from_buf)
+            }
+            <span class="prelude-val">None </span>=&gt; (<span class="number">0</span>, <span class="number">0</span>),
+        };
+        <span class="prelude-val">Ok</span>((num_copied, num_removed_from_buf))
     }
 
     <span class="kw">pub fn </span>read&lt;W: std::io::Write&gt;(

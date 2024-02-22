@@ -1028,6 +1028,24 @@
 <a href="#1027" id="1027">1027</a>
 <a href="#1028" id="1028">1028</a>
 <a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
@@ -1039,6 +1057,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::tcp::TcpSocket;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::udp::UdpSocket;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::netlink::{NetlinkFamily, NetlinkSocket, NetlinkSocketType};
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::unix::{UnixSocket, UnixSocketType};
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::{RecvmsgArgs, RecvmsgReturn, SendmsgArgs, Socket};
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{CompatFile, Descriptor, File, FileState, FileStatus, OpenFile};
@@ -1130,6 +1149,23 @@
                 }
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESOCKTNOSUPPORT.into()),
             },
+            libc::AF_NETLINK =&gt; {
+                <span class="kw">let </span>socket_type = <span class="kw">match </span>NetlinkSocketType::try_from(socket_type) {
+                    <span class="prelude-val">Ok</span>(x) =&gt; x,
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                    }
+                };
+                <span class="kw">let </span>family = <span class="kw">match </span>NetlinkFamily::try_from(protocol) {
+                    <span class="prelude-val">Ok</span>(x) =&gt; x,
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                    }
+                };
+                Socket::Netlink(NetlinkSocket::new(file_flags, socket_type, family))
+            }
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EAFNOSUPPORT.into()),
         };
 
