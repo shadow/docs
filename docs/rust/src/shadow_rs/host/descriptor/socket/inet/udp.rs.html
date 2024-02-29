@@ -1132,6 +1132,7 @@
 <a href="#1131" id="1131">1131</a>
 <a href="#1132" id="1132">1132</a>
 <a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::LinkedList;
 <span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
@@ -1141,7 +1142,8 @@
 <span class="kw">use </span>bytes::{Bytes, BytesMut};
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
-<span class="kw">use </span>nix::sys::socket::{AddressFamily, MsgFlags, Shutdown, SockaddrIn};
+<span class="kw">use </span>linux_api::socket::Shutdown;
+<span class="kw">use </span>nix::sys::socket::{MsgFlags, SockaddrIn};
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 
@@ -1355,8 +1357,8 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.peer_addr.ok_or(Errno::ENOTCONN)<span class="question-mark">?</span>.into()))
     }
 
-    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AddressFamily {
-        AddressFamily::Inet
+    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::socket::AddressFamily {
+        linux_api::socket::AddressFamily::AF_INET
     }
 
     <span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
@@ -1907,12 +1909,12 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTCONN.into());
         }
 
-        <span class="kw">if </span>how == Shutdown::Write || how == Shutdown::Both {
+        <span class="kw">if </span>how == Shutdown::SHUT_WR || how == Shutdown::SHUT_RDWR {
             <span class="comment">// writing has been shut down
             </span><span class="self">self</span>.shutdown_status.insert(ShutdownFlags::WRITE)
         }
 
-        <span class="kw">if </span>how == Shutdown::Read || how == Shutdown::Both {
+        <span class="kw">if </span>how == Shutdown::SHUT_RD || how == Shutdown::SHUT_RDWR {
             <span class="comment">// reading has been shut down
             </span><span class="self">self</span>.shutdown_status.insert(ShutdownFlags::READ)
         }

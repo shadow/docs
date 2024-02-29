@@ -1042,14 +1042,11 @@
 <a href="#1041" id="1041">1041</a>
 <a href="#1042" id="1042">1042</a>
 <a href="#1043" id="1043">1043</a>
-<a href="#1044" id="1044">1044</a>
-<a href="#1045" id="1045">1045</a>
-<a href="#1046" id="1046">1046</a>
-<a href="#1047" id="1047">1047</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
+<span class="kw">use </span>linux_api::socket::Shutdown;
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
-<span class="kw">use </span>nix::sys::socket::{Shutdown, SockFlag};
+<span class="kw">use </span>nix::sys::socket::SockFlag;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 <span class="kw">use </span>syscall_logger::log_syscall;
 
@@ -1070,7 +1067,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::utility::sockaddr::SockaddrStorage;
 
 <span class="kw">impl </span>SyscallHandler {
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* domain */ </span>nix::sys::socket::AddressFamily,
+    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* domain */ </span>linux_api::socket::AddressFamily,
                   <span class="comment">/* type */ </span>std::ffi::c_int, <span class="comment">/* protocol */ </span>std::ffi::c_int)]
     </span><span class="kw">pub fn </span>socket(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
@@ -1875,11 +1872,11 @@
         <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* sockfd */ </span>std::ffi::c_int, <span class="comment">/* how */ </span>std::ffi::c_int)]
+    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* sockfd */ </span>std::ffi::c_int, <span class="comment">/* how */ </span>std::ffi::c_uint)]
     </span><span class="kw">pub fn </span>shutdown(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd: std::ffi::c_int,
-        how: std::ffi::c_int,
+        how: std::ffi::c_uint,
     ) -&gt; SyscallResult {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
@@ -1890,12 +1887,7 @@
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 
-        <span class="kw">let </span>how = <span class="kw">match </span>how {
-            libc::SHUT_RD =&gt; Shutdown::Read,
-            libc::SHUT_WR =&gt; Shutdown::Write,
-            libc::SHUT_RDWR =&gt; Shutdown::Both,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into()),
-        };
+        <span class="kw">let </span>how = Shutdown::try_from(how).or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>File::Socket(socket) = file.inner_file() <span class="kw">else </span>{
             drop(desc_table);
@@ -1909,7 +1901,7 @@
         <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* domain */ </span>nix::sys::socket::AddressFamily,
+    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* domain */ </span>linux_api::socket::AddressFamily,
                   <span class="comment">/* type */ </span>std::ffi::c_int, <span class="comment">/* protocol */ </span>std::ffi::c_int, <span class="comment">/* sv */ </span>[std::ffi::c_int; <span class="number">2</span>]</span>)]
     <span class="kw">pub fn </span>socketpair(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,

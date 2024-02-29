@@ -1283,6 +1283,7 @@
 <a href="#1282" id="1282">1282</a>
 <a href="#1283" id="1283">1283</a>
 <a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::io::{Cursor, ErrorKind, Read, Write};
 <span class="kw">use </span>std::net::Ipv4Addr;
 <span class="kw">use </span>std::sync::{Arc, Weak};
@@ -1290,7 +1291,9 @@
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
+<span class="kw">use </span>linux_api::netlink::nlmsghdr;
 <span class="kw">use </span>linux_api::rtnetlink::{RTMGRP_IPV4_IFADDR, RTMGRP_IPV6_IFADDR, RTM_GETADDR, RTM_GETLINK};
+<span class="kw">use </span>linux_api::socket::Shutdown;
 <span class="kw">use </span>neli::consts::nl::{NlmF, NlmFFlags, Nlmsg};
 <span class="kw">use </span>neli::consts::rtnl::{
     Arphrd, Ifa, IfaF, IfaFFlags, Iff, IffFlags, Ifla, RtAddrFamily, RtScope, Rtm,
@@ -1299,7 +1302,7 @@
 <span class="kw">use </span>neli::rtnl::{Ifaddrmsg, Ifinfomsg, Rtattr};
 <span class="kw">use </span>neli::types::{Buffer, RtBuffer};
 <span class="kw">use </span>neli::{FromBytes, ToBytes};
-<span class="kw">use </span>nix::sys::socket::{MsgFlags, NetlinkAddr, Shutdown};
+<span class="kw">use </span>nix::sys::socket::{MsgFlags, NetlinkAddr};
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
@@ -1423,8 +1426,8 @@
         <span class="prelude-val">Err</span>(Errno::ENOSYS.into())
     }
 
-    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; nix::sys::socket::AddressFamily {
-        nix::sys::socket::AddressFamily::Netlink
+    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::socket::AddressFamily {
+        linux_api::socket::AddressFamily::AF_NETLINK
     }
 
     <span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
@@ -1958,13 +1961,13 @@
         </span><span class="kw">let </span>src_addr = SockaddrStorage::from_netlink(<span class="kw-2">&amp;</span>NetlinkAddr::new(<span class="number">0</span>, <span class="number">0</span>));
 
         <span class="kw">let </span>buffer = (|| {
-            <span class="comment">// TODO: Replace 16 with the size of nlmsghdr
-            </span><span class="kw">if </span>packet_buffer.len() &lt; <span class="number">16 </span>{
+            <span class="kw">if </span>packet_buffer.len() &lt; std::mem::size_of::&lt;nlmsghdr&gt;() {
                 <span class="macro">log::warn!</span>(<span class="string">"The processed packet is too short"</span>);
                 <span class="kw">return </span><span class="self">self</span>.handle_error(<span class="kw-2">&amp;</span>packet_buffer[..]);
             }
-            <span class="comment">// TODO: Replace 4..6 with `memoffset::span_of!` of the `nlmsg_type` field
-            </span><span class="kw">let </span>nlmsg_type = u16::from_le_bytes((<span class="kw-2">&amp;</span>packet_buffer[<span class="number">4</span>..<span class="number">6</span>]).try_into().unwrap());
+
+            <span class="kw">let </span>nlmsg_type = <span class="kw-2">&amp;</span>packet_buffer[<span class="macro">memoffset::span_of!</span>(nlmsghdr, nlmsg_type)];
+            <span class="kw">let </span>nlmsg_type = u16::from_ne_bytes(nlmsg_type.try_into().unwrap());
 
             <span class="kw">match </span>nlmsg_type {
                 RTM_GETLINK =&gt; <span class="self">self</span>.handle_ifinfomsg(common, <span class="kw-2">&amp;</span>packet_buffer[..]),
@@ -2010,9 +2013,8 @@
 
     <span class="kw">fn </span>handle_error(<span class="kw-2">&amp;</span><span class="self">self</span>, bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; Vec&lt;u8&gt; {
         <span class="comment">// If we can't get the pid, set it to zero
-        // TODO: Replace 8..12 with `memoffset::span_of!` of the `nlmsg_seq` field
-        </span><span class="kw">let </span>nlmsg_seq = <span class="kw">match </span>bytes.get(<span class="number">8</span>..<span class="number">12</span>) {
-            <span class="prelude-val">Some</span>(x) =&gt; u32::from_le_bytes(x.try_into().unwrap()),
+        </span><span class="kw">let </span>nlmsg_seq = <span class="kw">match </span>bytes.get(<span class="macro">memoffset::span_of!</span>(nlmsghdr, nlmsg_seq)) {
+            <span class="prelude-val">Some</span>(x) =&gt; u32::from_ne_bytes(x.try_into().unwrap()),
             <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
         };
 

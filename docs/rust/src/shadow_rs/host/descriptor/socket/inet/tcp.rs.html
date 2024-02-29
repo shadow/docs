@@ -1116,6 +1116,7 @@
 <a href="#1115" id="1115">1115</a>
 <a href="#1116" id="1116">1116</a>
 <a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::{Arc, Weak};
 
@@ -1123,7 +1124,8 @@
 <span class="kw">use </span>bytes::BytesMut;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
-<span class="kw">use </span>nix::sys::socket::{AddressFamily, MsgFlags, Shutdown, SockaddrIn};
+<span class="kw">use </span>linux_api::socket::Shutdown;
+<span class="kw">use </span>nix::sys::socket::{MsgFlags, SockaddrIn};
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
@@ -1436,8 +1438,8 @@
         // connection is successfully established.
     </span>}
 
-    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AddressFamily {
-        AddressFamily::Inet
+    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::socket::AddressFamily {
+        linux_api::socket::AddressFamily::AF_INET
     }
 
     <span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
@@ -1615,7 +1617,7 @@
             <span class="kw">let </span>num_recv = <span class="kw">match </span>rv {
                 <span class="prelude-val">Ok</span>(x) =&gt; x,
                 <span class="prelude-val">Err</span>(tcp::RecvError::Empty) =&gt; {
-                    <span class="kw">if </span>[Shutdown::Read, Shutdown::Both]
+                    <span class="kw">if </span>[Shutdown::SHUT_RD, Shutdown::SHUT_RDWR]
                         .map(<span class="prelude-val">Some</span>)
                         .contains(<span class="kw-2">&amp;</span>socket_ref.shutdown_status)
                     {
@@ -1941,24 +1943,24 @@
         // previously called and now shutdown(WR) has been called, we should call shutdown(RDWR) on
         // the tcp state.
         </span><span class="kw">let </span>how = <span class="kw">match </span>(how, <span class="self">self</span>.shutdown_status) {
-            <span class="comment">// if it was previously `Both`
-            </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(Shutdown::Both)) =&gt; Shutdown::Both,
-            <span class="comment">// if it's now `Both`
-            </span>(Shutdown::Both, <span class="kw">_</span>) =&gt; Shutdown::Both,
-            (Shutdown::Read, <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Shutdown::Read)) =&gt; Shutdown::Read,
-            (Shutdown::Read, <span class="prelude-val">Some</span>(Shutdown::Write)) =&gt; Shutdown::Both,
-            (Shutdown::Write, <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Shutdown::Write)) =&gt; Shutdown::Write,
-            (Shutdown::Write, <span class="prelude-val">Some</span>(Shutdown::Read)) =&gt; Shutdown::Both,
+            <span class="comment">// if it was previously `SHUT_RDWR`
+            </span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(Shutdown::SHUT_RDWR)) =&gt; Shutdown::SHUT_RDWR,
+            <span class="comment">// if it's now `SHUT_RDWR`
+            </span>(Shutdown::SHUT_RDWR, <span class="kw">_</span>) =&gt; Shutdown::SHUT_RDWR,
+            (Shutdown::SHUT_RD, <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Shutdown::SHUT_RD)) =&gt; Shutdown::SHUT_RD,
+            (Shutdown::SHUT_RD, <span class="prelude-val">Some</span>(Shutdown::SHUT_WR)) =&gt; Shutdown::SHUT_RDWR,
+            (Shutdown::SHUT_WR, <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Shutdown::SHUT_WR)) =&gt; Shutdown::SHUT_WR,
+            (Shutdown::SHUT_WR, <span class="prelude-val">Some</span>(Shutdown::SHUT_RD)) =&gt; Shutdown::SHUT_RDWR,
         };
 
         <span class="comment">// Linux and the tcp library interpret shutdown flags differently. In the tcp library,
-        // `tcp::Shutdown` has a very specific meaning for `Read` and `Write`, whereas Linux is
+        // `tcp::Shutdown` has a very specific meaning for `SHUT_RD` and `SHUT_WR`, whereas Linux is
         // undocumented and not straightforward. Here we try to map from the Linux behaviour to the
         // tcp library behaviour.
         </span><span class="kw">let </span>tcp_how = <span class="kw">match </span>how {
-            Shutdown::Read =&gt; <span class="prelude-val">None</span>,
-            Shutdown::Write =&gt; <span class="prelude-val">Some</span>(tcp::Shutdown::Write),
-            Shutdown::Both =&gt; <span class="prelude-val">Some</span>(tcp::Shutdown::Both),
+            Shutdown::SHUT_RD =&gt; <span class="prelude-val">None</span>,
+            Shutdown::SHUT_WR =&gt; <span class="prelude-val">Some</span>(tcp::Shutdown::Write),
+            Shutdown::SHUT_RDWR =&gt; <span class="prelude-val">Some</span>(tcp::Shutdown::Both),
         };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tcp_how) = tcp_how {

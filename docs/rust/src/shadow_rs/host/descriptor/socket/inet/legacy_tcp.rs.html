@@ -1293,6 +1293,7 @@
 <a href="#1292" id="1292">1292</a>
 <a href="#1293" id="1293">1293</a>
 <a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::CStr;
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::Arc;
@@ -1300,7 +1301,8 @@
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
-<span class="kw">use </span>nix::sys::socket::{MsgFlags, Shutdown, SockaddrIn};
+<span class="kw">use </span>linux_api::socket::Shutdown;
+<span class="kw">use </span>nix::sys::socket::{MsgFlags, SockaddrIn};
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 
@@ -1515,8 +1517,8 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(addr.into()))
     }
 
-    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; nix::sys::socket::AddressFamily {
-        nix::sys::socket::AddressFamily::Inet
+    <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::socket::AddressFamily {
+        linux_api::socket::AddressFamily::AF_INET
     }
 
     <span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
@@ -2240,9 +2242,9 @@
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>how = <span class="kw">match </span>how {
-            Shutdown::Read =&gt; libc::SHUT_RD,
-            Shutdown::Write =&gt; libc::SHUT_WR,
-            Shutdown::Both =&gt; libc::SHUT_RDWR,
+            Shutdown::SHUT_RD =&gt; libc::SHUT_RD,
+            Shutdown::SHUT_WR =&gt; libc::SHUT_WR,
+            Shutdown::SHUT_RDWR =&gt; libc::SHUT_RDWR,
         };
 
         <span class="kw">let </span>errcode = Worker::with_active_host(|host| <span class="kw">unsafe </span>{
