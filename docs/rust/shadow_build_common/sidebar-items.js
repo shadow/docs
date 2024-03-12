@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ShadowBuildCommon"],"trait":["CBindgenExt"]};
+window.SIDEBAR_ITEMS = {"struct":["ShadowBuildCommon"]};
