@@ -2261,27 +2261,6 @@
 <a href="#2259" id="2259">2259</a>
 <a href="#2260" id="2260">2260</a>
 <a href="#2261" id="2261">2261</a>
-<a href="#2262" id="2262">2262</a>
-<a href="#2263" id="2263">2263</a>
-<a href="#2264" id="2264">2264</a>
-<a href="#2265" id="2265">2265</a>
-<a href="#2266" id="2266">2266</a>
-<a href="#2267" id="2267">2267</a>
-<a href="#2268" id="2268">2268</a>
-<a href="#2269" id="2269">2269</a>
-<a href="#2270" id="2270">2270</a>
-<a href="#2271" id="2271">2271</a>
-<a href="#2272" id="2272">2272</a>
-<a href="#2273" id="2273">2273</a>
-<a href="#2274" id="2274">2274</a>
-<a href="#2275" id="2275">2275</a>
-<a href="#2276" id="2276">2276</a>
-<a href="#2277" id="2277">2277</a>
-<a href="#2278" id="2278">2278</a>
-<a href="#2279" id="2279">2279</a>
-<a href="#2280" id="2280">2280</a>
-<a href="#2281" id="2281">2281</a>
-<a href="#2282" id="2282">2282</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux process.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut};
@@ -4230,7 +4209,6 @@
     <span class="kw">use </span>std::os::raw::c_void;
 
     <span class="kw">use </span>libc::size_t;
-    <span class="kw">use </span>linux_api::signal::linux_siginfo_t;
     <span class="kw">use </span>log::trace;
     <span class="kw">use </span>shadow_shim_helper_rs::notnull::<span class="kw-2">*</span>;
     <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemProcess;
@@ -4510,26 +4488,6 @@
     ) -&gt; ManagedPhysicalMemoryAddr {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.physical_address(vptr)
-    }
-
-    <span class="doccomment">/// Send the signal described in `siginfo` to `process`. `currentRunningThread`
-    /// should be set if there is one (e.g. if this is being called from a syscall
-    /// handler), and NULL otherwise (e.g. when called from a timer expiration event).
-    ///
-    /// # Safety
-    ///
-    /// Mandatory fields of `siginfo` must be initd.
-    </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_signal(
-        target_proc: <span class="kw-2">*const </span>Process,
-        current_running_thread: <span class="kw-2">*const </span>Thread,
-        siginfo_t: <span class="kw-2">*const </span>linux_siginfo_t,
-    ) {
-        <span class="kw">let </span>target_proc = <span class="kw">unsafe </span>{ target_proc.as_ref().unwrap() };
-        <span class="kw">let </span>current_running_thread = <span class="kw">unsafe </span>{ current_running_thread.as_ref() };
-        <span class="kw">let </span>siginfo_t = <span class="kw">unsafe </span>{ siginfo_t::wrap_ref_assume_initd(siginfo_t.as_ref().unwrap()) };
-        Worker::with_active_host(|host| target_proc.signal(host, current_running_thread, siginfo_t))
-            .unwrap()
     }
 
     <span class="attr">#[no_mangle]

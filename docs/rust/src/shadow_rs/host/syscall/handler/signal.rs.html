@@ -87,11 +87,81 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
+<span class="kw">use </span>linux_api::signal::{siginfo_t, Signal};
+<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 <span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
+<span class="kw">use </span><span class="kw">crate</span>::host::process::Process;
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler, ThreadContext};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 
 <span class="kw">impl </span>SyscallHandler {
@@ -99,11 +169,75 @@
                   <span class="comment">/* sig */ </span>std::ffi::c_int)]
     </span><span class="kw">pub fn </span>kill(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
-        _pid: linux_api::posix_types::kernel_pid_t,
-        _sig: std::ffi::c_int,
+        pid: linux_api::posix_types::kernel_pid_t,
+        sig: std::ffi::c_int,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
-        <span class="kw">let </span>rv = <span class="self">Self</span>::legacy_syscall(c::syscallhandler_kill, ctx)<span class="question-mark">?</span>;
-        <span class="macro">assert_eq!</span>(<span class="number">0</span>, i32::from(rv));
+        <span class="macro">log::trace!</span>(<span class="string">"kill called on pid {pid} with signal {sig}"</span>);
+
+        <span class="kw">let </span>pid = <span class="kw">if </span>pid == -<span class="number">1 </span>{
+            <span class="comment">// kill(2): If pid equals -1, then sig is sent to every process for which the calling
+            // process has permission to send signals, except for process 1.
+            //
+            // Currently unimplemented, and unlikely to be needed in the context of a shadow
+            // simulation.
+            </span><span class="macro">log::warn!</span>(<span class="string">"kill with pid=-1 unimplemented"</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+        } <span class="kw">else if </span>pid == <span class="number">0 </span>{
+            <span class="comment">// kill(2): If pid equals 0, then sig is sent to every process in the process group of
+            // the calling process.
+            //
+            // Currently every emulated process is in its own process group.
+            //
+            // FIXME: The above comment is no longer true since implementing fork(). See
+            // https://github.com/shadow/shadow/issues/3315
+            </span>ctx.objs.process.id()
+        } <span class="kw">else if </span>pid &lt; -<span class="number">1 </span>{
+            <span class="comment">// kill(2): If pid is less than -1, then sig is sent to every process in the process
+            // group whose ID is -pid.
+            //
+            // Currently every emulated process is in its own process group, where pgid=pid.
+            //
+            // FIXME: The above comment is no longer true since implementing fork(). See
+            // https://github.com/shadow/shadow/issues/3315
+            </span>(-pid).try_into().or(<span class="prelude-val">Err</span>(Errno::ESRCH))<span class="question-mark">?
+        </span>} <span class="kw">else </span>{
+            pid.try_into().or(<span class="prelude-val">Err</span>(Errno::ESRCH))<span class="question-mark">?
+        </span>};
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(target_process) = ctx.objs.host.process_borrow(pid) <span class="kw">else </span>{
+            <span class="macro">log::debug!</span>(<span class="string">"Process {pid} not found"</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH.into());
+        };
+        <span class="kw">let </span>target_process = <span class="kw-2">&amp;*</span>target_process.borrow(ctx.objs.host.root());
+
+        <span class="self">Self</span>::signal_process(ctx.objs, target_process, sig)
+    }
+
+    <span class="doccomment">/// Send a signal to `target_process` from the thread and process in `objs`. A signal of 0 will
+    /// be ignored.
+    </span><span class="kw">fn </span>signal_process(
+        objs: <span class="kw-2">&amp;</span>ThreadContext,
+        target_process: <span class="kw-2">&amp;</span>Process,
+        signal: std::ffi::c_int,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+        <span class="kw">if </span>signal == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
+
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(signal) = Signal::try_from(signal) <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+        };
+
+        <span class="kw">if </span>signal.is_realtime() {
+            <span class="macro">log::warn!</span>(<span class="string">"Unimplemented signal {signal:?}"</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+        }
+
+        <span class="kw">let </span>sender_pid = objs.process.id().into();
+        <span class="kw">let </span>siginfo = siginfo_t::new_for_kill(signal, sender_pid, <span class="number">0</span>);
+
+        target_process.signal(objs.host, <span class="prelude-val">Some</span>(objs.thread), <span class="kw-2">&amp;</span>siginfo);
+
         <span class="prelude-val">Ok</span>(())
     }
 
