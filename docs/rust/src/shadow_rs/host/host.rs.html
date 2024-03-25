@@ -1440,6 +1440,19 @@
 <a href="#1438" id="1438">1438</a>
 <a href="#1439" id="1439">1439</a>
 <a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut, UnsafeCell};
@@ -1486,7 +1499,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::network::interface::{FifoPacketPriority, NetworkInterface, PcapOptions};
 <span class="kw">use </span><span class="kw">crate</span>::host::network::namespace::NetworkNamespace;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::Process;
-<span class="kw">use </span><span class="kw">crate</span>::host::thread::ThreadId;
+<span class="kw">use </span><span class="kw">crate</span>::host::thread::{Thread, ThreadId};
 <span class="kw">use </span><span class="kw">crate</span>::network::relay::{RateLimit, Relay};
 <span class="kw">use </span><span class="kw">crate</span>::network::router::Router;
 <span class="kw">use </span><span class="kw">crate</span>::network::PacketDevice;
@@ -2319,6 +2332,22 @@
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.shim_shmem.get() }
     }
 
+    <span class="doccomment">/// Returns the specified thread if it exists. If you already have the thread's process,
+    /// [`Process::thread_borrow`] may be more efficient.
+    </span><span class="kw">pub fn </span>thread_cloned_rc(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        virtual_tid: ThreadId,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt; {
+        <span class="kw">for </span>process <span class="kw">in </span><span class="self">self</span>.processes.borrow().values() {
+            <span class="kw">let </span>process = process.borrow(<span class="self">self</span>.root());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(thread) = process.thread_borrow(virtual_tid) {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(RootedRc::clone(<span class="kw-2">&amp;*</span>thread, <span class="self">self</span>.root()));
+            };
+        }
+
+        <span class="prelude-val">None
+    </span>}
+
     <span class="doccomment">/// Returns `true` if the host has a process that contains the specified thread.
     </span><span class="kw">pub fn </span>has_thread(<span class="kw-2">&amp;</span><span class="self">self</span>, virtual_tid: ThreadId) -&gt; bool {
         <span class="kw">for </span>process <span class="kw">in </span><span class="self">self</span>.processes.borrow().values() {
@@ -2483,10 +2512,7 @@
     <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem;
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use crate</span>::{
-        cshadow::{CEmulatedTime, CSimulationTime},
-        host::thread::Thread,
-    };
+    <span class="kw">use </span><span class="kw">crate</span>::cshadow::{CEmulatedTime, CSimulationTime};
 
     <span class="attr">#[no_mangle]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_execute(hostrc: <span class="kw-2">*const </span>Host, until: CEmulatedTime) {
