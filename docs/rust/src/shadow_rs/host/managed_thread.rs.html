@@ -813,13 +813,13 @@
     ShimEventAddThreadReq, ShimEventAddThreadRes, ShimEventSyscall, ShimEventSyscallComplete,
     ShimEventToShadow, ShimEventToShim,
 };
-<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{ForeignPtr, SysCallArgs, SysCallReg};
+<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{ForeignPtr, SyscallArgs, SyscallReg};
 <span class="kw">use </span>shadow_shmem::allocator::ShMemBlock;
 <span class="kw">use </span>vasi_sync::scchannel::SelfContainedChannelError;
 
 <span class="kw">use </span><span class="kw">super</span>::context::ThreadContext;
 <span class="kw">use </span><span class="kw">super</span>::host::Host;
-<span class="kw">use </span><span class="kw">super</span>::syscall::condition::SysCallCondition;
+<span class="kw">use </span><span class="kw">super</span>::syscall::condition::SyscallCondition;
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::{Worker, WORKER_SHARED};
 <span class="kw">use </span><span class="kw">crate</span>::cshadow;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::SyscallHandler;
@@ -830,8 +830,8 @@
 </span><span class="attr">#[derive(Debug)]
 #[must_use]
 </span><span class="kw">pub enum </span>ResumeResult {
-    <span class="doccomment">/// Blocked on a SysCallCondition.
-    </span>Blocked(SysCallCondition),
+    <span class="doccomment">/// Blocked on a SyscallCondition.
+    </span>Blocked(SyscallCondition),
     <span class="doccomment">/// The native thread has exited with the given code.
     </span>ExitedThread(i32),
     <span class="doccomment">/// The thread's process has exited.
@@ -869,10 +869,10 @@
     ///
     /// Panics if the native thread is dead or dies during the syscall,
     /// including if the syscall itself is SYS_exit or SYS_exit_group.
-    </span><span class="kw">pub fn </span>native_syscall(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>ThreadContext, n: i64, args: <span class="kw-2">&amp;</span>[SysCallReg]) -&gt; SysCallReg {
-        <span class="kw">let </span><span class="kw-2">mut </span>syscall_args = SysCallArgs {
+    </span><span class="kw">pub fn </span>native_syscall(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>ThreadContext, n: i64, args: <span class="kw-2">&amp;</span>[SyscallReg]) -&gt; SyscallReg {
+        <span class="kw">let </span><span class="kw-2">mut </span>syscall_args = SyscallArgs {
             number: n,
-            args: [SysCallReg::from(<span class="number">0u64</span>); <span class="number">6</span>],
+            args: [SyscallReg::from(<span class="number">0u64</span>); <span class="number">6</span>],
         };
         syscall_args.args[..args.len()].copy_from_slice(args);
         <span class="kw">match </span><span class="self">self</span>.continue_plugin(
@@ -1079,7 +1079,7 @@
                     <span class="kw">match </span>scr {
                         SyscallReturn::Block(b) =&gt; {
                             <span class="kw">return </span>ResumeResult::Blocked(<span class="kw">unsafe </span>{
-                                SysCallCondition::consume_from_c(b.cond)
+                                SyscallCondition::consume_from_c(b.cond)
                             })
                         }
                         SyscallReturn::Done(d) =&gt; <span class="self">self</span>.continue_plugin(
@@ -1166,7 +1166,7 @@
             ShimEventToShadow::AddThreadRes(ShimEventAddThreadRes { clone_res }) =&gt; clone_res,
             r =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected result: {r:?}"</span>),
         };
-        <span class="kw">let </span>clone_res: SysCallReg = syscall::raw_return_value_to_result(clone_res)<span class="question-mark">?</span>;
+        <span class="kw">let </span>clone_res: SyscallReg = syscall::raw_return_value_to_result(clone_res)<span class="question-mark">?</span>;
         <span class="kw">let </span>child_native_tid = libc::pid_t::from(clone_res);
         <span class="macro">trace!</span>(<span class="string">"native clone treated tid {child_native_tid}"</span>);
 

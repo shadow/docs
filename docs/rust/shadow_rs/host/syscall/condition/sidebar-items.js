@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["SysCallCondition","SysCallConditionRef","SysCallConditionRefMut"]};
+window.SIDEBAR_ITEMS = {"struct":["SyscallCondition","SyscallConditionRef","SyscallConditionRefMut"]};

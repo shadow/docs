@@ -247,7 +247,7 @@
     ShimEventAddThreadRes, ShimEventSyscall, ShimEventSyscallComplete, ShimEventToShadow,
     ShimEventToShim,
 };
-<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{SysCallArgs, SysCallReg};
+<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{SyscallArgs, SyscallReg};
 <span class="kw">use </span>shadow_shim_helper_rs::util::time::TimeParts;
 
 <span class="kw">use crate</span>::{bindings, global_host_shmem, tls_ipc, tls_thread_shmem};
@@ -255,7 +255,7 @@
 <span class="doccomment">/// # Safety
 ///
 /// The specified syscall must be safe to make.
-</span><span class="kw">unsafe fn </span>native_syscall(args: <span class="kw-2">&amp;</span>SysCallArgs) -&gt; SysCallReg {
+</span><span class="kw">unsafe fn </span>native_syscall(args: <span class="kw-2">&amp;</span>SyscallArgs) -&gt; SyscallReg {
     <span class="kw">if </span>args.number == libc::SYS_clone {
         <span class="macro">panic!</span>(<span class="string">"Shouldn't get here. Should have gone through ShimEventAddThreadReq"</span>);
     } <span class="kw">else if </span>args.number == libc::SYS_exit {
@@ -291,7 +291,7 @@
 </span><span class="kw">unsafe fn </span>emulated_syscall_event(
     <span class="kw-2">mut </span>ctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ucontext&gt;,
     syscall_event: <span class="kw-2">&amp;</span>ShimEventSyscall,
-) -&gt; SysCallReg {
+) -&gt; SyscallReg {
     <span class="macro">log::trace!</span>(
         <span class="string">"sending syscall {} event"</span>,
         syscall_event.syscall_args.number
@@ -423,14 +423,14 @@
     ) -&gt; core::ffi::c_long {
         <span class="kw">let </span>old_native_syscall_flag = <span class="kw">crate</span>::tls_allow_native_syscalls::swap(<span class="bool-val">true</span>);
 
-        <span class="kw">let </span>syscall_args = SysCallArgs {
+        <span class="kw">let </span>syscall_args = SyscallArgs {
             number: n,
             args: core::array::from_fn(|<span class="kw">_</span>| {
                 <span class="comment">// SAFETY: syscall args all "fit" in an i64. Reading more arguments
                 // than actually provided is sound because any bit pattern is a
                 // valid i64.
                 </span><span class="kw">let </span>arg = <span class="kw">unsafe </span>{ args.get::&lt;i64&gt;() };
-                SysCallReg::from(arg)
+                SyscallReg::from(arg)
             }),
         };
 
@@ -453,14 +453,14 @@
         n: core::ffi::c_long,
         <span class="kw-2">mut </span>args: va_list::VaList,
     ) -&gt; core::ffi::c_long {
-        <span class="kw">let </span>syscall_args = SysCallArgs {
+        <span class="kw">let </span>syscall_args = SyscallArgs {
             number: n,
             args: core::array::from_fn(|<span class="kw">_</span>| {
                 <span class="comment">// SAFETY: syscall args all "fit" in an i64. Reading more arguments
                 // than actually provided is sound because any bit pattern is a
                 // valid i64.
                 </span><span class="kw">let </span>arg = <span class="kw">unsafe </span>{ args.get::&lt;i64&gt;() };
-                SysCallReg::from(arg)
+                SyscallReg::from(arg)
             }),
         };
         <span class="comment">// SAFETY: Ensured by caller.

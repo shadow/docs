@@ -834,7 +834,7 @@
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::{HostShmemProtected, ThreadShmem};
-<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{ForeignPtr, SysCallReg};
+<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{ForeignPtr, SyscallReg};
 <span class="kw">use </span>shadow_shim_helper_rs::util::SendPointer;
 <span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shmem::allocator::{shmalloc, ShMemBlock};
@@ -845,7 +845,7 @@
 <span class="kw">use </span><span class="kw">super</span>::managed_thread::{<span class="self">self</span>, ManagedThread};
 <span class="kw">use </span><span class="kw">super</span>::process::{Process, ProcessId};
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::condition::{SysCallConditionRef, SysCallConditionRefMut};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::condition::{SyscallConditionRef, SyscallConditionRefMut};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::SyscallHandler;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 <span class="kw">use </span><span class="kw">crate</span>::utility::{syscall, IsSend, ObjectCounter};
@@ -880,8 +880,8 @@
     // any RootedRc members we could get rid of the requirement to explicitly
     // drop Thread.
     </span>desc_table: <span class="prelude-ty">Option</span>&lt;RootedRc&lt;RootedRefCell&lt;DescriptorTable&gt;&gt;&gt;,
-    <span class="comment">// TODO: convert to SysCallCondition (Rust wrapper for c::SysCallCondition).
-    // Non-trivial because SysCallCondition is currently not `Send`.
+    <span class="comment">// TODO: convert to SyscallCondition (Rust wrapper for c::SysCallCondition).
+    // Non-trivial because SyscallCondition is currently not `Send`.
     </span>cond: Cell&lt;SendPointer&lt;c::SysCallCondition&gt;&gt;,
     <span class="doccomment">/// The native, managed thread
     </span>mthread: RefCell&lt;ManagedThread&gt;,
@@ -996,7 +996,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>ProcessContext,
         n: i64,
-        args: <span class="kw-2">&amp;</span>[SysCallReg],
+        args: <span class="kw-2">&amp;</span>[SyscallReg],
     ) -&gt; libc::c_long {
         <span class="self">self</span>.mthread
             .borrow()
@@ -1009,8 +1009,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>ProcessContext,
         n: i64,
-        args: <span class="kw-2">&amp;</span>[SysCallReg],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SysCallReg, Errno&gt; {
+        args: <span class="kw-2">&amp;</span>[SyscallReg],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SyscallReg, Errno&gt; {
         syscall::raw_return_value_to_result(<span class="self">self</span>.native_syscall_raw(ctx, n, args))
     }
 
@@ -1040,7 +1040,7 @@
         <span class="self">self</span>.id == <span class="self">self</span>.process_id.into()
     }
 
-    <span class="kw">pub fn </span>syscall_condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SysCallConditionRef&gt; {
+    <span class="kw">pub fn </span>syscall_condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SyscallConditionRef&gt; {
         <span class="comment">// We check the for null explicitly here instead of using `as_mut` to
         // construct and match an `Option&lt;&amp;mut c::SysCallCondition&gt;`, since it's
         // difficult to ensure we're not breaking any Rust aliasing rules when
@@ -1049,18 +1049,18 @@
         <span class="kw">if </span>c.is_null() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ SysCallConditionRef::borrow_from_c(c) })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ SyscallConditionRef::borrow_from_c(c) })
         }
     }
 
-    <span class="kw">pub fn </span>syscall_condition_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SysCallConditionRefMut&gt; {
+    <span class="kw">pub fn </span>syscall_condition_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SyscallConditionRefMut&gt; {
         <span class="comment">// We can't safely use `as_mut` here, since that would construct a mutable reference,
         // and we can't prove no other reference exists.
         </span><span class="kw">let </span>c = <span class="self">self</span>.cond.get().ptr();
         <span class="kw">if </span>c.is_null() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ SysCallConditionRefMut::borrow_from_c(c) })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ SyscallConditionRefMut::borrow_from_c(c) })
         }
     }
 
@@ -1123,12 +1123,12 @@
                 ctx,
                 libc::SYS_mmap,
                 <span class="kw-2">&amp;</span>[
-                    SysCallReg::from(addr),
-                    SysCallReg::from(len),
-                    SysCallReg::from(prot),
-                    SysCallReg::from(flags),
-                    SysCallReg::from(fd),
-                    SysCallReg::from(offset),
+                    SyscallReg::from(addr),
+                    SyscallReg::from(len),
+                    SyscallReg::from(prot),
+                    SyscallReg::from(flags),
+                    SyscallReg::from(fd),
+                    SyscallReg::from(offset),
                 ],
             )<span class="question-mark">?
             </span>.into())
@@ -1149,11 +1149,11 @@
                 ctx,
                 libc::SYS_mremap,
                 <span class="kw-2">&amp;</span>[
-                    SysCallReg::from(old_addr),
-                    SysCallReg::from(old_len),
-                    SysCallReg::from(new_len),
-                    SysCallReg::from(flags),
-                    SysCallReg::from(new_addr),
+                    SyscallReg::from(old_addr),
+                    SyscallReg::from(old_len),
+                    SyscallReg::from(new_len),
+                    SyscallReg::from(flags),
+                    SyscallReg::from(new_addr),
                 ],
             )<span class="question-mark">?
             </span>.into())
@@ -1171,9 +1171,9 @@
             ctx,
             libc::SYS_mprotect,
             <span class="kw-2">&amp;</span>[
-                SysCallReg::from(addr),
-                SysCallReg::from(len),
-                SysCallReg::from(prot),
+                SyscallReg::from(addr),
+                SyscallReg::from(len),
+                SyscallReg::from(prot),
             ],
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -1191,9 +1191,9 @@
             ctx,
             libc::SYS_open,
             <span class="kw-2">&amp;</span>[
-                SysCallReg::from(pathname),
-                SysCallReg::from(flags),
-                SysCallReg::from(mode),
+                SyscallReg::from(pathname),
+                SyscallReg::from(flags),
+                SyscallReg::from(mode),
             ],
         );
         <span class="prelude-val">Ok</span>(i32::from(res<span class="question-mark">?</span>))
@@ -1201,7 +1201,7 @@
 
     <span class="doccomment">/// Natively execute close(2) on the given thread.
     </span><span class="kw">pub fn </span>native_close(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>ProcessContext, fd: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
-        <span class="self">self</span>.native_syscall(ctx, libc::SYS_close, <span class="kw-2">&amp;</span>[SysCallReg::from(fd)])<span class="question-mark">?</span>;
+        <span class="self">self</span>.native_syscall(ctx, libc::SYS_close, <span class="kw-2">&amp;</span>[SyscallReg::from(fd)])<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1211,7 +1211,7 @@
         ctx: <span class="kw-2">&amp;</span>ProcessContext,
         addr: ForeignPtr&lt;u8&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ForeignPtr&lt;u8&gt;, Errno&gt; {
-        <span class="kw">let </span>res = <span class="self">self</span>.native_syscall(ctx, libc::SYS_brk, <span class="kw-2">&amp;</span>[SysCallReg::from(addr)])<span class="question-mark">?</span>;
+        <span class="kw">let </span>res = <span class="self">self</span>.native_syscall(ctx, libc::SYS_brk, <span class="kw-2">&amp;</span>[SyscallReg::from(addr)])<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(ForeignPtr::from(res))
     }
 
@@ -1445,12 +1445,12 @@
     </span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_nativeSyscall(
         thread: <span class="kw-2">*const </span>Thread,
         n: libc::c_long,
-        arg1: SysCallReg,
-        arg2: SysCallReg,
-        arg3: SysCallReg,
-        arg4: SysCallReg,
-        arg5: SysCallReg,
-        arg6: SysCallReg,
+        arg1: SyscallReg,
+        arg2: SyscallReg,
+        arg3: SyscallReg,
+        arg4: SyscallReg,
+        arg5: SyscallReg,
+        arg6: SyscallReg,
     ) -&gt; libc::c_long {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         Worker::with_active_host(|host| {

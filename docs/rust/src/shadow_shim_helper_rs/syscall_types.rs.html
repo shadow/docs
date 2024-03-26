@@ -732,17 +732,17 @@
 
 <span class="attr">#[derive(Copy, Clone, Debug, VirtualAddressSpaceIndependent)]
 #[repr(C)]
-</span><span class="kw">pub struct </span>SysCallArgs {
+</span><span class="kw">pub struct </span>SyscallArgs {
     <span class="comment">// SYS_* from sys/syscall.h.
     // (mostly included from
     // /usr/include/x86_64-linux-gnu/bits/syscall.h)
     </span><span class="kw">pub </span>number: libc::c_long,
-    <span class="kw">pub </span>args: [SysCallReg; <span class="number">6</span>],
+    <span class="kw">pub </span>args: [SyscallReg; <span class="number">6</span>],
 }
 
-<span class="kw">impl </span>SysCallArgs {
+<span class="kw">impl </span>SyscallArgs {
     <span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; SysCallReg {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; SyscallReg {
         <span class="self">self</span>.args[i]
     }
     <span class="attr">#[inline]
@@ -754,146 +754,146 @@
 <span class="doccomment">/// A register used for input/output in a syscall.
 </span><span class="attr">#[derive(Copy, Clone, Eq, VirtualAddressSpaceIndependent)]
 #[repr(C)]
-</span><span class="kw">pub union </span>SysCallReg {
+</span><span class="kw">pub union </span>SyscallReg {
     as_i64: i64,
     as_u64: u64,
     as_ptr: UntypedForeignPtr,
 }
-<span class="comment">// SysCallReg and all of its fields must be transmutable with a 64 bit integer.
+<span class="comment">// SyscallReg and all of its fields must be transmutable with a 64 bit integer.
 // TODO: Store as a single `u64` and explicitly transmute in the conversion
 // operations.  This requires getting rid of the direct field access in our C
 // code.
-</span><span class="macro">static_assertions::assert_eq_align!</span>(SysCallReg, u64);
-<span class="macro">static_assertions::assert_eq_size!</span>(SysCallReg, u64);
+</span><span class="macro">static_assertions::assert_eq_align!</span>(SyscallReg, u64);
+<span class="macro">static_assertions::assert_eq_size!</span>(SyscallReg, u64);
 
-<span class="kw">impl </span>PartialEq <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="kw">unsafe </span>{ <span class="self">self</span>.as_u64 == other.as_u64 }
     }
 }
 
-<span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>From&lt;u64&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(v: u64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ as_u64: v }
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>u64 {
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>u64 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(v: SysCallReg) -&gt; u64 {
+    </span><span class="kw">fn </span>from(v: SyscallReg) -&gt; u64 {
         <span class="kw">unsafe </span>{ v.as_u64 }
     }
 }
 
-<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(v: u32) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ as_u64: v <span class="kw">as </span>u64 }
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>u32 {
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>u32 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(v: SysCallReg) -&gt; u32 {
+    </span><span class="kw">fn </span>from(v: SyscallReg) -&gt; u32 {
         (<span class="kw">unsafe </span>{ v.as_u64 }) <span class="kw">as </span>u32
     }
 }
 
-<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(v: usize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ as_u64: v <span class="kw">as </span>u64 }
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>usize {
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>usize {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(v: SysCallReg) -&gt; usize {
+    </span><span class="kw">fn </span>from(v: SyscallReg) -&gt; usize {
         <span class="kw">unsafe </span>{ v.as_u64 <span class="kw">as </span>usize }
     }
 }
 
-<span class="kw">impl </span>From&lt;isize&gt; <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>From&lt;isize&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(v: isize) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ as_i64: v <span class="kw">as </span>i64 }
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>isize {
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>isize {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(v: SysCallReg) -&gt; isize {
+    </span><span class="kw">fn </span>from(v: SyscallReg) -&gt; isize {
         <span class="kw">unsafe </span>{ v.as_i64 <span class="kw">as </span>isize }
     }
 }
 
-<span class="kw">impl </span>From&lt;i64&gt; <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>From&lt;i64&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(v: i64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ as_i64: v }
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>i64 {
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>i64 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(v: SysCallReg) -&gt; i64 {
+    </span><span class="kw">fn </span>from(v: SyscallReg) -&gt; i64 {
         <span class="kw">unsafe </span>{ v.as_i64 }
     }
 }
 
-<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(v: i32) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ as_i64: v <span class="kw">as </span>i64 }
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>i32 {
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>i32 {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(v: SysCallReg) -&gt; i32 {
+    </span><span class="kw">fn </span>from(v: SyscallReg) -&gt; i32 {
         (<span class="kw">unsafe </span>{ v.as_i64 }) <span class="kw">as </span>i32
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>u8 {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>u8 {
     <span class="kw">type </span>Error = &lt;u8 <span class="kw">as </span>TryFrom&lt;u64&gt;&gt;::Error;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_from(v: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;u8, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>try_from(v: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;u8, <span class="self">Self</span>::Error&gt; {
         (<span class="kw">unsafe </span>{ v.as_u64 }).try_into()
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>u16 {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>u16 {
     <span class="kw">type </span>Error = &lt;u16 <span class="kw">as </span>TryFrom&lt;u64&gt;&gt;::Error;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_from(v: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;u16, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>try_from(v: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;u16, <span class="self">Self</span>::Error&gt; {
         (<span class="kw">unsafe </span>{ v.as_u64 }).try_into()
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>i8 {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>i8 {
     <span class="kw">type </span>Error = &lt;i8 <span class="kw">as </span>TryFrom&lt;i64&gt;&gt;::Error;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_from(v: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;i8, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>try_from(v: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;i8, <span class="self">Self</span>::Error&gt; {
         (<span class="kw">unsafe </span>{ v.as_i64 }).try_into()
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>i16 {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>i16 {
     <span class="kw">type </span>Error = &lt;i16 <span class="kw">as </span>TryFrom&lt;i64&gt;&gt;::Error;
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>try_from(v: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;i16, <span class="self">Self</span>::Error&gt; {
+    </span><span class="kw">fn </span>try_from(v: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;i16, <span class="self">Self</span>::Error&gt; {
         (<span class="kw">unsafe </span>{ v.as_i64 }).try_into()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; From&lt;ForeignPtr&lt;T&gt;&gt; <span class="kw">for </span>SysCallReg {
+<span class="kw">impl</span>&lt;T&gt; From&lt;ForeignPtr&lt;T&gt;&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(v: ForeignPtr&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -902,32 +902,32 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; From&lt;SysCallReg&gt; <span class="kw">for </span>ForeignPtr&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; From&lt;SyscallReg&gt; <span class="kw">for </span>ForeignPtr&lt;T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(v: SysCallReg) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(v: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="comment">// This allows rust to infer the type for the cast. This isn't ideal since we generally want
         // to require that the user be explicit about casts (for example we use the
         // `NoTypeInference` trait on `ForeignPtr::cast`), but we need this type inference so that
-        // `SyscallHandlerFn` can convert the `SysCallReg` to the correct pointer type in syscall
+        // `SyscallHandlerFn` can convert the `SyscallReg` to the correct pointer type in syscall
         // handler arguments.
         </span>(<span class="kw">unsafe </span>{ v.as_ptr }).cast::&lt;T&gt;()
     }
 }
 
 <span class="comment">// Useful for syscalls whose strongly-typed wrappers return some Result&lt;(), ErrType&gt;
-</span><span class="kw">impl </span>From&lt;()&gt; <span class="kw">for </span>SysCallReg {
+</span><span class="kw">impl </span>From&lt;()&gt; <span class="kw">for </span>SyscallReg {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(<span class="kw">_</span>: ()) -&gt; SysCallReg {
-        SysCallReg { as_i64: <span class="number">0 </span>}
+    </span><span class="kw">fn </span>from(<span class="kw">_</span>: ()) -&gt; SyscallReg {
+        SyscallReg { as_i64: <span class="number">0 </span>}
     }
 }
 
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SysCallReg {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SyscallReg {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="comment">// prepare the pointer for formatting
         </span><span class="kw">let </span>as_ptr = DebugFormatter(<span class="kw">move </span>|fmt| <span class="macro">write!</span>(fmt, <span class="string">"{:p}"</span>, <span class="kw">unsafe </span>{ <span class="self">self</span>.as_ptr }));
 
-        f.debug_struct(<span class="string">"SysCallReg"</span>)
+        f.debug_struct(<span class="string">"SyscallReg"</span>)
             .field(<span class="string">"as_i64"</span>, <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span><span class="self">self</span>.as_i64 })
             .field(<span class="string">"as_u64"</span>, <span class="kw">unsafe </span>{ <span class="kw-2">&amp;</span><span class="self">self</span>.as_u64 })
             .field(<span class="string">"as_ptr"</span>, <span class="kw-2">&amp;</span>as_ptr)
@@ -935,88 +935,88 @@
     }
 }
 
-<span class="comment">// implement conversions from `SysCallReg`
+<span class="comment">// implement conversions from `SyscallReg`
 
-</span><span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::sched::CloneFlags {
-    <span class="kw">fn </span>from(value: SysCallReg) -&gt; <span class="self">Self </span>{
+</span><span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::sched::CloneFlags {
+    <span class="kw">fn </span>from(value: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_bits_retain(value.into())
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::fcntl::OFlag {
-    <span class="kw">fn </span>from(reg: SysCallReg) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::fcntl::OFlag {
+    <span class="kw">fn </span>from(reg: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_bits_retain(reg.into())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>nix::sys::eventfd::EfdFlags {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>nix::sys::eventfd::EfdFlags {
     <span class="kw">type </span>Error = ();
-    <span class="kw">fn </span>try_from(reg: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(reg: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::from_bits(reg.into()).ok_or(())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::socket::AddressFamily {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::socket::AddressFamily {
     <span class="kw">type </span>Error = ();
-    <span class="kw">fn </span>try_from(reg: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(reg: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(u16::try_from(reg).or(<span class="prelude-val">Err</span>(()))<span class="question-mark">?</span>.into())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>nix::sys::socket::MsgFlags {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>nix::sys::socket::MsgFlags {
     <span class="kw">type </span>Error = ();
-    <span class="kw">fn </span>try_from(reg: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(reg: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::from_bits(reg.into()).ok_or(())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>nix::sys::stat::Mode {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>nix::sys::stat::Mode {
     <span class="kw">type </span>Error = ();
-    <span class="kw">fn </span>try_from(reg: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(reg: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::from_bits(reg.into()).ok_or(())
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::mman::ProtFlags {
-    <span class="kw">fn </span>from(reg: SysCallReg) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::mman::ProtFlags {
+    <span class="kw">fn </span>from(reg: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_bits_retain(reg.into())
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::mman::MapFlags {
-    <span class="kw">fn </span>from(reg: SysCallReg) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::mman::MapFlags {
+    <span class="kw">fn </span>from(reg: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_bits_retain(reg.into())
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::mman::MRemapFlags {
-    <span class="kw">fn </span>from(reg: SysCallReg) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::mman::MRemapFlags {
+    <span class="kw">fn </span>from(reg: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_bits_retain(reg.into())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::time::ClockId {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::time::ClockId {
     <span class="kw">type </span>Error = ();
-    <span class="kw">fn </span>try_from(reg: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(reg: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::try_from(i32::from(reg)).map_err(|<span class="kw">_</span>| ())
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::time::ClockNanosleepFlags {
-    <span class="kw">fn </span>from(reg: SysCallReg) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::time::ClockNanosleepFlags {
+    <span class="kw">fn </span>from(reg: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_bits_retain(reg.into())
     }
 }
 
-<span class="kw">impl </span>TryFrom&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::time::ITimerId {
+<span class="kw">impl </span>TryFrom&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::time::ITimerId {
     <span class="kw">type </span>Error = ();
-    <span class="kw">fn </span>try_from(reg: SysCallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>try_from(reg: SyscallReg) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         <span class="self">Self</span>::try_from(i32::from(reg)).map_err(|<span class="kw">_</span>| ())
     }
 }
 
-<span class="kw">impl </span>From&lt;SysCallReg&gt; <span class="kw">for </span>linux_api::prctl::PrctlOp {
-    <span class="kw">fn </span>from(reg: SysCallReg) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;SyscallReg&gt; <span class="kw">for </span>linux_api::prctl::PrctlOp {
+    <span class="kw">fn </span>from(reg: SyscallReg) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(reg.into())
     }
 }

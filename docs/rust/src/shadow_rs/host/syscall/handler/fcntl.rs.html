@@ -184,7 +184,7 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::{DescriptorFlags, FcntlCommand, OFlag};
 <span class="kw">use </span>log::debug;
-<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::SysCallReg;
+<span class="kw">use </span>shadow_shim_helper_rs::syscall_types::SyscallReg;
 <span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::cshadow;
@@ -250,7 +250,7 @@
                 <span class="kw">let </span>file = file.inner_file().borrow();
                 <span class="comment">// combine the file status and access mode flags
                 </span><span class="kw">let </span>flags = file.status().as_o_flags() | file.mode().as_o_flags();
-                SysCallReg::from(flags.bits())
+                SyscallReg::from(flags.bits())
             }
             FcntlCommand::F_SETFL =&gt; {
                 <span class="kw">let </span>file = <span class="kw">match </span>desc.file() {
@@ -313,14 +313,14 @@
                 }
 
                 file.set_status(status);
-                SysCallReg::from(<span class="number">0</span>)
+                SyscallReg::from(<span class="number">0</span>)
             }
-            FcntlCommand::F_GETFD =&gt; SysCallReg::from(desc.flags().bits()),
+            FcntlCommand::F_GETFD =&gt; SyscallReg::from(desc.flags().bits()),
             FcntlCommand::F_SETFD =&gt; {
                 <span class="kw">let </span>flags = i32::try_from(arg).or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
                 <span class="kw">let </span>flags = DescriptorFlags::from_bits(flags).ok_or(Errno::EINVAL)<span class="question-mark">?</span>;
                 desc.set_flags(flags);
-                SysCallReg::from(<span class="number">0</span>)
+                SyscallReg::from(<span class="number">0</span>)
             }
             FcntlCommand::F_DUPFD =&gt; {
                 <span class="kw">let </span>min_fd = arg.try_into().or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
@@ -329,7 +329,7 @@
                 <span class="kw">let </span>new_fd = desc_table
                     .register_descriptor_with_min_fd(new_desc, min_fd)
                     .or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
-                SysCallReg::from(i32::from(new_fd))
+                SyscallReg::from(i32::from(new_fd))
             }
             FcntlCommand::F_DUPFD_CLOEXEC =&gt; {
                 <span class="kw">let </span>min_fd = arg.try_into().or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
@@ -338,7 +338,7 @@
                 <span class="kw">let </span>new_fd = desc_table
                     .register_descriptor_with_min_fd(new_desc, min_fd)
                     .or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
-                SysCallReg::from(i32::from(new_fd))
+                SyscallReg::from(i32::from(new_fd))
             }
             FcntlCommand::F_GETPIPE_SZ =&gt; {
                 <span class="kw">let </span>file = <span class="kw">match </span>desc.file() {
@@ -350,7 +350,7 @@
                 };
 
                 <span class="kw">if let </span>File::Pipe(pipe) = file.inner_file() {
-                    SysCallReg::from(i32::try_from(pipe.borrow().max_size()).unwrap())
+                    SyscallReg::from(i32::try_from(pipe.borrow().max_size()).unwrap())
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
                 }

@@ -190,13 +190,13 @@
 
 <span class="doccomment">/// An immutable reference to a syscall condition.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>SysCallConditionRef&lt;<span class="lifetime">'a</span>&gt; {
+</span><span class="kw">pub struct </span>SyscallConditionRef&lt;<span class="lifetime">'a</span>&gt; {
     c_ptr: SendPointer&lt;cshadow::SysCallCondition&gt;,
     _phantom: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>()&gt;,
 }
 
 <span class="comment">// do not define any mutable methods for this type
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; SysCallConditionRef&lt;<span class="lifetime">'a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; SyscallConditionRef&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Borrows from a C pointer. i.e. doesn't increase the ref count, nor decrease the ref count
     /// when dropped.
     ///
@@ -229,12 +229,12 @@
 
 <span class="doccomment">/// A mutable reference to a syscall condition.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>SysCallConditionRefMut&lt;<span class="lifetime">'a</span>&gt; {
-    condition: SysCallConditionRef&lt;<span class="lifetime">'a</span>&gt;,
+</span><span class="kw">pub struct </span>SyscallConditionRefMut&lt;<span class="lifetime">'a</span>&gt; {
+    condition: SyscallConditionRef&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="comment">// any immutable methods should be implemented on SysCallConditionRef instead
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; SysCallConditionRefMut&lt;<span class="lifetime">'a</span>&gt; {
+<span class="comment">// any immutable methods should be implemented on SyscallConditionRef instead
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; SyscallConditionRefMut&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Borrows from a C pointer. i.e. doesn't increase the ref count, nor decrease the ref count
     /// when dropped.
     ///
@@ -245,7 +245,7 @@
     </span><span class="kw">pub unsafe fn </span>borrow_from_c(ptr: <span class="kw-2">*mut </span>cshadow::SysCallCondition) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!ptr.is_null());
         <span class="self">Self </span>{
-            condition: <span class="kw">unsafe </span>{ SysCallConditionRef::borrow_from_c(ptr) },
+            condition: <span class="kw">unsafe </span>{ SyscallConditionRef::borrow_from_c(ptr) },
         }
     }
 
@@ -270,8 +270,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; std::ops::Deref <span class="kw">for </span>SysCallConditionRefMut&lt;<span class="lifetime">'a</span>&gt; {
-    <span class="kw">type </span>Target = SysCallConditionRef&lt;<span class="lifetime">'a</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; std::ops::Deref <span class="kw">for </span>SyscallConditionRefMut&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">type </span>Target = SyscallConditionRef&lt;<span class="lifetime">'a</span>&gt;;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
         <span class="kw-2">&amp;</span><span class="self">self</span>.condition
@@ -280,11 +280,11 @@
 
 <span class="doccomment">/// An owned syscall condition.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>SysCallCondition {
-    condition: <span class="prelude-ty">Option</span>&lt;SysCallConditionRefMut&lt;<span class="lifetime">'static</span>&gt;&gt;,
+</span><span class="kw">pub struct </span>SyscallCondition {
+    condition: <span class="prelude-ty">Option</span>&lt;SyscallConditionRefMut&lt;<span class="lifetime">'static</span>&gt;&gt;,
 }
 
-<span class="kw">impl </span>SysCallCondition {
+<span class="kw">impl </span>SyscallCondition {
     <span class="doccomment">/// "Steal" from a C pointer. i.e. doesn't increase ref count, but will decrease the ref count
     /// when dropped.
     ///
@@ -295,7 +295,7 @@
     </span><span class="kw">pub unsafe fn </span>consume_from_c(ptr: <span class="kw-2">*mut </span>cshadow::SysCallCondition) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!ptr.is_null());
         <span class="self">Self </span>{
-            condition: <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ SysCallConditionRefMut::borrow_from_c(ptr) }),
+            condition: <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ SyscallConditionRefMut::borrow_from_c(ptr) }),
         }
     }
 
@@ -303,9 +303,9 @@
     </span><span class="comment">// TODO: Add support for taking a Timer, ideally after we have a Rust
     // implementation or wrapper.
     </span><span class="kw">pub fn </span>new(trigger: Trigger) -&gt; <span class="self">Self </span>{
-        SysCallCondition {
+        SyscallCondition {
             condition: <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{
-                SysCallConditionRefMut::borrow_from_c(cshadow::syscallcondition_new(trigger.into()))
+                SyscallConditionRefMut::borrow_from_c(cshadow::syscallcondition_new(trigger.into()))
             }),
         }
     }
@@ -315,9 +315,9 @@
     ///
     /// Panics if `abs_wakeup_time` is before the current emulated time.
     </span><span class="kw">pub fn </span>new_from_wakeup_time(abs_wakeup_time: EmulatedTime) -&gt; <span class="self">Self </span>{
-        SysCallCondition {
+        SyscallCondition {
             condition: <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{
-                SysCallConditionRefMut::borrow_from_c(cshadow::syscallcondition_newWithAbsTimeout(
+                SyscallConditionRefMut::borrow_from_c(cshadow::syscallcondition_newWithAbsTimeout(
                     EmulatedTime::to_c_emutime(<span class="prelude-val">Some</span>(abs_wakeup_time)),
                 ))
             }),
@@ -331,7 +331,7 @@
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>SysCallCondition {
+<span class="kw">impl </span>Drop <span class="kw">for </span>SyscallCondition {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <span class="kw-2">&amp;</span><span class="self">self</span>.condition {
             <span class="kw">if </span>!condition.c_ptr.ptr().is_null() {
@@ -341,15 +341,15 @@
     }
 }
 
-<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>SysCallCondition {
-    <span class="kw">type </span>Target = SysCallConditionRefMut&lt;<span class="lifetime">'static</span>&gt;;
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>SyscallCondition {
+    <span class="kw">type </span>Target = SyscallConditionRefMut&lt;<span class="lifetime">'static</span>&gt;;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
         <span class="self">self</span>.condition.as_ref().unwrap()
     }
 }
 
-<span class="kw">impl </span>std::ops::DerefMut <span class="kw">for </span>SysCallCondition {
+<span class="kw">impl </span>std::ops::DerefMut <span class="kw">for </span>SyscallCondition {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
         <span class="self">self</span>.condition.as_mut().unwrap()
     }
