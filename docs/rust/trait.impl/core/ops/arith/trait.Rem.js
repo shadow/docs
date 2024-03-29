@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"shadow_shim_helper_rs":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.77.0/core/ops/arith/trait.Rem.html\" title=\"trait core::ops::arith::Rem\">Rem</a> for <a class=\"struct\" href=\"shadow_shim_helper_rs/simulation_time/struct.SimulationTime.html\" title=\"struct shadow_shim_helper_rs::simulation_time::SimulationTime\">SimulationTime</a>"]]
+"shadow_shim_helper_rs":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.77.1/core/ops/arith/trait.Rem.html\" title=\"trait core::ops::arith::Rem\">Rem</a> for <a class=\"struct\" href=\"shadow_shim_helper_rs/simulation_time/struct.SimulationTime.html\" title=\"struct shadow_shim_helper_rs::simulation_time::SimulationTime\">SimulationTime</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
