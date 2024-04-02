@@ -119,8 +119,27 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_syscall::syscall;
 <span class="kw">use </span>linux_syscall::Result <span class="kw">as </span>LinuxSyscallResult;
+<span class="kw">use </span>linux_syscall::Result64;
 <span class="kw">use </span>num_enum::{IntoPrimitive, TryFromPrimitive};
 
 <span class="kw">use </span><span class="kw">crate</span>::bindings;
@@ -220,6 +239,23 @@
 <span class="attr">#[allow(non_camel_case_types)]
 </span><span class="kw">pub type </span>itimerval = linux_itimerval;
 <span class="kw">unsafe impl </span>shadow_pod::Pod <span class="kw">for </span>itimerval {}
+
+<span class="doccomment">/// Raw `alarm` syscall. Permits u64 arg and return value for generality with
+/// the general syscall ABI, but note that the `alarm` syscall definition itself
+/// uses u32.
+</span><span class="kw">pub fn </span>alarm_raw(secs: u64) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Errno&gt; {
+    <span class="kw">unsafe </span>{ <span class="macro">syscall!</span>(linux_syscall::SYS_alarm, secs) }
+        .try_u64()
+        .map_err(Errno::from)
+}
+
+<span class="doccomment">/// Make an `alarm` syscall.
+</span><span class="kw">pub fn </span>alarm(secs: u32) -&gt; <span class="prelude-ty">Result</span>&lt;u32, Errno&gt; {
+    <span class="kw">let </span>res = alarm_raw(secs.into())<span class="question-mark">?</span>;
+    <span class="comment">// The syscall defines the return type as u32, so it *should* always be
+    // convertible to u32.
+    </span><span class="prelude-val">Ok</span>(res.try_into().unwrap())
+}
 
 <span class="kw">mod </span>export {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;

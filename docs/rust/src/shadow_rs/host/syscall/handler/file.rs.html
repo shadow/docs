@@ -126,14 +126,46 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::posix_types::kernel_mode_t;
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
+<span class="kw">use </span>linux_api::posix_types::kernel_mode_t;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 <span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::cshadow;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::CompatFile;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::type_formatting::SyscallStringArg;
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallResult;
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{SyscallError, SyscallResult};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::File;
 
 <span class="kw">impl </span>SyscallHandler {
     <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* pathname */ </span>SyscallStringArg,
@@ -232,9 +264,35 @@
         <span class="self">Self</span>::legacy_syscall(cshadow::syscallhandler_getdents64, ctx)
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int)]
-    </span><span class="kw">pub fn </span>lseek(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; SyscallResult {
-        <span class="self">Self</span>::legacy_syscall(cshadow::syscallhandler_lseek, ctx)
+    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* fd */ </span>std::ffi::c_uint,
+                  <span class="comment">/* offset */ </span>linux_api::posix_types::kernel_off_t, <span class="comment">/* whence */ </span>std::ffi::c_uint)]
+    </span><span class="kw">pub fn </span>lseek(
+        ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
+        fd: std::ffi::c_uint,
+        _offset: linux_api::posix_types::kernel_off_t,
+        _whence: std::ffi::c_uint,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;linux_api::posix_types::kernel_off_t, SyscallError&gt; {
+        <span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
+
+        <span class="kw">let </span>file = {
+            <span class="kw">match </span><span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>.file() {
+                CompatFile::New(file) =&gt; file,
+                <span class="comment">// if it's a legacy file, use the C syscall handler instead
+                </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
+                    drop(desc_table);
+                    <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(cshadow::syscallhandler_lseek, ctx)
+                        .map(Into::into);
+                }
+            }
+        };
+
+        <span class="kw">match </span>file.inner_file() {
+            File::Pipe(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(Errno::ESPIPE.into()),
+            <span class="kw">_ </span>=&gt; {
+                <span class="macro">warn_once_then_debug!</span>(<span class="string">"lseek() is not implemented for this type"</span>);
+                <span class="prelude-val">Err</span>(Errno::ENOTSUP.into())
+            }
+        }
     }
 
     <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int)]
