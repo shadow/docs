@@ -1529,23 +1529,23 @@
                 <span class="comment">// only show a warning the first time we encounter this unsupported syscall
                 </span><span class="kw">static </span>WARNED_SET: RwLock&lt;<span class="prelude-ty">Option</span>&lt;HashSet&lt;SyscallNum&gt;&gt;&gt; = RwLock::new(<span class="prelude-val">None</span>);
 
-                <span class="kw">let </span>has_already_warned = WARNED_SET
+                <span class="comment">// First check with a (cheap) read-lock.
+                </span><span class="kw">let </span>has_already_warned = WARNED_SET
                     .read()
                     .unwrap()
                     .as_ref()
                     .map(|x| x.contains(<span class="kw-2">&amp;</span>syscall))
                     .unwrap_or(<span class="bool-val">false</span>);
 
-                <span class="kw">if </span>!has_already_warned {
-                    <span class="comment">// `insert()` returns `false` if the syscall num was already in the set.
-                    // This can happen if another thread added the syscall after we released
-                    // the read-lock, above, and took the write lock, below.
-                    </span>WARNED_SET
+                <span class="comment">// If it looks like we haven't already warned, add this to the
+                // already-warned set. Also detect the (rare) case that another
+                // thread already warned after we released the read-lock above.
+                </span><span class="kw">let </span>has_already_warned = has_already_warned
+                    || !WARNED_SET
                         .write()
                         .unwrap()
                         .get_or_insert_with(HashSet::new)
                         .insert(syscall);
-                }
 
                 <span class="kw">let </span>level = <span class="kw">if </span>has_already_warned {
                     log::Level::Debug
