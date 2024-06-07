@@ -586,6 +586,7 @@
 <a href="#584" id="584">584</a>
 <a href="#585" id="585">585</a>
 <a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fs::File;
 <span class="kw">use </span>std::os::unix::prelude::{AsRawFd, FromRawFd};
@@ -837,7 +838,8 @@
     /// an unrelated process with a recycled `pid`.
     </span><span class="kw">pub fn </span>register_pid(<span class="kw-2">&amp;</span><span class="self">self</span>, pid: Pid) {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock().unwrap();
-        <span class="kw">let </span>pidfd = pidfd_open(pid).unwrap();
+        <span class="kw">let </span>pidfd =
+            pidfd_open(pid).unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">"pidfd_open failed for {pid:?}: {e:?}"</span>));
 
         <span class="kw">let </span>event = EpollEvent::new(EpollFlags::EPOLLIN, pid.as_raw().try_into().unwrap());
         <span class="self">self</span>.epoll.add(<span class="kw-2">&amp;</span>pidfd, event).unwrap();

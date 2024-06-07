@@ -1452,7 +1452,6 @@
 <a href="#1450" id="1450">1450</a>
 <a href="#1451" id="1451">1451</a>
 <a href="#1452" id="1452">1452</a>
-<a href="#1453" id="1453">1453</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut, UnsafeCell};
@@ -1865,11 +1864,10 @@
             // TODO: Add support for FnOnce?
             </span><span class="kw">let </span>envv = envv.clone();
             <span class="kw">let </span>argv = argv.clone();
-            <span class="kw">let </span>plugin_name = plugin_name.clone();
 
             <span class="kw">let </span>process = Process::spawn(
                 host,
-                plugin_name,
+                plugin_name.clone(),
                 <span class="kw-2">&amp;</span>plugin_path,
                 argv,
                 envv,
@@ -1877,7 +1875,7 @@
                 host.params.strace_logging_options,
                 expected_final_state,
             )
-            .expect(<span class="string">"Failed to initialize application {plugin_name:?}"</span>);
+            .unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">"Failed to initialize application {plugin_name:?}: {e:?}"</span>));
             <span class="kw">let </span>(process_id, thread_id) = {
                 <span class="kw">let </span>process = process.borrow(host.root());
                 (process.id(), process.thread_group_leader_id())
