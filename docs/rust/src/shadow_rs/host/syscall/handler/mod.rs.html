@@ -928,27 +928,7 @@
 <a href="#926" id="926">926</a>
 <a href="#927" id="927">927</a>
 <a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::collections::HashSet;
-<span class="kw">use </span>std::sync::RwLock;
 
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span>std::time::Duration;
@@ -973,6 +953,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{SyscallError, SyscallResult};
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::ThreadId;
 <span class="kw">use </span><span class="kw">crate</span>::utility::counter::Counter;
+<span class="kw">use </span><span class="kw">crate</span>::utility::once_set::OnceSet;
 
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::utility::perf_timer::PerfTimer;
@@ -1527,35 +1508,18 @@
             //
             </span><span class="kw">_ </span>=&gt; {
                 <span class="comment">// only show a warning the first time we encounter this unsupported syscall
-                </span><span class="kw">static </span>WARNED_SET: RwLock&lt;<span class="prelude-ty">Option</span>&lt;HashSet&lt;SyscallNum&gt;&gt;&gt; = RwLock::new(<span class="prelude-val">None</span>);
+                </span><span class="kw">static </span>WARNED_SET: OnceSet&lt;SyscallNum&gt; = OnceSet::new();
 
-                <span class="comment">// First check with a (cheap) read-lock.
-                </span><span class="kw">let </span>has_already_warned = WARNED_SET
-                    .read()
-                    .unwrap()
-                    .as_ref()
-                    .map(|x| x.contains(<span class="kw-2">&amp;</span>syscall))
-                    .unwrap_or(<span class="bool-val">false</span>);
-
-                <span class="comment">// If it looks like we haven't already warned, add this to the
-                // already-warned set. Also detect the (rare) case that another
-                // thread already warned after we released the read-lock above.
-                </span><span class="kw">let </span>has_already_warned = has_already_warned
-                    || !WARNED_SET
-                        .write()
-                        .unwrap()
-                        .get_or_insert_with(HashSet::new)
-                        .insert(syscall);
-
-                <span class="kw">let </span>level = <span class="kw">if </span>has_already_warned {
-                    log::Level::Debug
-                } <span class="kw">else </span>{
+                <span class="kw">let </span>level = <span class="kw">if </span>WARNED_SET.insert(syscall) {
                     log::Level::Warn
+                } <span class="kw">else </span>{
+                    log::Level::Debug
                 };
 
-                <span class="comment">// we can't use the `warn_once_then_debug` macro here since we want to log this for
+                <span class="comment">// We can't use the `warn_once_then_debug` macro here since we want to log this for
                 // each unique syscall encountered, not only the first unsupported syscall
-                // encountered
+                // encountered. We replicate the format of the `warn_once_then_debug` macro by
+                // prepending the `(LOG_ONCE) ` string.
                 </span><span class="macro">log::log!</span>(
                     level,
                     <span class="string">"(LOG_ONCE) Detected unsupported syscall {} ({}) called from thread {} in process {} on host {}"</span>,

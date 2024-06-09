@@ -113,6 +113,9 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Log a warning, and if a debug build then panic.
 </span><span class="macro">macro_rules!</span> debug_panic {
     ($(<span class="macro-nonterminal">$x</span>:tt)+) =&gt; {
@@ -148,7 +151,10 @@
                 std::sync::atomic::Ordering::Relaxed,
                 std::sync::atomic::Ordering::Relaxed,
             ) {
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::log!</span>(<span class="macro-nonterminal">$lvl_once</span>, <span class="string">"(LOG_ONCE) {}"</span>, <span class="macro">format_args!</span>(<span class="macro-nonterminal">$str </span>$(<span class="macro-nonterminal">$x</span>)<span class="kw-2">*</span>)),
+                <span class="comment">// NOTE: Some parts of shadow duplicate the "(LOG_ONCE)" string in their own log
+                // messages (for example `SyscallHandler::run_handler`). If we change this string
+                // here, we should change it in other places as well.
+                </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::log!</span>(<span class="macro-nonterminal">$lvl_once</span>, <span class="string">"(LOG_ONCE) {}"</span>, <span class="macro">format_args!</span>(<span class="macro-nonterminal">$str </span>$(<span class="macro-nonterminal">$x</span>)<span class="kw-2">*</span>)),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::log!</span>(<span class="macro-nonterminal">$lvl_remaining</span>, <span class="string">"(LOG_ONCE) {}"</span>, <span class="macro">format_args!</span>(<span class="macro-nonterminal">$str </span>$(<span class="macro-nonterminal">$x</span>)<span class="kw-2">*</span>)),
             }
         }
