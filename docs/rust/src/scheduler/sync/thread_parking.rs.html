@@ -207,6 +207,9 @@
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::atomic::{AtomicBool, Ordering};
 <span class="kw">use </span>std::sync::Arc;
 <span class="attr">#[cfg(debug_assertions)]
@@ -318,20 +321,23 @@
 
     <span class="doccomment">/// Unpark the assigned thread.
     </span><span class="kw">pub fn </span>unpark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="comment">// TODO: Rust does not guarantee any synchronization between the thread that parks and the
-        // thread that unparks:
+        <span class="comment">// NOTE: Rust now does guarantee some synchronization between the thread that parks and the
+        // thread that unparks, so the change to `ready_flag` should be seen by the parked thread:
         //
-        // https://doc.rust-lang.org/nightly/std/thread/fn.park.html#park-and-unpark
+        // https://doc.rust-lang.org/std/thread/fn.park.html#memory-ordering
         //
-        // &gt; Notice that being unblocked does not imply any synchronization with someone that
-        // &gt; unparked this thread, it could also be spurious. For example, it would be a valid, but
-        // &gt; inefficient, implementation to make both park and unpark return immediately without doing
-        // &gt; anything.
-        //
-        // There is no guarentee that the change to `ready_flag` will be visible after the parked
-        // thread resumes, which may lead to a deadlock. In practice, rust currently does use an
-        // atomic with release-acquire ordering, but this might be relaxed in the future.
-        // https://github.com/rust-lang/rust/blob/21b246587c2687935bd6004ffa5dcc4f4dd6600d/library/std/src/sys_common/thread_parker/futex.rs#L21-L27
+        // &gt; Calls to park synchronize-with calls to unpark, meaning that memory operations
+        // &gt; performed before a call to unpark are made visible to the thread that consumes the
+        // &gt; token and returns from park. Note that all park and unpark operations for a given
+        // &gt; thread form a total order and park synchronizes-with all prior unpark operations.
+        // &gt;
+        // &gt; In atomic ordering terms, unpark performs a Release operation and park performs the
+        // &gt; corresponding Acquire operation. Calls to unpark for the same thread form a release
+        // &gt; sequence.
+        // &gt;
+        // &gt; Note that being unblocked does not imply a call was made to unpark, because wakeups can
+        // &gt; also be spurious. For example, a valid, but inefficient, implementation could have park
+        // &gt; and unpark return immediately without doing anything, making all wakeups spurious.
         </span><span class="self">self</span>.ready_flag.store(<span class="bool-val">true</span>, Ordering::Release);
         <span class="self">self</span>.thread.unpark();
     }

@@ -568,6 +568,7 @@
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::{Cell, UnsafeCell},
     ptr::NonNull,
@@ -698,7 +699,8 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.internal.is_some() {
-            <span class="macro">log::error!</span>(<span class="string">"Dropped without calling `safely_drop`"</span>);
+            <span class="comment">// `explicit_drop` is the public interface for the internal `safely_drop`
+            </span><span class="macro">log::error!</span>(<span class="string">"Dropped without calling `explicit_drop`"</span>);
 
             <span class="comment">// We *can* continue without violating Rust safety properties; the
             // underlying object will just be leaked, since the ref count will
@@ -712,7 +714,7 @@
             // just obscure the original panic.
             </span><span class="attr">#[cfg(debug_assertions)]
             </span><span class="kw">if </span>!std::thread::panicking() {
-                <span class="macro">panic!</span>(<span class="string">"Dropped without calling `safely_drop`"</span>);
+                <span class="macro">panic!</span>(<span class="string">"Dropped without calling `explicit_drop`"</span>);
             }
         }
     }
@@ -857,7 +859,7 @@
         <span class="kw">let </span>rc = std::rc::Rc::new(());
         <span class="kw">let </span>rrc = RootedRc::new(<span class="kw-2">&amp;</span>root, rc.clone());
         drop(rrc);
-        <span class="comment">// Because we didn't call `safely_drop`, RootedRc can't safely call the
+        <span class="comment">// Because we didn't call `explicit_drop`, RootedRc can't safely call the
         // inner rc's Drop. Instead of panicking, we just leak it.
         </span><span class="macro">assert_eq!</span>(std::rc::Rc::strong_count(<span class="kw-2">&amp;</span>rc), <span class="number">2</span>);
     }
