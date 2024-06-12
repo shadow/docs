@@ -587,23 +587,47 @@
 <a href="#585" id="585">585</a>
 <a href="#586" id="586">586</a>
 <a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
-<span class="kw">use </span>std::fs::File;
-<span class="kw">use </span>std::os::unix::prelude::{AsRawFd, FromRawFd};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::sync::Mutex;
 <span class="kw">use </span>std::thread;
 
-<span class="kw">use </span>nix::errno::Errno;
-<span class="kw">use </span>nix::sys::epoll::{Epoll, EpollCreateFlags, EpollEvent, EpollFlags};
-<span class="kw">use </span>nix::unistd::Pid;
-
-<span class="comment">// TODO: consider using std::os::linux::process::PidFd once it's stabilized.
-</span><span class="kw">fn </span>pidfd_open(pid: Pid) -&gt; nix::Result&lt;File&gt; {
-    <span class="kw">let </span>raw_fd =
-        nix::errno::Errno::result(<span class="kw">unsafe </span>{ libc::syscall(libc::SYS_pidfd_open, pid.as_raw(), <span class="number">0</span>) })<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ File::from_raw_fd(raw_fd.try_into().unwrap()) })
-}
+<span class="kw">use </span>linux_api::errno::Errno;
+<span class="kw">use </span>linux_api::posix_types::Pid;
+<span class="kw">use </span>rustix::event::{<span class="self">self</span>, epoll};
+<span class="kw">use </span>rustix::fd::AsFd;
+<span class="kw">use </span>rustix::fd::OwnedFd;
+<span class="kw">use </span>rustix::io::FdFlags;
+<span class="kw">use </span>rustix::process::PidfdFlags;
 
 <span class="doccomment">/// Utility for monitoring a set of child pid's, calling registered callbacks
 /// when one exits or is killed. Starts a background thread, which is shut down
@@ -611,7 +635,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ChildPidWatcher {
     inner: Arc&lt;Mutex&lt;Inner&gt;&gt;,
-    epoll: Arc&lt;Epoll&gt;,
+    epoll: Arc&lt;OwnedFd&gt;,
 }
 
 <span class="kw">pub type </span>WatchHandle = u64;
@@ -627,7 +651,7 @@
     <span class="comment">// Registered callbacks.
     </span>callbacks: HashMap&lt;WatchHandle, Box&lt;<span class="kw">dyn </span>Send + FnOnce(Pid)&gt;&gt;,
     <span class="comment">// After the pid has exited, this fd is closed and set to None.
-    </span>pidfd: <span class="prelude-ty">Option</span>&lt;File&gt;,
+    </span>pidfd: <span class="prelude-ty">Option</span>&lt;OwnedFd&gt;,
     <span class="comment">// Whether this pid has been unregistered. The whole struct is removed after
     // both the pid is unregistered, and `callbacks` is empty.
     </span>unregistered: bool,
@@ -643,17 +667,17 @@
     </span>pids: HashMap&lt;Pid, PidData&gt;,
     <span class="comment">// event_fd used to notify watcher thread via epoll. Calling thread writes a
     // single byte, which the watcher thread reads to reset.
-    </span>command_notifier: File,
+    </span>command_notifier: OwnedFd,
     thread_handle: <span class="prelude-ty">Option</span>&lt;thread::JoinHandle&lt;()&gt;&gt;,
 }
 
 <span class="kw">impl </span>Inner {
     <span class="kw">fn </span>send_command(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: Command) {
         <span class="self">self</span>.commands.push(cmd);
-        nix::unistd::write(<span class="self">self</span>.command_notifier.as_raw_fd(), <span class="kw-2">&amp;</span><span class="number">1u64</span>.to_ne_bytes()).unwrap();
+        rustix::io::write(<span class="kw-2">&amp;</span><span class="self">self</span>.command_notifier, <span class="kw-2">&amp;</span><span class="number">1u64</span>.to_ne_bytes()).unwrap();
     }
 
-    <span class="kw">fn </span>unwatch_pid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, epoll: <span class="kw-2">&amp;</span>Epoll, pid: Pid) {
+    <span class="kw">fn </span>unwatch_pid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, epoll: <span class="kw">impl </span>AsFd, pid: Pid) {
         <span class="kw">let </span><span class="prelude-val">Some</span>(piddata) = <span class="self">self</span>.pids.get_mut(<span class="kw-2">&amp;</span>pid) <span class="kw">else </span>{
             <span class="comment">// Already unregistered the pid
             </span><span class="kw">return</span>;
@@ -662,14 +686,14 @@
             <span class="comment">// Already unwatched the pid
             </span><span class="kw">return</span>;
         };
-        epoll.delete(fd).unwrap();
+        epoll::delete(epoll, fd).unwrap();
     }
 
     <span class="kw">fn </span>pid_has_exited(<span class="kw-2">&amp;</span><span class="self">self</span>, pid: Pid) -&gt; bool {
         <span class="self">self</span>.pids.get(<span class="kw-2">&amp;</span>pid).unwrap().pidfd.is_none()
     }
 
-    <span class="kw">fn </span>remove_pid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, epoll: <span class="kw-2">&amp;</span>Epoll, pid: Pid) {
+    <span class="kw">fn </span>remove_pid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, epoll: <span class="kw">impl </span>AsFd, pid: Pid) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.should_remove_pid(pid));
         <span class="self">self</span>.unwatch_pid(epoll, pid);
         <span class="self">self</span>.pids.remove(<span class="kw-2">&amp;</span>pid);
@@ -686,7 +710,7 @@
         pid_data.callbacks.is_empty() &amp;&amp; pid_data.unregistered
     }
 
-    <span class="kw">fn </span>maybe_remove_pid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, epoll: <span class="kw-2">&amp;</span>Epoll, pid: Pid) {
+    <span class="kw">fn </span>maybe_remove_pid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, epoll: <span class="kw">impl </span>AsFd, pid: Pid) {
         <span class="kw">if </span><span class="self">self</span>.should_remove_pid(pid) {
             <span class="self">self</span>.remove_pid(epoll, pid)
         }
@@ -697,14 +721,19 @@
     <span class="doccomment">/// Create a ChildPidWatcher. Spawns a background thread, which is joined
     /// when the object is dropped.
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>epoll = Arc::new(Epoll::new(EpollCreateFlags::empty()).unwrap());
-        <span class="kw">let </span>command_notifier = {
-            <span class="kw">let </span>raw =
-                nix::sys::eventfd::eventfd(<span class="number">0</span>, nix::sys::eventfd::EfdFlags::EFD_NONBLOCK).unwrap();
-            File::from(raw)
-        };
-        <span class="kw">let </span>event = EpollEvent::new(EpollFlags::EPOLLIN, <span class="number">0</span>);
-        epoll.add(<span class="kw-2">&amp;</span>command_notifier, event).unwrap();
+        <span class="kw">let </span>epoll = Arc::new(epoll::create(epoll::CreateFlags::CLOEXEC).unwrap());
+        <span class="kw">let </span>command_notifier = event::eventfd(
+            <span class="number">0</span>,
+            event::EventfdFlags::NONBLOCK | event::EventfdFlags::CLOEXEC,
+        )
+        .unwrap();
+        epoll::add(
+            <span class="kw-2">&amp;</span>epoll,
+            <span class="kw-2">&amp;</span>command_notifier,
+            epoll::EventData::new_u64(<span class="number">0</span>),
+            epoll::EventFlags::IN,
+        )
+        .unwrap();
         <span class="kw">let </span>watcher = ChildPidWatcher {
             inner: Arc::new(Mutex::new(Inner {
                 next_handle: <span class="number">1</span>,
@@ -727,14 +756,14 @@
         watcher
     }
 
-    <span class="kw">fn </span>thread_loop(inner: <span class="kw-2">&amp;</span>Mutex&lt;Inner&gt;, epoll: <span class="kw-2">&amp;</span>Epoll) {
-        <span class="kw">let </span><span class="kw-2">mut </span>events = [EpollEvent::empty(); <span class="number">10</span>];
+    <span class="kw">fn </span>thread_loop(inner: <span class="kw-2">&amp;</span>Mutex&lt;Inner&gt;, epoll: <span class="kw">impl </span>AsFd) {
         <span class="kw">let </span><span class="kw-2">mut </span>commands = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>done = <span class="bool-val">false</span>;
         <span class="kw">while </span>!done {
-            <span class="kw">let </span>nevents = <span class="kw">match </span>epoll.wait(<span class="kw-2">&amp;mut </span>events, -<span class="number">1</span>) {
-                <span class="prelude-val">Ok</span>(n) =&gt; n,
-                <span class="prelude-val">Err</span>(Errno::EINTR) =&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>events = epoll::EventVec::with_capacity(<span class="number">10</span>);
+            <span class="kw">match </span>epoll::wait(epoll.as_fd(), <span class="kw-2">&amp;mut </span>events, -<span class="number">1</span>) {
+                <span class="prelude-val">Ok</span>(()) =&gt; (),
+                <span class="prelude-val">Err</span>(rustix::io::Errno::INTR) =&gt; {
                     <span class="comment">// Just try again.
                     </span><span class="kw">continue</span>;
                 }
@@ -748,24 +777,25 @@
             // caller unregisters it.
             </span><span class="kw">let </span><span class="kw-2">mut </span>inner = inner.lock().unwrap();
 
-            <span class="kw">for </span>event <span class="kw">in </span><span class="kw-2">&amp;</span>events[<span class="number">0</span>..nevents] {
-                <span class="kw">let </span>pid = Pid::from_raw(i32::try_from(event.data()).unwrap());
-                <span class="comment">// We get an event for pid=0 when there's a write to the command_notifier;
-                // Ignore that here and handle below.
-                </span><span class="kw">if </span>pid.as_raw() != <span class="number">0 </span>{
-                    inner.unwatch_pid(epoll, pid);
-                    inner.run_callbacks_for_pid(pid);
-                    inner.maybe_remove_pid(epoll, pid);
+            <span class="kw">for </span>event <span class="kw">in </span>events.into_iter() {
+                <span class="kw">if </span>event.data.u64() == <span class="number">0 </span>{
+                    <span class="comment">// We get an event for pid=0 when there's a write to the
+                    // command_notifier; Ignore that here and handle below.
+                    </span><span class="kw">continue</span>;
                 }
+                <span class="kw">let </span>pid = Pid::from_raw(i32::try_from(event.data.u64()).unwrap()).unwrap();
+                inner.unwatch_pid(epoll.as_fd(), pid);
+                inner.run_callbacks_for_pid(pid);
+                inner.maybe_remove_pid(epoll.as_fd(), pid);
             }
             <span class="comment">// Reading an eventfd always returns an 8 byte integer. Do so to ensure it's
             // no longer marked 'readable'.
             </span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">8</span>];
-            <span class="kw">let </span>res = nix::unistd::read(inner.command_notifier.as_raw_fd(), <span class="kw-2">&amp;mut </span>buf);
+            <span class="kw">let </span>res = rustix::io::read(<span class="kw-2">&amp;</span>inner.command_notifier, <span class="kw-2">&amp;mut </span>buf);
             <span class="macro">debug_assert!</span>(<span class="kw">match </span>res {
                 <span class="prelude-val">Ok</span>(<span class="number">8</span>) =&gt; <span class="bool-val">true</span>,
                 <span class="prelude-val">Ok</span>(i) =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected read size {}"</span>, i),
-                <span class="prelude-val">Err</span>(Errno::EAGAIN) =&gt; <span class="bool-val">true</span>,
+                <span class="prelude-val">Err</span>(rustix::io::Errno::AGAIN) =&gt; <span class="bool-val">true</span>,
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected error {:?}"</span>, e),
             });
             <span class="comment">// Run commands
@@ -775,12 +805,12 @@
                     Command::RunCallbacks(pid) =&gt; {
                         <span class="macro">debug_assert!</span>(inner.pid_has_exited(pid));
                         inner.run_callbacks_for_pid(pid);
-                        inner.maybe_remove_pid(epoll, pid);
+                        inner.maybe_remove_pid(epoll.as_fd(), pid);
                     }
                     Command::UnregisterPid(pid) =&gt; {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(pid_data) = inner.pids.get_mut(<span class="kw-2">&amp;</span>pid) {
                             pid_data.unregistered = <span class="bool-val">true</span>;
-                            inner.maybe_remove_pid(epoll, pid);
+                            inner.maybe_remove_pid(epoll.as_fd(), pid);
                         }
                     }
                     Command::Finish =&gt; {
@@ -810,17 +840,13 @@
     /// child process gets its own copy of the address space and OS resources etc.
     /// Still, there may be some dragons here. Best to call exec before too long
     /// in the child.
-    </span><span class="kw">pub unsafe fn </span>fork_watchable(<span class="kw-2">&amp;</span><span class="self">self</span>, child_fn: <span class="kw">impl </span>FnOnce()) -&gt; <span class="prelude-ty">Result</span>&lt;Pid, nix::Error&gt; {
-        <span class="kw">let </span>raw_pid = <span class="kw">unsafe </span>{ libc::syscall(libc::SYS_fork) };
-        <span class="kw">if </span>raw_pid &lt; <span class="number">0 </span>{
-            <span class="kw">let </span>rv = <span class="prelude-val">Err</span>(Errno::last());
-            <span class="kw">return </span>rv;
-        }
+    </span><span class="kw">pub unsafe fn </span>fork_watchable(<span class="kw-2">&amp;</span><span class="self">self</span>, child_fn: <span class="kw">impl </span>FnOnce()) -&gt; <span class="prelude-ty">Result</span>&lt;Pid, Errno&gt; {
+        <span class="kw">let </span>raw_pid = Errno::result_from_libc_errno(-<span class="number">1</span>, <span class="kw">unsafe </span>{ libc::syscall(libc::SYS_fork) })<span class="question-mark">?</span>;
         <span class="kw">if </span>raw_pid == <span class="number">0 </span>{
             child_fn();
             <span class="macro">panic!</span>(<span class="string">"child_fn shouldn't have returned"</span>);
         }
-        <span class="kw">let </span>pid = Pid::from_raw(raw_pid.try_into().unwrap());
+        <span class="kw">let </span>pid = Pid::from_raw(raw_pid.try_into().unwrap()).unwrap();
         <span class="self">self</span>.register_pid(pid);
 
         <span class="prelude-val">Ok</span>(pid)
@@ -838,11 +864,24 @@
     /// an unrelated process with a recycled `pid`.
     </span><span class="kw">pub fn </span>register_pid(<span class="kw-2">&amp;</span><span class="self">self</span>, pid: Pid) {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.lock().unwrap();
-        <span class="kw">let </span>pidfd =
-            pidfd_open(pid).unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">"pidfd_open failed for {pid:?}: {e:?}"</span>));
-
-        <span class="kw">let </span>event = EpollEvent::new(EpollFlags::EPOLLIN, pid.as_raw().try_into().unwrap());
-        <span class="self">self</span>.epoll.add(<span class="kw-2">&amp;</span>pidfd, event).unwrap();
+        <span class="comment">// We defensively make the pidfd non-blocking, since we intend to always
+        // use epoll to validate that it's ready before operating on it.
+        </span><span class="kw">let </span>pidfd = rustix::process::pidfd_open(pid.into(), PidfdFlags::NONBLOCK)
+            .unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">"pidfd_open failed for {pid:?}: {e:?}"</span>));
+        <span class="comment">// `pidfd_open(2)`: the close-on-exec flag is set on the file descriptor.
+        </span><span class="macro">debug_assert!</span>(
+            rustix::io::fcntl_getfd(<span class="kw-2">&amp;</span>pidfd)
+                .unwrap()
+                .contains(FdFlags::CLOEXEC),
+            <span class="string">"pidfd_open unexpected didn't set CLOEXEC"
+        </span>);
+        epoll::add(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.epoll,
+            <span class="kw-2">&amp;</span>pidfd,
+            epoll::EventData::new_u64(pid.as_raw_nonzero().get().try_into().unwrap()),
+            epoll::EventFlags::IN,
+        )
+        .unwrap();
 
         <span class="kw">let </span>prev = inner.pids.insert(
             pid,
@@ -942,13 +981,13 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>std::sync::{Arc, Condvar};
 
-    <span class="kw">use </span>nix::sys::wait::WaitStatus;
-    <span class="kw">use </span>nix::sys::wait::{waitpid, WaitPidFlag};
+    <span class="kw">use </span>rustix::fd::AsRawFd;
+    <span class="kw">use </span>rustix::process::{waitpid, WaitOptions};
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">fn </span>is_zombie(pid: Pid) -&gt; bool {
-        <span class="kw">let </span>stat_name = <span class="macro">format!</span>(<span class="string">"/proc/{}/stat"</span>, pid.as_raw());
+        <span class="kw">let </span>stat_name = <span class="macro">format!</span>(<span class="string">"/proc/{}/stat"</span>, pid.as_raw_nonzero().get());
         <span class="kw">let </span>contents = std::fs::read_to_string(stat_name).unwrap();
         contents.contains(<span class="string">") Z"</span>)
     }
@@ -989,10 +1028,8 @@
         </span>watcher.unregister_pid(child);
 
         <span class="comment">// Child should still be alive.
-        </span><span class="macro">assert_eq!</span>(
-            waitpid(child, <span class="prelude-val">Some</span>(WaitPidFlag::WNOHANG)).unwrap(),
-            WaitStatus::StillAlive
-        );
+        </span><span class="kw">let </span>status = waitpid(<span class="prelude-val">Some</span>(child.into()), WaitOptions::NOHANG).unwrap();
+        <span class="macro">assert!</span>(status.is_none(), <span class="string">"Unexpected status: {status:?}"</span>);
 
         <span class="comment">// Callback shouldn't have run yet.
         </span><span class="macro">assert!</span>(!<span class="kw-2">*</span>callback_ran.<span class="number">0</span>.lock().unwrap());
@@ -1010,18 +1047,21 @@
         // TODO: use WNOHANG here if we go back to a pidfd-based implementation.
         // With the current fd-based implementation we may be notified before kernel
         // marks the child reapable.
-        </span><span class="macro">assert_eq!</span>(waitpid(child, <span class="prelude-val">None</span>).unwrap(), WaitStatus::Exited(child, <span class="number">42</span>));
+        </span><span class="kw">let </span>status = waitpid(<span class="prelude-val">Some</span>(child.into()), WaitOptions::empty())
+            .unwrap()
+            .unwrap();
+        <span class="macro">assert_eq!</span>(status.exit_status(), <span class="prelude-val">Some</span>(<span class="number">42</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="comment">// can't call foreign functions
     </span><span class="attr">#[cfg_attr(miri, ignore)]
     </span><span class="kw">fn </span>register_after_exit() {
-        <span class="kw">let </span>child = <span class="kw">match unsafe </span>{ nix::unistd::fork() }.unwrap() {
-            nix::unistd::ForkResult::Parent { child } =&gt; child,
-            nix::unistd::ForkResult::Child =&gt; {
+        <span class="kw">let </span>child = <span class="kw">match unsafe </span>{ libc::fork() } {
+            <span class="number">0 </span>=&gt; {
                 <span class="kw">unsafe </span>{ libc::_exit(<span class="number">42</span>) };
             }
+            child =&gt; Pid::from_raw(child).unwrap(),
         };
 
         <span class="comment">// Wait until child is dead, but don't reap it yet.
@@ -1063,7 +1103,13 @@
         // TODO: use WNOHANG here if we go back to a pidfd-based implementation.
         // With the current fd-based implementation we may be notified before kernel
         // marks the child reapable.
-        </span><span class="macro">assert_eq!</span>(waitpid(child, <span class="prelude-val">None</span>).unwrap(), WaitStatus::Exited(child, <span class="number">42</span>));
+        </span><span class="macro">assert_eq!</span>(
+            waitpid(<span class="prelude-val">Some</span>(child.into()), WaitOptions::empty())
+                .unwrap()
+                .unwrap()
+                .exit_status(),
+            <span class="prelude-val">Some</span>(<span class="number">42</span>)
+        );
     }
 
     <span class="attr">#[test]
@@ -1109,7 +1155,13 @@
         // TODO: use WNOHANG here if we go back to a pidfd-based implementation.
         // With the current fd-based implementation we may be notified before kernel
         // marks the child reapable.
-        </span><span class="macro">assert_eq!</span>(waitpid(child, <span class="prelude-val">None</span>).unwrap(), WaitStatus::Exited(child, <span class="number">42</span>));
+        </span><span class="macro">assert_eq!</span>(
+            waitpid(<span class="prelude-val">Some</span>(child.into()), WaitOptions::empty())
+                .unwrap()
+                .unwrap()
+                .exit_status(),
+            <span class="prelude-val">Some</span>(<span class="number">42</span>)
+        );
     }
 
     <span class="attr">#[test]
@@ -1171,7 +1223,13 @@
         // TODO: use WNOHANG here if we go back to a pidfd-based implementation.
         // With the current fd-based implementation we may be notified before kernel
         // marks the child reapable.
-        </span><span class="macro">assert_eq!</span>(waitpid(child, <span class="prelude-val">None</span>).unwrap(), WaitStatus::Exited(child, <span class="number">42</span>));
+        </span><span class="macro">assert_eq!</span>(
+            waitpid(<span class="prelude-val">Some</span>(child.into()), WaitOptions::empty())
+                .unwrap()
+                .unwrap()
+                .exit_status(),
+            <span class="prelude-val">Some</span>(<span class="number">42</span>)
+        );
     }
 }
 </code></pre></div></section></main></body></html>

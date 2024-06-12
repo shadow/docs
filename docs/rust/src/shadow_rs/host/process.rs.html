@@ -2261,6 +2261,15 @@
 <a href="#2259" id="2259">2259</a>
 <a href="#2260" id="2260">2260</a>
 <a href="#2261" id="2261">2261</a>
+<a href="#2262" id="2262">2262</a>
+<a href="#2263" id="2263">2263</a>
+<a href="#2264" id="2264">2264</a>
+<a href="#2265" id="2265">2265</a>
+<a href="#2266" id="2266">2266</a>
+<a href="#2267" id="2267">2267</a>
+<a href="#2268" id="2268">2268</a>
+<a href="#2269" id="2269">2269</a>
+<a href="#2270" id="2270">2270</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux process.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut};
@@ -2277,16 +2286,15 @@
 </span><span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>linux_api::errno::Errno;
+<span class="kw">use </span>linux_api::fcntl::OFlag;
+<span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>linux_api::sched::{CloneFlags, SuidDump};
 <span class="kw">use </span>linux_api::signal::{
     defaultaction, siginfo_t, sigset_t, LinuxDefaultAction, SigActionFlags, Signal,
     SignalFromI32Error,
 };
 <span class="kw">use </span>log::{debug, trace, warn};
-<span class="kw">use </span>nix::fcntl::OFlag;
-<span class="kw">use </span>nix::sys::signal <span class="kw">as </span>nixsignal;
-<span class="kw">use </span>nix::sys::stat::Mode;
-<span class="kw">use </span>nix::unistd::Pid;
+<span class="kw">use </span>rustix::process::{WaitOptions, WaitStatus};
 <span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::{ExplicitDrop, ExplicitDropper};
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
@@ -2565,7 +2573,7 @@
         plugin_path: <span class="kw-2">&amp;</span>CStr,
         argv: Vec&lt;CString&gt;,
         envv: Vec&lt;CString&gt;,
-    ) -&gt; nix::Result&lt;ManagedThread&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ManagedThread, Errno&gt; {
         ManagedThread::spawn(
             plugin_path,
             argv,
@@ -3206,7 +3214,7 @@
         pause_for_debugging: bool,
         strace_logging_options: <span class="prelude-ty">Option</span>&lt;FmtOptions&gt;,
         expected_final_state: ProcessFinalState,
-    ) -&gt; nix::Result&lt;RootedRc&lt;RootedRefCell&lt;Process&gt;&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;RootedRc&lt;RootedRefCell&lt;Process&gt;&gt;, Errno&gt; {
         <span class="macro">debug!</span>(<span class="string">"starting process '{:?}'"</span>, plugin_name);
 
         <span class="kw">let </span>main_thread_id = host.get_new_thread_id();
@@ -3330,14 +3338,15 @@
             </span><span class="kw">let </span>msg = <span class="macro">format!</span>(
                 <span class="string">"\
               \n** Pausing with SIGTSTP to enable debugger attachment to managed process\
-              \n** '{plugin_name:?}' (pid {native_pid}).\
+              \n** '{plugin_name:?}' (pid {native_pid:?}).\
               \n** If running Shadow under Bash, resume Shadow by pressing Ctrl-Z to background\
               \n** this task, and then typing \"fg\".\
               \n** If running GDB, resume Shadow by typing \"signal SIGCONT\"."
             </span>);
             <span class="macro">eprintln!</span>(<span class="string">"{}"</span>, msg);
 
-            nix::sys::signal::raise(nixsignal::Signal::SIGTSTP).unwrap();
+            rustix::process::kill_process(rustix::process::getpid(), rustix::process::Signal::Tstp)
+                .unwrap();
         }
 
         <span class="kw">let </span>memory_manager = <span class="kw">unsafe </span>{ MemoryManager::new(native_pid) };
@@ -3549,7 +3558,10 @@
             <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
             </span>runnable.start_cpu_delay_timer();
 
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = nixsignal::kill(runnable.native_pid(), nixsignal::Signal::SIGKILL) {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = rustix::process::kill_process(
+                runnable.native_pid().into(),
+                rustix::process::Signal::Kill,
+            ) {
                 <span class="macro">warn!</span>(<span class="string">"kill: {:?}"</span>, err);
             }
 
@@ -3587,15 +3599,22 @@
         access_mode: OFlag,
     ) {
         <span class="kw">let </span>stdfile = <span class="kw">unsafe </span>{ cshadow::regularfile_new() };
-        <span class="kw">let </span>cwd = nix::unistd::getcwd().unwrap();
+        <span class="kw">let </span>cwd = rustix::process::getcwd(Vec::new()).unwrap();
         <span class="kw">let </span>path = utility::pathbuf_to_nul_term_cstring(path);
-        <span class="kw">let </span>cwd = utility::pathbuf_to_nul_term_cstring(cwd);
+        <span class="comment">// "Convert" to libc int, assuming here that the kernel's `OFlag` values
+        // are compatible with libc's values.
+        // XXX: We're assuming here that the kernel and libc flags are ABI
+        // compatible, which isn't guaranteed, but is mostly true in practice.
+        // TODO: We probably ought to change `regularfile_open` and friends to
+        // use a direct syscall instead of libc's wrappers, and explicitly take
+        // the kernel version of flags, mode, etc.
+        </span><span class="kw">let </span>access_mode = access_mode.bits();
         <span class="kw">let </span>errorcode = <span class="kw">unsafe </span>{
             cshadow::regularfile_open(
                 stdfile,
                 path.as_ptr(),
-                (access_mode | OFlag::O_CREAT | OFlag::O_TRUNC).bits(),
-                (Mode::S_IRUSR | Mode::S_IWUSR | Mode::S_IRGRP | Mode::S_IROTH).bits(),
+                access_mode | libc::O_CREAT | libc::O_TRUNC,
+                libc::S_IRUSR | libc::S_IWUSR | libc::S_IRGRP | libc::S_IROTH,
                 cwd.as_ptr(),
             )
         };
@@ -3759,29 +3778,28 @@
             runnable.total_run_time.get()
         );
 
-        <span class="kw">use </span>nix::sys::wait::WaitStatus;
-        <span class="kw">let </span>exit_status = <span class="kw">match </span>(
-            killed_by_shadow,
-            nix::sys::wait::waitpid(runnable.native_pid(), <span class="prelude-val">None</span>),
-        ) {
-            (<span class="bool-val">true</span>, <span class="prelude-val">Ok</span>(WaitStatus::Signaled(_pid, nixsignal::Signal::SIGKILL, _core_dump))) =&gt; {
-                ExitStatus::StoppedByShadow
+        <span class="kw">let </span>wait_res: <span class="prelude-ty">Option</span>&lt;WaitStatus&gt; =
+            rustix::process::waitpid(<span class="prelude-val">Some</span>(runnable.native_pid().into()), WaitOptions::empty())
+                .unwrap_or_else(|e| {
+                    <span class="macro">panic!</span>(<span class="string">"Error waiting for {:?}: {:?}"</span>, runnable.native_pid(), e)
+                });
+        <span class="kw">let </span>wait_status = wait_res.unwrap();
+        <span class="kw">let </span>exit_status = <span class="kw">if </span>killed_by_shadow {
+            <span class="kw">if </span>wait_status.terminating_signal()
+                != <span class="prelude-val">Some</span>(Signal::SIGKILL.as_i32().try_into().unwrap())
+            {
+                <span class="macro">warn!</span>(<span class="string">"Unexpected waitstatus after killed by shadow: {wait_status:?}"</span>);
             }
-            (<span class="bool-val">true</span>, waitstatus) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">"Unexpected waitstatus after killed by shadow: {waitstatus:?}"</span>);
-                ExitStatus::StoppedByShadow
-            }
-            (<span class="bool-val">false</span>, <span class="prelude-val">Ok</span>(WaitStatus::Exited(_pid, code))) =&gt; ExitStatus::Normal(code),
-            (<span class="bool-val">false</span>, <span class="prelude-val">Ok</span>(WaitStatus::Signaled(_pid, signal, _core_dump))) =&gt; {
-                <span class="kw">let </span>signal = Signal::try_from(signal <span class="kw">as </span>i32).unwrap();
-                ExitStatus::Signaled(signal)
-            }
-            (<span class="bool-val">false</span>, <span class="prelude-val">Ok</span>(status)) =&gt; {
-                <span class="macro">panic!</span>(<span class="string">"Unexpected status: {status:?}"</span>);
-            }
-            (<span class="bool-val">false</span>, <span class="prelude-val">Err</span>(e)) =&gt; {
-                <span class="macro">panic!</span>(<span class="string">"waitpid: {e:?}"</span>);
-            }
+            ExitStatus::StoppedByShadow
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(code) = wait_status.exit_status() {
+            ExitStatus::Normal(code.try_into().unwrap())
+        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(signal) = wait_status.terminating_signal() {
+            ExitStatus::Signaled(Signal::try_from(i32::try_from(signal).unwrap()).unwrap())
+        } <span class="kw">else </span>{
+            <span class="macro">panic!</span>(
+                <span class="string">"Unexpected status: {wait_status:?} for pid {:?}"</span>,
+                runnable.native_pid()
+            );
         };
 
         <span class="kw">let </span>(main_result_string, log_level) = {
@@ -3905,15 +3923,15 @@
         <span class="kw">let </span>old_native_pid = std::mem::replace(<span class="kw-2">&amp;mut </span>runnable.native_pid, mthread.native_pid());
 
         <span class="comment">// Kill the previous native process
-        </span>nixsignal::kill(old_native_pid, nixsignal::Signal::SIGKILL)
-            .expect(<span class="string">"Unable to send kill signal to managed process {old_native_pid}"</span>);
-        <span class="kw">match </span>nix::sys::wait::waitpid(old_native_pid, <span class="prelude-val">None</span>) {
-            <span class="prelude-val">Ok</span>(nix::sys::wait::WaitStatus::Signaled(pid, sig, _c)) =&gt; {
-                <span class="macro">assert_eq!</span>(pid, old_native_pid);
-                <span class="macro">assert_eq!</span>(sig, nixsignal::Signal::SIGKILL);
-            }
-            r =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected waitpid result: {r:?}"</span>),
-        };
+        </span>rustix::process::kill_process(old_native_pid.into(), rustix::process::Signal::Kill)
+            .expect(<span class="string">"Unable to send kill signal to managed process {old_native_pid:?}"</span>);
+        <span class="kw">let </span>wait_res = rustix::process::waitpid(<span class="prelude-val">Some</span>(old_native_pid.into()), WaitOptions::empty())
+            .unwrap()
+            .unwrap();
+        <span class="macro">assert_eq!</span>(
+            wait_res.terminating_signal(),
+            <span class="prelude-val">Some</span>(Signal::SIGKILL.as_i32().try_into().unwrap())
+        );
 
         <span class="kw">let </span>execing_thread = runnable.threads.borrow_mut().remove(<span class="kw-2">&amp;</span>tid).unwrap();
 
@@ -4408,7 +4426,7 @@
     <span class="attr">#[no_mangle]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getNativePid(proc: <span class="kw-2">*const </span>Process) -&gt; libc::pid_t {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
-        proc.native_pid().as_raw()
+        proc.native_pid().as_raw_nonzero().get()
     }
 
     <span class="doccomment">/// Flushes and invalidates all previously returned readable/writable plugin

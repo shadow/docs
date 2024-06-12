@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MRemapFlags","MapFlags","ProtFlags"]};
+window.SIDEBAR_ITEMS = {"fn":["mmap","mmap_raw","mprotect","mprotect_raw","munmap","munmap_raw"],"struct":["MRemapFlags","MapFlags","ProtFlags"]};

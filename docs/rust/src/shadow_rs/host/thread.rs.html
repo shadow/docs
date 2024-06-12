@@ -821,6 +821,7 @@
 <a href="#819" id="819">819</a>
 <a href="#820" id="820">820</a>
 <a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux thread.
 
 </span><span class="kw">use </span>std::cell::{Cell, RefCell};
@@ -828,8 +829,9 @@
 
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
+<span class="kw">use </span>linux_api::mman::{MapFlags, ProtFlags};
+<span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>linux_api::signal::stack_t;
-<span class="kw">use </span>nix::unistd::Pid;
 <span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDrop;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
@@ -1113,8 +1115,8 @@
         ctx: <span class="kw-2">&amp;</span>ProcessContext,
         addr: ForeignPtr&lt;u8&gt;,
         len: usize,
-        prot: i32,
-        flags: i32,
+        prot: ProtFlags,
+        flags: MapFlags,
         fd: i32,
         offset: i64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ForeignPtr&lt;u8&gt;, Errno&gt; {
@@ -1125,8 +1127,8 @@
                 <span class="kw-2">&amp;</span>[
                     SyscallReg::from(addr),
                     SyscallReg::from(len),
-                    SyscallReg::from(prot),
-                    SyscallReg::from(flags),
+                    SyscallReg::from(prot.bits()),
+                    SyscallReg::from(flags.bits()),
                     SyscallReg::from(fd),
                     SyscallReg::from(offset),
                 ],
@@ -1165,7 +1167,7 @@
         ctx: <span class="kw-2">&amp;</span>ProcessContext,
         addr: ForeignPtr&lt;u8&gt;,
         len: usize,
-        prot: i32,
+        prot: ProtFlags,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="self">self</span>.native_syscall(
             ctx,
@@ -1173,7 +1175,7 @@
             <span class="kw-2">&amp;</span>[
                 SyscallReg::from(addr),
                 SyscallReg::from(len),
-                SyscallReg::from(prot),
+                SyscallReg::from(prot.bits()),
             ],
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -1227,8 +1229,8 @@
             ctx,
             ForeignPtr::null(),
             size,
-            libc::PROT_READ | libc::PROT_WRITE,
-            libc::MAP_PRIVATE | libc::MAP_ANONYMOUS,
+            ProtFlags::PROT_READ | ProtFlags::PROT_WRITE,
+            MapFlags::MAP_PRIVATE | MapFlags::MAP_ANONYMOUS,
             -<span class="number">1</span>,
             <span class="number">0</span>,
         )

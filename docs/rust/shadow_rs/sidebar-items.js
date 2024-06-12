@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["log_once_at_level"],"mod":["core","cshadow","host","network","shadow","utility"]};
+window.SIDEBAR_ITEMS = {"macro":["log_once_at_level","log_once_per_value_at_level"],"mod":["core","cshadow","host","network","shadow","utility"]};

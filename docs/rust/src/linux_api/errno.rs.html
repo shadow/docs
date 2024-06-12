@@ -420,6 +420,74 @@
 <a href="#418" id="418">418</a>
 <a href="#419" id="419">419</a>
 <a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::bindings;
 
 <span class="attr">#[derive(Copy, Clone, PartialEq, Eq)]
@@ -628,6 +696,7 @@
         Errno::EEXIST =&gt; <span class="prelude-val">Some</span>(<span class="string">"EEXIST"</span>),
         Errno::ECHILD =&gt; <span class="prelude-val">Some</span>(<span class="string">"ECHILD"</span>),
         Errno::EACCES =&gt; <span class="prelude-val">Some</span>(<span class="string">"EACCES"</span>),
+        Errno::ENOEXEC =&gt; <span class="prelude-val">Some</span>(<span class="string">"ENOEXEC"</span>),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
@@ -766,6 +835,7 @@
     <span class="kw">pub const </span>EEXIST: <span class="self">Self </span>= <span class="self">Self</span>::from_u32_const(bindings::LINUX_EEXIST);
     <span class="kw">pub const </span>ECHILD: <span class="self">Self </span>= <span class="self">Self</span>::from_u32_const(bindings::LINUX_ECHILD);
     <span class="kw">pub const </span>EACCES: <span class="self">Self </span>= <span class="self">Self</span>::from_u32_const(bindings::LINUX_EACCES);
+    <span class="kw">pub const </span>ENOEXEC: <span class="self">Self </span>= <span class="self">Self</span>::from_u32_const(bindings::LINUX_ENOEXEC);
     <span class="comment">// NOTE: add new entries to `errno_to_str` above
 
     // Aliases
@@ -809,6 +879,72 @@
         <span class="comment">// check for truncation
         </span><span class="macro">assert!</span>(rv.<span class="number">0 </span><span class="kw">as </span>u32 == val);
         rv
+    }
+
+    <span class="doccomment">/// Get libc's errno (global for the current thread).
+    </span><span class="attr">#[cfg(feature = <span class="string">"libc"</span>)]
+    </span><span class="kw">pub fn </span>from_libc_errno() -&gt; <span class="self">Self </span>{
+        <span class="comment">// SAFETY: The safety requirements for calling this function are
+        // undocumented, and I'm not aware of any.
+        </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ libc::__errno_location() };
+        <span class="macro">assert!</span>(!ptr.is_null());
+        <span class="comment">// SAFETY: We verified that `ptr` is non-NULL, and can only assume that
+        // libc gives us a pointer that is safe to dereference.
+        //
+        // `errno(2)` guarantees that it's thread-local, so there shouldn't be any
+        // data-races from other threads.
+        //
+        // A signal handler could run on the current thread and change the `errno`
+        // value at `*ptr`. A well-behaved handler should always restore the original
+        // value before returning (`signal-safety(7)`) which should make this
+        // sound; nonetheless we try to make the dereference "as atomic" as
+        // possible, e.g.  by directly dereferencing the pointer and not
+        // converting it to a Rust reference.
+        </span><span class="kw">let </span>raw = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>ptr };
+
+        <span class="self">Self</span>::from_libc_errnum(raw)
+            .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Unexpected bad errno from libc: {raw}"</span>))
+    }
+
+    <span class="doccomment">/// Get a Result from the return value of a libc function that uses a
+    /// sentinel error value, and stores the errors themselves in errno.
+    </span><span class="attr">#[cfg(feature = <span class="string">"libc"</span>)]
+    </span><span class="kw">pub fn </span>result_from_libc_errno&lt;T&gt;(sentinel: T, x: T) -&gt; <span class="prelude-ty">Result</span>&lt;T, <span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span>T: Eq,
+    {
+        <span class="kw">if </span>x == sentinel {
+            <span class="prelude-val">Err</span>(<span class="self">Self</span>::from_libc_errno())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(x)
+        }
+    }
+
+    <span class="doccomment">/// Get a Result from a libc `errnum` return value, where 0 is used to
+    /// indicate "no error", and non-zero is an errno value. An example of such
+    /// a function is `libc::posix_spawn`.
+    ///
+    /// Panics if `errnum` is out of range. This shouldn't be the case for any `errnum` obtained
+    /// from libc APIs.
+    </span><span class="attr">#[cfg(feature = <span class="string">"libc"</span>)]
+    </span><span class="kw">pub fn </span>result_from_libc_errnum(errnum: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>&gt; {
+        <span class="kw">if </span>errnum == <span class="number">0 </span>{
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<span class="self">Self</span>::from_libc_errnum(errnum)
+                .unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"errnum out of range: {errnum}"</span>)))
+        }
+    }
+
+    <span class="doccomment">/// Convert from a libc error value. Returns `None` if out of range.
+    </span><span class="attr">#[cfg(feature = <span class="string">"libc"</span>)]
+    </span><span class="kw">pub fn </span>from_libc_errnum(errnum: i32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// For now we assume that libc uses the same errnum values
+        // as the kernel. This isn't explicitly guaranteed, but we don't
+        // know of any exceptions in practice. In case it turns out not to be true
+        // we can either change this to a full explicit mapping, or handle
+        // individual known exceptions here.
+        </span><span class="self">Self</span>::from_u16(u16::try_from(errnum).ok()<span class="question-mark">?</span>)
     }
 }
 

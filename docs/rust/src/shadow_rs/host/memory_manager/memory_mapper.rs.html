@@ -1095,22 +1095,27 @@
 <a href="#1093" id="1093">1093</a>
 <a href="#1094" id="1094">1094</a>
 <a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::ffi::CString;
 <span class="kw">use </span>std::fmt::Debug;
 <span class="kw">use </span>std::fs::File;
-<span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::os::raw::c_void;
 <span class="kw">use </span>std::os::unix::io::AsRawFd;
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>std::process;
 
 <span class="kw">use </span>linux_api::errno::Errno;
+<span class="kw">use </span>linux_api::mman::MapFlags;
+<span class="kw">use </span>linux_api::mman::ProtFlags;
+<span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
-<span class="kw">use </span>nix::sys::memfd::MemFdCreateFlag;
-<span class="kw">use </span>nix::unistd::Pid;
-<span class="kw">use </span>nix::{fcntl, sys};
+<span class="kw">use </span>rustix::fs::FallocateFlags;
+<span class="kw">use </span>rustix::fs::MemfdFlags;
 <span class="kw">use </span>shadow_pod::Pod;
 <span class="kw">use </span>shadow_shim_helper_rs::notnull::<span class="kw-2">*</span>;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
@@ -1123,15 +1128,17 @@
 <span class="kw">use </span><span class="kw">crate</span>::utility::proc_maps;
 <span class="kw">use </span><span class="kw">crate</span>::utility::proc_maps::{MappingPath, Sharing};
 
-<span class="kw">const </span>HEAP_PROT: i32 = libc::PROT_READ | libc::PROT_WRITE;
-<span class="kw">const </span>STACK_PROT: i32 = libc::PROT_READ | libc::PROT_WRITE;
+<span class="doccomment">/// Used when mapping heap regions.
+</span><span class="kw">const </span>HEAP_PROT: ProtFlags = ProtFlags::PROT_READ.union(ProtFlags::PROT_WRITE);
+<span class="doccomment">/// Used when mapping stack regions.
+</span><span class="kw">const </span>STACK_PROT: ProtFlags = ProtFlags::PROT_READ.union(ProtFlags::PROT_WRITE);
 
 <span class="comment">// Represents a region of plugin memory.
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">struct </span>Region {
     <span class="comment">// Where the region is mapped into shadow's address space, or NULL if it isn't.
     </span>shadow_base: <span class="kw-2">*mut </span>c_void,
-    prot: i32,
+    prot: ProtFlags,
     sharing: proc_maps::Sharing,
     <span class="comment">// The *original* path. Not the path to our mem file.
     </span>original_path: <span class="prelude-ty">Option</span>&lt;proc_maps::MappingPath&gt;,
@@ -1192,18 +1199,18 @@
 </span><span class="kw">struct </span>ShmFile {
     shm_file: File,
     shm_plugin_fd: i32,
-    len: libc::off_t,
+    len: usize,
 }
 
 <span class="kw">impl </span>ShmFile {
     <span class="doccomment">/// Allocate space in the file for the given interval.
     </span><span class="kw">fn </span>alloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interval: <span class="kw-2">&amp;</span>Interval) {
-        <span class="kw">let </span>needed_len = interval.end <span class="kw">as </span>libc::off_t;
+        <span class="kw">let </span>needed_len = interval.end;
         <span class="comment">// Ensure that the file size extends through the end of the interval.
         // Unlike calling fallocate or posix_fallocate, this does not pre-reserve
         // any space. The OS will allocate the space on-demand as it's written.
         </span><span class="kw">if </span>needed_len &gt; <span class="self">self</span>.len {
-            nix::unistd::ftruncate(<span class="kw-2">&amp;</span><span class="self">self</span>.shm_file, needed_len).unwrap();
+            rustix::fs::ftruncate(<span class="kw-2">&amp;</span><span class="self">self</span>.shm_file, u64::try_from(needed_len).unwrap()).unwrap();
             <span class="self">self</span>.len = needed_len;
         }
     }
@@ -1211,26 +1218,25 @@
     <span class="doccomment">/// De-allocate space in the file for the given interval.
     </span><span class="kw">fn </span>dealloc(<span class="kw-2">&amp;</span><span class="self">self</span>, interval: <span class="kw-2">&amp;</span>Interval) {
         <span class="macro">trace!</span>(<span class="string">"dealloc {:?}"</span>, interval);
-        fcntl::fallocate(
-            <span class="self">self</span>.shm_file.as_raw_fd(),
-            fcntl::FallocateFlags::FALLOC_FL_PUNCH_HOLE
-                | fcntl::FallocateFlags::FALLOC_FL_KEEP_SIZE,
-            interval.start <span class="kw">as </span>i64,
-            interval.len() <span class="kw">as </span>i64,
+        rustix::fs::fallocate(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.shm_file,
+            FallocateFlags::PUNCH_HOLE | FallocateFlags::KEEP_SIZE,
+            u64::try_from(interval.start).unwrap(),
+            u64::try_from(interval.len()).unwrap(),
         )
         .unwrap();
     }
 
     <span class="doccomment">/// Map the given interval of the file into shadow's address space.
-    </span><span class="kw">fn </span>mmap_into_shadow(<span class="kw-2">&amp;</span><span class="self">self</span>, interval: <span class="kw-2">&amp;</span>Interval, prot: i32) -&gt; <span class="kw-2">*mut </span>c_void {
+    </span><span class="kw">fn </span>mmap_into_shadow(<span class="kw-2">&amp;</span><span class="self">self</span>, interval: <span class="kw-2">&amp;</span>Interval, prot: ProtFlags) -&gt; <span class="kw-2">*mut </span>c_void {
         <span class="kw">unsafe </span>{
-            sys::mman::mmap(
-                <span class="prelude-val">None</span>,
-                NonZeroUsize::new(interval.len()).unwrap(),
-                sys::mman::ProtFlags::from_bits(prot).unwrap(),
-                sys::mman::MapFlags::MAP_SHARED,
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.shm_file),
-                interval.start <span class="kw">as </span>i64,
+            linux_api::mman::mmap(
+                std::ptr::null_mut(),
+                interval.len(),
+                prot,
+                MapFlags::MAP_SHARED,
+                <span class="self">self</span>.shm_file.as_raw_fd(),
+                interval.start,
             )
         }
         .unwrap()
@@ -1272,14 +1278,14 @@
     }
 
     <span class="doccomment">/// Map the given range of the file into the plugin's address space.
-    </span><span class="kw">fn </span>mmap_into_plugin(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>ThreadContext, interval: <span class="kw-2">&amp;</span>Interval, prot: i32) {
+    </span><span class="kw">fn </span>mmap_into_plugin(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>ThreadContext, interval: <span class="kw-2">&amp;</span>Interval, prot: ProtFlags) {
         ctx.thread
             .native_mmap(
                 <span class="kw-2">&amp;</span>ProcessContext::new(ctx.host, ctx.process),
                 ForeignPtr::from(interval.start).cast::&lt;u8&gt;(),
                 interval.len(),
                 prot,
-                libc::MAP_SHARED | libc::MAP_FIXED,
+                MapFlags::MAP_SHARED | MapFlags::MAP_FIXED,
                 <span class="self">self</span>.shm_plugin_fd,
                 interval.start <span class="kw">as </span>i64,
             )
@@ -1290,16 +1296,16 @@
 <span class="doccomment">/// Get the current mapped regions of the process.
 </span><span class="kw">fn </span>get_regions(pid: Pid) -&gt; IntervalMap&lt;Region&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>regions = IntervalMap::new();
-    <span class="kw">for </span>mapping <span class="kw">in </span>proc_maps::mappings_for_pid(pid.as_raw()).unwrap() {
-        <span class="kw">let </span><span class="kw-2">mut </span>prot = <span class="number">0</span>;
+    <span class="kw">for </span>mapping <span class="kw">in </span>proc_maps::mappings_for_pid(pid.as_raw_nonzero().get()).unwrap() {
+        <span class="kw">let </span><span class="kw-2">mut </span>prot = ProtFlags::empty();
         <span class="kw">if </span>mapping.read {
-            prot |= libc::PROT_READ;
+            prot |= ProtFlags::PROT_READ;
         }
         <span class="kw">if </span>mapping.write {
-            prot |= libc::PROT_WRITE;
+            prot |= ProtFlags::PROT_WRITE;
         }
         <span class="kw">if </span>mapping.execute {
-            prot |= libc::PROT_EXEC;
+            prot |= ProtFlags::PROT_EXEC;
         }
         <span class="kw">let </span>mutations = regions.insert(
             mapping.begin..mapping.end,
@@ -1430,7 +1436,7 @@
         <span class="kw">for </span>m <span class="kw">in </span>mutations {
             <span class="kw">if let </span>Mutation::Removed(interval, region) = m {
                 <span class="kw">if </span>!region.shadow_base.is_null() {
-                    <span class="kw">unsafe </span>{ sys::mman::munmap(region.shadow_base, interval.len()) }
+                    <span class="kw">unsafe </span>{ linux_api::mman::munmap(region.shadow_base, interval.len()) }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"munmap: {}"</span>, e));
                 }
             }
@@ -1481,8 +1487,7 @@
             u32::from(ctx.process.id())
         ))
         .unwrap();
-        <span class="kw">let </span>raw_file =
-            nix::sys::memfd::memfd_create(<span class="kw-2">&amp;</span>shm_name, MemFdCreateFlag::MFD_CLOEXEC).unwrap();
+        <span class="kw">let </span>raw_file = rustix::fs::memfd_create(<span class="kw-2">&amp;</span>shm_name, MemfdFlags::CLOEXEC).unwrap();
         <span class="kw">let </span>shm_file = File::from(raw_file);
 
         <span class="comment">// Other processes can open the file via /proc.
@@ -1555,7 +1560,7 @@
                     </span><span class="self">self</span>.shm_file.dealloc(<span class="kw-2">&amp;</span>removed_range);
 
                     <span class="comment">// Unmap range from Shadow's address space.
-                    </span><span class="kw">unsafe </span>{ sys::mman::munmap(region.shadow_base, removed_range.len()) }
+                    </span><span class="kw">unsafe </span>{ linux_api::mman::munmap(region.shadow_base, removed_range.len()) }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"munmap: {}"</span>, e));
 
                     <span class="comment">// Adjust base
@@ -1573,7 +1578,7 @@
 
                     <span class="comment">// Unmap range from Shadow's address space.
                     </span><span class="kw">unsafe </span>{
-                        sys::mman::munmap(
+                        linux_api::mman::munmap(
                             region.shadow_base.add((interval.start..new_end).len()),
                             removed_range.len(),
                         )
@@ -1594,7 +1599,7 @@
 
                     <span class="comment">// Unmap range from Shadow's address space.
                     </span><span class="kw">unsafe </span>{
-                        sys::mman::munmap(
+                        linux_api::mman::munmap(
                             (left_region.shadow_base.add(left.len())) <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
                             removed_range.len(),
                         )
@@ -1615,7 +1620,7 @@
                     </span><span class="self">self</span>.shm_file.dealloc(<span class="kw-2">&amp;</span>interval);
 
                     <span class="comment">// Unmap range from Shadow's address space.
-                    </span><span class="kw">unsafe </span>{ sys::mman::munmap(region.shadow_base, interval.len()) }
+                    </span><span class="kw">unsafe </span>{ linux_api::mman::munmap(region.shadow_base, interval.len()) }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"munmap: {}"</span>, e));
                 }
             }
@@ -1633,8 +1638,8 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ctx: <span class="kw-2">&amp;</span>ThreadContext,
         ptr: ForeignArrayPtr&lt;u8&gt;,
-        prot: i32,
-        flags: i32,
+        prot: ProtFlags,
+        flags: MapFlags,
         fd: i32,
     ) {
         <span class="macro">trace!</span>(
@@ -1647,8 +1652,8 @@
         }
         <span class="kw">let </span>addr = usize::from(ptr.ptr());
         <span class="kw">let </span>interval = addr..(addr + ptr.len());
-        <span class="kw">let </span>is_anonymous = flags &amp; libc::MAP_ANONYMOUS != <span class="number">0</span>;
-        <span class="kw">let </span>sharing = <span class="kw">if </span>flags &amp; libc::MAP_PRIVATE != <span class="number">0 </span>{
+        <span class="kw">let </span>is_anonymous = flags.contains(MapFlags::MAP_ANONYMOUS);
+        <span class="kw">let </span>sharing = <span class="kw">if </span>flags.contains(MapFlags::MAP_PRIVATE) {
             Sharing::Private
         } <span class="kw">else </span>{
             Sharing::Shared
@@ -1660,8 +1665,12 @@
             // sense to eventually move the mechanics of opening the child fd into here (in which
             // case we'll already have it) than to pipe the string through this API.
             </span><span class="prelude-val">Some</span>(MappingPath::Path(
-                std::fs::read_link(<span class="macro">format!</span>(<span class="string">"/proc/{}/fd/{}"</span>, ctx.thread.native_pid(), fd))
-                    .unwrap_or_else(|<span class="kw">_</span>| PathBuf::from(<span class="macro">format!</span>(<span class="string">"bad-fd-{}"</span>, fd))),
+                std::fs::read_link(<span class="macro">format!</span>(
+                    <span class="string">"/proc/{}/fd/{}"</span>,
+                    ctx.thread.native_pid().as_raw_nonzero().get(),
+                    fd
+                ))
+                .unwrap_or_else(|<span class="kw">_</span>| PathBuf::from(<span class="macro">format!</span>(<span class="string">"bad-fd-{}"</span>, fd))),
             ))
         };
         <span class="kw">let </span><span class="kw-2">mut </span>region = Region {
@@ -1805,7 +1814,7 @@
                 };
 
                 <span class="comment">// Unmap the old location from Shadow.
-                </span><span class="kw">unsafe </span>{ sys::mman::munmap(region.shadow_base, old_size) }
+                </span><span class="kw">unsafe </span>{ linux_api::mman::munmap(region.shadow_base, old_size) }
                     .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"munmap: {}"</span>, e));
 
                 <span class="comment">// Update the region metadata.
@@ -1979,12 +1988,11 @@
         ctx: <span class="kw-2">&amp;</span>ThreadContext,
         addr: ForeignPtr&lt;u8&gt;,
         size: usize,
-        prot: i32,
+        prot: ProtFlags,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;i32, Errno&gt; {
         <span class="kw">let </span>(ctx, thread) = ctx.split_thread();
         <span class="macro">trace!</span>(<span class="string">"mprotect({:?}, {}, {:?})"</span>, addr, size, prot);
         thread.native_mprotect(<span class="kw-2">&amp;</span>ctx, addr, size, prot)<span class="question-mark">?</span>;
-        <span class="kw">let </span>protflags = sys::mman::ProtFlags::from_bits(prot).unwrap();
 
         <span class="comment">// Update protections. We remove the affected range, and then update and re-insert affected
         // regions.
@@ -2005,10 +2013,10 @@
                         extant_region.shadow_base =
                             <span class="kw">unsafe </span>{ extant_region.shadow_base.add(modified_interval.len()) };
                         <span class="kw">unsafe </span>{
-                            sys::mman::mprotect(
+                            linux_api::mman::mprotect(
                                 modified_region.shadow_base,
                                 modified_interval.len(),
-                                protflags,
+                                prot,
                             )
                         }
                         .unwrap_or_else(|e| {
@@ -2016,7 +2024,7 @@
                                 <span class="string">"mprotect({:?}, {:?}, {:?}): {}"</span>,
                                 modified_region.shadow_base,
                                 modified_interval.len(),
-                                protflags,
+                                prot,
                                 e
                             );
                         });
@@ -2038,10 +2046,10 @@
                         modified_region.shadow_base =
                             <span class="kw">unsafe </span>{ modified_region.shadow_base.add(extant_interval.len()) };
                         <span class="kw">unsafe </span>{
-                            sys::mman::mprotect(
+                            linux_api::mman::mprotect(
                                 modified_region.shadow_base,
                                 modified_interval.len(),
-                                protflags,
+                                prot,
                             )
                         }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"mprotect: {}"</span>, e));
@@ -2065,10 +2073,10 @@
                                 .add(left_interval.len() + modified_interval.len())
                         };
                         <span class="kw">unsafe </span>{
-                            sys::mman::mprotect(
+                            linux_api::mman::mprotect(
                                 modified_region.shadow_base,
                                 modified_interval.len(),
-                                protflags,
+                                prot,
                             )
                         }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"mprotect: {}"</span>, e));
@@ -2082,10 +2090,10 @@
                     modified_region.prot = prot;
                     <span class="kw">if </span>!modified_region.shadow_base.is_null() {
                         <span class="kw">unsafe </span>{
-                            sys::mman::mprotect(
+                            linux_api::mman::mprotect(
                                 modified_region.shadow_base,
                                 modified_interval.len(),
-                                protflags,
+                                prot,
                             )
                         }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"mprotect: {}"</span>, e));

@@ -783,28 +783,6 @@
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A thread of a managed process.
 //!
 //! This contains the code where the simulator can create or communicate with a managed process.
@@ -817,9 +795,13 @@
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>std::sync::{atomic, Arc};
 
+<span class="kw">use </span>linux_api::errno::Errno;
+<span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>linux_api::sched::CloneFlags;
+<span class="kw">use </span>linux_api::signal::tgkill;
 <span class="kw">use </span>log::{debug, error, log_enabled, trace, Level};
-<span class="kw">use </span>nix::errno::Errno;
+<span class="kw">use </span>rustix::pipe::PipeFlags;
+<span class="kw">use </span>rustix::process::WaitOptions;
 <span class="kw">use </span>shadow_shim_helper_rs::ipc::IPCData;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_event::{
     ShimEventAddThreadReq, ShimEventAddThreadRes, ShimEventSyscall, ShimEventSyscallComplete,
@@ -858,8 +840,8 @@
     <span class="comment">/* holds the event for the most recent call from the plugin/shim */
     </span>current_event: RefCell&lt;ShimEventToShadow&gt;,
 
-    native_pid: nix::unistd::Pid,
-    native_tid: nix::unistd::Pid,
+    native_pid: linux_api::posix_types::Pid,
+    native_tid: linux_api::posix_types::Pid,
 
     <span class="comment">// Value storing the current CPU affinity of the thread (more precisely,
     // of the native thread backing this thread object). This value will be set
@@ -869,11 +851,11 @@
 }
 
 <span class="kw">impl </span>ManagedThread {
-    <span class="kw">pub fn </span>native_pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; nix::unistd::Pid {
+    <span class="kw">pub fn </span>native_pid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::posix_types::Pid {
         <span class="self">self</span>.native_pid
     }
 
-    <span class="kw">pub fn </span>native_tid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; nix::unistd::Pid {
+    <span class="kw">pub fn </span>native_tid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::posix_types::Pid {
         <span class="self">self</span>.native_tid
     }
 
@@ -903,7 +885,7 @@
         strace_file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>std::fs::File&gt;,
         log_file: <span class="kw-2">&amp;</span>std::fs::File,
         injected_preloads: <span class="kw-2">&amp;</span>[PathBuf],
-    ) -&gt; nix::Result&lt;<span class="self">Self</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Errno&gt; {
         <span class="macro">debug!</span>(<span class="string">"spawning new mthread '{plugin_path:?}' with environment '{envv:?}', arguments '{argv:?}'"</span>);
 
         <span class="kw">let </span>envv = inject_preloads(envv, injected_preloads);
@@ -932,7 +914,7 @@
         };
 
         <span class="macro">trace!</span>(
-            <span class="string">"waiting for start event from shim with native pid {}"</span>,
+            <span class="string">"waiting for start event from shim with native pid {:?}"</span>,
             native_pid
         );
         <span class="kw">let </span>start_req = ipc_shmem.from_plugin().receive().unwrap();
@@ -944,35 +926,34 @@
                 <span class="comment">// The process died before initializing the shim.
                 //
                 // Reap the dead process and return an error.
-                </span><span class="kw">let </span>status = nix::sys::wait::waitpid(native_pid, <span class="prelude-val">None</span>).unwrap();
-                <span class="kw">match </span>status {
-                    nix::sys::wait::WaitStatus::Exited(pid, <span class="number">127</span>) <span class="kw">if </span>pid == native_pid =&gt; {
-                        <span class="comment">// posix_spawn(3):
-                        // &gt; If  the child  fails  in  any  of the
-                        // &gt; housekeeping steps described below, or fails to
-                        // &gt; execute the desired file, it exits with a status of
-                        // &gt; 127.
-                        </span><span class="macro">debug!</span>(<span class="string">"posix_spawn failed to exec the process"</span>);
-                        <span class="comment">// Assume that execve failed, and return a plausible reason
-                        // why it might have done so.
-                        // TODO: replace our usage of posix_spawn with a custom
-                        // implementation that can return the execve failure code?
-                        </span><span class="kw">return </span><span class="prelude-val">Err</span>(nix::errno::Errno::EPERM);
-                    }
-                    other =&gt; {
-                        <span class="comment">// TODO: handle more gracefully.
-                        // * The native stdout/stderr might have a clue as to
-                        // why the process died.  Consider logging a hint to
-                        // check it (currently in the corresponding shimlog), or
-                        // directly capture it and display it here.
-                        // https://github.com/shadow/shadow/issues/3142
-                        // * Consider logging a warning here and continuing on to handle
-                        // the managed process exit normally. e.g. when this happens
-                        // as part of an emulated `execve`, we might want to continue
-                        // the simulation.
-                        </span><span class="macro">panic!</span>(<span class="string">"Child process died unexpectedly before initialization: {other:?}"</span>);
-                    }
+                </span><span class="kw">let </span>status =
+                    rustix::process::waitpid(<span class="prelude-val">Some</span>(native_pid.into()), WaitOptions::empty())
+                        .unwrap()
+                        .unwrap();
+                <span class="kw">if </span>status.exit_status() == <span class="prelude-val">Some</span>(<span class="number">127</span>) {
+                    <span class="comment">// posix_spawn(3):
+                    // &gt; If  the child  fails  in  any  of the
+                    // &gt; housekeeping steps described below, or fails to
+                    // &gt; execute the desired file, it exits with a status of
+                    // &gt; 127.
+                    </span><span class="macro">debug!</span>(<span class="string">"posix_spawn failed to exec the process"</span>);
+                    <span class="comment">// Assume that execve failed, and return a plausible reason
+                    // why it might have done so.
+                    // TODO: replace our usage of posix_spawn with a custom
+                    // implementation that can return the execve failure code?
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPERM);
                 }
+                <span class="comment">// TODO: handle more gracefully.
+                // * The native stdout/stderr might have a clue as to
+                // why the process died.  Consider logging a hint to
+                // check it (currently in the corresponding shimlog), or
+                // directly capture it and display it here.
+                // https://github.com/shadow/shadow/issues/3142
+                // * Consider logging a warning here and continuing on to handle
+                // the managed process exit normally. e.g. when this happens
+                // as part of an emulated `execve`, we might want to continue
+                // the simulation.
+                </span><span class="macro">panic!</span>(<span class="string">"Child process died unexpectedly before initialization: {status:?}"</span>);
             }
             other =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected result from shim: {other:?}"</span>),
         };
@@ -1179,11 +1160,11 @@
             r =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected result: {r:?}"</span>),
         };
         <span class="kw">let </span>clone_res: SyscallReg = syscall::raw_return_value_to_result(clone_res)<span class="question-mark">?</span>;
-        <span class="kw">let </span>child_native_tid = libc::pid_t::from(clone_res);
-        <span class="macro">trace!</span>(<span class="string">"native clone treated tid {child_native_tid}"</span>);
+        <span class="kw">let </span>child_native_tid = Pid::from_raw(libc::pid_t::from(clone_res)).unwrap();
+        <span class="macro">trace!</span>(<span class="string">"native clone treated tid {child_native_tid:?}"</span>);
 
         <span class="macro">trace!</span>(
-            <span class="string">"waiting for start event from shim with native tid {}"</span>,
+            <span class="string">"waiting for start event from shim with native tid {:?}"</span>,
             child_native_tid
         );
         <span class="kw">let </span>start_req = child_ipc_shmem.from_plugin().receive().unwrap();
@@ -1195,7 +1176,7 @@
         <span class="kw">let </span>native_pid = <span class="kw">if </span>flags.contains(CloneFlags::CLONE_THREAD) {
             <span class="self">self</span>.native_pid
         } <span class="kw">else </span>{
-            nix::unistd::Pid::from_raw(child_native_tid)
+            child_native_tid
         };
 
         <span class="kw">if </span>!flags.contains(CloneFlags::CLONE_THREAD) {
@@ -1227,7 +1208,7 @@
             return_code: Cell::new(<span class="prelude-val">None</span>),
             current_event: RefCell::new(start_req),
             native_pid,
-            native_tid: nix::unistd::Pid::from_raw(child_native_tid),
+            native_tid: child_native_tid,
             <span class="comment">// TODO: can we assume it's inherited from the current thread affinity?
             </span>affinity: Cell::new(cshadow::AFFINITY_UNINIT),
         })
@@ -1294,7 +1275,7 @@
         // Alternatively we could use `set_tid_address` or `set_robust_list` to
         // be notified on a futex. Those are a bit underdocumented and fragile,
         // though. In practice this shouldn't have to loop significantly.
-        </span><span class="macro">trace!</span>(<span class="string">"Waiting for native thread {native_pid}.{native_tid} to exit"</span>);
+        </span><span class="macro">trace!</span>(<span class="string">"Waiting for native thread {native_pid:?}.{native_tid:?} to exit"</span>);
         <span class="kw">loop </span>{
             <span class="kw">if </span><span class="self">self</span>.ipc_shmem.from_plugin().writer_is_closed() {
                 <span class="comment">// This indicates that the whole process has stopped executing;
@@ -1313,17 +1294,17 @@
                 <span class="prelude-val">Ok</span>(()) <span class="kw">if </span>native_pid == native_tid =&gt; {
                     <span class="comment">// Thread leader could be in a zombie state waiting for
                     // the other threads to exit.
-                    </span><span class="kw">let </span>filename = <span class="macro">format!</span>(<span class="string">"/proc/{native_pid}/stat"</span>);
+                    </span><span class="kw">let </span>filename = <span class="macro">format!</span>(<span class="string">"/proc/{}/stat"</span>, native_pid.as_raw_nonzero().get());
                     <span class="kw">let </span>stat = <span class="kw">match </span>std::fs::read_to_string(filename) {
                         <span class="prelude-val">Err</span>(e) =&gt; {
                             <span class="macro">assert!</span>(e.kind() == std::io::ErrorKind::NotFound);
-                            <span class="macro">trace!</span>(<span class="string">"tgl {native_pid} is fully dead"</span>);
+                            <span class="macro">trace!</span>(<span class="string">"tgl {native_pid:?} is fully dead"</span>);
                             <span class="kw">break</span>;
                         }
                         <span class="prelude-val">Ok</span>(s) =&gt; s,
                     };
                     <span class="kw">if </span>stat.contains(<span class="string">") Z"</span>) {
-                        <span class="macro">trace!</span>(<span class="string">"tgl {native_pid} is a zombie"</span>);
+                        <span class="macro">trace!</span>(<span class="string">"tgl {native_pid:?} is a zombie"</span>);
                         <span class="kw">break</span>;
                     }
                     <span class="comment">// Still alive and in a non-zombie state; continue
@@ -1342,7 +1323,7 @@
             .unwrap_or(cshadow::AFFINITY_UNINIT);
         <span class="self">self</span>.affinity.set(<span class="kw">unsafe </span>{
             cshadow::affinity_setProcessAffinity(
-                <span class="self">self</span>.native_tid().into(),
+                <span class="self">self</span>.native_tid().as_raw_nonzero().get(),
                 current_affinity,
                 <span class="self">self</span>.affinity.get(),
             )
@@ -1356,7 +1337,7 @@
         strace_file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>std::fs::File&gt;,
         shimlog_file: <span class="kw-2">&amp;</span>std::fs::File,
         shmem_block: <span class="kw-2">&amp;</span>ShMemBlock&lt;IPCData&gt;,
-    ) -&gt; nix::Result&lt;nix::unistd::Pid&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Pid, Errno&gt; {
         <span class="comment">// Preemptively check for likely reasons that execve might fail.
         // In particular we want to ensure that we  don't launch a statically
         // linked executable, since we'd then deadlock the whole simulation
@@ -1406,15 +1387,17 @@
             .collect();
 
         <span class="kw">let </span><span class="kw-2">mut </span>file_actions: libc::posix_spawn_file_actions_t = shadow_pod::zeroed();
-        posix_result(<span class="kw">unsafe </span>{ libc::posix_spawn_file_actions_init(<span class="kw-2">&amp;mut </span>file_actions) }).unwrap();
+        Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
+            libc::posix_spawn_file_actions_init(<span class="kw-2">&amp;mut </span>file_actions)
+        })
+        .unwrap();
 
         <span class="comment">// Set up stdin
-        </span><span class="kw">let </span>(stdin_reader, stdin_writer) =
-            nix::unistd::pipe2(nix::fcntl::OFlag::O_CLOEXEC).unwrap();
-        posix_result(<span class="kw">unsafe </span>{
+        </span><span class="kw">let </span>(stdin_reader, stdin_writer) = rustix::pipe::pipe_with(PipeFlags::CLOEXEC).unwrap();
+        Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
             libc::posix_spawn_file_actions_adddup2(
                 <span class="kw-2">&amp;mut </span>file_actions,
-                stdin_reader,
+                stdin_reader.as_raw_fd(),
                 libc::STDIN_FILENO,
             )
         })
@@ -1438,7 +1421,7 @@
         // https://github.com/bminor/glibc/commit/805334b26c7e6e83557234f2008497c72176a6cd
         // https://austingroupbugs.net/view.php?id=411
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(strace_file) = strace_file {
-            posix_result(<span class="kw">unsafe </span>{
+            Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
                 libc::posix_spawn_file_actions_adddup2(
                     <span class="kw-2">&amp;mut </span>file_actions,
                     strace_file.as_raw_fd(),
@@ -1446,7 +1429,7 @@
                 )
             })
             .unwrap();
-            posix_result(<span class="kw">unsafe </span>{
+            Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
                 libc::posix_spawn_file_actions_adddup2(
                     <span class="kw-2">&amp;mut </span>file_actions,
                     libc::STDOUT_FILENO,
@@ -1457,7 +1440,7 @@
         }
 
         <span class="comment">// set stdout/stderr as the shim log. This also clears the FD_CLOEXEC flag.
-        </span>posix_result(<span class="kw">unsafe </span>{
+        </span>Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
             libc::posix_spawn_file_actions_adddup2(
                 <span class="kw-2">&amp;mut </span>file_actions,
                 shimlog_file.as_raw_fd(),
@@ -1465,7 +1448,7 @@
             )
         })
         .unwrap();
-        posix_result(<span class="kw">unsafe </span>{
+        Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
             libc::posix_spawn_file_actions_adddup2(
                 <span class="kw-2">&amp;mut </span>file_actions,
                 shimlog_file.as_raw_fd(),
@@ -1475,11 +1458,12 @@
         .unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>spawn_attr: libc::posix_spawnattr_t = shadow_pod::zeroed();
-        posix_result(<span class="kw">unsafe </span>{ libc::posix_spawnattr_init(<span class="kw-2">&amp;mut </span>spawn_attr) }).unwrap();
+        Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{ libc::posix_spawnattr_init(<span class="kw-2">&amp;mut </span>spawn_attr) })
+            .unwrap();
 
         <span class="comment">// In versions of glibc before 2.24, we need this to tell posix_spawn
         // to use vfork instead of fork. In later versions it's a no-op.
-        </span>posix_result(<span class="kw">unsafe </span>{
+        </span>Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
             libc::posix_spawnattr_setflags(
                 <span class="kw-2">&amp;mut </span>spawn_attr,
                 libc::POSIX_SPAWN_USEVFORK.try_into().unwrap(),
@@ -1489,7 +1473,7 @@
 
         <span class="kw">let </span>child_pid_res = {
             <span class="kw">let </span><span class="kw-2">mut </span>child_pid = -<span class="number">1</span>;
-            posix_result(<span class="kw">unsafe </span>{
+            Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
                 libc::posix_spawn(
                     <span class="kw-2">&amp;mut </span>child_pid,
                     plugin_path.as_ptr(),
@@ -1499,24 +1483,21 @@
                     envv_ptrs.as_ptr(),
                 )
             })
-            .map(|<span class="kw">_</span>| {
-                <span class="macro">assert!</span>(child_pid &gt; <span class="number">0</span>, <span class="string">"Invalid pid: {child_pid}"</span>);
-                nix::unistd::Pid::from_raw(child_pid)
-            })
+            .map(|<span class="kw">_</span>| Pid::from_raw(child_pid).unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Invalid pid: {child_pid}"</span>)))
         };
 
         <span class="comment">// Write the serialized shmem descriptor to the stdin pipe. The pipe
         // buffer should be large enough that we can write it all without having
         // to wait for data to be read.
         </span><span class="kw">if </span>child_pid_res.is_ok() {
-            <span class="comment">// we avoid using the nix write wrapper here, since we can't guarantee
+            <span class="comment">// we avoid using the rustix write wrapper here, since we can't guarantee
             // that all bytes of the serialized shmem block are initd, and hence
-            // can't safely construct the &amp;[u8] that the nix wrapper wants.
+            // can't safely construct the &amp;[u8] that it wants.
             </span><span class="kw">let </span>serialized = shmem_block.serialize();
             <span class="kw">let </span>serialized_bytes = shadow_pod::as_u8_slice(<span class="kw-2">&amp;</span>serialized);
-            <span class="kw">let </span>written = nix::errno::Errno::result(<span class="kw">unsafe </span>{
+            <span class="kw">let </span>written = Errno::result_from_libc_errno(-<span class="number">1</span>, <span class="kw">unsafe </span>{
                 libc::write(
-                    stdin_writer,
+                    stdin_writer.as_raw_fd(),
                     serialized_bytes.as_ptr().cast(),
                     serialized_bytes.len(),
                 )
@@ -1524,12 +1505,14 @@
             .unwrap();
             <span class="comment">// TODO: loop if needed. Shouldn't be in practice, though.
             </span><span class="macro">assert_eq!</span>(written, isize::try_from(serialized_bytes.len()).unwrap());
-            nix::unistd::close(stdin_writer).unwrap();
-            nix::unistd::close(stdin_reader).unwrap();
         }
 
-        posix_result(<span class="kw">unsafe </span>{ libc::posix_spawn_file_actions_destroy(<span class="kw-2">&amp;mut </span>file_actions) }).unwrap();
-        posix_result(<span class="kw">unsafe </span>{ libc::posix_spawnattr_destroy(<span class="kw-2">&amp;mut </span>spawn_attr) }).unwrap();
+        Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{
+            libc::posix_spawn_file_actions_destroy(<span class="kw-2">&amp;mut </span>file_actions)
+        })
+        .unwrap();
+        Errno::result_from_libc_errnum(<span class="kw">unsafe </span>{ libc::posix_spawnattr_destroy(<span class="kw-2">&amp;mut </span>spawn_attr) })
+            .unwrap();
 
         <span class="comment">// Drop the cloned argv and env.
         </span>drop(
@@ -1561,10 +1544,10 @@
     /// thread!) and then drops `self`.
     </span><span class="kw">pub fn </span>kill_and_drop(<span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Err</span>(err) =
-            nix::sys::signal::kill(<span class="self">self</span>.native_pid(), nix::sys::signal::Signal::SIGKILL)
+            rustix::process::kill_process(<span class="self">self</span>.native_pid().into(), rustix::process::Signal::Kill)
         {
             <span class="macro">log::warn!</span>(
-                <span class="string">"Couldn't kill managed process {}. kill: {:?}"</span>,
+                <span class="string">"Couldn't kill managed process {:?}. kill: {:?}"</span>,
                 <span class="self">self</span>.native_pid(),
                 err
             );
@@ -1581,33 +1564,6 @@
         // running thread accessing a deallocated or repurposed memory region
         // can cause numerous problems.
         </span><span class="macro">assert!</span>(!<span class="self">self</span>.is_running());
-    }
-}
-
-<span class="kw">fn </span>tgkill(
-    pid: nix::unistd::Pid,
-    tid: nix::unistd::Pid,
-    signo: <span class="prelude-ty">Option</span>&lt;nix::sys::signal::Signal&gt;,
-) -&gt; nix::Result&lt;()&gt; {
-    <span class="kw">let </span>pid = pid.as_raw();
-    <span class="kw">let </span>tid = tid.as_raw();
-    <span class="kw">let </span>signo = <span class="kw">match </span>signo {
-        <span class="prelude-val">Some</span>(s) =&gt; s <span class="kw">as </span>i32,
-        <span class="prelude-val">None </span>=&gt; <span class="number">0</span>,
-    };
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::syscall(libc::SYS_tgkill, pid, tid, signo) };
-    Errno::result(res).map(|i: i64| {
-        <span class="macro">assert_eq!</span>(i, <span class="number">0</span>);
-    })
-}
-
-<span class="doccomment">/// Helper to handle results from posix_spawn and similar functions that
-/// return 0 on success, or the error code directly otherwise (not via errno).
-</span><span class="kw">fn </span>posix_result(i: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
-    <span class="kw">if </span>i == <span class="number">0 </span>{
-        <span class="prelude-val">Ok</span>(())
-    } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(Errno::from_i32(i))
     }
 }
 </code></pre></div></section></main></body></html>

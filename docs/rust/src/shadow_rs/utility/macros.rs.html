@@ -116,6 +116,37 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Log a warning, and if a debug build then panic.
 </span><span class="macro">macro_rules!</span> debug_panic {
     ($(<span class="macro-nonterminal">$x</span>:tt)+) =&gt; {
@@ -151,12 +182,43 @@
                 std::sync::atomic::Ordering::Relaxed,
                 std::sync::atomic::Ordering::Relaxed,
             ) {
-                <span class="comment">// NOTE: Some parts of shadow duplicate the "(LOG_ONCE)" string in their own log
-                // messages (for example `SyscallHandler::run_handler`). If we change this string
-                // here, we should change it in other places as well.
-                </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::log!</span>(<span class="macro-nonterminal">$lvl_once</span>, <span class="string">"(LOG_ONCE) {}"</span>, <span class="macro">format_args!</span>(<span class="macro-nonterminal">$str </span>$(<span class="macro-nonterminal">$x</span>)<span class="kw-2">*</span>)),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::log!</span>(<span class="macro-nonterminal">$lvl_once</span>, <span class="string">"(LOG_ONCE) {}"</span>, <span class="macro">format_args!</span>(<span class="macro-nonterminal">$str </span>$(<span class="macro-nonterminal">$x</span>)<span class="kw-2">*</span>)),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::log!</span>(<span class="macro-nonterminal">$lvl_remaining</span>, <span class="string">"(LOG_ONCE) {}"</span>, <span class="macro">format_args!</span>(<span class="macro-nonterminal">$str </span>$(<span class="macro-nonterminal">$x</span>)<span class="kw-2">*</span>)),
             }
+        }
+    };
+}
+
+<span class="doccomment">/// Log a message once at level `lvl_once` for each distinct value, and any
+/// later log messages from this line with an already-logged value at level
+/// `lvl_remaining`. A log target is not supported. The string "(LOG_ONCE)" will
+/// be prepended to the message to indicate that future messages won't be logged
+/// at `lvl_once`.
+///
+/// The fast-path (where the given value has already been logged) aquires a
+/// read-lock and looks up the value in a hash table.
+///
+/// ```
+/// # use log::Level;
+/// # use shadow_rs::log_once_per_value_at_level;
+/// # let unknown_flag: i32 = 0;
+/// log_once_per_value_at_level!(unknown_flag, i32, Level::Warn, Level::Debug, "Unknown flag value {unknown_flag}");
+/// ```
+</span><span class="attr">#[allow(unused_macros)]
+#[macro_export]
+</span><span class="macro">macro_rules!</span> log_once_per_value_at_level {
+    (<span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$t</span>:ty, <span class="macro-nonterminal">$lvl_once</span>:expr, <span class="macro-nonterminal">$lvl_remaining</span>:expr, <span class="macro-nonterminal">$str</span>:literal $(<span class="macro-nonterminal">$x</span>:tt)<span class="kw-2">*</span>) =&gt; {
+        <span class="comment">// don't do atomic operations if this log statement isn't enabled
+        </span><span class="kw">if </span><span class="macro">log::log_enabled!</span>(<span class="macro-nonterminal">$lvl_once</span>) || <span class="macro">log::log_enabled!</span>(<span class="macro-nonterminal">$lvl_remaining</span>) {
+            <span class="kw">use </span><span class="macro-nonterminal">$crate::utility::once_set::OnceSet</span>;
+            <span class="kw">static </span>LOGGED_SET : OnceSet&lt;<span class="macro-nonterminal">$t</span>&gt; = OnceSet::new();
+
+            <span class="kw">let </span>level = <span class="kw">if </span>LOGGED_SET.insert(<span class="macro-nonterminal">$value</span>) {
+                <span class="macro-nonterminal">$lvl_once
+            </span>} <span class="kw">else </span>{
+                <span class="macro-nonterminal">$lvl_remaining
+            </span>};
+            <span class="macro">log::log!</span>(level, <span class="string">"(LOG_ONCE) {}"</span>, <span class="macro">format_args!</span>(<span class="macro-nonterminal">$str </span>$(<span class="macro-nonterminal">$x</span>)<span class="kw-2">*</span>))
         }
     };
 }

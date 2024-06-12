@@ -442,12 +442,16 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 <span class="kw">use </span>std::path::PathBuf;
 
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::OFlag;
-<span class="kw">use </span>linux_api::mman::MapFlags;
+<span class="kw">use </span>linux_api::mman::{MapFlags, ProtFlags};
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 <span class="kw">use </span>syscall_logger::log_syscall;
 
@@ -539,13 +543,18 @@
         <span class="kw">let </span>addr: usize = addr.try_into().unwrap();
         <span class="kw">let </span>addr = ForeignPtr::&lt;()&gt;::from(addr).cast::&lt;u8&gt;();
 
-        <span class="comment">// check for truncated flag bits (use u32 instead of i32 to prevent sign extension when
-        // casting from signed to unsigned)
-        </span><span class="kw">if </span>prot <span class="kw">as </span>u32 <span class="kw">as </span>u64 != prot {
-            <span class="macro">warn_once_then_trace!</span>(<span class="string">"Ignoring truncated prot flags from mprotect: {prot}"</span>);
-        }
-
-        <span class="kw">let </span>prot = prot <span class="kw">as </span>i32;
+        <span class="kw">let </span><span class="prelude-val">Some</span>(prot) = ProtFlags::from_bits(prot) <span class="kw">else </span>{
+            <span class="kw">let </span>unrecognized = ProtFlags::from_bits_retain(prot).difference(ProtFlags::all());
+            <span class="macro">log_once_per_value_at_level!</span>(
+                unrecognized,
+                ProtFlags,
+                log::Level::Warn,
+                log::Level::Debug,
+                <span class="string">"Unrecognized prot flag: {:#x}"</span>,
+                unrecognized.bits()
+            );
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+        };
 
         <span class="comment">// delegate to the memory manager
         </span><span class="kw">let </span><span class="kw-2">mut </span>memory_manager = ctx.objs.process.memory_borrow_mut();
@@ -580,20 +589,29 @@
 
         <span class="kw">let </span>offset = offset <span class="kw">as </span>i64;
 
-        <span class="comment">// check for truncated flag bits (use u32 instead of i32 to prevent sign extension when
-        // casting from signed to unsigned)
-        </span><span class="kw">if </span>prot <span class="kw">as </span>u32 <span class="kw">as </span>u64 != prot {
-            <span class="macro">warn_once_then_trace!</span>(<span class="string">"Ignoring truncated prot flags from mmap: {prot}"</span>);
-        }
-
-        <span class="kw">let </span>prot = prot <span class="kw">as </span>i32;
-
-        <span class="kw">let </span>flags = <span class="kw">match </span>MapFlags::from_bits(flags) {
-            <span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="macro">warn_once_then_debug!</span>(<span class="string">"Invalid mmap flags: {flags}"</span>);
-                MapFlags::from_bits_truncate(flags)
-            }
+        <span class="kw">let </span><span class="prelude-val">Some</span>(prot) = ProtFlags::from_bits(prot) <span class="kw">else </span>{
+            <span class="kw">let </span>unrecognized = ProtFlags::from_bits_retain(prot).difference(ProtFlags::all());
+            <span class="macro">log_once_per_value_at_level!</span>(
+                unrecognized,
+                ProtFlags,
+                log::Level::Warn,
+                log::Level::Debug,
+                <span class="string">"Unrecognized prot flag: {:#x}"</span>,
+                unrecognized.bits()
+            );
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+        };
+        <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = MapFlags::from_bits(flags) <span class="kw">else </span>{
+            <span class="kw">let </span>unrecognized = MapFlags::from_bits_retain(flags).difference(MapFlags::all());
+            <span class="macro">log_once_per_value_at_level!</span>(
+                unrecognized,
+                MapFlags,
+                log::Level::Warn,
+                log::Level::Debug,
+                <span class="string">"Unrecognized map flag: {:#x}"</span>,
+                unrecognized.bits()
+            );
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
         <span class="comment">// at least one of these values is required according to man page
@@ -602,7 +620,7 @@
 
         <span class="comment">// need non-zero len, and at least one of the above options
         </span><span class="kw">if </span>len == <span class="number">0 </span>|| !required_flags.intersects(flags) {
-            <span class="macro">log::debug!</span>(<span class="string">"Invalid len ({len}), prot ({prot}), or flags ({flags:?})"</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"Invalid len ({len}), prot ({prot:?}), or flags ({flags:?})"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
@@ -660,16 +678,6 @@
             <span class="macro">log::warn!</span>(<span class="string">"mmap on fd {fd} for {len} bytes failed"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EACCES.into());
         };
-
-        <span class="kw">let </span>flags = flags.bits();
-
-        <span class="comment">// check for truncated flag bits (use u32 instead of i32 to prevent sign extension when
-        // casting from signed to unsigned)
-        </span><span class="kw">if </span>flags <span class="kw">as </span>u32 <span class="kw">as </span>u64 != flags {
-            <span class="macro">warn_once_then_trace!</span>(<span class="string">"Ignoring truncated flags from mmap: {flags}"</span>);
-        }
-
-        <span class="kw">let </span>flags = flags <span class="kw">as </span>i32;
 
         <span class="comment">// delegate execution of the mmap itself to the memory manager
         </span><span class="kw">let </span><span class="kw-2">mut </span>memory_manager = ctx.objs.process.memory_borrow_mut();
@@ -787,16 +795,16 @@
         <span class="comment">// get original flags that were used to open the file
         </span><span class="kw">let </span><span class="kw-2">mut </span>flags = OFlag::from_bits_retain(<span class="kw">unsafe </span>{ c::regularfile_getFlagsAtOpen(file) });
         <span class="comment">// use only the file creation flags, except O_CLOEXEC
-        </span>flags &amp;= creation_flags &amp; !OFlag::O_CLOEXEC;
+        </span>flags &amp;= creation_flags.difference(OFlag::O_CLOEXEC);
         <span class="comment">// add any file access mode and file status flags that shadow doesn't implement
-        </span>flags |= native_flags &amp; !OFlag::from_bits_retain(<span class="kw">unsafe </span>{ c::SHADOW_FLAG_MASK });
+        </span>flags |= native_flags.difference(OFlag::from_bits_retain(<span class="kw">unsafe </span>{ c::SHADOW_FLAG_MASK }));
         <span class="comment">// add any flags that shadow implements
         </span>flags |= OFlag::from_bits_retain(<span class="kw">unsafe </span>{ c::regularfile_getShadowFlags(file) });
         <span class="comment">// be careful not to try re-creating or truncating it
-        </span>flags &amp;= !(OFlag::O_CREAT | OFlag::O_EXCL | OFlag::O_TMPFILE | OFlag::O_TRUNC);
+        </span>flags -= OFlag::O_CREAT | OFlag::O_EXCL | OFlag::O_TMPFILE | OFlag::O_TRUNC;
         <span class="comment">// don't use O_NOFOLLOW since it will prevent the plugin from opening the
         // /proc/&lt;shadow-pid&gt;/fd/&lt;linux-fd&gt; file, which is a symbolic link
-        </span>flags &amp;= !OFlag::O_NOFOLLOW;
+        </span>flags -= OFlag::O_NOFOLLOW;
 
         <span class="kw">let </span>mode = <span class="kw">unsafe </span>{ c::regularfile_getModeAtOpen(file) };
 

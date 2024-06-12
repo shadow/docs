@@ -252,11 +252,19 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 
 <span class="kw">use </span>linux_api::errno::Errno;
+<span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
-<span class="kw">use </span>nix::unistd::Pid;
 <span class="kw">use </span>shadow_pod::Pod;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
@@ -436,8 +444,12 @@
         })
         .unwrap();
 
-        <span class="kw">let </span>nread = nix::sys::uio::process_vm_readv(tid, dsts, srcs)
-            .map_err(|e| Errno::try_from(e <span class="kw">as </span>i32).unwrap())<span class="question-mark">?</span>;
+        <span class="kw">let </span>nread = nix::sys::uio::process_vm_readv(
+            nix::unistd::Pid::from_raw(tid.as_raw_nonzero().get()),
+            dsts,
+            srcs,
+        )
+        .map_err(|e| Errno::try_from(e <span class="kw">as </span>i32).unwrap())<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(nread)
     }
@@ -497,8 +509,12 @@
         })
         .unwrap();
 
-        <span class="kw">let </span>nwritten = nix::sys::uio::process_vm_writev(tid, <span class="kw-2">&amp;</span>local, <span class="kw-2">&amp;</span>remote)
-            .map_err(|e| Errno::try_from(e <span class="kw">as </span>i32).unwrap())<span class="question-mark">?</span>;
+        <span class="kw">let </span>nwritten = nix::sys::uio::process_vm_writev(
+            nix::unistd::Pid::from_raw(tid.as_raw_nonzero().get()),
+            <span class="kw-2">&amp;</span>local,
+            <span class="kw-2">&amp;</span>remote,
+        )
+        .map_err(|e| Errno::try_from(e <span class="kw">as </span>i32).unwrap())<span class="question-mark">?</span>;
         <span class="comment">// There shouldn't be any partial writes with a single remote iovec.
         </span><span class="macro">assert_eq!</span>(nwritten, towrite);
         <span class="prelude-val">Ok</span>(())
