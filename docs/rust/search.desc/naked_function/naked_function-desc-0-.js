@@ -1,0 +1,1 @@
+searchState.loadedDescShard("naked_function", 0, "This crate provides the <code>naked</code> proc macro.\nAn attribute to define a function written entirely in …")

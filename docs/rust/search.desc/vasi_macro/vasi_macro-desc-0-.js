@@ -1,0 +1,1 @@
+searchState.loadedDescShard("vasi_macro", 0, "Implement <code>vasi::VirtualAddressSpaceIndependent</code> for the …")

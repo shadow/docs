@@ -1,0 +1,1 @@
+searchState.loadedDescShard("vasi", 0, "Used by the derive macro to validate that fields are Vasi.\nA type implementing this trait guarantees that accessing …\nImplement <code>vasi::VirtualAddressSpaceIndependent</code> for the …")

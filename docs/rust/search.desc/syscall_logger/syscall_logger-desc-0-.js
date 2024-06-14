@@ -1,0 +1,1 @@
+searchState.loadedDescShard("syscall_logger", 0, "This macro wraps a syscall handler by renaming the …")

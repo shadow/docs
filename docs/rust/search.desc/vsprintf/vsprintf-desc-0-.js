@@ -1,0 +1,1 @@
+searchState.loadedDescShard("vsprintf", 0, "Convert C format strings to Rust.\nContains the error value\nContains the success value\nThe result of a vsprintf call.\nPrints a format string into a Rust string.\nPrints a format string into a list of raw bytes that form …")
