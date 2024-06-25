@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["FxHasher"]};
+window.SIDEBAR_ITEMS = {"struct":["FxBuildHasher","FxHasher","FxSeededState"]};
