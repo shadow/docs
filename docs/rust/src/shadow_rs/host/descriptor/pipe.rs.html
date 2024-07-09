@@ -436,11 +436,49 @@
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
+<span class="kw">use </span>linux_api::stat::SFlag;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
@@ -682,6 +720,42 @@
     ) -&gt; SyscallResult {
         <span class="macro">log::warn!</span>(<span class="string">"We do not yet handle ioctl request {request:?} on pipes"</span>);
         <span class="prelude-val">Err</span>(Errno::EINVAL.into())
+    }
+
+    <span class="kw">pub fn </span>stat(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;linux_api::stat::stat, SyscallError&gt; {
+        <span class="macro">warn_once_then_debug!</span>(<span class="string">"Not all fields of 'struct stat' are implemented for pipes"</span>);
+
+        <span class="prelude-val">Ok</span>(linux_api::stat::stat {
+            <span class="comment">// the device and inode are non-zero on linux, but shadow can't really give meaningful
+            // values here
+            </span>st_dev: <span class="number">0</span>,
+            st_ino: <span class="number">0</span>,
+            <span class="comment">// this may need to be &gt;1 if shadow ever supports named pipes
+            </span>st_nlink: <span class="number">1</span>,
+            <span class="comment">// linux seems to use a mode of readable+writable for both ends of a pipe, but as a
+            // reminder this st_mode field is the mode of the pipe in the pipefs filesystem, not the
+            // mode of the pipe file (linux struct file) itself
+            </span>st_mode: (SFlag::S_IFIFO | SFlag::S_IRUSR | SFlag::S_IWUSR).bits(),
+            <span class="comment">// shadow pretends to run as root, although this gets messy since file-related syscalls
+            // that are passed through to linux have the uid/gid of the user running the simulation
+            </span>st_uid: <span class="number">0</span>,
+            st_gid: <span class="number">0</span>,
+            l__pad0: <span class="number">0</span>,
+            st_rdev: <span class="number">0</span>,
+            <span class="comment">// apparently the behaviour of this field depends on what unix you're running, but on
+            // linux it seems to always be 0
+            </span>st_size: <span class="number">0</span>,
+            <span class="comment">// TODO
+            </span>st_blksize: <span class="number">0</span>,
+            st_blocks: <span class="number">0</span>,
+            st_atime: <span class="number">0</span>,
+            st_atime_nsec: <span class="number">0</span>,
+            st_mtime: <span class="number">0</span>,
+            st_mtime_nsec: <span class="number">0</span>,
+            st_ctime: <span class="number">0</span>,
+            st_ctime_nsec: <span class="number">0</span>,
+            l__unused: [<span class="number">0</span>; <span class="number">3</span>],
+        })
     }
 
     <span class="kw">pub fn </span>connect_to_buffer(
