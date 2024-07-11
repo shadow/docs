@@ -13,7 +13,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["bytemuck",["",[],["anybitpattern.rs","checked.rs","contiguous.rs","internal.rs","lib.rs","no_uninit.rs","offset_of.rs","pod.rs","pod_in_option.rs","transparent.rs","zeroable.rs","zeroable_in_option.rs"]]],\
 ["byteorder",["",[],["io.rs","lib.rs"]]],\
 ["bytes",["",[["buf",[],["buf_impl.rs","buf_mut.rs","chain.rs","iter.rs","limit.rs","mod.rs","reader.rs","take.rs","uninit_slice.rs","vec_deque.rs","writer.rs"]],["fmt",[],["debug.rs","hex.rs","mod.rs"]]],["bytes.rs","bytes_mut.rs","lib.rs","loom.rs"]]],\
-["cc",["",[["parallel",[],["async_executor.rs","job_token.rs","mod.rs","stderr.rs"]],["windows",[],["find_tools.rs","mod.rs"]]],["command_helpers.rs","lib.rs","target_info.rs","tempfile.rs","tool.rs"]]],\
+["cc",["",[["parallel",[],["async_executor.rs","job_token.rs","mod.rs","stderr.rs"]],["windows",[],["find_tools.rs","mod.rs"]]],["command_helpers.rs","lib.rs","target_info.rs","tempfile.rs","tool.rs","utilities.rs"]]],\
 ["cfg_expr",["",[["expr",[],["lexer.rs","parser.rs"]],["targets",[],["builtins.rs"]]],["error.rs","expr.rs","lib.rs","targets.rs"]]],\
 ["cfg_if",["",[],["lib.rs"]]],\
 ["clap",["",[],["lib.rs"]]],\
