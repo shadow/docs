@@ -316,6 +316,33 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{BTreeSet, HashMap};
 
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
@@ -514,8 +541,35 @@
         </span>old_self.descriptors.into_values()
     }
 
+    <span class="doccomment">/// Remove and return all descriptors in the range. If you want to remove all descriptors, you
+    /// should use [`remove_all`](Self::remove_all).
+    </span><span class="kw">pub fn </span>remove_range(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        range: <span class="kw">impl </span>std::ops::RangeBounds&lt;DescriptorHandle&gt;,
+    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Descriptor&gt; {
+        <span class="comment">// This code is not very efficient but it shouldn't be called often, so it should be fine
+        // for now. If we wanted something more efficient, we'd need to redesign the descriptor
+        // table to not use a hash map.
+
+        </span><span class="kw">let </span>fds: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+            </span>.iter()
+            .filter_map(|(fd, <span class="kw">_</span>)| range.contains(fd).then_some(<span class="kw-2">*</span>fd))
+            .collect();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>descriptors = Vec::with_capacity(fds.len());
+        <span class="kw">for </span>fd <span class="kw">in </span>fds {
+            descriptors.push(<span class="self">self</span>.deregister_descriptor(fd).unwrap());
+        }
+
+        descriptors.into_iter()
+    }
+
     <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span>DescriptorHandle, <span class="kw-2">&amp;</span>Descriptor)&gt; {
         <span class="self">self</span>.descriptors.iter()
+    }
+
+    <span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span>DescriptorHandle, <span class="kw-2">&amp;mut </span>Descriptor)&gt; {
+        <span class="self">self</span>.descriptors.iter_mut()
     }
 }
 
