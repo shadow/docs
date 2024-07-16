@@ -2268,6 +2268,26 @@
 <a href="#2268" id="2268">2268</a>
 <a href="#2269" id="2269">2269</a>
 <a href="#2270" id="2270">2270</a>
+<a href="#2271" id="2271">2271</a>
+<a href="#2272" id="2272">2272</a>
+<a href="#2273" id="2273">2273</a>
+<a href="#2274" id="2274">2274</a>
+<a href="#2275" id="2275">2275</a>
+<a href="#2276" id="2276">2276</a>
+<a href="#2277" id="2277">2277</a>
+<a href="#2278" id="2278">2278</a>
+<a href="#2279" id="2279">2279</a>
+<a href="#2280" id="2280">2280</a>
+<a href="#2281" id="2281">2281</a>
+<a href="#2282" id="2282">2282</a>
+<a href="#2283" id="2283">2283</a>
+<a href="#2284" id="2284">2284</a>
+<a href="#2285" id="2285">2285</a>
+<a href="#2286" id="2286">2286</a>
+<a href="#2287" id="2287">2287</a>
+<a href="#2288" id="2288">2288</a>
+<a href="#2289" id="2289">2289</a>
+<a href="#2290" id="2290">2290</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux process.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut};
@@ -2431,8 +2451,7 @@
     </span>plugin_name: CString,
 
     <span class="comment">// absolute path to the process's working directory.
-    // Currently we enforce that this is in sync with the native working directory
-    // by disallowing `chdir`.
+    // This must remain in sync with the actual working dir of the native process.
     // See https://github.com/shadow/shadow/issues/2960
     </span>working_dir: CString,
 }
@@ -3104,6 +3123,13 @@
         }
     }
 
+    <span class="kw">fn </span>common_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Common {
+        <span class="kw">match </span><span class="self">self </span>{
+            ProcessState::Runnable(r) =&gt; <span class="kw-2">&amp;mut </span>r.common,
+            ProcessState::Zombie(z) =&gt; <span class="kw-2">&amp;mut </span>z.common,
+        }
+    }
+
     <span class="kw">fn </span>as_runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>RunnableProcess&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             ProcessState::Runnable(r) =&gt; <span class="prelude-val">Some</span>(r),
@@ -3167,6 +3193,12 @@
     <span class="kw">fn </span>common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;Common&gt; {
         Ref::map(<span class="self">self</span>.state.borrow(), |state| {
             state.as_ref().unwrap().common()
+        })
+    }
+
+    <span class="kw">fn </span>common_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;Common&gt; {
+        RefMut::map(<span class="self">self</span>.state.borrow_mut(), |state| {
+            state.as_mut().unwrap().common_mut()
         })
     }
 
@@ -3902,6 +3934,14 @@
 
     <span class="kw">pub fn </span>current_working_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Deref&lt;Target = CString&gt; + <span class="lifetime">'_ </span>{
         Ref::map(<span class="self">self</span>.common(), |common| <span class="kw-2">&amp;</span>common.working_dir)
+    }
+
+    <span class="doccomment">/// Set the process's working directory.
+    /// This must be kept in sync with the actual working dir of the native process.
+    /// See &lt;https://github.com/shadow/shadow/issues/2960&gt;
+    </span><span class="comment">// TODO: This ought to be at the thread level, to support `CLONE_FS`.
+    </span><span class="kw">pub fn </span>set_current_working_dir(<span class="kw-2">&amp;</span><span class="self">self</span>, path: CString) {
+        <span class="self">self</span>.common_mut().working_dir = path;
     }
 
     <span class="doccomment">/// Update `self` to complete an `exec` syscall from thread `tid`, replacing

@@ -875,7 +875,38 @@
 <a href="#875" id="875">875</a>
 <a href="#876" id="876">876</a>
 <a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::{CStr, CString};
+<span class="kw">use </span>std::os::unix::ffi::OsStringExt;
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
@@ -1750,6 +1781,35 @@
             .write(name_ptr, <span class="kw-2">&amp;</span>name)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+    }
+
+    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* path */ </span>SyscallStringArg)]
+    </span><span class="kw">pub fn </span>chdir(ctx: <span class="kw-2">&amp;mut </span>SyscallContext, path: ForeignPtr&lt;std::ffi::c_char&gt;) -&gt; SyscallResult {
+        <span class="comment">// The native working directory must match the emulated one
+        // &lt;https://github.com/shadow/shadow/issues/2960&gt;. First execute the
+        // native chdir, propagating any failures.
+        </span><span class="kw">let </span>(process, thread) = ctx.objs.split_thread();
+        thread.native_chdir(<span class="kw-2">&amp;</span>process, path)<span class="question-mark">?</span>;
+
+        <span class="comment">// Update our internal copy of the cwd.
+        //
+        // We could try to work it out ourselves based on the previous cwd and
+        // the path we were passed, but this seems a bit tricky and error-prone.
+        //
+        // We could have the managed thread execute a native `getcwd`, but we'd
+        // also need to have it allocate and free memory to use with it, making
+        // this a bit complex and high overhead.
+        //
+        // Instead we use the proc file system. `/proc/&lt;pid&gt;/cwd` should be a
+        // symbolic link to the actual working dir we just set.
+        </span><span class="kw">let </span>procpath = <span class="macro">format!</span>(<span class="string">"/proc/{}/cwd"</span>, thread.native_tid().as_raw_nonzero().get());
+        <span class="kw">let </span>newcwd = std::fs::read_link(<span class="kw-2">&amp;</span>procpath)
+            .unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">"Couldn't find new cwd {procpath}: {e:?}"</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>newcwd = newcwd.into_os_string().into_vec();
+        newcwd.push(<span class="number">0</span>);
+        <span class="kw">let </span>newcwd = CString::from_vec_with_nul(newcwd).unwrap();
+        process.process.set_current_working_dir(newcwd);
+        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
     }
 }
 </code></pre></div></section></main></body></html>
