@@ -480,6 +480,15 @@
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::capability::{user_cap_data, user_cap_header, LINUX_CAPABILITY_VERSION_3};
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::posix_types::kernel_pid_t;
@@ -490,7 +499,6 @@
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
-<span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::DescriptorTable;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::ProcessId;
@@ -788,14 +796,16 @@
 
     <span class="comment">// Note that the syscall args are different than the libc wrapper.
     // See "C library/kernel differences" in clone(2).
-    </span><span class="attr">#[log_syscall(
+    </span><span class="macro">log_syscall!</span>(
+        clone,
         <span class="comment">/* rv */ </span>kernel_pid_t,
         <span class="comment">/* flags */ </span>CloneFlags,
         <span class="comment">/* child_stack */ </span><span class="kw-2">*const </span>std::ffi::c_void,
         <span class="comment">/* ptid */ </span><span class="kw-2">*const </span>kernel_pid_t,
         <span class="comment">/* ctid */ </span><span class="kw-2">*const </span>kernel_pid_t,
-        <span class="comment">/* newtls */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>clone(
+        <span class="comment">/* newtls */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>clone(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         flags_and_exit_signal: i32,
         child_stack: ForeignPtr&lt;()&gt;,
@@ -824,11 +834,13 @@
         <span class="self">Self</span>::clone_internal(ctx, flags, exit_signal, child_stack, ptid, ctid, newtls)
     }
 
-    <span class="attr">#[log_syscall(
+    <span class="macro">log_syscall!</span>(
+        clone3,
         <span class="comment">/* rv */ </span>kernel_pid_t,
         <span class="comment">/* args*/ </span><span class="kw-2">*const </span>linux_api::sched::clone_args,
-        <span class="comment">/* args_size*/ </span>usize)]
-    </span><span class="kw">pub fn </span>clone3(
+        <span class="comment">/* args_size*/ </span>usize,
+    );
+    <span class="kw">pub fn </span>clone3(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         args: ForeignPtr&lt;linux_api::sched::clone_args&gt;,
         args_size: usize,
@@ -864,8 +876,8 @@
         )
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>kernel_pid_t)]
-    </span><span class="kw">pub fn </span>fork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    <span class="macro">log_syscall!</span>(fork, <span class="comment">/* rv */ </span>kernel_pid_t);
+    <span class="kw">pub fn </span>fork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
         <span class="comment">// This should be the correct call to `clone_internal`, but `clone_internal`
         // will currently return an error.
         </span><span class="self">Self</span>::clone_internal(
@@ -879,8 +891,8 @@
         )
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>kernel_pid_t)]
-    </span><span class="kw">pub fn </span>vfork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    <span class="macro">log_syscall!</span>(vfork, <span class="comment">/* rv */ </span>kernel_pid_t);
+    <span class="kw">pub fn </span>vfork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
         <span class="comment">// This should be the correct call to `clone_internal`, but `clone_internal`
         // will currently return an error.
         </span><span class="self">Self</span>::clone_internal(
@@ -894,15 +906,18 @@
         )
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>kernel_pid_t)]
-    </span><span class="kw">pub fn </span>gettid(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    <span class="macro">log_syscall!</span>(gettid, <span class="comment">/* rv */ </span>kernel_pid_t);
+    <span class="kw">pub fn </span>gettid(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
         <span class="prelude-val">Ok</span>(kernel_pid_t::from(ctx.objs.thread.id()))
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int,
+    <span class="macro">log_syscall!</span>(
+        capget,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* hdrp */ </span><span class="kw-2">*const </span>std::ffi::c_void,
-        <span class="comment">/* datap */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>capget(
+        <span class="comment">/* datap */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>capget(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         hdrp: ForeignPtr&lt;user_cap_header&gt;,
         datap: ForeignPtr&lt;[user_cap_data; <span class="number">2</span>]&gt;,
@@ -933,10 +948,13 @@
         <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int,
+    <span class="macro">log_syscall!</span>(
+        capset,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* hdrp */ </span><span class="kw-2">*const </span>std::ffi::c_void,
-        <span class="comment">/* datap */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>capset(
+        <span class="comment">/* datap */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>capset(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         hdrp: ForeignPtr&lt;user_cap_header&gt;,
         datap: ForeignPtr&lt;[user_cap_data; <span class="number">2</span>]&gt;,

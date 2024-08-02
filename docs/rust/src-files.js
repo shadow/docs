@@ -73,6 +73,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["num_traits",["",[["ops",[],["bytes.rs","checked.rs","euclid.rs","inv.rs","mod.rs","mul_add.rs","overflowing.rs","saturating.rs","wrapping.rs"]]],["bounds.rs","cast.rs","float.rs","identities.rs","int.rs","lib.rs","macros.rs","pow.rs","real.rs","sign.rs"]]],\
 ["object",["",[["read",[["coff",[],["comdat.rs","file.rs","import.rs","mod.rs","relocation.rs","section.rs","symbol.rs"]],["elf",[],["attributes.rs","comdat.rs","compression.rs","dynamic.rs","file.rs","hash.rs","mod.rs","note.rs","relocation.rs","section.rs","segment.rs","symbol.rs","version.rs"]],["macho",[],["dyld_cache.rs","fat.rs","file.rs","load_command.rs","mod.rs","relocation.rs","section.rs","segment.rs","symbol.rs"]],["pe",[],["data_directory.rs","export.rs","file.rs","import.rs","mod.rs","relocation.rs","resource.rs","rich.rs","section.rs"]],["xcoff",[],["comdat.rs","file.rs","mod.rs","relocation.rs","section.rs","segment.rs","symbol.rs"]]],["any.rs","archive.rs","mod.rs","read_ref.rs","traits.rs","util.rs"]]],["archive.rs","common.rs","elf.rs","endian.rs","lib.rs","macho.rs","pe.rs","pod.rs","xcoff.rs"]]],\
 ["once_cell",["",[],["imp_std.rs","lib.rs","race.rs"]]],\
+["paste",["",[],["attr.rs","error.rs","lib.rs","segment.rs"]]],\
 ["petgraph",["",[["algo",[],["astar.rs","bellman_ford.rs","dijkstra.rs","dominators.rs","feedback_arc_set.rs","floyd_warshall.rs","ford_fulkerson.rs","isomorphism.rs","k_shortest_path.rs","matching.rs","min_spanning_tree.rs","mod.rs","page_rank.rs","simple_paths.rs","tred.rs"]],["graph_impl",[["stable_graph",[],["mod.rs"]]],["frozen.rs","mod.rs"]],["visit",[],["dfsvisit.rs","filter.rs","macros.rs","mod.rs","reversed.rs","traversal.rs"]]],["adj.rs","csr.rs","data.rs","dot.rs","graphmap.rs","iter_format.rs","iter_utils.rs","lib.rs","macros.rs","matrix_graph.rs","operator.rs","prelude.rs","scored.rs","traits_graph.rs","unionfind.rs","util.rs"]]],\
 ["pkg_config",["",[],["lib.rs"]]],\
 ["posix_errno",["",[],["posix-errno.rs"]]],\
@@ -119,7 +120,6 @@ var srcIndex = new Map(JSON.parse('[\
 ["static_assertions",["",[],["assert_cfg.rs","assert_eq_align.rs","assert_eq_size.rs","assert_fields.rs","assert_impl.rs","assert_obj_safe.rs","assert_trait.rs","assert_type.rs","const_assert.rs","lib.rs"]]],\
 ["std_util",["",[],["lib.rs","nested_ref.rs"]]],\
 ["strsim",["",[],["lib.rs"]]],\
-["syscall_logger",["",[],["lib.rs"]]],\
 ["system_deps",["",[],["lib.rs","metadata.rs"]]],\
 ["target_lexicon",["",[],["data_model.rs","host.rs","lib.rs","parse_error.rs","targets.rs","triple.rs"]]],\
 ["tcp",["",[["util",[],["mod.rs","time.rs"]]],["buffer.rs","connection.rs","lib.rs","seq.rs","states.rs","window_scaling.rs"]]],\

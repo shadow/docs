@@ -2682,6 +2682,7 @@ natively.</p>
 <li><a href="compatibility_notes.html#nginx">Nginx</a></li>
 <li><a href="compatibility_notes.html#iperf-2">iPerf 2</a></li>
 <li><a href="compatibility_notes.html#iperf-3">iPerf 3</a></li>
+<li><a href="compatibility_notes.html#jetty">Jetty</a></li>
 <li><a href="compatibility_notes.html#etcd-distributed-key-value-store">etcd (distributed key-value store)</a></li>
 <li><a href="compatibility_notes.html#ctorrent-and-opentracker">CTorrent and opentracker</a></li>
 <li><a href="compatibility_notes.html#http-server">http-server</a></li>
@@ -2953,8 +2954,45 @@ with Shadow and will cause Shadow to deadlock. A workaround is to use the
 <code>model_unblocked_syscall_latency</code> option.</p>
 </li>
 </ol>
-<h2 id="etcd-distributed-key-value-store"><a class="header" href="#etcd-distributed-key-value-store">etcd (distributed key-value store)</a></h2>
+<h2 id="jetty"><a class="header" href="#jetty">Jetty</a></h2>
+<p>Running Jetty with the http module works, but we haven't tested anything more
+than this.</p>
 <h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
+<h4 id="shadowyaml-1"><a class="header" href="#shadowyaml-1"><code>shadow.yaml</code></a></h4>
+<pre><code class="language-yaml">general:
+  stop_time: 10s
+
+network:
+  graph:
+    type: 1_gbit_switch
+
+hosts:
+  server:
+    network_node_id: 0
+    processes:
+    - path: java
+      args: -jar ../../../jetty-home-12.0.12/start.jar jetty.http.port=80 --modules=http
+      expected_final_state: running
+  client1: &amp;client_host
+    network_node_id: 0
+    processes:
+    - path: curl
+      args: -s server
+      start_time: 2s
+  client2: *client_host
+  client3: *client_host
+</code></pre>
+<pre><code class="language-bash">if [ ! -d jetty-home-12.0.12/ ]; then
+  wget https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/12.0.12/jetty-home-12.0.12.zip
+  echo "2dc2c60a8a3cb84df64134bed4df1c45598118e9a228604eaeb8b9b42d80bc07  jetty-home-12.0.12.zip" | sha256sum -c
+  unzip -q jetty-home-12.0.12.zip &amp;&amp; rm jetty-home-12.0.12.zip
+fi
+
+rm -rf shadow.data; shadow shadow.yaml &gt; shadow.log
+cat shadow.data/hosts/client1/curl.1000.stdout
+</code></pre>
+<h2 id="etcd-distributed-key-value-store"><a class="header" href="#etcd-distributed-key-value-store">etcd (distributed key-value store)</a></h2>
+<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
 <p>Example for etcd version 3.3.x.</p>
 <pre><code class="language-yaml">general:
   stop_time: 30s
@@ -3060,7 +3098,7 @@ as Shadow does not support this.</p>
 </li>
 </ol>
 <h2 id="ctorrent-and-opentracker"><a class="header" href="#ctorrent-and-opentracker">CTorrent and opentracker</a></h2>
-<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <pre><code class="language-yaml">general:
   stop_time: 60s
 
@@ -3114,7 +3152,7 @@ cat shadow.data/hosts/downloader1/foo
 privileges if it detects that the effective user is root.</li>
 </ol>
 <h2 id="http-server"><a class="header" href="#http-server">http-server</a></h2>
-<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
+<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
 <pre><code class="language-yaml">general:
   stop_time: 10s
   model_unblocked_syscall_latency: true

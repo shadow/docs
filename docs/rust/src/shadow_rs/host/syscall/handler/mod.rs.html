@@ -917,6 +917,23 @@
 <a href="#917" id="917">917</a>
 <a href="#918" id="918">918</a>
 <a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
@@ -1266,7 +1283,24 @@
 
         <span class="macro">macro_rules!</span> handle {
             (<span class="macro-nonterminal">$f</span>:ident) =&gt; {{
-                SyscallHandlerFn::call(<span class="self">Self</span>::<span class="macro-nonterminal">$f</span>, <span class="kw-2">&amp;mut </span>ctx)
+                <span class="kw">let </span>rv = SyscallHandlerFn::call(<span class="self">Self</span>::<span class="macro-nonterminal">$f</span>, <span class="kw-2">&amp;mut </span>ctx);
+
+                <span class="comment">// log the syscall if enabled
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(strace_fmt_options) = ctx.objs.process.strace_logging_options() {
+                    ctx.objs.process.with_strace_file(|file| {
+                        <span class="kw">crate</span>::utility::macros::SyscallLogger::<span class="macro-nonterminal">$f</span>(
+                            file,
+                            ctx.args.args,
+                            <span class="kw-2">&amp;</span>rv,
+                            strace_fmt_options,
+                            ctx.objs.thread.id(),
+                            <span class="kw-2">&amp;*</span>ctx.objs.process.memory_borrow(),
+                        )
+                        .unwrap();
+                    });
+                }
+
+                rv
             }};
         }
 

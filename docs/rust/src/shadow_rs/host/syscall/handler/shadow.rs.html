@@ -102,9 +102,13 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
-<span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
@@ -112,13 +116,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::utility::case_insensitive_eq;
 
 <span class="kw">impl </span>SyscallHandler {
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int)]
-    </span><span class="kw">pub fn </span>shadow_yield(_ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    <span class="macro">log_syscall!</span>(shadow_yield, <span class="comment">/* rv */ </span>std::ffi::c_int);
+    <span class="kw">pub fn </span>shadow_yield(_ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int)]
-    </span><span class="kw">pub fn </span>shadow_init_memory_manager(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    <span class="macro">log_syscall!</span>(shadow_init_memory_manager, <span class="comment">/* rv */ </span>std::ffi::c_int);
+    <span class="kw">pub fn </span>shadow_init_memory_manager(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">if </span>!ctx.objs.host.params.use_mem_mapper {
             <span class="macro">log::trace!</span>(<span class="string">"Not initializing memory mapper"</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -134,9 +138,15 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* name_ptr */ </span><span class="kw-2">*const </span>std::ffi::c_char,
-                  <span class="comment">/* name_len */ </span>u64, <span class="comment">/* addr_ptr */ </span><span class="kw-2">*const </span>std::ffi::c_void, <span class="comment">/* addr_len */ </span>u64)]
-    </span><span class="kw">pub fn </span>shadow_hostname_to_addr_ipv4(
+    <span class="macro">log_syscall!</span>(
+        shadow_hostname_to_addr_ipv4,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* name_ptr */ </span><span class="kw-2">*const </span>std::ffi::c_char,
+        <span class="comment">/* name_len */ </span>u64,
+        <span class="comment">/* addr_ptr */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* addr_len */ </span>u64,
+    );
+    <span class="kw">pub fn </span>shadow_hostname_to_addr_ipv4(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         name_ptr: ForeignPtr&lt;std::ffi::c_char&gt;,
         name_len: u64,

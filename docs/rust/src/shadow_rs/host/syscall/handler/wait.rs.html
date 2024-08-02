@@ -256,6 +256,9 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cmp;
 <span class="kw">use </span>std::ffi::c_int;
 
@@ -265,7 +268,6 @@
 <span class="kw">use </span>linux_api::signal::{siginfo_t, Signal};
 <span class="kw">use </span>linux_api::wait::{WaitFlags, WaitId};
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
-<span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::host::process::{ExitStatus, Process, ProcessId};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
@@ -448,13 +450,15 @@
         <span class="prelude-val">Ok</span>(matching_child_zombie_pid.into())
     }
 
-    <span class="attr">#[log_syscall(
+    <span class="macro">log_syscall!</span>(
+        wait4,
         <span class="comment">/* rv */ </span>kernel_pid_t,
         <span class="comment">/* pid */ </span>kernel_pid_t,
         <span class="comment">/* status */ </span><span class="kw-2">*const </span>c_int,
         <span class="comment">/* options */ </span>c_int,
-        <span class="comment">/* usage */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>wait4(
+        <span class="comment">/* usage */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>wait4(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         pid: kernel_pid_t,
         status: ForeignPtr&lt;c_int&gt;,
@@ -486,14 +490,16 @@
         <span class="self">Self</span>::wait_internal(ctx, target, status, ForeignPtr::null(), wait_flags, usage)
     }
 
-    <span class="attr">#[log_syscall(
+    <span class="macro">log_syscall!</span>(
+        waitid,
         <span class="comment">/* rv */ </span>kernel_pid_t,
         <span class="comment">/* which */ </span>c_int,
         <span class="comment">/* upid */ </span>kernel_pid_t,
         <span class="comment">/* infop */ </span><span class="kw-2">*const </span>std::ffi::c_void,
         <span class="comment">/* options */ </span>c_int,
-        <span class="comment">/* uru */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>waitid(
+        <span class="comment">/* uru */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>waitid(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         which: c_int,
         upid: kernel_pid_t,

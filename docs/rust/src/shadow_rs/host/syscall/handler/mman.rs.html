@@ -444,6 +444,31 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 <span class="kw">use </span>std::path::PathBuf;
 
@@ -451,7 +476,6 @@
 <span class="kw">use </span>linux_api::fcntl::OFlag;
 <span class="kw">use </span>linux_api::mman::{MapFlags, ProtFlags};
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
-<span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{CompatFile, FileState};
@@ -460,8 +484,12 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 
 <span class="kw">impl </span>SyscallHandler {
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>brk(
+    <span class="macro">log_syscall!</span>(
+        brk,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>brk(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         addr: ForeignPtr&lt;u8&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ForeignPtr&lt;u8&gt;, SyscallError&gt; {
@@ -476,10 +504,16 @@
     //                 unsigned long, new_len, unsigned long, flags,
     //                 unsigned long, new_addr)
     // ```
-    </span><span class="attr">#[log_syscall(<span class="comment">/* rv */ </span><span class="kw-2">*const </span>std::ffi::c_void, <span class="comment">/* old_address */ </span><span class="kw-2">*const </span>std::ffi::c_void,
-                  <span class="comment">/* old_size */ </span>std::ffi::c_ulong, <span class="comment">/* new_size */ </span>std::ffi::c_ulong,
-                  <span class="comment">/* flags */ </span>linux_api::mman::MRemapFlags, <span class="comment">/* new_address */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>mremap(
+    </span><span class="macro">log_syscall!</span>(
+        mremap,
+        <span class="comment">/* rv */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* old_address */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* old_size */ </span>std::ffi::c_ulong,
+        <span class="comment">/* new_size */ </span>std::ffi::c_ulong,
+        <span class="comment">/* flags */ </span>linux_api::mman::MRemapFlags,
+        <span class="comment">/* new_address */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>mremap(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         old_addr: std::ffi::c_ulong,
         old_size: std::ffi::c_ulong,
@@ -512,8 +546,13 @@
     // ```
     // SYSCALL_DEFINE2(munmap, unsigned long, addr, size_t, len)
     // ```
-    </span><span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void, <span class="comment">/* length */ </span>usize)]
-    </span><span class="kw">pub fn </span>munmap(
+    </span><span class="macro">log_syscall!</span>(
+        munmap,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* length */ </span>usize,
+    );
+    <span class="kw">pub fn </span>munmap(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         addr: std::ffi::c_ulong,
         len: usize,
@@ -530,9 +569,14 @@
     // ```
     // SYSCALL_DEFINE3(mprotect, unsigned long, start, size_t, len, unsigned long, prot)
     // ```
-    </span><span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void, <span class="comment">/* len */ </span>usize,
-                  <span class="comment">/* prot */ </span>linux_api::mman::ProtFlags)]
-    </span><span class="kw">pub fn </span>mprotect(
+    </span><span class="macro">log_syscall!</span>(
+        mprotect,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* len */ </span>usize,
+        <span class="comment">/* prot */ </span>linux_api::mman::ProtFlags,
+    );
+    <span class="kw">pub fn </span>mprotect(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         addr: std::ffi::c_ulong,
         len: usize,
@@ -565,11 +609,17 @@
     //                 unsigned long, prot, unsigned long, flags,
     //                 unsigned long, fd, unsigned long, off)
     // ```
-    </span><span class="attr">#[log_syscall(<span class="comment">/* rv */ </span><span class="kw-2">*const </span>std::ffi::c_void, <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void,
-                  <span class="comment">/* length */ </span>usize, <span class="comment">/* prot */ </span>linux_api::mman::ProtFlags,
-                  <span class="comment">/* flags */ </span>linux_api::mman::MapFlags, <span class="comment">/* fd */ </span>std::ffi::c_ulong,
-                  <span class="comment">/* offset */ </span>std::ffi::c_ulong)]
-    </span><span class="kw">pub fn </span>mmap(
+    </span><span class="macro">log_syscall!</span>(
+        mmap,
+        <span class="comment">/* rv */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* addr */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* length */ </span>usize,
+        <span class="comment">/* prot */ </span>linux_api::mman::ProtFlags,
+        <span class="comment">/* flags */ </span>linux_api::mman::MapFlags,
+        <span class="comment">/* fd */ </span>std::ffi::c_ulong,
+        <span class="comment">/* offset */ </span>std::ffi::c_ulong,
+    );
+    <span class="kw">pub fn </span>mmap(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         addr: std::ffi::c_ulong,
         len: std::ffi::c_ulong,

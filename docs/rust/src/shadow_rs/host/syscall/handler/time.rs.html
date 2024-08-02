@@ -291,13 +291,36 @@
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::time::{ClockId, ClockNanosleepFlags, ITimerId};
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
-<span class="kw">use </span>syscall_logger::log_syscall;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
@@ -320,8 +343,13 @@
 }
 
 <span class="kw">impl </span>SyscallHandler {
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* which */ </span>linux_api::time::ITimerId, <span class="comment">/*curr_value*/ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>getitimer(
+    <span class="macro">log_syscall!</span>(
+        getitimer,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* which */ </span>linux_api::time::ITimerId,
+        <span class="comment">/*curr_value*/ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>getitimer(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         which: std::ffi::c_int,
         curr_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
@@ -345,9 +373,14 @@
         <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* which */ </span>linux_api::time::ITimerId,
-                  <span class="comment">/* new_value */ </span><span class="kw-2">*const </span>std::ffi::c_void, <span class="comment">/* old_value */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>setitimer(
+    <span class="macro">log_syscall!</span>(
+        setitimer,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* which */ </span>linux_api::time::ITimerId,
+        <span class="comment">/* new_value */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* old_value */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>setitimer(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         which: std::ffi::c_int,
         new_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
@@ -392,8 +425,12 @@
         <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_uint, <span class="comment">/* seconds */ </span>std::ffi::c_uint)]
-    </span><span class="kw">pub fn </span>alarm(
+    <span class="macro">log_syscall!</span>(
+        alarm,
+        <span class="comment">/* rv */ </span>std::ffi::c_uint,
+        <span class="comment">/* seconds */ </span>std::ffi::c_uint,
+    );
+    <span class="kw">pub fn </span>alarm(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         seconds: std::ffi::c_uint,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_uint, SyscallError&gt; {
@@ -442,9 +479,13 @@
         <span class="prelude-val">Ok</span>(prev_remaining_secs)
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* clock_id */ </span>linux_api::time::ClockId,
-                  <span class="comment">/* res */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>clock_getres(
+    <span class="macro">log_syscall!</span>(
+        clock_getres,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* clock_id */ </span>linux_api::time::ClockId,
+        <span class="comment">/* res */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>clock_getres(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         clock_id: linux_api::time::linux___kernel_clockid_t,
         res_ptr: ForeignPtr&lt;linux_api::time::timespec&gt;,
@@ -464,12 +505,15 @@
         <span class="prelude-val">Ok</span>(<span class="number">0</span>)
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int,
+    <span class="macro">log_syscall!</span>(
+        clock_nanosleep,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* clock_id */ </span>linux_api::time::ClockId,
         <span class="comment">/* flags */ </span>linux_api::time::ClockNanosleepFlags,
         <span class="comment">/* request */ </span><span class="kw-2">*const </span>linux_api::time::timespec,
-        <span class="comment">/* remain */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>clock_nanosleep(
+        <span class="comment">/* remain */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>clock_nanosleep(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         clock_id: linux_api::time::linux___kernel_clockid_t,
         flags: std::ffi::c_int,
@@ -517,9 +561,13 @@
         }
     }
 
-    <span class="attr">#[log_syscall(<span class="comment">/* rv */ </span>std::ffi::c_int, <span class="comment">/* req */ </span><span class="kw-2">*const </span>linux_api::time::timespec,
-                  <span class="comment">/* rem */ </span><span class="kw-2">*const </span>std::ffi::c_void)]
-    </span><span class="kw">pub fn </span>nanosleep(
+    <span class="macro">log_syscall!</span>(
+        nanosleep,
+        <span class="comment">/* rv */ </span>std::ffi::c_int,
+        <span class="comment">/* req */ </span><span class="kw-2">*const </span>linux_api::time::timespec,
+        <span class="comment">/* rem */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+    );
+    <span class="kw">pub fn </span>nanosleep(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         req: ForeignPtr&lt;linux_api::time::timespec&gt;,
         rem: ForeignPtr&lt;linux_api::time::timespec&gt;,
