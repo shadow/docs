@@ -1125,7 +1125,6 @@
 <a href="#1125" id="1125">1125</a>
 <a href="#1126" id="1126">1126</a>
 <a href="#1127" id="1127">1127</a>
-<a href="#1128" id="1128">1128</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
 <span class="kw">use </span>linux_api::socket::Shutdown;
@@ -1133,6 +1132,7 @@
 <span class="kw">use </span>nix::sys::socket::SockFlag;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::DescriptorHandle;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::legacy_tcp::LegacyTcpSocket;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::tcp::TcpSocket;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::udp::UdpSocket;
@@ -1145,7 +1145,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::io::{<span class="self">self</span>, IoVec};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::type_formatting::{SyscallBufferArg, SyscallSockAddrArg};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::ForeignArrayPtr;
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{SyscallError, SyscallResult};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 <span class="kw">use </span><span class="kw">crate</span>::utility::sockaddr::SockaddrStorage;
 
@@ -1162,7 +1162,7 @@
         domain: std::ffi::c_int,
         socket_type: std::ffi::c_int,
         protocol: std::ffi::c_int,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="comment">// remove any flags from the socket type
         </span><span class="kw">let </span>flags = socket_type &amp; (libc::SOCK_NONBLOCK | libc::SOCK_CLOEXEC);
         <span class="kw">let </span>socket_type = socket_type &amp; !flags;
@@ -1264,9 +1264,9 @@
             .register_descriptor(desc)
             .or(<span class="prelude-val">Err</span>(Errno::ENFILE))<span class="question-mark">?</span>;
 
-        <span class="macro">log::trace!</span>(<span class="string">"Created socket fd {}"</span>, fd);
+        <span class="macro">log::trace!</span>(<span class="string">"Created socket fd {fd}"</span>);
 
-        <span class="prelude-val">Ok</span>(fd.val().into())
+        <span class="prelude-val">Ok</span>(fd)
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1281,7 +1281,7 @@
         fd: std::ffi::c_int,
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len: libc::socklen_t,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>file = {
             <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
@@ -1651,7 +1651,7 @@
         fd: std::ffi::c_int,
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>addr_to_write: <span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt; = {
             <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
@@ -1683,7 +1683,7 @@
             addr_len_ptr,
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1698,7 +1698,7 @@
         fd: std::ffi::c_int,
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>addr_to_write = {
             <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
@@ -1732,7 +1732,7 @@
             addr_len_ptr,
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1745,7 +1745,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd: std::ffi::c_int,
         backlog: std::ffi::c_int,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
@@ -1769,7 +1769,7 @@
             })
         })<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1784,7 +1784,7 @@
         fd: std::ffi::c_int,
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="comment">// if we were previously blocked, get the active file from the last syscall handler
         // invocation since it may no longer exist in the descriptor table
         </span><span class="kw">let </span>file = ctx
@@ -1834,7 +1834,7 @@
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
         flags: std::ffi::c_int,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="comment">// if we were previously blocked, get the active file from the last syscall handler
         // invocation since it may no longer exist in the descriptor table
         </span><span class="kw">let </span>file = ctx
@@ -1876,7 +1876,7 @@
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
         flags: std::ffi::c_int,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="kw">let </span>File::Socket(<span class="kw-2">ref </span>socket) = file <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
@@ -1944,14 +1944,12 @@
             new_desc.set_flags(DescriptorFlags::FD_CLOEXEC);
         }
 
-        <span class="kw">let </span>new_fd = ctx
+        <span class="prelude-val">Ok</span>(ctx
             .objs
             .thread
             .descriptor_table_borrow_mut(ctx.objs.host)
             .register_descriptor(new_desc)
-            .or(<span class="prelude-val">Err</span>(Errno::ENFILE))<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(new_fd.val().into())
+            .or(<span class="prelude-val">Err</span>(Errno::ENFILE))<span class="question-mark">?</span>)
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1966,7 +1964,7 @@
         fd: std::ffi::c_int,
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len: libc::socklen_t,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// if we were previously blocked, get the active file from the last syscall handler
         // invocation since it may no longer exist in the descriptor table
         </span><span class="kw">let </span>file = ctx
@@ -2015,7 +2013,7 @@
 
         result<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -2028,7 +2026,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd: std::ffi::c_int,
         how: std::ffi::c_uint,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
@@ -2049,7 +2047,7 @@
             CallbackQueue::queue_and_run(|cb_queue| socket.borrow_mut().shutdown(how, cb_queue))
         })<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -2066,7 +2064,7 @@
         socket_type: std::ffi::c_int,
         protocol: std::ffi::c_int,
         fd_ptr: ForeignPtr&lt;[std::ffi::c_int; <span class="number">2</span>]&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// remove any flags from the socket type
         </span><span class="kw">let </span>flags = socket_type &amp; (libc::SOCK_NONBLOCK | libc::SOCK_CLOEXEC);
         <span class="kw">let </span>socket_type = socket_type &amp; !flags;
@@ -2139,7 +2137,7 @@
 
         <span class="comment">// clean up in case of error
         </span><span class="kw">match </span>write_res {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>.into()),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Err</span>(e) =&gt; {
                 CallbackQueue::queue_and_run(|cb_queue| {
                     <span class="comment">// ignore any errors when closing
@@ -2171,7 +2169,7 @@
         optname: std::ffi::c_int,
         optval_ptr: ForeignPtr&lt;()&gt;,
         optlen_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
@@ -2211,7 +2209,7 @@
         <span class="comment">// write the new optlen back to the plugin
         </span>mem.write(optlen_ptr, <span class="kw-2">&amp;</span>optlen_new)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -2230,7 +2228,7 @@
         optname: std::ffi::c_int,
         optval_ptr: ForeignPtr&lt;()&gt;,
         optlen: libc::socklen_t,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
@@ -2251,7 +2249,7 @@
             .borrow_mut()
             .setsockopt(level, optname, optval_ptr, optlen, <span class="kw-2">&amp;</span>mem)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div></section></main></body></html>

@@ -473,6 +473,7 @@
 <a href="#473" id="473">473</a>
 <a href="#474" id="474">474</a>
 <a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::DerefMut;
 <span class="kw">use </span>std::sync::Arc;
 
@@ -484,6 +485,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
 <span class="kw">use </span><span class="kw">crate</span>::cshadow;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::DescriptorHandle;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::epoll::Epoll;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{CompatFile, Descriptor, File, FileState, OpenFile};
 <span class="kw">use </span><span class="kw">crate</span>::host::memory_manager::MemoryManager;
@@ -500,7 +502,7 @@
     <span class="kw">pub fn </span>epoll_create(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         size: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="comment">// epoll_create(2): "Since Linux 2.6.8, the size argument is ignored, but must be greater
         // than zero"
         </span><span class="kw">if </span>size &lt;= <span class="number">0 </span>{
@@ -518,14 +520,14 @@
     <span class="kw">pub fn </span>epoll_create1(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         flags: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="self">Self</span>::epoll_create_helper(ctx, flags)
     }
 
     <span class="kw">fn </span>epoll_create_helper(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         flags: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="comment">// See here for the order that the input args are checked in Linux:
         // https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2030
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(flags) = EpollCreateFlags::from_bits(flags) <span class="kw">else </span>{
@@ -552,7 +554,7 @@
 
         <span class="macro">log::trace!</span>(<span class="string">"Created epoll fd {fd}"</span>);
 
-        <span class="prelude-val">Ok</span>(fd.val().try_into().unwrap())
+        <span class="prelude-val">Ok</span>(fd)
     }
 
     <span class="macro">log_syscall!</span>(
@@ -569,7 +571,7 @@
         op: std::ffi::c_int,
         fd: std::ffi::c_int,
         event_ptr: ForeignPtr&lt;linux_api::epoll::epoll_event&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// See here for the order that the input args are checked in Linux:
         // https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2111
 
@@ -663,7 +665,7 @@
                     .ctl(op, fd, target, events, data, weak_epoll, cb_queue)
             })
         })<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(

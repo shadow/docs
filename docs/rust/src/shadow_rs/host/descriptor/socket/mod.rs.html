@@ -415,10 +415,12 @@
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>inet::{InetSocket, InetSocketRef, InetSocketRefMut};
+<span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
 <span class="kw">use </span>linux_api::socket::Shutdown;
 <span class="kw">use </span>netlink::NetlinkSocket;
@@ -506,7 +508,7 @@
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; UnixSocket::bind(socket, addr, net_ns, rng),
             <span class="self">Self</span>::Inet(socket) =&gt; InetSocket::bind(socket, addr, net_ns, rng),
@@ -520,7 +522,7 @@
         net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; UnixSocket::listen(socket, backlog, net_ns, rng, cb_queue),
             <span class="self">Self</span>::Inet(socket) =&gt; InetSocket::listen(socket, backlog, net_ns, rng, cb_queue),
@@ -634,7 +636,7 @@
 
 <span class="comment">// socket-specific functions
 </span><span class="kw">impl </span>SocketRef&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
@@ -642,7 +644,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
@@ -714,7 +716,7 @@
 
 <span class="comment">// socket-specific functions
 </span><span class="kw">impl </span>SocketRefMut&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
@@ -722,7 +724,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),

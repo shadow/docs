@@ -934,6 +934,9 @@
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
@@ -1608,7 +1611,10 @@
     }
 
     <span class="doccomment">/// Run a legacy C syscall handler.
-    </span><span class="kw">fn </span>legacy_syscall(syscall: LegacySyscallFn, ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; SyscallResult {
+    </span><span class="kw">fn </span>legacy_syscall&lt;T: From&lt;SyscallReg&gt;&gt;(
+        syscall: LegacySyscallFn,
+        ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;T, SyscallError&gt; {
         <span class="kw">let </span>rv: SyscallResult =
             <span class="kw">unsafe </span>{ syscall(ctx.handler, std::ptr::from_ref(ctx.args)) }.into();
 
@@ -1625,7 +1631,7 @@
                 .expect(<span class="string">"flushing syscall ptrs"</span>);
         }
 
-        rv
+        rv.map(Into::into)
     }
 }
 

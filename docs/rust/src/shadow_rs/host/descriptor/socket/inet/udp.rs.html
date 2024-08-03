@@ -1359,7 +1359,7 @@
         !<span class="self">self</span>.send_buffer.is_empty()
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, Errno&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>addr = <span class="self">self
             </span>.bound_addr
             .unwrap_or(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, <span class="number">0</span>));
@@ -1375,7 +1375,7 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(addr.into()))
     }
 
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.peer_addr.ok_or(Errno::ENOTCONN)<span class="question-mark">?</span>.into()))
     }
 
@@ -1401,7 +1401,7 @@
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// if the address pointer was NULL
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(addr) = addr <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT.into());
@@ -1450,7 +1450,7 @@
             socket.association = <span class="prelude-val">Some</span>(handle);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>readv(
@@ -1815,8 +1815,8 @@
         _net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         _rng: <span class="kw">impl </span>rand::Rng,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
-        <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
+        <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP)
     }
 
     <span class="kw">pub fn </span>connect(

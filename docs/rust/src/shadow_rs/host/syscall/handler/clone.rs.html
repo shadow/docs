@@ -502,7 +502,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::DescriptorTable;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::ProcessId;
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{SyscallError, SyscallResult};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::Thread;
 
 <span class="kw">use super</span>::{SyscallContext, SyscallHandler};
@@ -921,7 +921,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         hdrp: ForeignPtr&lt;user_cap_header&gt;,
         datap: ForeignPtr&lt;[user_cap_data; <span class="number">2</span>]&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// If the version is not 3, we return the error
         </span><span class="kw">let </span>hdrp = ctx.objs.process.memory_borrow().read(hdrp)<span class="question-mark">?</span>;
         <span class="kw">if </span>hdrp.version != LINUX_CAPABILITY_VERSION_3 {
@@ -945,7 +945,7 @@
                 .memory_borrow_mut()
                 .write(datap, <span class="kw-2">&amp;</span>[empty, empty])<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -958,7 +958,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         hdrp: ForeignPtr&lt;user_cap_header&gt;,
         datap: ForeignPtr&lt;[user_cap_data; <span class="number">2</span>]&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// If the version is not 3, we return the error
         </span><span class="kw">let </span>hdrp = ctx.objs.process.memory_borrow().read(hdrp)<span class="question-mark">?</span>;
         <span class="kw">if </span>hdrp.version != LINUX_CAPABILITY_VERSION_3 {
@@ -977,7 +977,7 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div></section></main></body></html>

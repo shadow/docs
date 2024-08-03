@@ -85,12 +85,6 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
@@ -106,26 +100,20 @@
     <span class="macro">log_syscall!</span>(
         ioctl,
         <span class="comment">/* rv */ </span>std::ffi::c_int,
-        <span class="comment">/* fd */ </span>std::ffi::c_int,
-        <span class="comment">/* request */ </span>std::ffi::c_ulong,
+        <span class="comment">/* fd */ </span>std::ffi::c_uint,
+        <span class="comment">/* cmd */ </span>std::ffi::c_uint,
+        <span class="comment">/* arg */ </span>std::ffi::c_ulong,
     );
     <span class="kw">pub fn </span>ioctl(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
-        fd: std::ffi::c_int,
-        request: std::ffi::c_ulong,
+        fd: std::ffi::c_uint,
+        cmd: std::ffi::c_uint,
         arg_ptr: ForeignPtr&lt;()&gt;,
     ) -&gt; SyscallResult {
-        <span class="macro">log::trace!</span>(<span class="string">"Called ioctl() on fd {} with request {}"</span>, fd, request);
+        <span class="macro">log::trace!</span>(<span class="string">"Called ioctl() on fd {} with cmd {}"</span>, fd, cmd);
 
-        <span class="comment">// ioctl(2):
-        // &gt; Ioctl command values are 32-bit constants.
-        </span><span class="kw">let </span><span class="prelude-val">Ok</span>(request) = u32::try_from(request) <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">"ioctl request {request} exceeds 32 bits"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
-        };
-
-        <span class="kw">let </span><span class="prelude-val">Ok</span>(request) = IoctlRequest::try_from(request) <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">"Unrecognized ioctl request {request}"</span>);
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(cmd) = IoctlRequest::try_from(cmd) <span class="kw">else </span>{
+            <span class="macro">debug!</span>(<span class="string">"Unrecognized ioctl cmd {cmd}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
@@ -135,7 +123,7 @@
             <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor_mut(<span class="kw-2">&amp;mut </span>desc_table, fd)<span class="question-mark">?</span>;
 
             <span class="comment">// add the CLOEXEC flag
-            </span><span class="kw">if </span>request == IoctlRequest::FIOCLEX {
+            </span><span class="kw">if </span>cmd == IoctlRequest::FIOCLEX {
                 <span class="kw">let </span><span class="kw-2">mut </span>flags = desc.flags();
                 flags.insert(DescriptorFlags::FD_CLOEXEC);
                 desc.set_flags(flags);
@@ -144,7 +132,7 @@
             }
 
             <span class="comment">// remove the CLOEXEC flag
-            </span><span class="kw">if </span>request == IoctlRequest::FIONCLEX {
+            </span><span class="kw">if </span>cmd == IoctlRequest::FIONCLEX {
                 <span class="kw">let </span><span class="kw-2">mut </span>flags = desc.flags();
                 flags.remove(DescriptorFlags::FD_CLOEXEC);
                 desc.set_flags(flags);
@@ -169,7 +157,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>file = file.borrow_mut();
 
         <span class="comment">// all file types that shadow implements should support non-blocking operation
-        </span><span class="kw">if </span>request == IoctlRequest::FIONBIO {
+        </span><span class="kw">if </span>cmd == IoctlRequest::FIONBIO {
             <span class="kw">let </span>arg_ptr = arg_ptr.cast::&lt;std::ffi::c_int&gt;();
             <span class="kw">let </span>arg = ctx.objs.process.memory_borrow_mut().read(arg_ptr)<span class="question-mark">?</span>;
 
@@ -181,7 +169,7 @@
         }
 
         <span class="comment">// handle file-specific ioctls
-        </span>file.ioctl(request, arg_ptr, <span class="kw-2">&amp;mut </span>ctx.objs.process.memory_borrow_mut())
+        </span>file.ioctl(cmd, arg_ptr, <span class="kw-2">&amp;mut </span>ctx.objs.process.memory_borrow_mut())
     }
 }
 </code></pre></div></section></main></body></html>

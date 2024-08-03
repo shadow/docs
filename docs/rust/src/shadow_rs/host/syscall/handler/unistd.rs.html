@@ -983,6 +983,9 @@
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
 <a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::{CStr, CString};
 <span class="kw">use </span>std::os::unix::ffi::OsStringExt;
 <span class="kw">use </span>std::sync::Arc;
@@ -1000,6 +1003,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::work::task::TaskRef;
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::DescriptorHandle;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::pipe;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::shared_buf::SharedBuf;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{CompatFile, Descriptor, File, FileMode, FileStatus, OpenFile};
@@ -1007,7 +1011,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::io::{read_cstring_vec, IoVec};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::type_formatting::{SyscallBufferArg, SyscallStringArg};
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallError, SyscallResult};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallError};
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 <span class="kw">use </span><span class="kw">crate</span>::utility::u8_to_i8_slice;
 
@@ -1017,7 +1021,7 @@
         <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* fd */ </span>std::ffi::c_int,
     );
-    <span class="kw">pub fn </span>close(ctx: <span class="kw-2">&amp;mut </span>SyscallContext, fd: std::ffi::c_int) -&gt; SyscallResult {
+    <span class="kw">pub fn </span>close(ctx: <span class="kw-2">&amp;mut </span>SyscallContext, fd: std::ffi::c_int) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="macro">trace!</span>(<span class="string">"Trying to close fd {}"</span>, fd);
 
         <span class="kw">let </span>fd = fd.try_into().or(<span class="prelude-val">Err</span>(linux_api::errno::Errno::EBADF))<span class="question-mark">?</span>;
@@ -1037,7 +1041,6 @@
         </span><span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
             CallbackQueue::queue_and_run(|cb_queue| desc.close(ctx.objs.host, cb_queue))
                 .unwrap_or(<span class="prelude-val">Ok</span>(()))
-                .map(|()| <span class="number">0</span>.into())
         })
     }
 
@@ -1046,19 +1049,20 @@
         <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* oldfd */ </span>std::ffi::c_int,
     );
-    <span class="kw">pub fn </span>dup(ctx: <span class="kw-2">&amp;mut </span>SyscallContext, fd: std::ffi::c_int) -&gt; SyscallResult {
+    <span class="kw">pub fn </span>dup(
+        ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
+        fd: std::ffi::c_int,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span><span class="kw-2">mut </span>desc_table = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
         <span class="comment">// duplicate the descriptor
         </span><span class="kw">let </span>new_desc = desc.dup(DescriptorFlags::empty());
-        <span class="kw">let </span>new_fd = desc_table
-            .register_descriptor(new_desc)
-            .or(<span class="prelude-val">Err</span>(Errno::ENFILE))<span class="question-mark">?</span>;
 
-        <span class="comment">// return the new fd
-        </span><span class="prelude-val">Ok</span>(std::ffi::c_int::from(new_fd).into())
+        <span class="prelude-val">Ok</span>(desc_table
+            .register_descriptor(new_desc)
+            .or(<span class="prelude-val">Err</span>(Errno::ENFILE))<span class="question-mark">?</span>)
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1071,7 +1075,10 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         old_fd: std::ffi::c_int,
         new_fd: std::ffi::c_int,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
+        <span class="kw">let </span>old_fd = DescriptorHandle::try_from(old_fd).or(<span class="prelude-val">Err</span>(Errno::EBADF))<span class="question-mark">?</span>;
+        <span class="kw">let </span>new_fd = DescriptorHandle::try_from(new_fd).or(<span class="prelude-val">Err</span>(Errno::EBADF))<span class="question-mark">?</span>;
+
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span><span class="kw-2">mut </span>desc_table = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, old_fd)<span class="question-mark">?</span>;
@@ -1079,10 +1086,8 @@
         <span class="comment">// from 'man 2 dup2': "If oldfd is a valid file descriptor, and newfd has the same
         // value as oldfd, then dup2() does nothing, and returns newfd"
         </span><span class="kw">if </span>old_fd == new_fd {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(new_fd.into());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(new_fd);
         }
-
-        <span class="kw">let </span>new_fd = new_fd.try_into().or(<span class="prelude-val">Err</span>(linux_api::errno::Errno::EBADF))<span class="question-mark">?</span>;
 
         <span class="comment">// duplicate the descriptor
         </span><span class="kw">let </span>new_desc = desc.dup(DescriptorFlags::empty());
@@ -1096,7 +1101,7 @@
         }
 
         <span class="comment">// return the new fd
-        </span><span class="prelude-val">Ok</span>(std::ffi::c_int::from(new_fd).into())
+        </span><span class="prelude-val">Ok</span>(new_fd)
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1111,7 +1116,7 @@
         old_fd: std::ffi::c_int,
         new_fd: std::ffi::c_int,
         flags: std::ffi::c_int,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span><span class="kw-2">mut </span>desc_table = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, old_fd)<span class="question-mark">?</span>;
@@ -1156,7 +1161,7 @@
         }
 
         <span class="comment">// return the new fd
-        </span><span class="prelude-val">Ok</span>(std::ffi::c_int::from(new_fd).into())
+        </span><span class="prelude-val">Ok</span>(new_fd)
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1192,7 +1197,7 @@
                     <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
-                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_read, ctx).map(Into::into);
+                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_read, ctx);
                     }
                 }
             }
@@ -1246,8 +1251,7 @@
                     <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
-                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_pread64, ctx)
-                            .map(Into::into);
+                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_pread64, ctx);
                     }
                 }
             }
@@ -1313,7 +1317,7 @@
                     <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
-                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_write, ctx).map(Into::into);
+                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_write, ctx);
                     }
                 }
             }
@@ -1367,8 +1371,7 @@
                     <span class="comment">// if it's a legacy file, use the C syscall handler instead
                     </span>CompatFile::Legacy(<span class="kw">_</span>) =&gt; {
                         drop(desc_table);
-                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_pwrite64, ctx)
-                            .map(Into::into);
+                        <span class="kw">return </span><span class="self">Self</span>::legacy_syscall(c::syscallhandler_pwrite64, ctx);
                     }
                 }
             }
@@ -1410,7 +1413,7 @@
     <span class="kw">pub fn </span>pipe(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd_ptr: ForeignPtr&lt;[std::ffi::c_int; <span class="number">2</span>]&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="self">Self</span>::pipe_helper(ctx, fd_ptr, <span class="number">0</span>)
     }
 
@@ -1424,7 +1427,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd_ptr: ForeignPtr&lt;[std::ffi::c_int; <span class="number">2</span>]&gt;,
         flags: std::ffi::c_int,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="self">Self</span>::pipe_helper(ctx, fd_ptr, flags)
     }
 
@@ -1432,7 +1435,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd_ptr: ForeignPtr&lt;[std::ffi::c_int; <span class="number">2</span>]&gt;,
         flags: i32,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// make sure they didn't pass a NULL pointer
         </span><span class="kw">if </span>fd_ptr.is_null() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(linux_api::errno::Errno::EFAULT.into());
@@ -1500,7 +1503,7 @@
 
         <span class="comment">// clean up in case of error
         </span><span class="kw">match </span>write_res {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>.into()),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Err</span>(e) =&gt; {
                 CallbackQueue::queue_and_run(|cb_queue| {
                     <span class="comment">// ignore any errors when closing
@@ -1561,7 +1564,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         pid: kernel_pid_t,
         pgid: kernel_pid_t,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>_processrc_borrow;
         <span class="kw">let </span>_process_borrow;
         <span class="kw">let </span>process: <span class="kw-2">&amp;</span>Process;
@@ -1626,7 +1629,7 @@
             // specified by pid is made the same as its process ID.
             </span>process.set_group_id(process.id());
         }
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1902,7 +1905,7 @@
     <span class="kw">pub fn </span>uname(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         name_ptr: ForeignPtr&lt;linux_api::utsname::new_utsname&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// NOTE: On linux x86-64, `SYS_uname` corresponds with `__NR_uname` which calls
         // `sys_newuname` and not `sys_uname`. The correct mapping is:
         //
@@ -1932,7 +1935,7 @@
             .memory_borrow_mut()
             .write(name_ptr, <span class="kw-2">&amp;</span>name)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -1940,7 +1943,10 @@
         <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* path */ </span>SyscallStringArg,
     );
-    <span class="kw">pub fn </span>chdir(ctx: <span class="kw-2">&amp;mut </span>SyscallContext, path: ForeignPtr&lt;std::ffi::c_char&gt;) -&gt; SyscallResult {
+    <span class="kw">pub fn </span>chdir(
+        ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
+        path: ForeignPtr&lt;std::ffi::c_char&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// The native working directory must match the emulated one
         // &lt;https://github.com/shadow/shadow/issues/2960&gt;. First execute the
         // native chdir, propagating any failures.
@@ -1965,7 +1971,7 @@
         newcwd.push(<span class="number">0</span>);
         <span class="kw">let </span>newcwd = CString::from_vec_with_nul(newcwd).unwrap();
         process.process.set_current_working_dir(newcwd);
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div></section></main></body></html>

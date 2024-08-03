@@ -1419,15 +1419,15 @@
         <span class="self">self</span>.common.has_open_file = val;
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;nix::sys::socket::NetlinkAddr&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;nix::sys::socket::NetlinkAddr&gt;, Errno&gt; {
         <span class="self">self</span>.protocol_state.bound_address()
     }
 
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;nix::sys::socket::NetlinkAddr&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;nix::sys::socket::NetlinkAddr&gt;, Errno&gt; {
         <span class="macro">warn_once_then_debug!</span>(
             <span class="string">"getpeername() syscall not yet supported for netlink sockets; Returning ENOSYS"
         </span>);
-        <span class="prelude-val">Err</span>(Errno::ENOSYS.into())
+        <span class="prelude-val">Err</span>(Errno::ENOSYS)
     }
 
     <span class="kw">pub fn </span>address_family(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; linux_api::socket::AddressFamily {
@@ -1522,7 +1522,7 @@
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         _net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>socket_ref = <span class="kw-2">&amp;mut *</span>socket.borrow_mut();
         socket_ref
             .protocol_state
@@ -1589,9 +1589,9 @@
         _net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         _rng: <span class="kw">impl </span>rand::Rng,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="macro">warn_once_then_debug!</span>(<span class="string">"We do not yet handle listen request on netlink sockets"</span>);
-        <span class="prelude-val">Err</span>(Errno::EINVAL.into())
+        <span class="prelude-val">Err</span>(Errno::EINVAL)
     }
 
     <span class="kw">pub fn </span>connect(
@@ -1723,7 +1723,7 @@
         }))
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;NetlinkAddr&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;NetlinkAddr&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Initial(x) =&gt; x.as_ref().unwrap().bound_address(),
             <span class="self">Self</span>::Closed(x) =&gt; x.as_ref().unwrap().bound_address(),
@@ -1768,7 +1768,7 @@
         socket: <span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;NetlinkSocket&gt;&gt;,
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Initial(x) =&gt; x.as_mut().unwrap().bind(common, socket, addr, rng),
             <span class="self">Self</span>::Closed(x) =&gt; x.as_mut().unwrap().bind(common, socket, addr, rng),
@@ -1817,7 +1817,7 @@
 }
 
 <span class="kw">impl </span>InitialState {
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;NetlinkAddr&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;NetlinkAddr&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.bound_addr)
     }
 
@@ -1866,7 +1866,7 @@
         _socket: <span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;NetlinkSocket&gt;&gt;,
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         _rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// if already bound
         </span><span class="kw">if </span><span class="self">self</span>.bound_addr.is_some() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
@@ -1900,7 +1900,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>sendmsg(
@@ -2242,7 +2242,7 @@
 }
 
 <span class="kw">impl </span>ClosedState {
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;NetlinkAddr&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;NetlinkAddr&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
@@ -2275,7 +2275,7 @@
         _socket: <span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;NetlinkSocket&gt;&gt;,
         _addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         _rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// We follow the same approach as UnixSocket
         </span><span class="macro">log::warn!</span>(<span class="string">"bind() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())

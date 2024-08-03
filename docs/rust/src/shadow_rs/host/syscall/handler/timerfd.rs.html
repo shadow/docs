@@ -234,6 +234,7 @@
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
 <a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
@@ -246,6 +247,7 @@
 };
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::DescriptorHandle;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{
     timerfd::TimerFd, CompatFile, Descriptor, File, FileStatus, OpenFile,
 };
@@ -266,7 +268,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         clockid: std::ffi::c_int,
         flags: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(clockid) = ClockId::try_from(clockid) <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(<span class="string">"Invalid clockid: {clockid}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
@@ -304,7 +306,7 @@
 
         <span class="macro">log::trace!</span>(<span class="string">"timerfd_create() returning fd {fd}"</span>);
 
-        <span class="prelude-val">Ok</span>(i32::try_from(fd.val()).unwrap())
+        <span class="prelude-val">Ok</span>(fd)
     }
 
     <span class="macro">log_syscall!</span>(
@@ -317,7 +319,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd: std::ffi::c_int,
         curr_value_ptr: ForeignPtr&lt;linux_api::time::itimerspec&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// Get the TimerFd object.
         </span><span class="kw">let </span>file = get_cloned_file(ctx, fd)<span class="question-mark">?</span>;
         <span class="kw">let </span>File::TimerFd(<span class="kw-2">ref </span>timerfd) = file <span class="kw">else </span>{
@@ -326,7 +328,7 @@
 
         <span class="self">Self</span>::timerfd_gettime_helper(ctx, timerfd, curr_value_ptr)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>timerfd_gettime_helper(
@@ -381,7 +383,7 @@
         flags: std::ffi::c_int,
         new_value_ptr: ForeignPtr&lt;linux_api::time::itimerspec&gt;,
         old_value_ptr: ForeignPtr&lt;linux_api::time::itimerspec&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = TimerSetTimeFlags::from_bits(flags) <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(<span class="string">"Invalid timerfd_settime flags: {flags}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
@@ -442,7 +444,7 @@
             );
         }
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 }
 

@@ -324,7 +324,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{SyscallError, SyscallResult};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 <span class="kw">use </span><span class="kw">crate</span>::host::timer::Timer;
 
 <span class="kw">fn </span>itimerval_from_timer(timer: <span class="kw-2">&amp;</span>Timer) -&gt; linux_api::time::itimerval {
@@ -353,7 +353,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         which: std::ffi::c_int,
         curr_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(which) = ITimerId::try_from(which) <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">"Bad itimerid {which}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
@@ -370,7 +370,7 @@
             .memory_borrow_mut()
             .write(curr_value_ptr, <span class="kw-2">&amp;</span>itimerval)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -385,7 +385,7 @@
         which: std::ffi::c_int,
         new_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
         old_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(which) = ITimerId::try_from(which) <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">"Bad itimerid {which}"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
@@ -422,7 +422,7 @@
             );
         }
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -489,7 +489,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         clock_id: linux_api::time::linux___kernel_clockid_t,
         res_ptr: ForeignPtr&lt;linux_api::time::timespec&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// Make sure we have a valid clock id.
         </span>ClockId::try_from(clock_id).map_err(|<span class="kw">_</span>| Errno::EINVAL)<span class="question-mark">?</span>;
 
@@ -502,7 +502,7 @@
                 .write(res_ptr, <span class="kw-2">&amp;</span>res_time)<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -519,7 +519,7 @@
         flags: std::ffi::c_int,
         request_ptr: ForeignPtr&lt;linux_api::time::timespec&gt;,
         remain_ptr: ForeignPtr&lt;linux_api::time::timespec&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>clock_id = ClockId::try_from(clock_id).map_err(|<span class="kw">_</span>| Errno::EINVAL)<span class="question-mark">?</span>;
 
         <span class="comment">// Check for clock_ids that specifically support nanosleep.
@@ -571,7 +571,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         req: ForeignPtr&lt;linux_api::time::timespec&gt;,
         rem: ForeignPtr&lt;linux_api::time::timespec&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="self">Self</span>::nanosleep_helper(ctx, <span class="number">0</span>, req, rem, <span class="bool-val">false</span>)
     }
 
@@ -581,7 +581,7 @@
         request_ptr: ForeignPtr&lt;linux_api::time::timespec&gt;,
         remain_ptr: ForeignPtr&lt;linux_api::time::timespec&gt;,
         allow_unspec_bitflags: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>request = ctx.objs.process.memory_borrow().read(request_ptr)<span class="question-mark">?</span>;
         <span class="kw">let </span>request_time = SimulationTime::try_from(request).or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
         <span class="kw">let </span>flags = <span class="kw">if </span>allow_unspec_bitflags {
@@ -601,7 +601,7 @@
 
         <span class="comment">// A wakeup time in the past means we return without sleeping.
         </span><span class="kw">if </span>abs_wakeup_time &lt;= now {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
         <span class="comment">// Condition will exist after a wakeup.
@@ -615,7 +615,7 @@
 
         <span class="kw">if </span>expected_wakeup_time &lt;= now {
             <span class="comment">// Successful sleep and wakeup!
-            </span><span class="prelude-val">Ok</span>(<span class="number">0</span>)
+            </span><span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
             <span class="comment">// Possibly write out the remaining time until the expected wakeup.
             </span><span class="kw">if </span>!remain_ptr.is_null() &amp;&amp; !flags.contains(ClockNanosleepFlags::TIMER_ABSTIME) {

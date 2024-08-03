@@ -846,7 +846,7 @@
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::LegacyTcp(socket) =&gt; LegacyTcpSocket::bind(socket, addr, net_ns, rng),
             <span class="self">Self</span>::Tcp(socket) =&gt; TcpSocket::bind(socket, addr, net_ns, rng),
@@ -860,7 +860,7 @@
         net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::LegacyTcp(socket) =&gt; {
                 LegacyTcpSocket::listen(socket, backlog, net_ns, rng, cb_queue)
@@ -1027,7 +1027,7 @@
 
 <span class="comment">// socket-specific functions
 </span><span class="kw">impl </span>InetSocketRef&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::LegacyTcp(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Tcp(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
@@ -1035,7 +1035,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::LegacyTcp(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Tcp(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
@@ -1117,7 +1117,7 @@
 
 <span class="comment">// socket-specific functions
 </span><span class="kw">impl </span>InetSocketRefMut&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::LegacyTcp(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Tcp(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
@@ -1125,7 +1125,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::LegacyTcp(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
             <span class="self">Self</span>::Tcp(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
@@ -1248,7 +1248,7 @@
     check_generic_peer: bool,
     net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
     rng: <span class="kw">impl </span>rand::Rng,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(SocketAddrV4, AssociationHandle), SyscallError&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(SocketAddrV4, AssociationHandle), Errno&gt; {
     <span class="macro">log::trace!</span>(<span class="string">"Trying to associate socket with addresses (local={local_addr}, peer={peer_addr})"</span>);
 
     <span class="kw">if </span>!local_addr.ip().is_unspecified() &amp;&amp; net_ns.interface_borrow(<span class="kw-2">*</span>local_addr.ip()).is_none() {
@@ -1256,7 +1256,7 @@
             <span class="string">"No network interface exists for the provided local address {}"</span>,
             local_addr.ip(),
         );
-        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
     };
 
     <span class="kw">let </span>protocol = <span class="kw">match </span>socket {
@@ -1273,7 +1273,7 @@
             net_ns.get_random_free_port(protocol, <span class="kw-2">*</span>local_addr.ip(), peer_addr, rng)
         <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(<span class="string">"Association required an ephemeral port but none are available"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE);
         };
 
         <span class="macro">log::debug!</span>(<span class="string">"Associating with generated ephemeral port {new_port}"</span>);
@@ -1288,9 +1288,9 @@
             <span class="macro">log::debug!</span>(
                 <span class="string">"The provided addresses (local={local_addr}, peer={peer_addr}) are not available"
             </span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE);
         }
-        <span class="prelude-val">Err</span>(_e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRNOTAVAIL.into()),
+        <span class="prelude-val">Err</span>(_e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRNOTAVAIL),
         <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; {}
     }
 
@@ -1305,9 +1305,9 @@
                     <span class="string">"The generic addresses (local={local_addr}, peer={}) are not available"</span>,
                     SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, <span class="number">0</span>)
                 );
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRINUSE);
             }
-            <span class="prelude-val">Err</span>(_e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRNOTAVAIL.into()),
+            <span class="prelude-val">Err</span>(_e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EADDRNOTAVAIL),
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; {}
         }
     }

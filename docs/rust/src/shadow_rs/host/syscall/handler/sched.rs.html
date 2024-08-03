@@ -246,7 +246,7 @@
         // &gt; of type unsigned long *) impose no restriction on the size of the CPU
         // &gt; mask
         </span>mask_ptr: ForeignPtr&lt;std::ffi::c_ulong&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>mask_ptr = mask_ptr.cast::&lt;u8&gt;();
         <span class="kw">let </span>mask_ptr = ForeignArrayPtr::new(mask_ptr, cpusetsize);
 
@@ -269,7 +269,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(
@@ -286,7 +286,7 @@
         rseq_len: u32,
         flags: std::ffi::c_int,
         sig: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>rseq_len = usize::try_from(rseq_len).unwrap();
         <span class="kw">if </span>rseq_len != std::mem::size_of::&lt;rseq&gt;() {
             <span class="comment">// Probably worth a warning; decent chance that the bug is in Shadow
@@ -306,7 +306,7 @@
         rseq_ptr: ForeignPtr&lt;linux_api::rseq::rseq&gt;,
         flags: i32,
         _sig: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">if </span>flags &amp; (!RSEQ_FLAG_UNREGISTER) != <span class="number">0 </span>{
             <span class="macro">warn!</span>(<span class="string">"Unrecognized rseq flags: {}"</span>, flags);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
@@ -317,7 +317,7 @@
             // * Validate that `sig` matches registration
             // * Set the cpu_id of the previously registerd rseq to the uninitialized
             //   state.
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
         <span class="kw">let </span><span class="kw-2">mut </span>mem = ctx.objs.process.memory_borrow_mut();
         <span class="kw">let </span><span class="kw-2">mut </span>rseq = mem.memory_ref_mut(ForeignArrayPtr::new(rseq_ptr, <span class="number">1</span>))<span class="question-mark">?</span>;
@@ -341,7 +341,7 @@
         rseq[<span class="number">0</span>].cpu_id_start = CURRENT_CPU;
         rseq.flush()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>)
+        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div></section></main></body></html>

@@ -2516,7 +2516,7 @@
         <span class="self">self</span>.common.has_open_file = val;
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="comment">// return the bound address if set, otherwise return an empty unix sockaddr
         </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
             <span class="self">self</span>.protocol_state
@@ -2525,7 +2525,7 @@
         ))
     }
 
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="comment">// return the peer address if set, otherwise return an empty unix sockaddr
         </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
             <span class="self">self</span>.protocol_state
@@ -2561,7 +2561,7 @@
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         _net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span>socket_ref = <span class="kw-2">&amp;mut *</span>socket.borrow_mut();
         socket_ref
             .protocol_state
@@ -2643,7 +2643,7 @@
         _net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         _rng: <span class="kw">impl </span>rand::Rng,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>socket_ref = socket.borrow_mut();
         <span class="kw">let </span>socket_ref = socket_ref.deref_mut();
         socket_ref
@@ -2900,7 +2900,7 @@
         }
     }
 
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::ConnOrientedInitial(x) =&gt; x.as_ref().unwrap().peer_address(),
             <span class="self">Self</span>::ConnOrientedListening(x) =&gt; x.as_ref().unwrap().peer_address(),
@@ -2911,7 +2911,7 @@
         }
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::ConnOrientedInitial(x) =&gt; x.as_ref().unwrap().bound_address(),
             <span class="self">Self</span>::ConnOrientedListening(x) =&gt; x.as_ref().unwrap().bound_address(),
@@ -2980,7 +2980,7 @@
         socket: <span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;UnixSocket&gt;&gt;,
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::ConnOrientedInitial(x) =&gt; x.as_mut().unwrap().bind(common, socket, addr, rng),
             <span class="self">Self</span>::ConnOrientedListening(x) =&gt; x.as_mut().unwrap().bind(common, socket, addr, rng),
@@ -3135,7 +3135,7 @@
         common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         backlog: i32,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span>(new_state, rv) = <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::ConnOrientedInitial(x) =&gt; x.take().unwrap().listen(common, backlog, cb_queue),
             <span class="self">Self</span>::ConnOrientedListening(x) =&gt; x.take().unwrap().listen(common, backlog, cb_queue),
@@ -3293,8 +3293,8 @@
 <span class="kw">where
     </span><span class="self">Self</span>: Sized + Into&lt;ProtocolState&gt;,
 {
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt;;
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt;;
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt;;
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt;;
     <span class="kw">fn </span>refresh_file_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
@@ -3317,7 +3317,7 @@
         _socket: <span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;UnixSocket&gt;&gt;,
         _addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         _rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="macro">log::warn!</span>(<span class="string">"bind() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
         <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into())
     }
@@ -3374,9 +3374,9 @@
         _common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         _backlog: i32,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
+    ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), Errno&gt;) {
         <span class="macro">log::warn!</span>(<span class="string">"listen() while in state {}"</span>, std::any::type_name::&lt;<span class="self">Self</span>&gt;());
-        (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into()))
+        (<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EOPNOTSUPP))
     }
 
     <span class="kw">fn </span>connect(
@@ -3430,11 +3430,11 @@
 }
 
 <span class="kw">impl </span>Protocol <span class="kw">for </span>ConnOrientedInitial {
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
-        <span class="prelude-val">Err</span>(Errno::ENOTCONN.into())
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
+        <span class="prelude-val">Err</span>(Errno::ENOTCONN)
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.bound_addr)
     }
 
@@ -3469,14 +3469,14 @@
         socket: <span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;UnixSocket&gt;&gt;,
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// if already bound
         </span><span class="kw">if </span><span class="self">self</span>.bound_addr.is_some() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
         <span class="self">self</span>.bound_addr = <span class="prelude-val">Some</span>(common.bind(socket, addr, rng)<span class="question-mark">?</span>);
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>sendmsg(
@@ -3531,11 +3531,11 @@
         common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         backlog: i32,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
+    ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), Errno&gt;) {
         <span class="comment">// it must have already been bound
         </span><span class="kw">let </span>bound_addr = <span class="kw">match </span><span class="self">self</span>.bound_addr {
             <span class="prelude-val">Some</span>(x) =&gt; x,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EINVAL.into())),
+            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span>(<span class="self">self</span>.into(), <span class="prelude-val">Err</span>(Errno::EINVAL)),
         };
 
         <span class="kw">let </span>new_state = ConnOrientedListening {
@@ -3735,11 +3735,11 @@
 }
 
 <span class="kw">impl </span>Protocol <span class="kw">for </span>ConnOrientedListening {
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
-        <span class="prelude-val">Err</span>(Errno::ENOTCONN.into())
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
+        <span class="prelude-val">Err</span>(Errno::ENOTCONN)
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.bound_addr))
     }
 
@@ -3792,7 +3792,7 @@
         common: <span class="kw-2">&amp;mut </span>UnixSocketCommon,
         backlog: i32,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt;) {
+    ) -&gt; (ProtocolState, <span class="prelude-ty">Result</span>&lt;(), Errno&gt;) {
         <span class="self">self</span>.queue_limit = backlog_to_queue_size(backlog);
 
         <span class="comment">// refresh the socket's file state
@@ -3922,11 +3922,11 @@
 }
 
 <span class="kw">impl </span>Protocol <span class="kw">for </span>ConnOrientedConnected {
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.peer_addr)
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.bound_addr)
     }
 
@@ -4072,12 +4072,12 @@
 }
 
 <span class="kw">impl </span>Protocol <span class="kw">for </span>ConnOrientedClosed {
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
-        <span class="prelude-val">Err</span>(Errno::ENOTCONN.into())
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
+        <span class="prelude-val">Err</span>(Errno::ENOTCONN)
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
-        <span class="prelude-val">Err</span>(Errno::EBADFD.into())
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
+        <span class="prelude-val">Err</span>(Errno::EBADFD)
     }
 
     <span class="kw">fn </span>refresh_file_state(
@@ -4115,14 +4115,14 @@
 }
 
 <span class="kw">impl </span>Protocol <span class="kw">for </span>ConnLessInitial {
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self</span>.peer {
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.peer_addr),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Errno::ENOTCONN.into()),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Errno::ENOTCONN),
         }
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.bound_addr)
     }
 
@@ -4181,14 +4181,14 @@
         socket: <span class="kw-2">&amp;</span>Arc&lt;AtomicRefCell&lt;UnixSocket&gt;&gt;,
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// if already bound
         </span><span class="kw">if </span><span class="self">self</span>.bound_addr.is_some() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
         <span class="self">self</span>.bound_addr = <span class="prelude-val">Some</span>(common.bind(socket, addr, rng)<span class="question-mark">?</span>);
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>sendmsg(
@@ -4339,11 +4339,11 @@
 }
 
 <span class="kw">impl </span>Protocol <span class="kw">for </span>ConnLessClosed {
-    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>peer_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, SyscallError&gt; {
+    <span class="kw">fn </span>bound_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrUnix&lt;libc::sockaddr_un&gt;&gt;, Errno&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 

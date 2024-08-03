@@ -1497,7 +1497,7 @@
         <span class="self">self</span>.peek_packet().is_some()
     }
 
-    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, Errno&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ip: libc::in_addr_t = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>port: libc::in_port_t = <span class="number">0</span>;
 
@@ -1515,7 +1515,7 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(addr.into()))
     }
 
-    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, SyscallError&gt; {
+    <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrIn&gt;, Errno&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ip: libc::in_addr_t = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>port: libc::in_port_t = <span class="number">0</span>;
 
@@ -1523,7 +1523,7 @@
         </span><span class="kw">let </span>okay =
             <span class="kw">unsafe </span>{ c::legacysocket_getPeerName(<span class="self">self</span>.as_legacy_socket(), <span class="kw-2">&amp;mut </span>ip, <span class="kw-2">&amp;mut </span>port) };
         <span class="kw">if </span>okay != <span class="number">1 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTCONN.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTCONN);
         }
 
         <span class="kw">let </span>ip = Ipv4Addr::from(u32::from_be(ip));
@@ -1550,7 +1550,7 @@
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SockaddrStorage&gt;,
         net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="comment">// if the address pointer was NULL
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(addr) = addr <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT.into());
@@ -1611,7 +1611,7 @@
             )
         };
 
-        <span class="prelude-val">Ok</span>(<span class="number">0</span>.into())
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>readv(
@@ -1945,7 +1945,7 @@
         net_ns: <span class="kw-2">&amp;</span>NetworkNamespace,
         rng: <span class="kw">impl </span>rand::Rng,
         _cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span>socket_ref = socket.borrow();
 
         <span class="comment">// only listen on the socket if it is not used for other functions
@@ -1953,7 +1953,7 @@
             <span class="kw">unsafe </span>{ c::tcp_isListeningAllowed(socket_ref.as_legacy_tcp()) } == <span class="number">1</span>;
         <span class="kw">if </span>!is_listening_allowed {
             <span class="macro">log::debug!</span>(<span class="string">"Cannot listen on previously used socket"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EOPNOTSUPP);
         }
 
         <span class="comment">// if we are already listening, just update the backlog and return 0
