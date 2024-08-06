@@ -82,14 +82,12 @@
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::close_range::CloseRangeFlags;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
 
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 
 <span class="kw">impl </span>SyscallHandler {
@@ -105,11 +103,11 @@
         first: std::ffi::c_uint,
         last: std::ffi::c_uint,
         flags: std::ffi::c_uint,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="comment">// close_range(2):
         // &gt; EINVAL: [...], or first is greater than last.
         </span><span class="kw">if </span>first &gt; last {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="comment">// if the start of the range is larger than the max possible fd, then do nothing
@@ -128,12 +126,12 @@
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = CloseRangeFlags::from_bits(flags) <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(<span class="string">"Invalid close_range flags: {flags}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
 
         <span class="kw">if </span>flags.contains(CloseRangeFlags::CLOSE_RANGE_UNSHARE) {
             <span class="macro">log::debug!</span>(<span class="string">"The CLOSE_RANGE_UNSHARE flag is not implemented"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>desc_table = ctx.objs.thread.descriptor_table_borrow_mut(ctx.objs.host);

@@ -178,7 +178,7 @@
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallError};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::ForeignArrayPtr;
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::ThreadId;
 
 <span class="comment">// We always report that the thread is running on CPU 0, Node 0
@@ -203,19 +203,19 @@
         // &gt; of type unsigned long *) impose no restriction on the size of the CPU
         // &gt; mask
         </span>mask_ptr: ForeignPtr&lt;std::ffi::c_ulong&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;std::ffi::c_int, Errno&gt; {
         <span class="kw">let </span>mask_ptr = mask_ptr.cast::&lt;u8&gt;();
         <span class="kw">let </span>mask_ptr = ForeignArrayPtr::new(mask_ptr, cpusetsize);
 
         <span class="kw">let </span>tid = ThreadId::try_from(tid).or(<span class="prelude-val">Err</span>(Errno::ESRCH))<span class="question-mark">?</span>;
         <span class="kw">if </span>!ctx.objs.host.has_thread(tid) &amp;&amp; kernel_pid_t::from(tid) != <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH);
         }
 
         <span class="comment">// Shadow doesn't have users, so no need to check for permissions
 
         </span><span class="kw">if </span>cpusetsize == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>mem = ctx.objs.process.memory_borrow_mut();
@@ -246,19 +246,19 @@
         // &gt; of type unsigned long *) impose no restriction on the size of the CPU
         // &gt; mask
         </span>mask_ptr: ForeignPtr&lt;std::ffi::c_ulong&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span>mask_ptr = mask_ptr.cast::&lt;u8&gt;();
         <span class="kw">let </span>mask_ptr = ForeignArrayPtr::new(mask_ptr, cpusetsize);
 
         <span class="kw">let </span>tid = ThreadId::try_from(tid).or(<span class="prelude-val">Err</span>(Errno::ESRCH))<span class="question-mark">?</span>;
         <span class="kw">if </span>!ctx.objs.host.has_thread(tid) &amp;&amp; kernel_pid_t::from(tid) != <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH);
         };
 
         <span class="comment">// Shadow doesn't have users, so no need to check for permissions
 
         </span><span class="kw">if </span>cpusetsize == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="kw">let </span>mem = ctx.objs.process.memory_borrow_mut();
@@ -266,7 +266,7 @@
 
         <span class="comment">// this assumes little endian
         </span><span class="kw">if </span>mask[<span class="number">0</span>] &amp; <span class="number">0x01 </span>== <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -286,7 +286,7 @@
         rseq_len: u32,
         flags: std::ffi::c_int,
         sig: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span>rseq_len = usize::try_from(rseq_len).unwrap();
         <span class="kw">if </span>rseq_len != std::mem::size_of::&lt;rseq&gt;() {
             <span class="comment">// Probably worth a warning; decent chance that the bug is in Shadow
@@ -296,7 +296,7 @@
                 rseq_len,
                 std::mem::size_of::&lt;rseq&gt;()
             );
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
         <span class="self">Self</span>::rseq_impl(ctx, rseq_ptr, flags, sig)
     }
@@ -306,10 +306,10 @@
         rseq_ptr: ForeignPtr&lt;linux_api::rseq::rseq&gt;,
         flags: i32,
         _sig: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">if </span>flags &amp; (!RSEQ_FLAG_UNREGISTER) != <span class="number">0 </span>{
-            <span class="macro">warn!</span>(<span class="string">"Unrecognized rseq flags: {}"</span>, flags);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="macro">warn!</span>(<span class="string">"Unrecognized rseq flags: {flags}"</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
         <span class="kw">if </span>flags &amp; RSEQ_FLAG_UNREGISTER != <span class="number">0 </span>{
             <span class="comment">// TODO:

@@ -1119,12 +1119,6 @@
 <a href="#1119" id="1119">1119</a>
 <a href="#1120" id="1120">1120</a>
 <a href="#1121" id="1121">1121</a>
-<a href="#1122" id="1122">1122</a>
-<a href="#1123" id="1123">1123</a>
-<a href="#1124" id="1124">1124</a>
-<a href="#1125" id="1125">1125</a>
-<a href="#1126" id="1126">1126</a>
-<a href="#1127" id="1127">1127</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
 <span class="kw">use </span>linux_api::socket::Shutdown;
@@ -1162,7 +1156,7 @@
         domain: std::ffi::c_int,
         socket_type: std::ffi::c_int,
         protocol: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, Errno&gt; {
         <span class="comment">// remove any flags from the socket type
         </span><span class="kw">let </span>flags = socket_type &amp; (libc::SOCK_NONBLOCK | libc::SOCK_CLOEXEC);
         <span class="kw">let </span>socket_type = socket_type &amp; !flags;
@@ -1184,7 +1178,7 @@
                     <span class="prelude-val">Ok</span>(x) =&gt; x,
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT);
                     }
                 };
 
@@ -1194,7 +1188,7 @@
                         <span class="string">"Unsupported socket protocol {}, we only support default protocol 0"</span>,
                         protocol
                     );
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT);
                 }
 
                 Socket::Unix(UnixSocket::new(
@@ -1207,7 +1201,7 @@
                 libc::SOCK_STREAM =&gt; {
                     <span class="kw">if </span>protocol != <span class="number">0 </span>&amp;&amp; protocol != libc::IPPROTO_TCP {
                         <span class="macro">log::debug!</span>(<span class="string">"Unsupported inet stream socket protocol {protocol}"</span>);
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT);
                     }
 
                     <span class="kw">if </span>ctx.objs.host.params.use_new_tcp {
@@ -1222,7 +1216,7 @@
                 libc::SOCK_DGRAM =&gt; {
                     <span class="kw">if </span>protocol != <span class="number">0 </span>&amp;&amp; protocol != libc::IPPROTO_UDP {
                         <span class="macro">log::debug!</span>(<span class="string">"Unsupported inet dgram socket protocol {protocol}"</span>);
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT);
                     }
                     <span class="kw">let </span>send_buf_size = ctx.objs.host.params.init_sock_send_buf_size;
                     <span class="kw">let </span>recv_buf_size = ctx.objs.host.params.init_sock_recv_buf_size;
@@ -1232,26 +1226,26 @@
                         recv_buf_size.try_into().unwrap(),
                     )))
                 }
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESOCKTNOSUPPORT.into()),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESOCKTNOSUPPORT),
             },
             libc::AF_NETLINK =&gt; {
                 <span class="kw">let </span>socket_type = <span class="kw">match </span>NetlinkSocketType::try_from(socket_type) {
                     <span class="prelude-val">Ok</span>(x) =&gt; x,
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT);
                     }
                 };
                 <span class="kw">let </span>family = <span class="kw">match </span>NetlinkFamily::try_from(protocol) {
                     <span class="prelude-val">Ok</span>(x) =&gt; x,
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT);
                     }
                 };
                 Socket::Netlink(NetlinkSocket::new(file_flags, socket_type, family))
             }
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EAFNOSUPPORT.into()),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EAFNOSUPPORT),
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>desc = Descriptor::new(CompatFile::New(OpenFile::new(File::Socket(socket))));
@@ -1651,7 +1645,7 @@
         fd: std::ffi::c_int,
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span>addr_to_write: <span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt; = {
             <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
@@ -1659,16 +1653,16 @@
 
             <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
                 <span class="comment">// we don't have any C socket objects
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK);
             };
 
             <span class="kw">let </span>File::Socket(socket) = file.inner_file() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK);
             };
 
             <span class="comment">// linux will return an EFAULT before other errors
             </span><span class="kw">if </span>addr_ptr.is_null() || addr_len_ptr.is_null() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT);
             }
 
             <span class="kw">let </span>socket = socket.borrow();
@@ -1698,7 +1692,7 @@
         fd: std::ffi::c_int,
         addr_ptr: ForeignPtr&lt;u8&gt;,
         addr_len_ptr: ForeignPtr&lt;libc::socklen_t&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span>addr_to_write = {
             <span class="comment">// get the descriptor, or return early if it doesn't exist
             </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
@@ -1706,16 +1700,16 @@
 
             <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
                 <span class="comment">// we don't have any C socket objects
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK);
             };
 
             <span class="kw">let </span>File::Socket(socket) = file.inner_file() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK);
             };
 
             <span class="comment">// linux will return an EFAULT before other errors like ENOTCONN
             </span><span class="kw">if </span>addr_ptr.is_null() || addr_len_ptr.is_null() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT);
             }
 
             <span class="comment">// this is a clippy false-positive
@@ -1745,19 +1739,18 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         fd: std::ffi::c_int,
         backlog: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="comment">// get the descriptor, or return early if it doesn't exist
         </span><span class="kw">let </span>desc_table = ctx.objs.thread.descriptor_table_borrow(ctx.objs.host);
         <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, fd)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>CompatFile::New(file) = desc.file() <span class="kw">else </span>{
             <span class="comment">// we don't have any C socket objects
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK);
         };
 
         <span class="kw">let </span>File::Socket(socket) = file.inner_file() <span class="kw">else </span>{
-            drop(desc_table);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK);
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>rng = ctx.objs.host.random_mut();
@@ -2039,7 +2032,6 @@
         <span class="kw">let </span>how = Shutdown::try_from(how).or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>File::Socket(socket) = file.inner_file() <span class="kw">else </span>{
-            drop(desc_table);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 
@@ -2071,24 +2063,21 @@
 
         <span class="comment">// only AF_UNIX (AF_LOCAL) is supported on Linux (and technically AF_TIPC)
         </span><span class="kw">if </span>domain != libc::AF_UNIX {
-            <span class="macro">warn!</span>(<span class="string">"Domain {} is not supported for socketpair()"</span>, domain);
+            <span class="macro">warn!</span>(<span class="string">"Domain {domain} is not supported for socketpair()"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EOPNOTSUPP.into());
         }
 
         <span class="kw">let </span>socket_type = <span class="kw">match </span>UnixSocketType::try_from(socket_type) {
             <span class="prelude-val">Ok</span>(x) =&gt; x,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">"{}"</span>, e);
+                <span class="macro">warn!</span>(<span class="string">"Not a unix socket type: {e}"</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
             }
         };
 
         <span class="comment">// unix sockets don't support any protocols
         </span><span class="kw">if </span>protocol != <span class="number">0 </span>{
-            <span class="macro">warn!</span>(
-                <span class="string">"Unsupported socket protocol {}, we only support default protocol 0"</span>,
-                protocol
-            );
+            <span class="macro">warn!</span>(<span class="string">"Unsupported socket protocol {protocol}, we only support default protocol 0"</span>);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPROTONOSUPPORT.into());
         }
 
@@ -2239,7 +2228,6 @@
         };
 
         <span class="kw">let </span>File::Socket(socket) = file.inner_file() <span class="kw">else </span>{
-            drop(desc_table);
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 

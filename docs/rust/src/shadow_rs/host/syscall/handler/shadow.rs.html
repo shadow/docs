@@ -112,17 +112,17 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallError};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::ForeignArrayPtr;
 <span class="kw">use </span><span class="kw">crate</span>::utility::case_insensitive_eq;
 
 <span class="kw">impl </span>SyscallHandler {
     <span class="macro">log_syscall!</span>(shadow_yield, <span class="comment">/* rv */ </span>std::ffi::c_int);
-    <span class="kw">pub fn </span>shadow_yield(_ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    <span class="kw">pub fn </span>shadow_yield(_ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="macro">log_syscall!</span>(shadow_init_memory_manager, <span class="comment">/* rv */ </span>std::ffi::c_int);
-    <span class="kw">pub fn </span>shadow_init_memory_manager(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    <span class="kw">pub fn </span>shadow_init_memory_manager(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">if </span>!ctx.objs.host.params.use_mem_mapper {
             <span class="macro">log::trace!</span>(<span class="string">"Not initializing memory mapper"</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -152,7 +152,7 @@
         name_len: u64,
         addr_ptr: ForeignPtr&lt;()&gt;,
         addr_len: u64,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="macro">log::trace!</span>(<span class="string">"Handling custom syscall shadow_hostname_to_addr_ipv4"</span>);
 
         <span class="kw">let </span>name_len: usize = name_len.try_into().unwrap();
@@ -160,7 +160,7 @@
 
         <span class="kw">if </span>addr_len &lt; std::mem::size_of::&lt;u32&gt;() {
             <span class="macro">log::trace!</span>(<span class="string">"Invalid addr_len {addr_len}, returning EINVAL"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="comment">// TODO: Don't add 1 byte to length (if the application gave us a length of X bytes, don't
@@ -205,7 +205,7 @@
         <span class="kw">let </span><span class="prelude-val">Some</span>(addr) = addr <span class="kw">else </span>{
             <span class="macro">log::trace!</span>(<span class="string">"Unable to find address for name {lookup_name:?}"</span>);
             <span class="comment">// return EFAULT like gethostname
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT.into());
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT);
         };
 
         <span class="macro">log::trace!</span>(<span class="string">"Found address {addr} for name {lookup_name:?}"</span>);

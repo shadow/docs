@@ -325,7 +325,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         pid: linux_api::posix_types::kernel_pid_t,
         sig: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="macro">log::trace!</span>(<span class="string">"kill called on pid {pid} with signal {sig}"</span>);
 
         <span class="kw">let </span>pid = <span class="kw">if </span>pid == -<span class="number">1 </span>{
@@ -335,7 +335,7 @@
             // Currently unimplemented, and unlikely to be needed in the context of a shadow
             // simulation.
             </span><span class="macro">log::warn!</span>(<span class="string">"kill with pid=-1 unimplemented"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
         } <span class="kw">else if </span>pid == <span class="number">0 </span>{
             <span class="comment">// kill(2): If pid equals 0, then sig is sent to every process in the process group of
             // the calling process.
@@ -360,7 +360,7 @@
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(target_process) = ctx.objs.host.process_borrow(pid) <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(<span class="string">"Process {pid} not found"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH);
         };
         <span class="kw">let </span>target_process = <span class="kw-2">&amp;*</span>target_process.borrow(ctx.objs.host.root());
 
@@ -373,18 +373,18 @@
         objs: <span class="kw-2">&amp;</span>ThreadContext,
         target_process: <span class="kw-2">&amp;</span>Process,
         signal: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">if </span>signal == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(signal) = Signal::try_from(signal) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
 
         <span class="kw">if </span>signal.is_realtime() {
             <span class="macro">log::warn!</span>(<span class="string">"Unimplemented signal {signal:?}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
         }
 
         <span class="kw">let </span>sender_pid = objs.process.id().into();
@@ -405,13 +405,13 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         tid: linux_api::posix_types::kernel_pid_t,
         sig: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="macro">log::trace!</span>(<span class="string">"tkill called on tid {tid} with signal {sig}"</span>);
 
         <span class="kw">let </span>tid = tid.try_into().or(<span class="prelude-val">Err</span>(Errno::ESRCH))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(target_thread) = ctx.objs.host.thread_cloned_rc(tid) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH);
         };
         <span class="kw">let </span>target_thread = ExplicitDropper::new(target_thread, |value| {
             value.explicit_drop(ctx.objs.host.root())
@@ -433,14 +433,14 @@
         tgid: linux_api::posix_types::kernel_pid_t,
         tid: linux_api::posix_types::kernel_pid_t,
         sig: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="macro">log::trace!</span>(<span class="string">"tgkill called on tgid {tgid} and tid {tid} with signal {sig}"</span>);
 
         <span class="kw">let </span>tgid = tgid.try_into().or(<span class="prelude-val">Err</span>(Errno::ESRCH))<span class="question-mark">?</span>;
         <span class="kw">let </span>tid = tid.try_into().or(<span class="prelude-val">Err</span>(Errno::ESRCH))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(target_thread) = ctx.objs.host.thread_cloned_rc(tid) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH);
         };
         <span class="kw">let </span>target_thread = ExplicitDropper::new(target_thread, |value| {
             value.explicit_drop(ctx.objs.host.root())
@@ -448,7 +448,7 @@
         <span class="kw">let </span>target_thread = <span class="kw-2">&amp;*</span>target_thread.borrow(ctx.objs.host.root());
 
         <span class="kw">if </span>target_thread.process_id() != tgid {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ESRCH);
         }
 
         <span class="self">Self</span>::signal_thread(ctx.objs, target_thread, sig)
@@ -460,18 +460,18 @@
         objs: <span class="kw-2">&amp;</span>ThreadContext,
         target_thread: <span class="kw-2">&amp;</span>Thread,
         signal: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">if </span>signal == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(signal) = Signal::try_from(signal) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
 
         <span class="kw">if </span>signal.is_realtime() {
             <span class="macro">log::warn!</span>(<span class="string">"Unimplemented signal {signal:?}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
         }
 
         <span class="comment">// need to scope the shmem lock since `wakeup_for_signal` below takes its own shmem lock

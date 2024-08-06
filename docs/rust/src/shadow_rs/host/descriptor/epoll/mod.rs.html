@@ -568,7 +568,7 @@
         data: u64,
         weak_self: Weak&lt;AtomicRefCell&lt;Epoll&gt;&gt;,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="kw">let </span>state = target_file.borrow().state();
         <span class="kw">let </span>key = Key::new(target_fd, target_file);
 
@@ -584,7 +584,7 @@
                 // TODO change this to an assertion when legacy tcp is removed.
                 </span><span class="kw">if </span>state.contains(FileState::CLOSED) {
                     <span class="macro">log::warn!</span>(<span class="string">"Attempted to add a closed file {target_fd} to epoll"</span>);
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF);
                 }
 
                 <span class="kw">let </span><span class="kw-2">mut </span>entry = Entry::new(events, data, state);
@@ -600,7 +600,7 @@
                 <span class="comment">// From epoll_ctl(2): Returns EEXIST when "op was EPOLL_CTL_ADD, and the supplied
                 // file descriptor fd is already registered with this epoll instance."
                 </span><span class="kw">match </span><span class="self">self</span>.monitoring.entry(key.clone()) {
-                    HashMapEntry::Occupied(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EEXIST.into()),
+                    HashMapEntry::Occupied(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EEXIST),
                     HashMapEntry::Vacant(x) =&gt; x.insert(entry),
                 };
             }

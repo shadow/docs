@@ -502,11 +502,11 @@
     <span class="kw">pub fn </span>epoll_create(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         size: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, Errno&gt; {
         <span class="comment">// epoll_create(2): "Since Linux 2.6.8, the size argument is ignored, but must be greater
         // than zero"
         </span><span class="kw">if </span>size &lt;= <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="self">Self</span>::epoll_create_helper(ctx, <span class="number">0</span>)
@@ -520,19 +520,19 @@
     <span class="kw">pub fn </span>epoll_create1(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         flags: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, Errno&gt; {
         <span class="self">Self</span>::epoll_create_helper(ctx, flags)
     }
 
     <span class="kw">fn </span>epoll_create_helper(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         flags: std::ffi::c_int,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DescriptorHandle, Errno&gt; {
         <span class="comment">// See here for the order that the input args are checked in Linux:
         // https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2030
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(flags) = EpollCreateFlags::from_bits(flags) <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(<span class="string">"Invalid epoll_create flags: {flags}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>desc_flags = DescriptorFlags::empty();
@@ -571,7 +571,7 @@
         op: std::ffi::c_int,
         fd: std::ffi::c_int,
         event_ptr: ForeignPtr&lt;linux_api::epoll::epoll_event&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="comment">// See here for the order that the input args are checked in Linux:
         // https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2111
 
@@ -583,13 +583,13 @@
             <span class="kw">let </span>desc = <span class="self">Self</span>::get_descriptor(<span class="kw-2">&amp;</span>desc_table, epfd)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>CompatFile::New(epoll) = desc.file() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             };
 
             <span class="kw">let </span>epoll_canon_handle = epoll.inner_file().canonical_handle();
 
             <span class="kw">let </span>File::Epoll(epoll) = epoll.inner_file() <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             };
 
             (epoll, epoll_canon_handle)
@@ -609,7 +609,7 @@
                     <span class="kw">let </span>file_type = <span class="kw">unsafe </span>{ cshadow::legacyfile_getType(file.ptr()) };
                     <span class="kw">if </span>file_type == cshadow::_LegacyFileType_DT_FILE {
                         <span class="comment">// Epoll doesn't support regular files.
-                        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPERM.into());
+                        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EPERM);
                     } <span class="kw">else </span>{
                         <span class="comment">// Our implementation doesn't support other legacy types.
                         // We don't think we have such types remaining, but warn anyway.
@@ -617,7 +617,7 @@
                             <span class="string">"Attempted to add a legacy file to an epoll file, which \
                             shadow doesn't support"
                         </span>);
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
                     }
                 }
             }
@@ -625,13 +625,13 @@
 
         <span class="comment">// An epoll instance is not allowed to monitor itself.
         </span><span class="kw">if </span>epoll_canon_handle == target.canonical_handle() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="comment">// Extract the operation.
         </span><span class="kw">let </span><span class="prelude-val">Ok</span>(op) = EpollCtlOp::try_from(op) <span class="kw">else </span>{
             <span class="macro">log::debug!</span>(<span class="string">"Invalid epoll op: {op}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
 
         <span class="comment">// Extract the events and data.
@@ -646,7 +646,7 @@
             <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>events) = EpollEvents::from_bits(ev.events) <span class="kw">else </span>{
                 <span class="comment">// Braces are needed around `ev.events` for alignment (see rustc --explain E0793).
                 </span><span class="macro">log::debug!</span>(<span class="string">"Invalid epoll_ctl events: {}"</span>, { ev.events });
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             };
 
             <span class="comment">// epoll_ctl(2): epoll always reports for EPOLLERR and EPOLLHUP
@@ -903,7 +903,7 @@
 
 <span class="kw">fn </span>timeout_arg_to_maybe_simtime(
     timeout_ms: std::ffi::c_int,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SimulationTime&gt;, SyscallError&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SimulationTime&gt;, Errno&gt; {
     <span class="comment">// epoll_wait(2): "Specifying a timeout of -1 causes epoll_wait() to block indefinitely"
     </span><span class="kw">let </span>timeout_ms = (timeout_ms &gt;= <span class="number">0</span>).then_some(timeout_ms);
 
@@ -937,7 +937,7 @@
     mem: <span class="kw-2">&amp;mut </span>MemoryManager,
     ready: Vec&lt;(EpollEvents, u64)&gt;,
     events_ptr: ForeignPtr&lt;linux_api::epoll::epoll_event&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
     <span class="kw">let </span>events_ptr = ForeignArrayPtr::new(events_ptr, ready.len());
     <span class="kw">let </span><span class="kw-2">mut </span>mem_ref = mem.memory_ref_mut(events_ptr)<span class="question-mark">?</span>;
 

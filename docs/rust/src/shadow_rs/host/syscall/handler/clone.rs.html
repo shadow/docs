@@ -488,7 +488,6 @@
 <a href="#488" id="488">488</a>
 <a href="#489" id="489">489</a>
 <a href="#490" id="490">490</a>
-<a href="#491" id="491">491</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::capability::{user_cap_data, user_cap_header, LINUX_CAPABILITY_VERSION_3};
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::posix_types::kernel_pid_t;
@@ -502,7 +501,6 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::DescriptorTable;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::ProcessId;
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::Thread;
 
 <span class="kw">use super</span>::{SyscallContext, SyscallHandler};
@@ -516,7 +514,7 @@
         ptid: ForeignPtr&lt;kernel_pid_t&gt;,
         ctid: ForeignPtr&lt;kernel_pid_t&gt;,
         newtls: u64,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, Errno&gt; {
         <span class="comment">// We use this for a consistency check to validate that we've inspected
         // and emulated all of the provided flags.
         </span><span class="kw">let </span><span class="kw-2">mut </span>handled_flags = CloneFlags::empty();
@@ -541,16 +539,16 @@
             // &gt; CLONE_SIGHAND if CLONE_THREAD is specified
             </span><span class="kw">if </span>!flags.contains(CloneFlags::CLONE_SIGHAND) {
                 <span class="macro">debug!</span>(<span class="string">"Missing CLONE_SIGHAND"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             }
             <span class="kw">if </span>!flags.contains(CloneFlags::CLONE_SETTLS) {
                 <span class="comment">// Legal in Linux, but the shim will be broken and behave unpredictably.
                 </span><span class="macro">warn!</span>(<span class="string">"CLONE_THREAD without CLONE_TLS not supported by shadow"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
             }
             <span class="kw">if </span>exit_signal.is_some() {
                 <span class="macro">warn!</span>(<span class="string">"Exit signal is unimplemented"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
             }
             <span class="comment">// The native clone call will:
             // - create a thread.
@@ -568,7 +566,7 @@
         } <span class="kw">else </span>{
             <span class="kw">if </span>ctx.objs.process.memory_borrow().has_mapper() {
                 <span class="macro">warn!</span>(<span class="string">"Fork with memory mapper unimplemented"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
             }
             <span class="comment">// Make shadow the parent process
             </span>native_flags.insert(CloneFlags::CLONE_PARENT);
@@ -580,7 +578,7 @@
             // &gt; CLONE_SIGHAND is specified
             </span><span class="kw">if </span>!flags.contains(CloneFlags::CLONE_VM) {
                 <span class="macro">debug!</span>(<span class="string">"Missing CLONE_VM"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             }
             <span class="comment">// Currently a no-op since threads always share signal handlers,
             // and we don't yet support non-CLONE_THREAD.
@@ -644,7 +642,7 @@
                 // exits) implies that this that the child may exist for more
                 // than a brief window before exec'ing.
                 </span><span class="macro">warn!</span>(<span class="string">"CLONE_VM without CLONE_THREAD and without CLONE_VFORK unsupported"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
             }
             handled_flags.insert(CloneFlags::CLONE_VM);
         }
@@ -670,7 +668,7 @@
             <span class="comment">// clone(2): Specifying this flag together with CLONE_SIGHAND is
             // nonsensical and disallowed.
             </span><span class="kw">if </span>flags.contains(CloneFlags::CLONE_SIGHAND) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             }
             <span class="bool-val">false
         </span>} <span class="kw">else </span>{
@@ -688,7 +686,7 @@
         <span class="kw">let </span>unhandled_flags = flags.difference(handled_flags);
         <span class="kw">if </span>!unhandled_flags.is_empty() {
             <span class="macro">warn!</span>(<span class="string">"Unhandled clone flags: {unhandled_flags:?}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSUP);
         }
 
         <span class="kw">let </span>child_mthread = ctx.objs.thread.mthread().native_clone(
@@ -812,13 +810,13 @@
         ptid: ForeignPtr&lt;kernel_pid_t&gt;,
         ctid: ForeignPtr&lt;kernel_pid_t&gt;,
         newtls: u64,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, Errno&gt; {
         <span class="kw">let </span>raw_flags = flags_and_exit_signal <span class="kw">as </span>u32 &amp; !<span class="number">0xff</span>;
         <span class="kw">let </span>raw_exit_signal = (flags_and_exit_signal <span class="kw">as </span>u32 &amp; <span class="number">0xff</span>) <span class="kw">as </span>i32;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = CloneFlags::from_bits(raw_flags <span class="kw">as </span>u64) <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">"Couldn't parse clone flags: {raw_flags:x}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
 
         <span class="kw">let </span>exit_signal = <span class="kw">if </span>raw_exit_signal == <span class="number">0 </span>{
@@ -826,7 +824,7 @@
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span><span class="prelude-val">Ok</span>(exit_signal) = Signal::try_from(raw_exit_signal) <span class="kw">else </span>{
                 <span class="macro">debug!</span>(<span class="string">"Bad exit signal: {raw_exit_signal:?}"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             };
             <span class="prelude-val">Some</span>(exit_signal)
         };
@@ -844,24 +842,24 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         args: ForeignPtr&lt;linux_api::sched::clone_args&gt;,
         args_size: usize,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, Errno&gt; {
         <span class="kw">if </span>args_size != std::mem::size_of::&lt;linux_api::sched::clone_args&gt;() {
             <span class="comment">// TODO: allow smaller size, and be careful to only read
             // as much as the caller specified, and zero-fill the rest.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
         <span class="kw">let </span>args = ctx.objs.process.memory_borrow().read(args)<span class="question-mark">?</span>;
         <span class="macro">trace!</span>(<span class="string">"clone3 args: {args:?}"</span>);
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = CloneFlags::from_bits(args.flags) <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">"Couldn't parse clone flags: {:x}"</span>, args.flags);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
         <span class="kw">let </span>exit_signal = <span class="kw">if </span>args.exit_signal == <span class="number">0 </span>{
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span><span class="prelude-val">Ok</span>(exit_signal) = Signal::try_from(args.exit_signal <span class="kw">as </span>i32) <span class="kw">else </span>{
                 <span class="macro">debug!</span>(<span class="string">"Bad signal number: {}"</span>, args.exit_signal);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             };
             <span class="prelude-val">Some</span>(exit_signal)
         };
@@ -877,7 +875,7 @@
     }
 
     <span class="macro">log_syscall!</span>(fork, <span class="comment">/* rv */ </span>kernel_pid_t);
-    <span class="kw">pub fn </span>fork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    <span class="kw">pub fn </span>fork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, Errno&gt; {
         <span class="comment">// This should be the correct call to `clone_internal`, but `clone_internal`
         // will currently return an error.
         </span><span class="self">Self</span>::clone_internal(
@@ -892,7 +890,7 @@
     }
 
     <span class="macro">log_syscall!</span>(vfork, <span class="comment">/* rv */ </span>kernel_pid_t);
-    <span class="kw">pub fn </span>vfork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    <span class="kw">pub fn </span>vfork(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, Errno&gt; {
         <span class="comment">// This should be the correct call to `clone_internal`, but `clone_internal`
         // will currently return an error.
         </span><span class="self">Self</span>::clone_internal(
@@ -907,7 +905,7 @@
     }
 
     <span class="macro">log_syscall!</span>(gettid, <span class="comment">/* rv */ </span>kernel_pid_t);
-    <span class="kw">pub fn </span>gettid(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, SyscallError&gt; {
+    <span class="kw">pub fn </span>gettid(ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;kernel_pid_t, Errno&gt; {
         <span class="prelude-val">Ok</span>(kernel_pid_t::from(ctx.objs.thread.id()))
     }
 
@@ -921,7 +919,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         hdrp: ForeignPtr&lt;user_cap_header&gt;,
         datap: ForeignPtr&lt;[user_cap_data; <span class="number">2</span>]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="comment">// If the version is not 3, we return the error
         </span><span class="kw">let </span>hdrp = ctx.objs.process.memory_borrow().read(hdrp)<span class="question-mark">?</span>;
         <span class="kw">if </span>hdrp.version != LINUX_CAPABILITY_VERSION_3 {
@@ -929,7 +927,7 @@
                 <span class="string">"The version of Linux capabilities is not supported ({})"</span>,
                 hdrp.version
             );
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="kw">if </span>!datap.is_null() {
@@ -958,7 +956,7 @@
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         hdrp: ForeignPtr&lt;user_cap_header&gt;,
         datap: ForeignPtr&lt;[user_cap_data; <span class="number">2</span>]&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
         <span class="comment">// If the version is not 3, we return the error
         </span><span class="kw">let </span>hdrp = ctx.objs.process.memory_borrow().read(hdrp)<span class="question-mark">?</span>;
         <span class="kw">if </span>hdrp.version != LINUX_CAPABILITY_VERSION_3 {
@@ -966,7 +964,7 @@
                 <span class="string">"The version of Linux capabilities is not supported ({})"</span>,
                 hdrp.version
             );
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="kw">let </span>datap: [<span class="kw">_</span>; <span class="number">2</span>] = ctx.objs.process.memory_borrow().read(datap)<span class="question-mark">?</span>;
@@ -974,7 +972,7 @@
             <span class="comment">// We don't allow the plugin to set any capability
             </span><span class="kw">if </span>data.effective != <span class="number">0 </span>|| data.permitted != <span class="number">0 </span>|| data.inheritable != <span class="number">0 </span>{
                 <span class="macro">warn_once_then_debug!</span>(<span class="string">"Setting Linux capabilities is not supported"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
             }
         }
         <span class="prelude-val">Ok</span>(())

@@ -937,6 +937,21 @@
 <a href="#937" id="937">937</a>
 <a href="#938" id="938">938</a>
 <a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
@@ -1672,42 +1687,50 @@
     <span class="kw">fn </span>call(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; SyscallResult;
 }
 
-<span class="kw">impl</span>&lt;F, T0&gt; SyscallHandlerFn&lt;()&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, E, T0&gt; SyscallHandlerFn&lt;()&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;T0, SyscallError&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext) -&gt; <span class="prelude-ty">Result</span>&lt;T0, E&gt;,
+    E: Into&lt;SyscallError&gt;,
     T0: Into&lt;SyscallReg&gt;,
 {
     <span class="kw">fn </span>call(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; SyscallResult {
-        <span class="self">self</span>(ctx).map(Into::into)
+        <span class="self">self</span>(ctx).map(Into::into).map_err(Into::into)
     }
 }
 
-<span class="kw">impl</span>&lt;F, T0, T1&gt; SyscallHandlerFn&lt;(T1,)&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, E, T0, T1&gt; SyscallHandlerFn&lt;(T1,)&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1) -&gt; <span class="prelude-ty">Result</span>&lt;T0, SyscallError&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1) -&gt; <span class="prelude-ty">Result</span>&lt;T0, E&gt;,
+    E: Into&lt;SyscallError&gt;,
     T0: Into&lt;SyscallReg&gt;,
     T1: From&lt;SyscallReg&gt;,
 {
     <span class="kw">fn </span>call(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; SyscallResult {
-        <span class="self">self</span>(ctx, ctx.args.get(<span class="number">0</span>).into()).map(Into::into)
+        <span class="self">self</span>(ctx, ctx.args.get(<span class="number">0</span>).into())
+            .map(Into::into)
+            .map_err(Into::into)
     }
 }
 
-<span class="kw">impl</span>&lt;F, T0, T1, T2&gt; SyscallHandlerFn&lt;(T1, T2)&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, E, T0, T1, T2&gt; SyscallHandlerFn&lt;(T1, T2)&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2) -&gt; <span class="prelude-ty">Result</span>&lt;T0, SyscallError&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2) -&gt; <span class="prelude-ty">Result</span>&lt;T0, E&gt;,
+    E: Into&lt;SyscallError&gt;,
     T0: Into&lt;SyscallReg&gt;,
     T1: From&lt;SyscallReg&gt;,
     T2: From&lt;SyscallReg&gt;,
 {
     <span class="kw">fn </span>call(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>SyscallContext) -&gt; SyscallResult {
-        <span class="self">self</span>(ctx, ctx.args.get(<span class="number">0</span>).into(), ctx.args.get(<span class="number">1</span>).into()).map(Into::into)
+        <span class="self">self</span>(ctx, ctx.args.get(<span class="number">0</span>).into(), ctx.args.get(<span class="number">1</span>).into())
+            .map(Into::into)
+            .map_err(Into::into)
     }
 }
 
-<span class="kw">impl</span>&lt;F, T0, T1, T2, T3&gt; SyscallHandlerFn&lt;(T1, T2, T3)&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, E, T0, T1, T2, T3&gt; SyscallHandlerFn&lt;(T1, T2, T3)&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3) -&gt; <span class="prelude-ty">Result</span>&lt;T0, SyscallError&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3) -&gt; <span class="prelude-ty">Result</span>&lt;T0, E&gt;,
+    E: Into&lt;SyscallError&gt;,
     T0: Into&lt;SyscallReg&gt;,
     T1: From&lt;SyscallReg&gt;,
     T2: From&lt;SyscallReg&gt;,
@@ -1721,12 +1744,14 @@
             ctx.args.get(<span class="number">2</span>).into(),
         )
         .map(Into::into)
+        .map_err(Into::into)
     }
 }
 
-<span class="kw">impl</span>&lt;F, T0, T1, T2, T3, T4&gt; SyscallHandlerFn&lt;(T1, T2, T3, T4)&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, E, T0, T1, T2, T3, T4&gt; SyscallHandlerFn&lt;(T1, T2, T3, T4)&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3, T4) -&gt; <span class="prelude-ty">Result</span>&lt;T0, SyscallError&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3, T4) -&gt; <span class="prelude-ty">Result</span>&lt;T0, E&gt;,
+    E: Into&lt;SyscallError&gt;,
     T0: Into&lt;SyscallReg&gt;,
     T1: From&lt;SyscallReg&gt;,
     T2: From&lt;SyscallReg&gt;,
@@ -1742,12 +1767,14 @@
             ctx.args.get(<span class="number">3</span>).into(),
         )
         .map(Into::into)
+        .map_err(Into::into)
     }
 }
 
-<span class="kw">impl</span>&lt;F, T0, T1, T2, T3, T4, T5&gt; SyscallHandlerFn&lt;(T1, T2, T3, T4, T5)&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, E, T0, T1, T2, T3, T4, T5&gt; SyscallHandlerFn&lt;(T1, T2, T3, T4, T5)&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3, T4, T5) -&gt; <span class="prelude-ty">Result</span>&lt;T0, SyscallError&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3, T4, T5) -&gt; <span class="prelude-ty">Result</span>&lt;T0, E&gt;,
+    E: Into&lt;SyscallError&gt;,
     T0: Into&lt;SyscallReg&gt;,
     T1: From&lt;SyscallReg&gt;,
     T2: From&lt;SyscallReg&gt;,
@@ -1765,12 +1792,14 @@
             ctx.args.get(<span class="number">4</span>).into(),
         )
         .map(Into::into)
+        .map_err(Into::into)
     }
 }
 
-<span class="kw">impl</span>&lt;F, T0, T1, T2, T3, T4, T5, T6&gt; SyscallHandlerFn&lt;(T1, T2, T3, T4, T5, T6)&gt; <span class="kw">for </span>F
+<span class="kw">impl</span>&lt;F, E, T0, T1, T2, T3, T4, T5, T6&gt; SyscallHandlerFn&lt;(T1, T2, T3, T4, T5, T6)&gt; <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3, T4, T5, T6) -&gt; <span class="prelude-ty">Result</span>&lt;T0, SyscallError&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>SyscallContext, T1, T2, T3, T4, T5, T6) -&gt; <span class="prelude-ty">Result</span>&lt;T0, E&gt;,
+    E: Into&lt;SyscallError&gt;,
     T0: Into&lt;SyscallReg&gt;,
     T1: From&lt;SyscallReg&gt;,
     T2: From&lt;SyscallReg&gt;,
@@ -1790,6 +1819,7 @@
             ctx.args.get(<span class="number">5</span>).into(),
         )
         .map(Into::into)
+        .map_err(Into::into)
     }
 }
 

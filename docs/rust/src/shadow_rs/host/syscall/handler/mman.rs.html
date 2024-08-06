@@ -623,7 +623,7 @@
         flags: std::ffi::c_ulong,
         fd: std::ffi::c_ulong,
         offset: std::ffi::c_ulong,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ForeignPtr&lt;u8&gt;, SyscallError&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ForeignPtr&lt;u8&gt;, Errno&gt; {
         <span class="macro">log::trace!</span>(<span class="string">"mmap called on fd {fd} for {len} bytes"</span>);
 
         <span class="kw">let </span>addr: usize = addr.try_into().unwrap();
@@ -643,7 +643,7 @@
                 <span class="string">"Unrecognized prot flag: {:#x}"</span>,
                 unrecognized.bits()
             );
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
         <span class="kw">let </span><span class="prelude-val">Some</span>(flags) = MapFlags::from_bits(flags) <span class="kw">else </span>{
             <span class="kw">let </span>unrecognized = MapFlags::from_bits_retain(flags).difference(MapFlags::all());
@@ -655,7 +655,7 @@
                 <span class="string">"Unrecognized map flag: {:#x}"</span>,
                 unrecognized.bits()
             );
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         };
 
         <span class="comment">// at least one of these values is required according to man page
@@ -665,14 +665,14 @@
         <span class="comment">// need non-zero len, and at least one of the above options
         </span><span class="kw">if </span>len == <span class="number">0 </span>|| !required_flags.intersects(flags) {
             <span class="macro">log::debug!</span>(<span class="string">"Invalid len ({len}), prot ({prot:?}), or flags ({flags:?})"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
         }
 
         <span class="comment">// we ignore the fd on anonymous mappings, otherwise it must refer to a regular file
         // TODO: why does this fd &lt;= 2 exist?
         </span><span class="kw">if </span>fd &lt;= <span class="number">2 </span>&amp;&amp; !flags.contains(MapFlags::MAP_ANONYMOUS) {
             <span class="macro">log::debug!</span>(<span class="string">"Invalid fd {fd} and MAP_ANONYMOUS is not set in flags {flags:?}"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF);
         }
 
         <span class="comment">// we only need a file if it's not an anonymous mapping
@@ -686,7 +686,7 @@
 
                 <span class="kw">let </span>CompatFile::Legacy(file) = desc.file() <span class="kw">else </span>{
                     <span class="comment">// this syscall uses a regular file, which is implemented in C
-                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL);
                 };
 
                 file.ptr()
@@ -701,12 +701,12 @@
                 // close themselves even if there are still file handles (see
                 // `_tcp_endOfFileSignalled`), so we can't make this a panic.
                 </span><span class="macro">log::warn!</span>(<span class="string">"File {file:p} (fd={fd}) is closed"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EBADF);
             }
 
             <span class="kw">if unsafe </span>{ c::legacyfile_getType(file) } != c::_LegacyFileType_DT_FILE {
                 <span class="macro">log::debug!</span>(<span class="string">"Descriptor exists for fd {fd}, but is not a regular file type"</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EACCES.into());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EACCES);
             }
 
             <span class="comment">// success; we know we have a file type descriptor
@@ -720,7 +720,7 @@
         <span class="comment">// the file is None for an anonymous mapping, or a non-null Some otherwise
         </span><span class="kw">let </span><span class="prelude-val">Ok</span>(plugin_fd) = plugin_fd.transpose() <span class="kw">else </span>{
             <span class="macro">log::warn!</span>(<span class="string">"mmap on fd {fd} for {len} bytes failed"</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EACCES.into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EACCES);
         };
 
         <span class="comment">// delegate execution of the mmap itself to the memory manager
@@ -745,7 +745,7 @@
             <span class="self">Self</span>::close_plugin_file(ctx.objs, plugin_fd);
         }
 
-        <span class="prelude-val">Ok</span>(mmap_result<span class="question-mark">?</span>)
+        mmap_result
     }
 
     <span class="kw">fn </span>open_plugin_file(

@@ -56,7 +56,7 @@
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
 
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallResult};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::ForeignArrayPtr;
 
 <span class="kw">impl </span>SyscallHandler {
     <span class="macro">log_syscall!</span>(
@@ -71,11 +71,11 @@
         buf_ptr: ForeignPtr&lt;u8&gt;,
         count: usize,
         _flags: std::ffi::c_uint,
-    ) -&gt; SyscallResult {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;isize, Errno&gt; {
         <span class="comment">// We ignore the flags arg, because we use the same random source for both
         // random and urandom, and it never blocks anyway.
 
-        </span><span class="macro">trace!</span>(<span class="string">"Trying to read {} random bytes."</span>, count);
+        </span><span class="macro">trace!</span>(<span class="string">"Trying to read {count} random bytes."</span>);
 
         <span class="comment">// Get a native-process mem buffer where we can copy the random bytes.
         </span><span class="kw">let </span>dst_ptr = ForeignArrayPtr::new(buf_ptr, count);
@@ -83,8 +83,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>mem_ref = <span class="kw">match </span>memory.memory_ref_mut_uninit(dst_ptr) {
             <span class="prelude-val">Ok</span>(m) =&gt; m,
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">"Failed to get memory ref: {:?}"</span>, e);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT.into());
+                <span class="macro">warn!</span>(<span class="string">"Failed to get memory ref: {e:?}"</span>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EFAULT);
             }
         };
 
@@ -94,10 +94,10 @@
 
         <span class="comment">// We must flush the memory reference to write it back.
         </span><span class="kw">match </span>mem_ref.flush() {
-            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(isize::try_from(count).unwrap().into()),
+            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(isize::try_from(count).unwrap()),
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">"Failed to flush writes: {:?}"</span>, e);
-                <span class="prelude-val">Err</span>(Errno::EFAULT.into())
+                <span class="macro">warn!</span>(<span class="string">"Failed to flush writes: {e:?}"</span>);
+                <span class="prelude-val">Err</span>(Errno::EFAULT)
             }
         }
     }
