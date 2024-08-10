@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cc-1.1.0/src/parallel/job_token.rs`."><title>job_token.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="cc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cc-1.1.8/src/parallel/job_token.rs`."><title>job_token.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="cc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -268,11 +268,14 @@
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
 <a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::marker::PhantomData;
 
 <span class="kw">use </span><span class="kw">crate</span>::Error;
 
-<span class="kw">use </span>once_cell::sync::OnceCell;
+<span class="kw">use </span><span class="kw">super</span>::once_lock::OnceLock;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JobToken(PhantomData&lt;()&gt;);
 
@@ -307,7 +310,7 @@
     ///    compilation.
     </span><span class="kw">fn </span>new() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="self">Self </span>{
         <span class="comment">// TODO: Replace with a OnceLock once MSRV is 1.70
-        </span><span class="kw">static </span>JOBSERVER: OnceCell&lt;JobTokenServer&gt; = OnceCell::new();
+        </span><span class="kw">static </span>JOBSERVER: OnceLock&lt;JobTokenServer&gt; = OnceLock::new();
 
         JOBSERVER.get_or_init(|| {
             <span class="kw">unsafe </span>{ inherited_jobserver::JobServer::from_env() }
@@ -332,8 +335,8 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>acquire(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;JobToken, Error&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>acquire(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;JobToken, Error&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Inherited(jobserver) =&gt; jobserver.acquire().<span class="kw">await</span>,
             <span class="self">Self</span>::InProcess(jobserver) =&gt; <span class="prelude-val">Ok</span>(jobserver.acquire().<span class="kw">await</span>),
         }
@@ -341,7 +344,7 @@
 }
 
 <span class="kw">mod </span>inherited_jobserver {
-    <span class="kw">use super</span>::{JobToken, OnceCell};
+    <span class="kw">use </span><span class="kw">super</span>::JobToken;
 
     <span class="kw">use crate</span>::{parallel::async_executor::YieldOnce, Error, ErrorKind};
 
@@ -407,7 +410,7 @@
         <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>enter_active(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ActiveJobServer&lt;<span class="lifetime">'_</span>&gt; {
             ActiveJobServer {
                 jobserver: <span class="self">self</span>,
-                helper_thread: OnceCell::new(),
+                helper_thread: <span class="prelude-val">None</span>,
             }
         }
     }
@@ -433,11 +436,11 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ActiveJobServer&lt;<span class="lifetime">'a</span>&gt; {
         jobserver: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>JobServer,
-        helper_thread: OnceCell&lt;HelperThread&gt;,
+        helper_thread: <span class="prelude-ty">Option</span>&lt;HelperThread&gt;,
     }
 
     <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ActiveJobServer&lt;<span class="lifetime">'a</span>&gt; {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>acquire(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;JobToken, Error&gt; {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>acquire(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;JobToken, Error&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>has_requested_token = <span class="bool-val">false</span>;
 
             <span class="kw">loop </span>{
@@ -454,9 +457,12 @@
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; YieldOnce::default().<span class="kw">await</span>,
                     <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.kind() == io::ErrorKind::Unsupported =&gt; {
                         <span class="comment">// Fallback to creating a help thread with blocking acquire
-                        </span><span class="kw">let </span>helper_thread = <span class="self">self
-                            </span>.helper_thread
-                            .get_or_try_init(|| HelperThread::new(<span class="self">self</span>.jobserver))<span class="question-mark">?</span>;
+                        </span><span class="kw">let </span>helper_thread = <span class="kw">if let </span><span class="prelude-val">Some</span>(thread) = <span class="self">self</span>.helper_thread.as_ref() {
+                            thread
+                        } <span class="kw">else </span>{
+                            <span class="self">self</span>.helper_thread
+                                .insert(HelperThread::new(<span class="self">self</span>.jobserver)<span class="question-mark">?</span>)
+                        };
 
                         <span class="kw">match </span>helper_thread.rx.try_recv() {
                             <span class="prelude-val">Ok</span>(res) =&gt; {

@@ -13,7 +13,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["bytemuck",["",[],["anybitpattern.rs","checked.rs","contiguous.rs","internal.rs","lib.rs","no_uninit.rs","offset_of.rs","pod.rs","pod_in_option.rs","transparent.rs","zeroable.rs","zeroable_in_option.rs"]]],\
 ["byteorder",["",[],["io.rs","lib.rs"]]],\
 ["bytes",["",[["buf",[],["buf_impl.rs","buf_mut.rs","chain.rs","iter.rs","limit.rs","mod.rs","reader.rs","take.rs","uninit_slice.rs","vec_deque.rs","writer.rs"]],["fmt",[],["debug.rs","hex.rs","mod.rs"]]],["bytes.rs","bytes_mut.rs","lib.rs","loom.rs"]]],\
-["cc",["",[["parallel",[],["async_executor.rs","job_token.rs","mod.rs","stderr.rs"]],["windows",[],["find_tools.rs","mod.rs"]]],["command_helpers.rs","lib.rs","target_info.rs","tempfile.rs","tool.rs","utilities.rs"]]],\
+["cc",["",[["parallel",[],["async_executor.rs","job_token.rs","mod.rs","once_lock.rs","stderr.rs"]],["windows",[],["find_tools.rs","mod.rs"]]],["command_helpers.rs","lib.rs","target_info.rs","tempfile.rs","tool.rs","utilities.rs"]]],\
 ["cfg_expr",["",[["expr",[],["lexer.rs","parser.rs"]],["targets",[],["builtins.rs"]]],["error.rs","expr.rs","lib.rs","targets.rs"]]],\
 ["cfg_if",["",[],["lib.rs"]]],\
 ["clap",["",[],["lib.rs"]]],\
@@ -37,7 +37,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["fixedbitset",["",[],["lib.rs","range.rs"]]],\
 ["formatting_nostd",["",[],["borrowed_fd_writer.rs","format_buffer.rs","lib.rs","utf8.rs"]]],\
 ["getrandom",["",[],["error.rs","error_impls.rs","lazy.rs","lib.rs","linux_android_with_fallback.rs","use_file.rs","util.rs","util_libc.rs"]]],\
-["gimli",["",[["read",[],["abbrev.rs","addr.rs","aranges.rs","cfi.rs","dwarf.rs","endian_slice.rs","index.rs","line.rs","lists.rs","loclists.rs","lookup.rs","mod.rs","op.rs","pubnames.rs","pubtypes.rs","reader.rs","rnglists.rs","str.rs","unit.rs","util.rs","value.rs"]]],["arch.rs","common.rs","constants.rs","endianity.rs","leb128.rs","lib.rs"]]],\
+["gimli",["",[["read",[],["abbrev.rs","addr.rs","aranges.rs","cfi.rs","dwarf.rs","endian_slice.rs","index.rs","line.rs","lists.rs","loclists.rs","lookup.rs","mod.rs","op.rs","pubnames.rs","pubtypes.rs","reader.rs","relocate.rs","rnglists.rs","str.rs","unit.rs","util.rs","value.rs"]]],["arch.rs","common.rs","constants.rs","endianity.rs","leb128.rs","lib.rs"]]],\
 ["gml_parser",["",[],["gml.rs","lib.rs","parser.rs"]]],\
 ["hashbrown",["",[["external_trait_impls",[],["mod.rs"]],["raw",[],["alloc.rs","bitmask.rs","mod.rs","sse2.rs"]]],["lib.rs","macros.rs","map.rs","scopeguard.rs","set.rs","table.rs"]]],\
 ["heck",["",[],["kebab.rs","lib.rs","lower_camel.rs","shouty_kebab.rs","shouty_snake.rs","snake.rs","title.rs","train.rs","upper_camel.rs"]]],\
@@ -71,7 +71,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["num_enum",["",[],["lib.rs"]]],\
 ["num_enum_derive",["",[],["enum_attributes.rs","lib.rs","parsing.rs","utils.rs","variant_attributes.rs"]]],\
 ["num_traits",["",[["ops",[],["bytes.rs","checked.rs","euclid.rs","inv.rs","mod.rs","mul_add.rs","overflowing.rs","saturating.rs","wrapping.rs"]]],["bounds.rs","cast.rs","float.rs","identities.rs","int.rs","lib.rs","macros.rs","pow.rs","real.rs","sign.rs"]]],\
-["object",["",[["read",[["coff",[],["comdat.rs","file.rs","import.rs","mod.rs","relocation.rs","section.rs","symbol.rs"]],["elf",[],["attributes.rs","comdat.rs","compression.rs","dynamic.rs","file.rs","hash.rs","mod.rs","note.rs","relocation.rs","section.rs","segment.rs","symbol.rs","version.rs"]],["macho",[],["dyld_cache.rs","fat.rs","file.rs","load_command.rs","mod.rs","relocation.rs","section.rs","segment.rs","symbol.rs"]],["pe",[],["data_directory.rs","export.rs","file.rs","import.rs","mod.rs","relocation.rs","resource.rs","rich.rs","section.rs"]],["xcoff",[],["comdat.rs","file.rs","mod.rs","relocation.rs","section.rs","segment.rs","symbol.rs"]]],["any.rs","archive.rs","mod.rs","read_ref.rs","traits.rs","util.rs"]]],["archive.rs","common.rs","elf.rs","endian.rs","lib.rs","macho.rs","pe.rs","pod.rs","xcoff.rs"]]],\
+["object",["",[["read",[["coff",[],["comdat.rs","file.rs","import.rs","mod.rs","relocation.rs","section.rs","symbol.rs"]],["elf",[],["attributes.rs","comdat.rs","compression.rs","dynamic.rs","file.rs","hash.rs","mod.rs","note.rs","relocation.rs","section.rs","segment.rs","symbol.rs","version.rs"]],["macho",[],["dyld_cache.rs","fat.rs","file.rs","load_command.rs","mod.rs","relocation.rs","section.rs","segment.rs","symbol.rs"]],["pe",[],["data_directory.rs","export.rs","file.rs","import.rs","mod.rs","relocation.rs","resource.rs","rich.rs","section.rs"]],["xcoff",[],["comdat.rs","file.rs","mod.rs","relocation.rs","section.rs","segment.rs","symbol.rs"]]],["any.rs","archive.rs","gnu_compression.rs","mod.rs","read_cache.rs","read_ref.rs","traits.rs","util.rs"]]],["archive.rs","common.rs","elf.rs","endian.rs","lib.rs","macho.rs","pe.rs","pod.rs","xcoff.rs"]]],\
 ["once_cell",["",[],["imp_std.rs","lib.rs","race.rs"]]],\
 ["paste",["",[],["attr.rs","error.rs","lib.rs","segment.rs"]]],\
 ["petgraph",["",[["algo",[],["astar.rs","bellman_ford.rs","dijkstra.rs","dominators.rs","feedback_arc_set.rs","floyd_warshall.rs","ford_fulkerson.rs","isomorphism.rs","k_shortest_path.rs","matching.rs","min_spanning_tree.rs","mod.rs","page_rank.rs","simple_paths.rs","tred.rs"]],["graph_impl",[["stable_graph",[],["mod.rs"]]],["frozen.rs","mod.rs"]],["visit",[],["dfsvisit.rs","filter.rs","macros.rs","mod.rs","reversed.rs","traversal.rs"]]],["adj.rs","csr.rs","data.rs","dot.rs","graphmap.rs","iter_format.rs","iter_utils.rs","lib.rs","macros.rs","matrix_graph.rs","operator.rs","prelude.rs","scored.rs","traits_graph.rs","unionfind.rs","util.rs"]]],\
@@ -138,6 +138,8 @@ var srcIndex = new Map(JSON.parse('[\
 ["version_compare",["",[],["cmp.rs","compare.rs","lib.rs","manifest.rs","part.rs","version.rs"]]],\
 ["vsprintf",["",[],["lib.rs"]]],\
 ["which",["",[],["checker.rs","error.rs","finder.rs","lib.rs"]]],\
-["winnow",["",[["ascii",[],["mod.rs"]],["binary",[["bits",[],["mod.rs"]]],["mod.rs"]],["combinator",[["debug",[],["mod.rs"]]],["branch.rs","core.rs","mod.rs","multi.rs","parser.rs","sequence.rs"]],["macros",[],["dispatch.rs","mod.rs","seq.rs"]],["stream",[],["impls.rs","mod.rs"]],["token",[],["mod.rs"]]],["error.rs","lib.rs","parser.rs"]]]\
+["winnow",["",[["ascii",[],["mod.rs"]],["binary",[["bits",[],["mod.rs"]]],["mod.rs"]],["combinator",[["debug",[],["mod.rs"]]],["branch.rs","core.rs","mod.rs","multi.rs","parser.rs","sequence.rs"]],["macros",[],["dispatch.rs","mod.rs","seq.rs"]],["stream",[],["impls.rs","mod.rs"]],["token",[],["mod.rs"]]],["error.rs","lib.rs","parser.rs"]]],\
+["zerocopy",["",[["third_party",[["rust",[],["layout.rs"]]]]],["byteorder.rs","lib.rs","macro_util.rs","macros.rs","post_monomorphization_compile_fail_tests.rs","util.rs","wrappers.rs"]]],\
+["zerocopy_derive",["",[],["ext.rs","lib.rs","repr.rs"]]]\
 ]'));
 createSrcSidebar();
