@@ -986,6 +986,14 @@
 <a href="#986" id="986">986</a>
 <a href="#987" id="987">987</a>
 <a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::{CStr, CString};
 <span class="kw">use </span>std::os::unix::ffi::OsStringExt;
 <span class="kw">use </span>std::sync::Arc;
@@ -1097,7 +1105,11 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replaced_desc) = replaced_desc {
             <span class="comment">// from 'man 2 dup2': "If newfd was open, any errors that would have been reported at
             // close(2) time are lost"
-            </span>CallbackQueue::queue_and_run(|cb_queue| replaced_desc.close(ctx.objs.host, cb_queue));
+            </span><span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
+                CallbackQueue::queue_and_run(|cb_queue| {
+                    replaced_desc.close(ctx.objs.host, cb_queue)
+                })
+            });
         }
 
         <span class="comment">// return the new fd
@@ -1157,7 +1169,11 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(replaced_desc) = replaced_desc {
             <span class="comment">// from 'man 2 dup3': "If newfd was open, any errors that would have been reported at
             // close(2) time are lost"
-            </span>CallbackQueue::queue_and_run(|cb_queue| replaced_desc.close(ctx.objs.host, cb_queue));
+            </span><span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
+                CallbackQueue::queue_and_run(|cb_queue| {
+                    replaced_desc.close(ctx.objs.host, cb_queue)
+                })
+            });
         }
 
         <span class="comment">// return the new fd
