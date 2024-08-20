@@ -830,8 +830,6 @@
 <a href="#830" id="830">830</a>
 <a href="#831" id="831">831</a>
 <a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux thread.
 
 </span><span class="kw">use </span>std::cell::{Cell, RefCell};
@@ -975,19 +973,17 @@
                 })
                 .collect();
 
-            <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-                CallbackQueue::queue_and_run(|q| {
-                    <span class="kw">for </span>handle <span class="kw">in </span>to_close {
-                        <span class="macro">log::trace!</span>(<span class="string">"Unregistering FD_CLOEXEC descriptor {handle:?}"</span>);
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) = desc_table
-                            .deregister_descriptor(handle)
-                            .unwrap()
-                            .close(host, q)
-                        {
-                            <span class="macro">log::debug!</span>(<span class="string">"Error closing {handle:?}: {e:?}"</span>);
-                        };
-                    }
-                })
+            CallbackQueue::queue_and_run_with_legacy(|q| {
+                <span class="kw">for </span>handle <span class="kw">in </span>to_close {
+                    <span class="macro">log::trace!</span>(<span class="string">"Unregistering FD_CLOEXEC descriptor {handle:?}"</span>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) = desc_table
+                        .deregister_descriptor(handle)
+                        .unwrap()
+                        .close(host, q)
+                    {
+                        <span class="macro">log::debug!</span>(<span class="string">"Error closing {handle:?}: {e:?}"</span>);
+                    };
+                }
             });
 
             <span class="self">self</span>.desc_table = <span class="prelude-val">Some</span>(RootedRc::new(

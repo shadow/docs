@@ -360,8 +360,6 @@
 <a href="#360" id="360">360</a>
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{BTreeSet, HashMap};
 
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
@@ -611,12 +609,10 @@
         // optimization so that all descriptors are closed before any of their
         // callbacks run.
         </span><span class="kw">let </span>descriptors = <span class="self">self</span>.remove_all();
-        <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                <span class="kw">for </span>desc <span class="kw">in </span>descriptors {
-                    desc.close(host, cb_queue);
-                }
-            })
+        CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            <span class="kw">for </span>desc <span class="kw">in </span>descriptors {
+                desc.close(host, cb_queue);
+            }
         });
     }
 }

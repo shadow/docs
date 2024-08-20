@@ -80,8 +80,6 @@
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::close_range::CloseRangeFlags;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
@@ -152,14 +150,12 @@
             </span><span class="kw">let </span>descriptors = desc_table.remove_range(range);
 
             <span class="comment">// close the removed descriptors
-            </span><span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-                CallbackQueue::queue_and_run(|cb_queue| {
-                    <span class="kw">for </span>desc <span class="kw">in </span>descriptors {
-                        <span class="comment">// close_range(2):
-                        // &gt; Errors closing a given file descriptor are currently ignored.
-                        </span><span class="kw">let _ </span>= desc.close(ctx.objs.host, cb_queue);
-                    }
-                })
+            </span>CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+                <span class="kw">for </span>desc <span class="kw">in </span>descriptors {
+                    <span class="comment">// close_range(2):
+                    // &gt; Errors closing a given file descriptor are currently ignored.
+                    </span><span class="kw">let _ </span>= desc.close(ctx.objs.host, cb_queue);
+                }
             });
         }
 

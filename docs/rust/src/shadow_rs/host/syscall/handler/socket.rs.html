@@ -1103,22 +1103,6 @@
 <a href="#1103" id="1103">1103</a>
 <a href="#1104" id="1104">1104</a>
 <a href="#1105" id="1105">1105</a>
-<a href="#1106" id="1106">1106</a>
-<a href="#1107" id="1107">1107</a>
-<a href="#1108" id="1108">1108</a>
-<a href="#1109" id="1109">1109</a>
-<a href="#1110" id="1110">1110</a>
-<a href="#1111" id="1111">1111</a>
-<a href="#1112" id="1112">1112</a>
-<a href="#1113" id="1113">1113</a>
-<a href="#1114" id="1114">1114</a>
-<a href="#1115" id="1115">1115</a>
-<a href="#1116" id="1116">1116</a>
-<a href="#1117" id="1117">1117</a>
-<a href="#1118" id="1118">1118</a>
-<a href="#1119" id="1119">1119</a>
-<a href="#1120" id="1120">1120</a>
-<a href="#1121" id="1121">1121</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
 <span class="kw">use </span>linux_api::socket::Shutdown;
@@ -1369,10 +1353,8 @@
         };
 
         <span class="comment">// call the socket's sendmsg(), and run any resulting events
-        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                Socket::sendmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
-            })
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            Socket::sendmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
         });
 
         <span class="comment">// if the syscall will block, keep the file open until the syscall restarts
@@ -1442,10 +1424,8 @@
         };
 
         <span class="comment">// call the socket's sendmsg(), and run any resulting events
-        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                Socket::sendmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
-            })
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            Socket::sendmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
         });
 
         <span class="comment">// if the syscall will block, keep the file open until the syscall restarts
@@ -1521,10 +1501,8 @@
         };
 
         <span class="comment">// call the socket's recvmsg(), and run any resulting events
-        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                Socket::recvmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, cb_queue)
-            })
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            Socket::recvmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, cb_queue)
         });
 
         <span class="comment">// if the syscall will block, keep the file open until the syscall restarts
@@ -1599,10 +1577,8 @@
         };
 
         <span class="comment">// call the socket's recvmsg(), and run any resulting events
-        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                Socket::recvmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, cb_queue)
-            })
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            Socket::recvmsg(socket, args, <span class="kw-2">&amp;mut </span>mem, cb_queue)
         });
 
         <span class="comment">// if the syscall will block, keep the file open until the syscall restarts
@@ -1756,10 +1732,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>rng = ctx.objs.host.random_mut();
         <span class="kw">let </span>net_ns = ctx.objs.host.network_namespace_borrow();
 
-        <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                Socket::listen(socket, backlog, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
-            })
+        CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            Socket::listen(socket, backlog, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
@@ -1887,10 +1861,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>rng = ctx.objs.host.random_mut();
         <span class="kw">let </span>net_ns = ctx.objs.host.network_namespace_borrow();
 
-        <span class="kw">let </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                socket.borrow_mut().accept(<span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
-            })
+        <span class="kw">let </span>result = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            socket.borrow_mut().accept(<span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
         });
 
         <span class="kw">let </span>file_status = socket.borrow().status();
@@ -1991,10 +1963,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>rng = ctx.objs.host.random_mut();
         <span class="kw">let </span>net_ns = ctx.objs.host.network_namespace_borrow();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                Socket::connect(socket, <span class="kw-2">&amp;</span>addr, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
-            })
+        <span class="kw">let </span><span class="kw-2">mut </span>result = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            Socket::connect(socket, <span class="kw-2">&amp;</span>addr, <span class="kw-2">&amp;</span>net_ns, <span class="kw-2">&amp;mut *</span>rng, cb_queue)
         });
 
         <span class="comment">// if the syscall will block, keep the file open until the syscall restarts
@@ -2035,8 +2005,8 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOTSOCK.into());
         };
 
-        <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| socket.borrow_mut().shutdown(how, cb_queue))
+        CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            socket.borrow_mut().shutdown(how, cb_queue)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
@@ -2092,7 +2062,7 @@
             descriptor_flags.insert(DescriptorFlags::FD_CLOEXEC);
         }
 
-        <span class="kw">let </span>(socket_1, socket_2) = CallbackQueue::queue_and_run(|cb_queue| {
+        <span class="kw">let </span>(socket_1, socket_2) = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
             UnixSocket::pair(
                 file_flags,
                 socket_type,
@@ -2128,7 +2098,7 @@
         </span><span class="kw">match </span>write_res {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Err</span>(e) =&gt; {
-                CallbackQueue::queue_and_run(|cb_queue| {
+                CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
                     <span class="comment">// ignore any errors when closing
                     </span>dt.deregister_descriptor(fd_1)
                         .unwrap()
@@ -2177,12 +2147,10 @@
         <span class="comment">// get the provided optlen
         </span><span class="kw">let </span>optlen = mem.read(optlen_ptr)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>optlen_new = <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                socket
-                    .borrow_mut()
-                    .getsockopt(level, optname, optval_ptr, optlen, <span class="kw-2">&amp;mut </span>mem, cb_queue)
-            })
+        <span class="kw">let </span><span class="kw-2">mut </span>optlen_new = CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            socket
+                .borrow_mut()
+                .getsockopt(level, optname, optval_ptr, optlen, <span class="kw-2">&amp;mut </span>mem, cb_queue)
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span>optlen_new &gt; optlen {

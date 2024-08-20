@@ -742,10 +742,6 @@
 <a href="#742" id="742">742</a>
 <a href="#743" id="743">743</a>
 <a href="#744" id="744">744</a>
-<a href="#745" id="745">745</a>
-<a href="#746" id="746">746</a>
-<a href="#747" id="747">747</a>
-<a href="#748" id="748">748</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::{Arc, Weak};
 
@@ -1407,12 +1403,10 @@
         </span><span class="kw">unsafe </span>{ c::packet_ref(packet) };
         <span class="kw">let </span>packet = PacketRc::from_raw(packet);
 
-        <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                socket
-                    .borrow_mut()
-                    .push_in_packet(packet, cb_queue, recv_time);
-            });
+        CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            socket
+                .borrow_mut()
+                .push_in_packet(packet, cb_queue, recv_time);
         });
     }
 
@@ -1420,14 +1414,12 @@
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>inetsocket_pullOutPacket(socket: <span class="kw-2">*const </span>InetSocket) -&gt; <span class="kw-2">*mut </span>c::Packet {
         <span class="kw">let </span>socket = <span class="kw">unsafe </span>{ socket.as_ref() }.unwrap();
 
-        <span class="kw">crate</span>::utility::legacy_callback_queue::with_global_cb_queue(|| {
-            CallbackQueue::queue_and_run(|cb_queue| {
-                socket
-                    .borrow_mut()
-                    .pull_out_packet(cb_queue)
-                    .map(|p| p.into_inner())
-                    .unwrap_or(std::ptr::null_mut())
-            })
+        CallbackQueue::queue_and_run_with_legacy(|cb_queue| {
+            socket
+                .borrow_mut()
+                .pull_out_packet(cb_queue)
+                .map(|p| p.into_inner())
+                .unwrap_or(std::ptr::null_mut())
         })
     }
 
