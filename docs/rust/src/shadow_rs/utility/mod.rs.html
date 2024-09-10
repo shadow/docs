@@ -703,6 +703,67 @@
 <a href="#703" id="703">703</a>
 <a href="#704" id="704">704</a>
 <a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Miscellaneous utilities that are used by Shadow.
 
 </span><span class="comment">// defines macros, so must be included first
@@ -730,7 +791,8 @@
 <span class="kw">pub mod </span>units;
 
 <span class="kw">use </span>std::collections::HashSet;
-<span class="kw">use </span>std::ffi::CString;
+<span class="kw">use </span>std::ffi::{CString, OsStr};
+<span class="kw">use </span>std::io::Read;
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::os::unix::fs::{DirBuilderExt, MetadataExt};
 <span class="kw">use </span>std::os::unix::prelude::OsStrExt;
@@ -1045,14 +1107,34 @@
     </span>NotFile,
     <span class="comment">// File isn't executable.
     </span>NotExecutable,
-    <span class="comment">// File isn't a dynamically linked ELF.
-    // TODO: split these errors, and/or support `#!` interpreters?
+    <span class="comment">// File appears to be an ELF, but an incompatible one. e.g. not dynamically
+    // linked.
     </span>NotDynamicallyLinkedElf,
+    <span class="comment">// File appears to be a script with a "shebang" line, but doesn't specify a
+    // compatible intepreter.
+    </span>IncompatibleInterpreter(Box&lt;VerifyPluginPathError&gt;),
+    <span class="comment">// Not an ELF nor a script.
+    </span>UnknownFileType,
     <span class="comment">// Permission denied traversing the path.
     </span>PathPermissionDenied,
     UnhandledIoError(std::io::Error),
 }
 <span class="kw">impl </span>std::error::Error <span class="kw">for </span>VerifyPluginPathError {}
+
+<span class="kw">impl </span>From&lt;std::io::Error&gt; <span class="kw">for </span>VerifyPluginPathError {
+    <span class="kw">fn </span>from(value: std::io::Error) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>value.kind() {
+            std::io::ErrorKind::NotFound =&gt; VerifyPluginPathError::NotFound,
+            std::io::ErrorKind::PermissionDenied =&gt; VerifyPluginPathError::PathPermissionDenied,
+            <span class="comment">// TODO handle TooManyLinks when stabilized
+            // TODO handle InvalidFileName when stabilized
+            </span><span class="kw">_ </span>=&gt; {
+                <span class="macro">log::warn!</span>(<span class="string">"Unhandled IO error"</span>);
+                VerifyPluginPathError::UnhandledIoError(value)
+            }
+        }
+    }
+}
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>VerifyPluginPathError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
@@ -1067,70 +1149,110 @@
                 f.write_str(<span class="string">"permission denied traversing path"</span>)
             }
             VerifyPluginPathError::UnhandledIoError(e) =&gt; <span class="macro">write!</span>(f, <span class="string">"unhandled io error: {e}"</span>),
+            VerifyPluginPathError::IncompatibleInterpreter(e) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">"script with incompatible interpreter: {e}"</span>)
+            }
+            VerifyPluginPathError::UnknownFileType =&gt; f.write_str(<span class="string">"Uncrecognized file type"</span>),
         }
     }
 }
 
 <span class="doccomment">/// Check that the plugin path is executable under Shadow.
-</span><span class="kw">pub fn </span>verify_plugin_path(path: <span class="kw">impl </span>AsRef&lt;std::path::Path&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), VerifyPluginPathError&gt; {
-    <span class="kw">let </span>path = path.as_ref();
-
-    <span class="kw">let </span>metadata = std::fs::metadata(path).map_err(|e| {
-        <span class="kw">match </span>e.kind() {
-            std::io::ErrorKind::NotFound =&gt; VerifyPluginPathError::NotFound,
-            std::io::ErrorKind::PermissionDenied =&gt; VerifyPluginPathError::PathPermissionDenied,
-            <span class="comment">// TODO handle TooManyLinks when stabilized
-            // TODO handle InvalidFileName when stabilized
-            </span>k =&gt; {
-                <span class="macro">log::warn!</span>(<span class="string">"Unhandled error getting metadata for {path:?}: {k:?}"</span>);
-                VerifyPluginPathError::UnhandledIoError(e)
-            }
-        }
-    })<span class="question-mark">?</span>;
-
+</span><span class="kw">fn </span>verify_plugin_path_internal(
+    path: <span class="kw">impl </span>AsRef&lt;std::path::Path&gt; + std::fmt::Debug,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), VerifyPluginPathError&gt; {
+    <span class="kw">let </span>file = std::fs::File::open(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>metadata = file.metadata()<span class="question-mark">?</span>;
     <span class="kw">if </span>!metadata.is_file() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(VerifyPluginPathError::NotFile);
     }
-
     <span class="comment">// this mask doesn't guarantee that we can execute the file (the file might have S_IXUSR
     // but be owned by a different user), but it should catch most errors
     </span><span class="kw">let </span>mask = libc::S_IXUSR | libc::S_IXGRP | libc::S_IXOTH;
     <span class="kw">if </span>(metadata.mode() &amp; mask) == <span class="number">0 </span>{
+        <span class="macro">log::debug!</span>(<span class="string">"{path:?} not executable"</span>);
         <span class="kw">return </span><span class="prelude-val">Err</span>(VerifyPluginPathError::NotExecutable);
     }
+    <span class="comment">// Get up to PATH_MAX bytes; that should be enough to ensure we get the
+    // interpreter name where applicable.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::with_capacity(linux_api::limits::PATH_MAX);
+    file.take(linux_api::limits::PATH_MAX.try_into().unwrap())
+        .read_to_end(<span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
+
+    <span class="kw">if </span>buf.starts_with(<span class="string">b"\x7fELF"</span>) {
+        <span class="comment">// Looks like an ELF file.
+        </span><span class="kw">if </span>is_dynamic_bin(<span class="kw-2">&amp;</span>path) {
+            <span class="prelude-val">Ok</span>(())
+        } <span class="kw">else </span>{
+            <span class="macro">log::debug!</span>(<span class="string">"{path:?} is ELF, but not dynamically linked"</span>);
+            <span class="prelude-val">Err</span>(VerifyPluginPathError::NotDynamicallyLinkedElf)
+        }
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(interp) = get_interpreter(<span class="kw-2">&amp;</span>buf) {
+        <span class="comment">// Looks like a script.
+        // Linux allows recursion here. It has a depth limit of 4, but trying to
+        // check and precisely match that doesn't seem worthwhile.
+        </span><span class="macro">log::debug!</span>(<span class="string">"{path:?} has interpreter {interp:?}; checking"</span>);
+        verify_plugin_path(interp)
+            .map_err(|e| VerifyPluginPathError::IncompatibleInterpreter(Box::new(e)))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(VerifyPluginPathError::UnknownFileType)
+    }
+}
+
+<span class="doccomment">/// Check that the plugin path is executable under Shadow.
+</span><span class="comment">// Memoization wrapper around `verify_plugin_path_internal`
+// TODO: maybe move this cache into `sim_config.rs`? This seems slightly more
+// possible to go stale for paths exec'd by managed code.
+</span><span class="kw">pub fn </span>verify_plugin_path(path: <span class="kw">impl </span>AsRef&lt;std::path::Path&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), VerifyPluginPathError&gt; {
+    <span class="kw">let </span>path = path.as_ref();
 
     <span class="comment">// a cache so we don't check the same path multiple times (assuming the user doesn't move any
     // binaries while shadow is running)
-    // TODO: maybe move this into `sim_config.rs`? This seems slightly more
-    // possible to go stale for paths exec'd by managed code.
-    </span><span class="kw">static </span>CHECKED_DYNAMIC_BINS: Lazy&lt;RwLock&lt;HashSet&lt;PathBuf&gt;&gt;&gt; =
-        Lazy::new(|| RwLock::new(HashSet::new()));
+    </span><span class="kw">static </span>CHECKED_BINS: Lazy&lt;RwLock&lt;HashSet&lt;PathBuf&gt;&gt;&gt; = Lazy::new(|| RwLock::new(HashSet::new()));
 
-    <span class="kw">let </span>is_known_dynamic = CHECKED_DYNAMIC_BINS.read().unwrap().contains(path);
-
-    <span class="comment">// check if the binary is dynamically linked
-    </span><span class="kw">if </span>!is_known_dynamic {
-        <span class="kw">let </span>ld_path = <span class="string">"/lib64/ld-linux-x86-64.so.2"</span>;
-        <span class="kw">let </span>ld_output = std::process::Command::new(ld_path)
-            .arg(<span class="string">"--verify"</span>)
-            .arg(path)
-            .output()
-            .expect(<span class="string">"Unable to run '{ld_path}'"</span>);
-
-        <span class="kw">if </span>ld_output.status.success() {
-            CHECKED_DYNAMIC_BINS
-                .write()
-                .unwrap()
-                .insert(path.to_path_buf());
-        } <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">"ld stderr: {:?}"</span>, ld_output.stderr);
-            <span class="comment">// technically ld-linux could return errors for other reasons, but this is the most
-            // likely reason given that we already checked that the file exists
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(VerifyPluginPathError::NotDynamicallyLinkedElf);
-        }
+    <span class="kw">if </span>CHECKED_BINS.read().unwrap().contains(path) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
-    <span class="prelude-val">Ok</span>(())
+    <span class="kw">let </span>res = verify_plugin_path_internal(path);
+    <span class="kw">if </span>res.is_ok() {
+        CHECKED_BINS.write().unwrap().insert(path.to_path_buf());
+    }
+    res
+}
+
+<span class="kw">fn </span>get_interpreter(header: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt; {
+    <span class="comment">// Verify and strip "shebang"
+    </span><span class="kw">let </span><span class="kw-2">mut </span>header = header.strip_prefix(<span class="string">b"#!"</span>)<span class="question-mark">?</span>;
+    <span class="comment">// Skip any spaces. (Other whitespace isn't skipped AFAIK).
+    </span><span class="kw">while </span>header.first() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">b' '</span>) {
+        header = <span class="kw-2">&amp;</span>header[<span class="number">1</span>..];
+    }
+    <span class="comment">// The path is the next contiguous set of non-space or newline characters.
+    </span><span class="kw">let </span>interp_path = header.split(|b| b == <span class="kw-2">&amp;</span><span class="string">b' ' </span>|| b == <span class="kw-2">&amp;</span><span class="string">b'\n'</span>).next()<span class="question-mark">?</span>;
+    <span class="kw">let </span>p = OsStr::from_bytes(interp_path);
+    <span class="prelude-val">Some</span>(Path::new(p))
+}
+
+<span class="kw">fn </span>is_dynamic_bin(path: <span class="kw">impl </span>AsRef&lt;std::path::Path&gt;) -&gt; bool {
+    <span class="kw">let </span>path = path.as_ref();
+
+    <span class="comment">// check if the binary is dynamically linked
+    </span><span class="kw">let </span>ld_path = <span class="string">"/lib64/ld-linux-x86-64.so.2"</span>;
+    <span class="kw">let </span>ld_output = std::process::Command::new(ld_path)
+        .arg(<span class="string">"--verify"</span>)
+        .arg(path)
+        .output()
+        .expect(<span class="string">"Unable to run '{ld_path}'"</span>);
+
+    <span class="kw">if </span>ld_output.status.success() {
+        <span class="bool-val">true
+    </span>} <span class="kw">else </span>{
+        <span class="macro">log::debug!</span>(<span class="string">"ld stderr: {:?}"</span>, ld_output.stderr);
+        <span class="comment">// technically ld-linux could return errors for other reasons, but this is the most
+        // likely reason given that we already checked that the file exists
+        </span><span class="bool-val">false
+    </span>}
 }
 
 <span class="doccomment">/// Inject `injected_preloads` into the environment `envv`.

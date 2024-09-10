@@ -538,6 +538,8 @@
 <a href="#538" id="538">538</a>
 <a href="#539" id="539">539</a>
 <a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! In this module is a shared memory allocator that can be used in Shadow to share data between
 //! the main simulator process and managed processes. There are three main global functions that
 //! are provided:
@@ -636,12 +638,11 @@
     };
 }
 
-<span class="doccomment">/// This struct exists as the intended singleton destructor for the global singleton shared memory
-/// allocator. Because the global allocator has static lifetime, drop() will never be called on it.
-/// Therefore, necessary cleanup routines are not called.
+<span class="doccomment">/// The intended singleton destructor for the global singleton shared memory allocator.
 ///
-/// Instead, this object can be instantiated once, eg at the start of main(), and then when it is
-/// dropped at program exit the cleanup routine is called.
+/// Because the global allocator has static lifetime, drop() will never be called on it. Therefore,
+/// necessary cleanup routines are not called. Instead, this object can be instantiated once, eg at
+/// the start of main(), and then when it is dropped at program exit the cleanup routine is called.
 </span><span class="kw">pub struct </span>SharedMemAllocatorDropGuard(());
 
 <span class="kw">impl </span>SharedMemAllocatorDropGuard {
@@ -659,9 +660,10 @@
     }
 }
 
-<span class="doccomment">/// A smart pointer class that holds a `Sync` and `VirtualAddressSpaceIndependent` object. The pointer
-/// is obtained by a call to a shared memory allocator's `alloc()` function (or the global
-/// `shalloc()` function. The memory is freed when the block is dropped.
+<span class="doccomment">/// A smart pointer class that holds a `Sync` and `VirtualAddressSpaceIndependent` object.
+///
+/// The pointer is obtained by a call to a shared memory allocator's `alloc()` function (or the
+/// global `shalloc()` function. The memory is freed when the block is dropped.
 ///
 /// This smart pointer is unique in that it may be serialized to a string, passed across process
 /// boundaries, and deserialized in a (potentially) separate process to obtain a view of the
@@ -724,10 +726,11 @@
 }
 
 <span class="doccomment">/// This struct is analogous to the `ShMemBlock` smart pointer, except it does not assume ownership
-/// of the underlying memory and thus does not free the memory when dropped. An alias of a block is
-/// obtained with a call to `deserialize()` on a `SharedMemDeserializer` object (or likely by using
-/// the `shdeserialize()` to make this call on the global shared memory deserializer.
+/// of the underlying memory and thus does not free the memory when dropped.
 ///
+/// An alias of a block is obtained with a call to `deserialize()` on a `SharedMemDeserializer`
+/// object (or likely by using the `shdeserialize()` to make this call on the global shared memory
+/// deserializer.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt;
 <span class="kw">where
@@ -811,9 +814,10 @@
     }
 }
 
-<span class="doccomment">/// Safe wrapper around our low-level, unsafe, nostd shared memory allocator. This allocator type
-/// is not meant to be used directly, but can be accessed indirectly via calls made to `shmalloc()`
-/// and `shfree()`.
+<span class="doccomment">/// Safe wrapper around our low-level, unsafe, nostd shared memory allocator.
+///
+/// This allocator type is not meant to be used directly, but can be accessed indirectly via calls
+/// made to `shmalloc()` and `shfree()`.
 </span><span class="kw">pub struct </span>SharedMemAllocator&lt;<span class="lifetime">'alloc</span>&gt; {
     internal: <span class="kw">crate</span>::shmalloc_impl::FreelistAllocator,
     nallocs: isize,

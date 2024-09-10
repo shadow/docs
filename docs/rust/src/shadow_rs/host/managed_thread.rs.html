@@ -781,6 +781,9 @@
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A thread of a managed process.
 //!
 //! This contains the code where the simulator can create or communicate with a managed process.
@@ -1343,8 +1346,7 @@
         //
         // This is also helpful since we can't retrieve specific `execve` errors
         // through `posix_spawn`.
-        </span>verify_plugin_path(std::ffi::OsStr::from_bytes(plugin_path.to_bytes())).map_err(|e| {
-            <span class="macro">debug!</span>(<span class="string">"Failed to verify path {plugin_path:?}"</span>);
+        </span><span class="kw">fn </span>map_verify_err(e: VerifyPluginPathError) -&gt; Errno {
             <span class="kw">match </span>e {
                 <span class="comment">// execve(2): ENOENT The file pathname [...] does not exist.
                 </span>VerifyPluginPathError::NotFound =&gt; Errno::ENOENT,
@@ -1355,7 +1357,9 @@
                 <span class="comment">// execve(2): ENOEXEC An executable is not in a recognized
                 // format, is for the wrong architecture, or has some other
                 // format error that means it cannot be executed.
-                </span>VerifyPluginPathError::NotDynamicallyLinkedElf =&gt; Errno::ENOEXEC,
+                </span>VerifyPluginPathError::UnknownFileType =&gt; Errno::ENOEXEC,
+                VerifyPluginPathError::NotDynamicallyLinkedElf =&gt; Errno::ENOEXEC,
+                VerifyPluginPathError::IncompatibleInterpreter(e) =&gt; map_verify_err(<span class="kw-2">*</span>e),
                 <span class="comment">// execve(2): EACCES Search permission is denied on a component
                 // of the path prefix of pathname or the name of a script
                 // interpreter.
@@ -1365,7 +1369,9 @@
                     </span>Errno::ENOEXEC
                 }
             }
-        })<span class="question-mark">?</span>;
+        }
+        verify_plugin_path(std::ffi::OsStr::from_bytes(plugin_path.to_bytes()))
+            .map_err(map_verify_err)<span class="question-mark">?</span>;
 
         <span class="comment">// posix_spawn is documented as taking pointers to *mutable* char for argv and
         // envv. It *probably* doesn't actually mutate them, but we

@@ -2332,6 +2332,12 @@
 <a href="#2332" id="2332">2332</a>
 <a href="#2333" id="2333">2333</a>
 <a href="#2334" id="2334">2334</a>
+<a href="#2335" id="2335">2335</a>
+<a href="#2336" id="2336">2336</a>
+<a href="#2337" id="2337">2337</a>
+<a href="#2338" id="2338">2338</a>
+<a href="#2339" id="2339">2339</a>
+<a href="#2340" id="2340">2340</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::{HashMap, LinkedList};
 <span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::net::SocketAddrV4;
@@ -2477,8 +2483,10 @@
 }
 
 <span class="kw">impl</span>&lt;X: Dependencies&gt; Common&lt;X&gt; {
-    <span class="doccomment">/// Register a timer for this state. This method will make sure that the callback gets run on
-    /// the correct state, even if called by a child state.
+    <span class="doccomment">/// Register a timer for this state.
+    ///
+    /// This method will make sure that the callback gets run on the correct state, even if called
+    /// by a child state.
     </span><span class="kw">pub fn </span>register_timer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         time: X::Instant,
@@ -2510,7 +2518,11 @@
 
                     <span class="kw">let </span>rv = parent_listen_state.with_child(child_key, |state| (f(state), ()));
 
-                    <span class="kw">match </span>rv {
+                    <span class="comment">// in practice we want to ignore the error, but by doing a match here we make
+                    // sure that if the return type of `with_child` changes in the future, this code
+                    // will break and we can update it
+                    </span><span class="attr">#[allow(clippy::single_match)]
+                    </span><span class="kw">match </span>rv {
                         <span class="prelude-val">Ok</span>(()) =&gt; {}
                         <span class="comment">// we ignore this since the child may have been closed
                         </span><span class="prelude-val">Err</span>(ChildNotFound) =&gt; {}
