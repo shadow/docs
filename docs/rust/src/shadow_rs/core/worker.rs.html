@@ -800,6 +800,20 @@
 <a href="#800" id="800">800</a>
 <a href="#801" id="801">801</a>
 <a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicU32};
@@ -1122,7 +1136,10 @@
         .unwrap();
     }
 
-    <span class="doccomment">/// # Safety
+    <span class="doccomment">/// The packet will be dropped if the packet's destination IP is not part of the simulation (no
+    /// host has been configured for the IP).
+    ///
+    /// # Safety
     ///
     /// `packet` must be valid and not accessed by another thread while this function is
     /// running.
@@ -1148,12 +1165,23 @@
         <span class="kw">let </span>src_ip: std::net::Ipv4Addr = u32::from_be(src_ip).into();
         <span class="kw">let </span>dst_ip: std::net::Ipv4Addr = u32::from_be(dst_ip).into();
 
-        <span class="kw">let </span>dst_host_id = Worker::with(|w| {
-            w.shared
-                .resolve_ip_to_host_id(dst_ip)
-                .expect(<span class="string">"No host ID for dest address {dst_ip}"</span>)
-        })
-        .unwrap();
+        <span class="kw">let </span><span class="prelude-val">Some</span>(dst_host_id) = Worker::with(|w| w.shared.resolve_ip_to_host_id(dst_ip)).unwrap()
+        <span class="kw">else </span>{
+            <span class="macro">log_once_per_value_at_level!</span>(
+                dst_ip,
+                std::net::Ipv4Addr,
+                log::Level::Warn,
+                log::Level::Debug,
+                <span class="string">"Packet has destination {dst_ip} which doesn't exist in the simulation. Dropping the packet."</span>,
+            );
+            <span class="kw">unsafe </span>{
+                cshadow::packet_addDeliveryStatus(
+                    packet,
+                    cshadow::_PacketDeliveryStatusFlags_PDS_INET_DROPPED,
+                )
+            };
+            <span class="kw">return</span>;
+        };
 
         <span class="kw">let </span>src_ip = std::net::IpAddr::V4(src_ip);
         <span class="kw">let </span>dst_ip = std::net::IpAddr::V4(dst_ip);
