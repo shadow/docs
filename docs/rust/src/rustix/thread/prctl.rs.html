@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.34/src/thread/prctl.rs`."><title>prctl.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.37/src/thread/prctl.rs`."><title>prctl.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1005,15 +1005,21 @@
 <a href="#1005" id="1005">1005</a>
 <a href="#1006" id="1006">1006</a>
 <a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Linux `prctl` wrappers.
 //!
-//! Rustix wraps variadic/dynamic-dispatch functions like `prctl` in
-//! type-safe wrappers.
+//! Rustix wraps variadic/dynamic-dispatch functions like `prctl` in type-safe
+//! wrappers.
 //!
 //! # Safety
 //!
-//! The inner `prctl` calls are dynamically typed and must be called
-//! correctly.
+//! The inner `prctl` calls are dynamically typed and must be called correctly.
 </span><span class="attr">#![allow(unsafe_code)]
 
 </span><span class="kw">use </span>core::mem::MaybeUninit;
@@ -1045,9 +1051,9 @@
 <span class="doccomment">/// Get the current state of the calling thread's `keep capabilities` flag.
 ///
 /// # References
-///  - [`prctl(PR_GET_KEEPCAPS,...)`]
+///  - [`prctl(PR_GET_KEEPCAPS,…)`]
 ///
-/// [`prctl(PR_GET_KEEPCAPS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_KEEPCAPS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>get_keep_capabilities() -&gt; io::Result&lt;bool&gt; {
     <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_KEEPCAPS) }.map(|r| r != <span class="number">0</span>)
@@ -1058,9 +1064,9 @@
 <span class="doccomment">/// Set the state of the calling thread's `keep capabilities` flag.
 ///
 /// # References
-///  - [`prctl(PR_SET_KEEPCAPS,...)`]
+///  - [`prctl(PR_SET_KEEPCAPS,…)`]
 ///
-/// [`prctl(PR_SET_KEEPCAPS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_KEEPCAPS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>set_keep_capabilities(enable: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_KEEPCAPS, usize::from(enable) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1076,9 +1082,9 @@
 <span class="doccomment">/// Get the name of the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_GET_NAME,...)`]
+///  - [`prctl(PR_GET_NAME,…)`]
 ///
-/// [`prctl(PR_GET_NAME,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_NAME,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 #[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">pub fn </span>name() -&gt; io::Result&lt;CString&gt; {
@@ -1097,9 +1103,9 @@
 /// 16 bytes, as the Linux syscall does.
 ///
 /// # References
-///  - [`prctl(PR_SET_NAME,...)`]
+///  - [`prctl(PR_SET_NAME,…)`]
 ///
-/// [`prctl(PR_SET_NAME,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_NAME,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>set_name(name: <span class="kw-2">&amp;</span>CStr) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_NAME, name.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1156,9 +1162,9 @@
 /// the process is killed; see [the `proc` manual page].
 ///
 /// # References
-///  - [`prctl(PR_GET_SECCOMP,...)`]
+///  - [`prctl(PR_GET_SECCOMP,…)`]
 ///
-/// [`prctl(PR_GET_SECCOMP,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_SECCOMP,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 /// [the `proc` manual page]: https://man7.org/linux/man-pages/man5/proc.5.html
 #[inline]
 pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
@@ -1172,9 +1178,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 /// available system calls.
 ///
 /// # References
-///  - [`prctl(PR_SET_SECCOMP,...)`]
+///  - [`prctl(PR_SET_SECCOMP,…)`]
 ///
-/// [`prctl(PR_SET_SECCOMP,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_SECCOMP,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>set_secure_computing_mode(mode: SecureComputingMode) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_SECCOMP, mode <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1374,7 +1380,7 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
     ///  - `bpf_probe_read` to read arbitrary kernel memory is allowed
     ///  - `bpf_trace_printk` to print kernel memory is allowed
     ///
-    /// [`Capability::SystemAdmin`] is required to use bpf_probe_write_user.
+    /// [`Capability::SystemAdmin`] is required to use `bpf_probe_write_user`.
     ///
     /// [`Capability::SystemAdmin`] is required to iterate system-wide loaded
     /// programs, maps, links, and BTFs, and convert their IDs to file
@@ -1395,9 +1401,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 /// bounding set.
 ///
 /// # References
-///  - [`prctl(PR_CAPBSET_READ,...)`]
+///  - [`prctl(PR_CAPBSET_READ,…)`]
 ///
-/// [`prctl(PR_CAPBSET_READ,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_CAPBSET_READ,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>capability_is_in_bounding_set(capability: Capability) -&gt; io::Result&lt;bool&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_CAPBSET_READ, capability <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|r| r != <span class="number">0</span>)
@@ -1410,9 +1416,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 /// from the thread's capability bounding set.
 ///
 /// # References
-///  - [`prctl(PR_CAPBSET_DROP,...)`]
+///  - [`prctl(PR_CAPBSET_DROP,…)`]
 ///
-/// [`prctl(PR_CAPBSET_DROP,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_CAPBSET_DROP,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>remove_capability_from_bounding_set(capability: Capability) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_CAPBSET_DROP, capability <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1434,6 +1440,8 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
         /// with an effective or real UID of 0 calls `execve`.
         </span><span class="kw">const </span>NO_ROOT = <span class="number">1_u32 </span>&lt;&lt; <span class="number">0</span>;
         <span class="doccomment">/// Set [`NO_ROOT`] irreversibly.
+        ///
+        /// [`NO_ROOT`]: Self::NO_ROOT
         </span><span class="kw">const </span>NO_ROOT_LOCKED = <span class="number">1_u32 </span>&lt;&lt; <span class="number">1</span>;
         <span class="doccomment">/// Setting this flag stops the kernel from adjusting the process'
         /// permitted, effective, and ambient capability sets when the thread's
@@ -1441,17 +1449,23 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
         /// values.
         </span><span class="kw">const </span>NO_SETUID_FIXUP = <span class="number">1_u32 </span>&lt;&lt; <span class="number">2</span>;
         <span class="doccomment">/// Set [`NO_SETUID_FIXUP`] irreversibly.
+        ///
+        /// [`NO_SETUID_FIXUP`]: Self::NO_SETUID_FIXUP
         </span><span class="kw">const </span>NO_SETUID_FIXUP_LOCKED = <span class="number">1_u32 </span>&lt;&lt; <span class="number">3</span>;
         <span class="doccomment">/// Setting this flag allows a thread that has one or more 0 UIDs to
         /// retain capabilities in its permitted set when it switches all of
         /// its UIDs to nonzero values.
         </span><span class="kw">const </span>KEEP_CAPS = <span class="number">1_u32 </span>&lt;&lt; <span class="number">4</span>;
         <span class="doccomment">/// Set [`KEEP_CAPS`] irreversibly.
+        ///
+        /// [`KEEP_CAPS`]: Self::KEEP_CAPS
         </span><span class="kw">const </span>KEEP_CAPS_LOCKED = <span class="number">1_u32 </span>&lt;&lt; <span class="number">5</span>;
         <span class="doccomment">/// Setting this flag disallows raising ambient capabilities via the
         /// `prctl`'s `PR_CAP_AMBIENT_RAISE` operation.
         </span><span class="kw">const </span>NO_CAP_AMBIENT_RAISE = <span class="number">1_u32 </span>&lt;&lt; <span class="number">6</span>;
         <span class="doccomment">/// Set [`NO_CAP_AMBIENT_RAISE`] irreversibly.
+        ///
+        /// [`NO_CAP_AMBIENT_RAISE`]: Self::NO_CAP_AMBIENT_RAISE
         </span><span class="kw">const </span>NO_CAP_AMBIENT_RAISE_LOCKED = <span class="number">1_u32 </span>&lt;&lt; <span class="number">7</span>;
 
         <span class="doccomment">/// &lt;https://docs.rs/bitflags/*/bitflags/#externally-defined-flags&gt;
@@ -1462,9 +1476,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Get the `securebits` flags of the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_GET_SECUREBITS,...)`]
+///  - [`prctl(PR_GET_SECUREBITS,…)`]
 ///
-/// [`prctl(PR_GET_SECUREBITS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_SECUREBITS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>capabilities_secure_bits() -&gt; io::Result&lt;CapabilitiesSecureBits&gt; {
     <span class="kw">let </span>r = <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_SECUREBITS)<span class="question-mark">? </span>} <span class="kw">as </span>c_uint;
@@ -1476,9 +1490,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Set the `securebits` flags of the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_SET_SECUREBITS,...)`]
+///  - [`prctl(PR_SET_SECUREBITS,…)`]
 ///
-/// [`prctl(PR_SET_SECUREBITS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_SECUREBITS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>set_capabilities_secure_bits(bits: CapabilitiesSecureBits) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_SECUREBITS, bits.bits() <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1493,9 +1507,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Get the `current` timer slack value of the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_GET_TIMERSLACK,...)`]
+///  - [`prctl(PR_GET_TIMERSLACK,…)`]
 ///
-/// [`prctl(PR_GET_TIMERSLACK,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_TIMERSLACK,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>current_timer_slack() -&gt; io::Result&lt;u64&gt; {
     <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_TIMERSLACK) }.map(|r| r <span class="kw">as </span>u64)
@@ -1506,9 +1520,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Sets the `current` timer slack value for the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_SET_TIMERSLACK,...)`]
+///  - [`prctl(PR_SET_TIMERSLACK,…)`]
 ///
-/// [`prctl(PR_SET_TIMERSLACK,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_TIMERSLACK,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>set_current_timer_slack(value: <span class="prelude-ty">Option</span>&lt;NonZeroU64&gt;) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>value = usize::try_from(value.map_or(<span class="number">0</span>, NonZeroU64::get)).map_err(|_r| io::Errno::RANGE)<span class="question-mark">?</span>;
@@ -1524,9 +1538,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Get the value of the `no_new_privs` attribute for the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_GET_NO_NEW_PRIVS,...)`]
+///  - [`prctl(PR_GET_NO_NEW_PRIVS,…)`]
 ///
-/// [`prctl(PR_GET_NO_NEW_PRIVS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_NO_NEW_PRIVS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>no_new_privs() -&gt; io::Result&lt;bool&gt; {
     <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_NO_NEW_PRIVS) }.map(|r| r != <span class="number">0</span>)
@@ -1537,9 +1551,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Set the calling thread's `no_new_privs` attribute.
 ///
 /// # References
-///  - [`prctl(PR_SET_NO_NEW_PRIVS,...)`]
+///  - [`prctl(PR_SET_NO_NEW_PRIVS,…)`]
 ///
-/// [`prctl(PR_SET_NO_NEW_PRIVS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_NO_NEW_PRIVS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>set_no_new_privs(no_new_privs: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_NO_NEW_PRIVS, usize::from(no_new_privs) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1555,9 +1569,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 /// and `clone`'s `CLONE_CHILD_CLEARTID` flag.
 ///
 /// # References
-///  - [`prctl(PR_GET_TID_ADDRESS,...)`]
+///  - [`prctl(PR_GET_TID_ADDRESS,…)`]
 ///
-/// [`prctl(PR_GET_TID_ADDRESS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_TID_ADDRESS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>get_clear_child_tid_address() -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;c_void&gt;&gt;&gt; {
     <span class="kw">unsafe </span>{ prctl_get_at_arg2_optional::&lt;<span class="kw-2">*mut </span>c_void&gt;(PR_GET_TID_ADDRESS) }.map(NonNull::new)
@@ -1572,9 +1586,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Get the current setting of the `THP disable` flag for the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_GET_THP_DISABLE,...)`]
+///  - [`prctl(PR_GET_THP_DISABLE,…)`]
 ///
-/// [`prctl(PR_GET_THP_DISABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_THP_DISABLE,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>transparent_huge_pages_are_disabled() -&gt; io::Result&lt;bool&gt; {
     <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_THP_DISABLE) }.map(|r| r != <span class="number">0</span>)
@@ -1585,9 +1599,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Set the state of the `THP disable` flag for the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_SET_THP_DISABLE,...)`]
+///  - [`prctl(PR_SET_THP_DISABLE,…)`]
 ///
-/// [`prctl(PR_SET_THP_DISABLE,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_THP_DISABLE,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>disable_transparent_huge_pages(thp_disable: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_SET_THP_DISABLE, usize::from(thp_disable) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1604,9 +1618,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Check if the specified capability is in the ambient set.
 ///
 /// # References
-///  - [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_IS_SET,...)`]
+///  - [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_IS_SET,…)`]
 ///
-/// [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_IS_SET,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_IS_SET,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>capability_is_in_ambient_set(capability: Capability) -&gt; io::Result&lt;bool&gt; {
     <span class="kw">let </span>cap = capability <span class="kw">as </span>usize <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
@@ -1618,9 +1632,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Remove all capabilities from the ambient set.
 ///
 /// # References
-///  - [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_CLEAR_ALL,...)`]
+///  - [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_CLEAR_ALL,…)`]
 ///
-/// [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_CLEAR_ALL,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_CLEAR_ALL,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>clear_ambient_capability_set() -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{ prctl_2args(PR_CAP_AMBIENT, PR_CAP_AMBIENT_CLEAR_ALL <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>) }.map(|_r| ())
@@ -1632,9 +1646,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Add or remove the specified capability to the ambient set.
 ///
 /// # References
-///  - [`prctl(PR_CAP_AMBIENT,...)`]
+///  - [`prctl(PR_CAP_AMBIENT,…)`]
 ///
-/// [`prctl(PR_CAP_AMBIENT,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_CAP_AMBIENT,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>configure_capability_in_ambient_set(capability: Capability, enable: bool) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>sub_operation = <span class="kw">if </span>enable {
@@ -1668,9 +1682,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Get the thread's current SVE vector length configuration.
 ///
 /// # References
-///  - [`prctl(PR_SVE_GET_VL,...)`]
+///  - [`prctl(PR_SVE_GET_VL,…)`]
 ///
-/// [`prctl(PR_SVE_GET_VL,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SVE_GET_VL,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>sve_vector_length_configuration() -&gt; io::Result&lt;SVEVectorLengthConfig&gt; {
     <span class="kw">let </span>bits = <span class="kw">unsafe </span>{ prctl_1arg(PR_SVE_GET_VL)<span class="question-mark">? </span>} <span class="kw">as </span>c_uint;
@@ -1687,14 +1701,14 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Configure the thread's vector length of Scalable Vector Extension.
 ///
 /// # References
-///  - [`prctl(PR_SVE_SET_VL,...)`]
+///  - [`prctl(PR_SVE_SET_VL,…)`]
 ///
 /// # Safety
 ///
 /// Please ensure the conditions necessary to safely call this function,
 /// as detailed in the references above.
 ///
-/// [`prctl(PR_SVE_SET_VL,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SVE_SET_VL,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>set_sve_vector_length_configuration(
     vector_length_in_bytes: usize,
@@ -1727,14 +1741,14 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 /// values generated by the kernel.
 ///
 /// # References
-///  - [`prctl(PR_PAC_RESET_KEYS,...)`]
+///  - [`prctl(PR_PAC_RESET_KEYS,…)`]
 ///
 /// # Safety
 ///
 /// Please ensure the conditions necessary to safely call this function,
 /// as detailed in the references above.
 ///
-/// [`prctl(PR_PAC_RESET_KEYS,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_PAC_RESET_KEYS,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>reset_pointer_authentication_keys(
     keys: <span class="prelude-ty">Option</span>&lt;PointerAuthenticationKeys&gt;,
@@ -1774,9 +1788,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Get the current tagged address mode for the calling thread.
 ///
 /// # References
-///  - [`prctl(PR_GET_TAGGED_ADDR_CTRL,...)`]
+///  - [`prctl(PR_GET_TAGGED_ADDR_CTRL,…)`]
 ///
-/// [`prctl(PR_GET_TAGGED_ADDR_CTRL,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_GET_TAGGED_ADDR_CTRL,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>current_tagged_address_mode() -&gt; io::Result&lt;(<span class="prelude-ty">Option</span>&lt;TaggedAddressMode&gt;, u32)&gt; {
     <span class="kw">let </span>r = <span class="kw">unsafe </span>{ prctl_1arg(PR_GET_TAGGED_ADDR_CTRL)<span class="question-mark">? </span>} <span class="kw">as </span>c_uint;
@@ -1790,14 +1804,14 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Controls support for passing tagged user-space addresses to the kernel.
 ///
 /// # References
-///  - [`prctl(PR_SET_TAGGED_ADDR_CTRL,...)`]
+///  - [`prctl(PR_SET_TAGGED_ADDR_CTRL,…)`]
 ///
 /// # Safety
 ///
 /// Please ensure the conditions necessary to safely call this function, as
 /// detailed in the references above.
 ///
-/// [`prctl(PR_SET_TAGGED_ADDR_CTRL,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_TAGGED_ADDR_CTRL,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>set_current_tagged_address_mode(
     mode: <span class="prelude-ty">Option</span>&lt;TaggedAddressMode&gt;,
@@ -1819,14 +1833,14 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Disable Syscall User Dispatch mechanism.
 ///
 /// # References
-///  - [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_OFF,...)`]
+///  - [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_OFF,…)`]
 ///
 /// # Safety
 ///
 /// Please ensure the conditions necessary to safely call this function, as
 /// detailed in the references above.
 ///
-/// [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_OFF,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_OFF,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>disable_syscall_user_dispatch() -&gt; io::Result&lt;()&gt; {
     prctl_2args(PR_SET_SYSCALL_USER_DISPATCH, PR_SYS_DISPATCH_OFF <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>).map(|_r| ())
@@ -1865,14 +1879,14 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Enable Syscall User Dispatch mechanism.
 ///
 /// # References
-///  - [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_ON,...)`]
+///  - [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_ON,…)`]
 ///
 /// # Safety
 ///
 /// Please ensure the conditions necessary to safely call this function, as
 /// detailed in the references above.
 ///
-/// [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_ON,...)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
+/// [`prctl(PR_SET_SYSCALL_USER_DISPATCH,PR_SYS_DISPATCH_ON,…)`]: https://man7.org/linux/man-pages/man2/prctl.2.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>enable_syscall_user_dispatch(
     always_allowed_region: <span class="kw-2">&amp;</span>[u8],
@@ -1929,9 +1943,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Get core scheduling cookie of a process.
 ///
 /// # References
-///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_GET,...)`]
+///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_GET,…)`]
 ///
-/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_GET,...)`]: https://www.kernel.org/doc/html/v5.18/admin-guide/hw-vuln/core-scheduling.html
+/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_GET,…)`]: https://www.kernel.org/doc/html/v6.10/admin-guide/hw-vuln/core-scheduling.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>core_scheduling_cookie(pid: Pid, scope: CoreSchedulingScope) -&gt; io::Result&lt;u64&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>value: MaybeUninit&lt;u64&gt; = MaybeUninit::uninit();
@@ -1952,9 +1966,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Create unique core scheduling cookie.
 ///
 /// # References
-///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_CREATE,...)`]
+///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_CREATE,…)`]
 ///
-/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_CREATE,...)`]: https://www.kernel.org/doc/html/v5.18/admin-guide/hw-vuln/core-scheduling.html
+/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_CREATE,…)`]: https://www.kernel.org/doc/html/v6.10/admin-guide/hw-vuln/core-scheduling.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>create_core_scheduling_cookie(pid: Pid, scope: CoreSchedulingScope) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{
@@ -1974,9 +1988,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Push core scheduling cookie to a process.
 ///
 /// # References
-///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_TO,...)`]
+///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_TO,…)`]
 ///
-/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_TO,...)`]: https://www.kernel.org/doc/html/v5.18/admin-guide/hw-vuln/core-scheduling.html
+/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_TO,…)`]: https://www.kernel.org/doc/html/v6.10/admin-guide/hw-vuln/core-scheduling.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>push_core_scheduling_cookie(pid: Pid, scope: CoreSchedulingScope) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{
@@ -1996,9 +2010,9 @@ pub fn secure_computing_mode() -&gt; io::Result&lt;SecureComputingMode&gt; {
 <span class="doccomment">/// Pull core scheduling cookie from a process.
 ///
 /// # References
-///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_FROM,...)`]
+///  - [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_FROM,…)`]
 ///
-/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_FROM,...)`]: https://www.kernel.org/doc/html/v5.18/admin-guide/hw-vuln/core-scheduling.html
+/// [`prctl(PR_SCHED_CORE,PR_SCHED_CORE_SHARE_FROM,…)`]: https://www.kernel.org/doc/html/v6.10/admin-guide/hw-vuln/core-scheduling.html
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>pull_core_scheduling_cookie(pid: Pid, scope: CoreSchedulingScope) -&gt; io::Result&lt;()&gt; {
     <span class="kw">unsafe </span>{
