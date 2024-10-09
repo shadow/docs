@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["if_nameindex","if_nametoindex"],"struct":["Interface","InterfaceFlags","Interfaces","InterfacesIter"]};
+window.SIDEBAR_ITEMS = {"fn":["if_indextoname","if_nameindex","if_nametoindex"],"struct":["Interface","InterfaceFlags","Interfaces","InterfacesIter"],"type":["IflagsType"]};

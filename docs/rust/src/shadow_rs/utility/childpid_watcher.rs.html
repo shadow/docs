@@ -614,6 +614,7 @@
 <a href="#614" id="614">614</a>
 <a href="#615" id="615">615</a>
 <a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::sync::Mutex;
@@ -979,6 +980,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>std::sync::{Arc, Condvar};
 
+    <span class="kw">use </span>nix::sys::eventfd::EventFd;
     <span class="kw">use </span>rustix::fd::AsRawFd;
     <span class="kw">use </span>rustix::process::{waitpid, WaitOptions};
 
@@ -994,7 +996,7 @@
     </span><span class="comment">// can't call foreign function: pipe
     </span><span class="attr">#[cfg_attr(miri, ignore)]
     </span><span class="kw">fn </span>register_before_exit() {
-        <span class="kw">let </span>notifier = nix::sys::eventfd::eventfd(<span class="number">0</span>, nix::sys::eventfd::EfdFlags::empty()).unwrap();
+        <span class="kw">let </span>notifier = EventFd::new().unwrap();
 
         <span class="kw">let </span>watcher = ChildPidWatcher::new();
         <span class="kw">let </span>child = <span class="kw">unsafe </span>{
@@ -1033,7 +1035,7 @@
         </span><span class="macro">assert!</span>(!<span class="kw-2">*</span>callback_ran.<span class="number">0</span>.lock().unwrap());
 
         <span class="comment">// Let the child exit.
-        </span>nix::unistd::write(notifier.as_raw_fd(), <span class="kw-2">&amp;</span><span class="number">1u64</span>.to_ne_bytes()).unwrap();
+        </span>nix::unistd::write(<span class="kw-2">&amp;</span>notifier, <span class="kw-2">&amp;</span><span class="number">1u64</span>.to_ne_bytes()).unwrap();
 
         <span class="comment">// Wait for our callback to run.
         </span><span class="kw">let </span><span class="kw-2">mut </span>callback_ran_lock = callback_ran.<span class="number">0</span>.lock().unwrap();
@@ -1169,7 +1171,7 @@
         <span class="kw">let </span>cb1_ran = Arc::new((Mutex::new(<span class="bool-val">false</span>), Condvar::new()));
         <span class="kw">let </span>cb2_ran = Arc::new((Mutex::new(<span class="bool-val">false</span>), Condvar::new()));
 
-        <span class="kw">let </span>notifier = nix::sys::eventfd::eventfd(<span class="number">0</span>, nix::sys::eventfd::EfdFlags::empty()).unwrap();
+        <span class="kw">let </span>notifier = EventFd::new().unwrap();
 
         <span class="kw">let </span>watcher = ChildPidWatcher::new();
         <span class="kw">let </span>child = <span class="kw">unsafe </span>{
@@ -1206,7 +1208,7 @@
         watcher.unregister_callback(child, handles[<span class="number">0</span>]);
 
         <span class="comment">// Let the child exit.
-        </span>nix::unistd::write(notifier.as_raw_fd(), <span class="kw-2">&amp;</span><span class="number">1u64</span>.to_ne_bytes()).unwrap();
+        </span>nix::unistd::write(<span class="kw-2">&amp;</span>notifier, <span class="kw-2">&amp;</span><span class="number">1u64</span>.to_ne_bytes()).unwrap();
 
         <span class="comment">// Wait for the still-registered callback to run.
         </span><span class="kw">let </span><span class="kw-2">mut </span>cb_ran_lock = cb2_ran.<span class="number">0</span>.lock().unwrap();

@@ -1,6 +1,6 @@
 var srcIndex = new Map(JSON.parse('[\
-["addr2line",["",[],["function.rs","lazy.rs","lib.rs"]]],\
-["adler",["",[],["algo.rs","lib.rs"]]],\
+["addr2line",["",[],["frame.rs","function.rs","lazy.rs","lib.rs","line.rs","lookup.rs","unit.rs"]]],\
+["adler2",["",[],["algo.rs","lib.rs"]]],\
 ["aho_corasick",["",[["nfa",[],["contiguous.rs","mod.rs","noncontiguous.rs"]],["packed",[["teddy",[],["builder.rs","generic.rs","mod.rs"]]],["api.rs","ext.rs","mod.rs","pattern.rs","rabinkarp.rs","vector.rs"]],["util",[],["alphabet.rs","buffer.rs","byte_frequencies.rs","debug.rs","error.rs","int.rs","mod.rs","prefilter.rs","primitives.rs","remapper.rs","search.rs","special.rs"]]],["ahocorasick.rs","automaton.rs","dfa.rs","lib.rs","macros.rs"]]],\
 ["anstream",["",[["adapter",[],["mod.rs","strip.rs","wincon.rs"]]],["auto.rs","buffer.rs","fmt.rs","lib.rs","macros.rs","stream.rs","strip.rs"]]],\
 ["anstyle",["",[],["color.rs","effect.rs","lib.rs","macros.rs","reset.rs","style.rs"]]],\
@@ -42,7 +42,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["hashbrown",["",[["external_trait_impls",[],["mod.rs"]],["raw",[],["alloc.rs","bitmask.rs","mod.rs","sse2.rs"]]],["lib.rs","macros.rs","map.rs","scopeguard.rs","set.rs","table.rs"]]],\
 ["heck",["",[],["kebab.rs","lib.rs","lower_camel.rs","shouty_kebab.rs","shouty_snake.rs","snake.rs","title.rs","train.rs","upper_camel.rs"]]],\
 ["home",["",[],["env.rs","lib.rs"]]],\
-["indexmap",["",[["map",[["core",[],["entry.rs","raw.rs","raw_entry_v1.rs"]]],["core.rs","iter.rs","mutable.rs","slice.rs"]],["set",[],["iter.rs","mutable.rs","slice.rs"]]],["arbitrary.rs","lib.rs","macros.rs","map.rs","set.rs","util.rs"]]],\
+["indexmap",["",[["map",[["core",[],["entry.rs","raw_entry_v1.rs"]]],["core.rs","iter.rs","mutable.rs","slice.rs"]],["set",[],["iter.rs","mutable.rs","slice.rs"]]],["arbitrary.rs","lib.rs","macros.rs","map.rs","set.rs","util.rs"]]],\
 ["is_terminal_polyfill",["",[],["lib.rs"]]],\
 ["itoa",["",[],["lib.rs","udiv128.rs"]]],\
 ["jobserver",["",[],["error.rs","lib.rs","unix.rs"]]],\
@@ -66,7 +66,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["naked_function_macro",["",[],["asm.rs","lib.rs","naked.rs"]]],\
 ["neli",["",[["consts",[],["genl.rs","macros.rs","mod.rs","netfilter.rs","nl.rs","rtnl.rs","socket.rs"]]],["attr.rs","err.rs","genl.rs","iter.rs","lib.rs","nl.rs","parse.rs","rtnl.rs","socket.rs","types.rs","utils.rs"]]],\
 ["neli_proc_macros",["",[],["derive_frombytes.rs","derive_header.rs","derive_size.rs","derive_tobytes.rs","lib.rs","neli_enum.rs","shared.rs"]]],\
-["nix",["",[["net",[],["if_.rs","mod.rs"]],["sys",[["ioctl",[],["linux.rs","mod.rs"]],["socket",[],["addr.rs","mod.rs","sockopt.rs"]]],["epoll.rs","eventfd.rs","memfd.rs","mman.rs","mod.rs","personality.rs","prctl.rs","resource.rs","signal.rs","signalfd.rs","stat.rs","statfs.rs","statvfs.rs","sysinfo.rs","time.rs","timer.rs","timerfd.rs","uio.rs","utsname.rs","wait.rs"]]],["errno.rs","fcntl.rs","features.rs","ifaddrs.rs","lib.rs","macros.rs","sched.rs","time.rs","unistd.rs"]]],\
+["nix",["",[["net",[],["if_.rs","mod.rs"]],["sys",[["ioctl",[],["linux.rs","mod.rs"]],["socket",[],["addr.rs","mod.rs","sockopt.rs"]]],["epoll.rs","eventfd.rs","memfd.rs","mman.rs","mod.rs","personality.rs","prctl.rs","resource.rs","signal.rs","signalfd.rs","stat.rs","statfs.rs","statvfs.rs","sysinfo.rs","time.rs","timer.rs","timerfd.rs","uio.rs","utsname.rs","wait.rs"]]],["errno.rs","fcntl.rs","features.rs","ifaddrs.rs","lib.rs","macros.rs","poll_timeout.rs","sched.rs","time.rs","unistd.rs"]]],\
 ["nom",["",[["bits",[],["complete.rs","mod.rs","streaming.rs"]],["branch",[],["mod.rs"]],["bytes",[],["complete.rs","mod.rs","streaming.rs"]],["character",[],["complete.rs","mod.rs","streaming.rs"]],["combinator",[],["mod.rs"]],["multi",[],["mod.rs"]],["number",[],["complete.rs","mod.rs","streaming.rs"]],["sequence",[],["mod.rs"]]],["error.rs","internal.rs","lib.rs","macros.rs","str.rs","traits.rs"]]],\
 ["num_enum",["",[],["lib.rs"]]],\
 ["num_enum_derive",["",[],["enum_attributes.rs","lib.rs","parsing.rs","utils.rs","variant_attributes.rs"]]],\
@@ -98,7 +98,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["scheduler",["",[["pools",[],["bounded.rs","mod.rs","unbounded.rs"]],["sync",[],["count_down_latch.rs","mod.rs","simple_latch.rs","thread_parking.rs"]]],["lib.rs","logical_processor.rs","thread_per_core.rs","thread_per_host.rs"]]],\
 ["schemars",["",[["json_schema_impls",[],["array.rs","atomic.rs","core.rs","ffi.rs","maps.rs","mod.rs","nonzero_signed.rs","nonzero_unsigned.rs","primitives.rs","sequences.rs","serdejson.rs","time.rs","tuple.rs","wrapper.rs"]]],["_private.rs","flatten.rs","gen.rs","lib.rs","macros.rs","schema.rs","ser.rs","visit.rs"]]],\
 ["schemars_derive",["",[["ast",[],["from_serde.rs","mod.rs"]],["attr",[],["doc.rs","mod.rs","schemars_to_serde.rs","validation.rs"]]],["lib.rs","metadata.rs","regex_syntax.rs","schema_exprs.rs"]]],\
-["serde",["",[["de",[],["format.rs","ignored_any.rs","impls.rs","mod.rs","seed.rs","size_hint.rs","value.rs"]],["private",[],["de.rs","doc.rs","mod.rs","ser.rs"]],["ser",[],["fmt.rs","impls.rs","impossible.rs","mod.rs"]]],["integer128.rs","lib.rs","macros.rs"]]],\
+["serde",["",[["de",[],["ignored_any.rs","impls.rs","mod.rs","seed.rs","size_hint.rs","value.rs"]],["private",[],["de.rs","doc.rs","mod.rs","ser.rs"]],["ser",[],["fmt.rs","impls.rs","impossible.rs","mod.rs"]]],["format.rs","integer128.rs","lib.rs","macros.rs"]]],\
 ["serde_derive",["",[["internals",[],["ast.rs","attr.rs","case.rs","check.rs","ctxt.rs","mod.rs","receiver.rs","respan.rs","symbol.rs"]]],["bound.rs","de.rs","dummy.rs","fragment.rs","lib.rs","pretend.rs","ser.rs","this.rs"]]],\
 ["serde_derive_internals",["",[["src",[],["ast.rs","attr.rs","case.rs","check.rs","ctxt.rs","mod.rs","receiver.rs","respan.rs","symbol.rs"]]],["lib.rs"]]],\
 ["serde_json",["",[["io",[],["mod.rs"]],["value",[],["de.rs","from.rs","index.rs","mod.rs","partial_eq.rs","ser.rs"]]],["de.rs","error.rs","iter.rs","lib.rs","macros.rs","map.rs","number.rs","read.rs","ser.rs"]]],\
@@ -112,6 +112,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["shadow_shim_helper_rs",["",[["rootedcell",[],["cell.rs","mod.rs","rc.rs","refcell.rs"]],["util",[],["mod.rs","time.rs"]]],["emulated_time.rs","explicit_drop.rs","ipc.rs","lib.rs","notnull.rs","option.rs","shim_event.rs","shim_shmem.rs","simulation_time.rs","syscall_types.rs"]]],\
 ["shadow_shmem",["",[],["allocator.rs","lib.rs","raw_syscall.rs","shmalloc_impl.rs","util.rs"]]],\
 ["shadow_tsc",["",[],["lib.rs"]]],\
+["shlex",["",[],["bytes.rs","lib.rs","quoting_warning.md"]]],\
 ["signal_hook",["",[["iterator",[["exfiltrator",[],["mod.rs","raw.rs"]]],["backend.rs","mod.rs"]],["low_level",[],["channel.rs","mod.rs","pipe.rs","signal_details.rs"]]],["flag.rs","lib.rs"]]],\
 ["signal_hook_registry",["",[],["half_lock.rs","lib.rs"]]],\
 ["slotmap",["",[],["basic.rs","dense.rs","hop.rs","lib.rs","secondary.rs","sparse_secondary.rs","util.rs"]]],\

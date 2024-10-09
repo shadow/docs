@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.27.1/src/time.rs`."><title>time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.29.0/src/time.rs`."><title>time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -281,14 +281,11 @@
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::sys::time::TimeSpec;
-<span class="attr">#[cfg(any(
-    target_os = <span class="string">"freebsd"</span>,
-    target_os = <span class="string">"dragonfly"</span>,
-    target_os = <span class="string">"linux"</span>,
-    target_os = <span class="string">"android"</span>,
-    target_os = <span class="string">"emscripten"</span>,
-))]
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Sleep, query system clocks, and set system clock
+</span><span class="kw">use </span><span class="kw">crate</span>::sys::time::TimeSpec;
+<span class="attr">#[cfg(any(freebsdlike, linux_android, target_os = <span class="string">"emscripten"</span>))]
 #[cfg(feature = <span class="string">"process"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::unistd::Pid;
 <span class="kw">use crate</span>::{Errno, <span class="prelude-ty">Result</span>};
@@ -297,8 +294,7 @@
 
 <span class="doccomment">/// Clock identifier
 ///
-/// Newtype pattern around `clockid_t` (which is just alias). It prevents bugs caused by
-/// accidentally passing wrong value.
+/// Newtype pattern around [`libc::clockid_t`].
 </span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 </span><span class="kw">pub struct </span>ClockId(clockid_t);
 
@@ -311,14 +307,7 @@
     <span class="macro">feature!</span> {
     <span class="attr">#![feature = <span class="string">"process"</span>]
     </span><span class="doccomment">/// Returns `ClockId` of a `pid` CPU-time clock
-    </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">"freebsd"</span>,
-        target_os = <span class="string">"dragonfly"</span>,
-        target_os = <span class="string">"linux"</span>,
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-    ))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    </span><span class="attr">#[cfg(any(freebsdlike, linux_android, target_os = <span class="string">"emscripten"</span>))]
     </span><span class="kw">pub fn </span>pid_cpu_clock_id(pid: Pid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
         clock_getcpuclockid(pid)
     }
@@ -326,7 +315,6 @@
 
     <span class="doccomment">/// Returns resolution of the clock id
     </span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="kw">pub fn </span>res(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;TimeSpec&gt; {
         clock_getres(<span class="self">self</span>)
     }
@@ -338,12 +326,12 @@
 
     <span class="doccomment">/// Sets time to `timespec` on the clock id
     </span><span class="attr">#[cfg(not(any(
-        target_os = <span class="string">"macos"</span>,
         target_os = <span class="string">"ios"</span>,
+        target_os = <span class="string">"tvos"</span>,
+        target_os = <span class="string">"watchos"</span>,
         target_os = <span class="string">"redox"</span>,
-        target_os = <span class="string">"hermit"</span>,
-    )))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+        target_os = <span class="string">"hermit"
+    </span>)))]
     </span><span class="kw">pub fn </span>set_time(<span class="self">self</span>, timespec: TimeSpec) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         clock_settime(<span class="self">self</span>, timespec)
     }
@@ -353,135 +341,103 @@
         <span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-        target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
+    </span><span class="doccomment">/// Starts at zero when the kernel boots and increments monotonically in SI seconds while the
+    /// machine is running.
     </span><span class="kw">pub const </span>CLOCK_BOOTTIME: ClockId = ClockId(libc::CLOCK_BOOTTIME);
-    <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-        target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="doccomment">/// Like [`CLOCK_BOOTTIME`](ClockId::CLOCK_BOOTTIME), but will wake the system if it is
+    /// suspended..
+    </span><span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>CLOCK_BOOTTIME_ALARM: ClockId =
         ClockId(libc::CLOCK_BOOTTIME_ALARM);
-    <span class="kw">pub const </span>CLOCK_MONOTONIC: ClockId = ClockId(libc::CLOCK_MONOTONIC);
-    <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-        target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="doccomment">/// Increments in SI seconds.
+    </span><span class="kw">pub const </span>CLOCK_MONOTONIC: ClockId = ClockId(libc::CLOCK_MONOTONIC);
+    <span class="doccomment">/// Like [`CLOCK_MONOTONIC`](ClockId::CLOCK_MONOTONIC), but optimized for execution time at the expense of accuracy.
+    </span><span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>CLOCK_MONOTONIC_COARSE: ClockId =
         ClockId(libc::CLOCK_MONOTONIC_COARSE);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Like [`CLOCK_MONOTONIC`](ClockId::CLOCK_MONOTONIC), but optimized for execution time at the expense of accuracy.
     </span><span class="kw">pub const </span>CLOCK_MONOTONIC_FAST: ClockId =
         ClockId(libc::CLOCK_MONOTONIC_FAST);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Like [`CLOCK_MONOTONIC`](ClockId::CLOCK_MONOTONIC), but optimized for accuracy at the expense of execution time.
     </span><span class="kw">pub const </span>CLOCK_MONOTONIC_PRECISE: ClockId =
         ClockId(libc::CLOCK_MONOTONIC_PRECISE);
-    <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-        target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="doccomment">/// Similar to [`CLOCK_MONOTONIC`](ClockId::CLOCK_MONOTONIC), but provides access to a raw
+    /// hardware-based time that is not subject to NTP adjustments.
+    </span><span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>CLOCK_MONOTONIC_RAW: ClockId = ClockId(libc::CLOCK_MONOTONIC_RAW);
     <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
+        linux_android,
+        apple_targets,
+        freebsdlike,
         target_os = <span class="string">"emscripten"</span>,
         target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"macos"</span>,
-        target_os = <span class="string">"ios"</span>,
-        target_os = <span class="string">"freebsd"</span>,
-        target_os = <span class="string">"dragonfly"</span>,
         target_os = <span class="string">"redox"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    ))]
+    </span><span class="doccomment">/// Returns the execution time of the calling process.
     </span><span class="kw">pub const </span>CLOCK_PROCESS_CPUTIME_ID: ClockId =
         ClockId(libc::CLOCK_PROCESS_CPUTIME_ID);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Increments when the CPU is running in user or kernel mode
     </span><span class="kw">pub const </span>CLOCK_PROF: ClockId = ClockId(libc::CLOCK_PROF);
-    <span class="kw">pub const </span>CLOCK_REALTIME: ClockId = ClockId(libc::CLOCK_REALTIME);
-    <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-        target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="doccomment">/// Increments as a wall clock should.
+    </span><span class="kw">pub const </span>CLOCK_REALTIME: ClockId = ClockId(libc::CLOCK_REALTIME);
+    <span class="doccomment">/// Like [`CLOCK_REALTIME`](ClockId::CLOCK_REALTIME), but not settable.
+    </span><span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>CLOCK_REALTIME_ALARM: ClockId =
         ClockId(libc::CLOCK_REALTIME_ALARM);
-    <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-        target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="doccomment">/// Like [`CLOCK_REALTIME`](ClockId::CLOCK_REALTIME), but optimized for execution time at the expense of accuracy.
+    </span><span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>CLOCK_REALTIME_COARSE: ClockId =
         ClockId(libc::CLOCK_REALTIME_COARSE);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Like [`CLOCK_REALTIME`](ClockId::CLOCK_REALTIME), but optimized for execution time at the expense of accuracy.
     </span><span class="kw">pub const </span>CLOCK_REALTIME_FAST: ClockId = ClockId(libc::CLOCK_REALTIME_FAST);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Like [`CLOCK_REALTIME`](ClockId::CLOCK_REALTIME), but optimized for accuracy at the expense of execution time.
     </span><span class="kw">pub const </span>CLOCK_REALTIME_PRECISE: ClockId =
         ClockId(libc::CLOCK_REALTIME_PRECISE);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Returns the current second without performing a full time counter query, using an in-kernel
+    /// cached value of the current second.
     </span><span class="kw">pub const </span>CLOCK_SECOND: ClockId = ClockId(libc::CLOCK_SECOND);
-    <span class="attr">#[cfg(any(
+    <span class="attr">#[allow(missing_docs)] </span><span class="comment">// Undocumented on Linux!
+    </span><span class="attr">#[cfg(any(
         target_os = <span class="string">"emscripten"</span>,
         target_os = <span class="string">"fuchsia"</span>,
         all(target_os = <span class="string">"linux"</span>, target_env = <span class="string">"musl"</span>)
     ))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="kw">pub const </span>CLOCK_SGI_CYCLE: ClockId = ClockId(libc::CLOCK_SGI_CYCLE);
-    <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
-        target_os = <span class="string">"emscripten"</span>,
-        target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="doccomment">/// International Atomic Time.
+    ///
+    /// A nonsettable system-wide clock derived from wall-clock time but ignoring leap seconds.
+    </span><span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))]
     </span><span class="kw">pub const </span>CLOCK_TAI: ClockId = ClockId(libc::CLOCK_TAI);
     <span class="attr">#[cfg(any(
-        target_os = <span class="string">"android"</span>,
+        linux_android,
+        apple_targets,
+        freebsdlike,
         target_os = <span class="string">"emscripten"</span>,
         target_os = <span class="string">"fuchsia"</span>,
-        target_os = <span class="string">"ios"</span>,
-        target_os = <span class="string">"macos"</span>,
-        target_os = <span class="string">"freebsd"</span>,
-        target_os = <span class="string">"dragonfly"</span>,
-        target_os = <span class="string">"linux"
-    </span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    ))]
+    </span><span class="doccomment">/// Returns the execution time of the calling thread.
     </span><span class="kw">pub const </span>CLOCK_THREAD_CPUTIME_ID: ClockId =
         ClockId(libc::CLOCK_THREAD_CPUTIME_ID);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Starts at zero when the kernel boots and increments monotonically in SI seconds while the
+    /// machine is running.
     </span><span class="kw">pub const </span>CLOCK_UPTIME: ClockId = ClockId(libc::CLOCK_UPTIME);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Like [`CLOCK_UPTIME`](ClockId::CLOCK_UPTIME), but optimized for execution time at the expense of accuracy.
     </span><span class="kw">pub const </span>CLOCK_UPTIME_FAST: ClockId = ClockId(libc::CLOCK_UPTIME_FAST);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Like [`CLOCK_UPTIME`](ClockId::CLOCK_UPTIME), but optimized for accuracy at the expense of execution time.
     </span><span class="kw">pub const </span>CLOCK_UPTIME_PRECISE: ClockId =
         ClockId(libc::CLOCK_UPTIME_PRECISE);
-    <span class="attr">#[cfg(any(target_os = <span class="string">"freebsd"</span>, target_os = <span class="string">"dragonfly"</span>))]
-    #[cfg_attr(docsrs, doc(cfg(all())))]
+    <span class="attr">#[cfg(freebsdlike)]
+    </span><span class="doccomment">/// Increments only when the CPU is running in user mode on behalf of the calling process.
     </span><span class="kw">pub const </span>CLOCK_VIRTUAL: ClockId = ClockId(libc::CLOCK_VIRTUAL);
 }
 
@@ -506,7 +462,6 @@
 <span class="doccomment">/// Get the resolution of the specified clock, (see
 /// [clock_getres(2)](https://pubs.opengroup.org/onlinepubs/7908799/xsh/clock_getres.html)).
 </span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
-#[cfg_attr(docsrs, doc(cfg(all())))]
 </span><span class="kw">pub fn </span>clock_getres(clock_id: ClockId) -&gt; <span class="prelude-ty">Result</span>&lt;TimeSpec&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>c_time: MaybeUninit&lt;libc::timespec&gt; = MaybeUninit::uninit();
     <span class="kw">let </span>ret =
@@ -530,12 +485,12 @@
 <span class="doccomment">/// Set the time of the specified clock, (see
 /// [clock_settime(2)](https://pubs.opengroup.org/onlinepubs/7908799/xsh/clock_settime.html)).
 </span><span class="attr">#[cfg(not(any(
-    target_os = <span class="string">"macos"</span>,
     target_os = <span class="string">"ios"</span>,
+    target_os = <span class="string">"tvos"</span>,
+    target_os = <span class="string">"watchos"</span>,
     target_os = <span class="string">"redox"</span>,
-    target_os = <span class="string">"hermit"</span>,
-)))]
-#[cfg_attr(docsrs, doc(cfg(all())))]
+    target_os = <span class="string">"hermit"
+</span>)))]
 </span><span class="kw">pub fn </span>clock_settime(clock_id: ClockId, timespec: TimeSpec) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>ret =
         <span class="kw">unsafe </span>{ libc::clock_settime(clock_id.as_raw(), timespec.as_ref()) };
@@ -544,13 +499,7 @@
 
 <span class="doccomment">/// Get the clock id of the specified process id, (see
 /// [clock_getcpuclockid(3)](https://pubs.opengroup.org/onlinepubs/009695399/functions/clock_getcpuclockid.html)).
-</span><span class="attr">#[cfg(any(
-    target_os = <span class="string">"freebsd"</span>,
-    target_os = <span class="string">"dragonfly"</span>,
-    target_os = <span class="string">"linux"</span>,
-    target_os = <span class="string">"android"</span>,
-    target_os = <span class="string">"emscripten"</span>,
-))]
+</span><span class="attr">#[cfg(any(freebsdlike, linux_android, target_os = <span class="string">"emscripten"</span>))]
 #[cfg(feature = <span class="string">"process"</span>)]
 #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"process"</span>)))]
 </span><span class="kw">pub fn </span>clock_getcpuclockid(pid: Pid) -&gt; <span class="prelude-ty">Result</span>&lt;ClockId&gt; {
@@ -561,7 +510,62 @@
         <span class="kw">let </span>res = <span class="kw">unsafe </span>{ clk_id.assume_init() };
         <span class="prelude-val">Ok</span>(ClockId::from(res))
     } <span class="kw">else </span>{
-        <span class="prelude-val">Err</span>(Errno::from_i32(ret))
+        <span class="prelude-val">Err</span>(Errno::from_raw(ret))
+    }
+}
+
+<span class="attr">#[cfg(any(
+    linux_android,
+    solarish,
+    freebsdlike,
+    target_os = <span class="string">"netbsd"</span>,
+    target_os = <span class="string">"hurd"</span>,
+    target_os = <span class="string">"aix"
+</span>))]
+</span><span class="macro">libc_bitflags!</span> {
+    <span class="doccomment">/// Flags that are used for arming the timer.
+    </span><span class="kw">pub struct </span>ClockNanosleepFlags: libc::c_int {
+        <span class="doccomment">/// Indicates that a requested time value should be treated as absolute instead of
+        /// relative.
+        </span>TIMER_ABSTIME;
+    }
+}
+
+<span class="doccomment">/// Suspend execution of this thread for the amount of time specified by `request`
+/// and measured against the clock speficied by `clock_id`.
+///
+/// If `flags` is [`TIMER_ABSTIME`](ClockNanosleepFlags::TIMER_ABSTIME), this function will suspend
+/// execution until the time value of clock_id reaches the absolute time specified by `request`. If
+/// a signal is caught by a signal-catching function, or a signal causes the process to terminate,
+/// this sleep is interrrupted.
+///
+/// see also [man 3 clock_nanosleep](https://pubs.opengroup.org/onlinepubs/009695399/functions/clock_nanosleep.html)
+</span><span class="attr">#[cfg(any(
+    linux_android,
+    solarish,
+    freebsdlike,
+    target_os = <span class="string">"netbsd"</span>,
+    target_os = <span class="string">"hurd"</span>,
+    target_os = <span class="string">"aix"
+</span>))]
+</span><span class="kw">pub fn </span>clock_nanosleep(
+    clock_id: ClockId,
+    flags: ClockNanosleepFlags,
+    request: <span class="kw-2">&amp;</span>TimeSpec,
+) -&gt; <span class="prelude-ty">Result</span>&lt;TimeSpec&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>remain = TimeSpec::new(<span class="number">0</span>, <span class="number">0</span>);
+    <span class="kw">let </span>ret = <span class="kw">unsafe </span>{
+        libc::clock_nanosleep(
+            clock_id.as_raw(),
+            flags.bits(),
+            request.as_ref() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+            remain.as_mut() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+        )
+    };
+    <span class="kw">if </span>ret == <span class="number">0 </span>{
+        <span class="prelude-val">Ok</span>(remain)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(Errno::from_raw(ret))
     }
 }
 </code></pre></div></section></main></body></html>

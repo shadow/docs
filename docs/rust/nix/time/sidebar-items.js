@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["clock_getcpuclockid","clock_getres","clock_gettime","clock_settime"],"struct":["ClockId"]};
+window.SIDEBAR_ITEMS = {"fn":["clock_getcpuclockid","clock_getres","clock_gettime","clock_nanosleep","clock_settime"],"struct":["ClockId","ClockNanosleepFlags"]};

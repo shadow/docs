@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.27.1/src/ifaddrs.rs`."><title>ifaddrs.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.29.0/src/ifaddrs.rs`."><title>ifaddrs.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -211,13 +211,17 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Query network interface addresses
 //!
 //! Uses the Linux and/or BSD specific function `getifaddrs` to query the list
 //! of interfaces and their associated addresses.
 
 </span><span class="kw">use </span>cfg_if::cfg_if;
-<span class="attr">#[cfg(any(target_os = <span class="string">"ios"</span>, target_os = <span class="string">"macos"</span>))]
+<span class="attr">#[cfg(apple_targets)]
 </span><span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::ffi;
 <span class="kw">use </span>std::iter::Iterator;
@@ -246,7 +250,7 @@
 }
 
 <span class="macro">cfg_if!</span> {
-    <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>, target_os = <span class="string">"linux"</span>))] </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(any(linux_android, target_os = <span class="string">"emscripten"</span>, target_os = <span class="string">"fuchsia"</span>))] </span>{
         <span class="kw">fn </span>get_ifu_from_sockaddr(info: <span class="kw-2">&amp;</span>libc::ifaddrs) -&gt; <span class="kw-2">*const </span>libc::sockaddr {
             info.ifa_ifu
         }
@@ -266,7 +270,7 @@
 /// ss_len field to sizeof(sockaddr_storage). This is supposedly valid as all
 /// members of the sockaddr_storage are "ok" with being zeroed out (there are
 /// no pointers).
-</span><span class="attr">#[cfg(any(target_os = <span class="string">"ios"</span>, target_os = <span class="string">"macos"</span>))]
+</span><span class="attr">#[cfg(apple_targets)]
 </span><span class="kw">unsafe fn </span>workaround_xnu_bug(info: <span class="kw-2">&amp;</span>libc::ifaddrs) -&gt; <span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt; {
     <span class="kw">let </span>src_sock = info.ifa_netmask;
     <span class="kw">if </span>src_sock.is_null() {
@@ -275,22 +279,24 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>dst_sock = mem::MaybeUninit::&lt;libc::sockaddr_storage&gt;::zeroed();
 
-    <span class="comment">// memcpy only sa_len bytes, assume the rest is zero
-    </span>std::ptr::copy_nonoverlapping(
-        src_sock <span class="kw">as </span><span class="kw-2">*const </span>u8,
-        dst_sock.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8,
-        (<span class="kw-2">*</span>src_sock).sa_len.into(),
-    );
+    <span class="kw">let </span>dst_sock = <span class="kw">unsafe </span>{
+        <span class="comment">// memcpy only sa_len bytes, assume the rest is zero
+        </span>std::ptr::copy_nonoverlapping(
+            src_sock <span class="kw">as </span><span class="kw-2">*const </span>u8,
+            dst_sock.as_mut_ptr().cast(),
+            (<span class="kw-2">*</span>src_sock).sa_len.into(),
+        );
 
-    <span class="comment">// Initialize ss_len to sizeof(libc::sockaddr_storage).
-    </span>(<span class="kw-2">*</span>dst_sock.as_mut_ptr()).ss_len =
-        u8::try_from(mem::size_of::&lt;libc::sockaddr_storage&gt;()).unwrap();
-    <span class="kw">let </span>dst_sock = dst_sock.assume_init();
+        <span class="comment">// Initialize ss_len to sizeof(libc::sockaddr_storage).
+        </span>(<span class="kw-2">*</span>dst_sock.as_mut_ptr()).ss_len =
+            u8::try_from(mem::size_of::&lt;libc::sockaddr_storage&gt;()).unwrap();
+        dst_sock.assume_init()
+    };
 
     <span class="kw">let </span>dst_sock_ptr =
         <span class="kw-2">&amp;</span>dst_sock <span class="kw">as </span><span class="kw-2">*const </span>libc::sockaddr_storage <span class="kw">as </span><span class="kw-2">*const </span>libc::sockaddr;
 
-    SockaddrStorage::from_raw(dst_sock_ptr, <span class="prelude-val">None</span>)
+    <span class="kw">unsafe </span>{ SockaddrStorage::from_raw(dst_sock_ptr, <span class="prelude-val">None</span>) }
 }
 
 <span class="kw">impl </span>InterfaceAddress {
@@ -298,14 +304,16 @@
     </span><span class="kw">fn </span>from_libc_ifaddrs(info: <span class="kw-2">&amp;</span>libc::ifaddrs) -&gt; InterfaceAddress {
         <span class="kw">let </span>ifname = <span class="kw">unsafe </span>{ ffi::CStr::from_ptr(info.ifa_name) };
         <span class="kw">let </span>address = <span class="kw">unsafe </span>{ SockaddrStorage::from_raw(info.ifa_addr, <span class="prelude-val">None</span>) };
-        <span class="attr">#[cfg(any(target_os = <span class="string">"ios"</span>, target_os = <span class="string">"macos"</span>))]
+        <span class="attr">#[cfg(apple_targets)]
         </span><span class="kw">let </span>netmask = <span class="kw">unsafe </span>{ workaround_xnu_bug(info) };
-        <span class="attr">#[cfg(not(any(target_os = <span class="string">"ios"</span>, target_os = <span class="string">"macos"</span>)))]
+        <span class="attr">#[cfg(not(apple_targets))]
         </span><span class="kw">let </span>netmask =
             <span class="kw">unsafe </span>{ SockaddrStorage::from_raw(info.ifa_netmask, <span class="prelude-val">None</span>) };
         <span class="kw">let </span><span class="kw-2">mut </span>addr = InterfaceAddress {
             interface_name: ifname.to_string_lossy().to_string(),
-            flags: InterfaceFlags::from_bits_truncate(info.ifa_flags <span class="kw">as </span>i32),
+            flags: InterfaceFlags::from_bits_truncate(
+                info.ifa_flags <span class="kw">as </span>IflagsType,
+            ),
             address,
             netmask,
             broadcast: <span class="prelude-val">None</span>,

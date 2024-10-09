@@ -415,6 +415,9 @@
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Log a warning, and if a debug build then panic.
 </span><span class="macro">macro_rules!</span> debug_panic {
     ($(<span class="macro-nonterminal">$x</span>:tt)+) =&gt; {
@@ -557,10 +560,13 @@
         <span class="macro">paste::paste!</span> { <span class="macro">log_syscall!</span>([&lt; _syscall_logger_ <span class="macro-nonterminal">$name </span>&gt;]; <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$rv</span>, $(<span class="macro-nonterminal">$args</span>),<span class="kw-2">*</span>); }
     };
     (<span class="macro-nonterminal">$const_name</span>:ident; <span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$rv</span>:ty, $(<span class="macro-nonterminal">$args</span>:ty),<span class="kw-2">*</span>) =&gt; {
-        <span class="comment">// we use a constant as a hack so that we can do "impl SyscallLogger { ... }" while
-        // already inside a "impl SyscallHandler { ... }" block
+        <span class="comment">// We use a constant as a hack so that we can do "impl SyscallLogger { ... }" while already
+        // inside a "impl SyscallHandler { ... }" block. Apparently they may make this a hard error
+        // (with no way to opt-out with an `allow`) in the future:
+        // https://github.com/rust-lang/rust/issues/120363
         </span><span class="attr">#[doc(hidden)]
         #[allow(non_upper_case_globals)]
+        #[allow(non_local_definitions)]
         </span><span class="kw">const </span><span class="macro-nonterminal">$const_name </span>: () = {
             <span class="kw">impl </span><span class="kw">crate</span>::utility::macros::SyscallLogger {
                 <span class="kw">pub fn </span><span class="macro-nonterminal">$name</span>(

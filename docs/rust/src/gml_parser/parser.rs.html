@@ -347,7 +347,7 @@ A nom-based GML parser.
 }
 
 <span class="doccomment">/// Parse a GML key.
-</span><span class="kw">pub fn </span>key&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str, E&gt; {
+</span><span class="kw">pub fn </span>key&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, E&gt; {
     <span class="comment">// a key starts with the a character [a-zA-Z_], and has remaining characters [a-zA-Z0-9_]
     </span><span class="kw">let </span>take_first = take_verify(<span class="number">1</span>, |chr| is_alphabetic(chr <span class="kw">as </span>u8) || chr == <span class="string">'_'</span>);
     <span class="kw">let </span>take_remaining = take_while(|chr| is_alphanumeric(chr <span class="kw">as </span>u8) || chr == <span class="string">'_'</span>);
@@ -356,7 +356,7 @@ A nom-based GML parser.
 }
 
 <span class="doccomment">/// Parse a GML item (a key + value).
-</span><span class="kw">pub fn </span>item&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, GmlItem, E&gt; {
+</span><span class="kw">pub fn </span>item&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, GmlItem&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">match </span>key(input)<span class="question-mark">? </span>{
         (input, <span class="string">"node"</span>) =&gt; node(input).map(|(input, node)| (input, GmlItem::Node(node))),
         (input, <span class="string">"edge"</span>) =&gt; edge(input).map(|(input, edge)| (input, GmlItem::Edge(edge))),
@@ -370,7 +370,7 @@ A nom-based GML parser.
 }
 
 <span class="doccomment">/// Parse a GML graph.
-</span><span class="kw">pub fn </span>gml&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, Gml, E&gt; {
+</span><span class="kw">pub fn </span>gml&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Gml&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">let </span>(input, <span class="kw">_</span>) = multispace0(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = tag(<span class="string">"graph"</span>)(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = space0(input)<span class="question-mark">?</span>;
@@ -455,7 +455,7 @@ A nom-based GML parser.
 }
 
 <span class="doccomment">/// Parse a GML node.
-</span><span class="kw">fn </span>node&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, Node, E&gt; {
+</span><span class="kw">fn </span>node&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Node&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">let </span>(input, <span class="kw">_</span>) = space0(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = tag(<span class="string">"["</span>)(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = newline(input)<span class="question-mark">?</span>;
@@ -483,7 +483,7 @@ A nom-based GML parser.
 }
 
 <span class="doccomment">/// Parse a GML edge.
-</span><span class="kw">fn </span>edge&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, Edge, E&gt; {
+</span><span class="kw">fn </span>edge&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Edge&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">let </span>(input, <span class="kw">_</span>) = space0(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = tag(<span class="string">"["</span>)(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = newline(input)<span class="question-mark">?</span>;
@@ -528,18 +528,18 @@ A nom-based GML parser.
     <span class="prelude-val">Ok</span>((input, value))
 }
 
-<span class="kw">fn </span>int&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
+<span class="kw">fn </span>int&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">let </span>(input, value) = map_res(recognize(digit1), str::parse)(input)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((input, Value::Int(value)))
 }
 
-<span class="kw">fn </span>float&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
+<span class="kw">fn </span>float&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">let </span>(input, value) = map_res(nom::number::complete::recognize_float, str::parse)(input)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((input, Value::Float(value)))
 }
 
 <span class="doccomment">/// Parse a GML string.
-</span><span class="kw">fn </span>string&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
+</span><span class="kw">fn </span>string&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">let </span>(input, <span class="kw">_</span>) = tag(<span class="string">"\""</span>)(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, value) = escaped_transform(
         is_not(<span class="string">"\""</span>),
@@ -554,7 +554,7 @@ A nom-based GML parser.
     <span class="prelude-val">Ok</span>((input, Value::Str(value.into())))
 }
 
-<span class="kw">fn </span>newline&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str, E&gt; {
+<span class="kw">fn </span>newline&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, E&gt; {
     recognize(tuple((space0, multispace1, space0)))(input)
 }
 
@@ -566,7 +566,7 @@ A nom-based GML parser.
     }
 }
 
-<span class="kw">fn </span>int_as_bool&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, bool, E&gt; {
+<span class="kw">fn </span>int_as_bool&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, bool, E&gt; {
     <span class="kw">let </span>(input, value) = value(input)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>value = <span class="kw">match </span>value {
