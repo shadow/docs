@@ -1228,8 +1228,8 @@ hosts:
 <li><a href="shadow_config_spec.html#experimentalhost_heartbeat_log_info"><code>experimental.host_heartbeat_log_info</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalhost_heartbeat_log_level"><code>experimental.host_heartbeat_log_level</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalinterface_qdisc"><code>experimental.interface_qdisc</code></a></li>
-<li><a href="shadow_config_spec.html#experimentallog_errors_to_tty"><code>experimental.log_errors_to_tty</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalmax_unapplied_cpu_latency"><code>experimental.max_unapplied_cpu_latency</code></a></li>
+<li><a href="shadow_config_spec.html#experimentalreport_errors_to_stderr"><code>experimental.report_errors_to_stderr</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalrunahead"><code>experimental.runahead</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalscheduler"><code>experimental.scheduler</code></a></li>
 <li><a href="shadow_config_spec.html#experimentalsocket_recv_autotune"><code>experimental.socket_recv_autotune</code></a></li>
@@ -1422,6 +1422,11 @@ blocked on a syscall.</p>
 <p>Ignored when
 <a href="shadow_config_spec.html#generalmodel_unblocked_syscall_latency"><code>general.model_unblocked_syscall_latency</code></a>
 is false.</p>
+<h4 id="experimentalreport_errors_to_stderr"><a class="header" href="#experimentalreport_errors_to_stderr"><code>experimental.report_errors_to_stderr</code></a></h4>
+<p>Default: true<br />
+Type: Bool</p>
+<p>Report <code>Error</code>-level log messages to shadow's <code>stderr</code> in addition to logging
+them to <code>stdout</code>.</p>
 <h4 id="experimentalrunahead"><a class="header" href="#experimentalrunahead"><code>experimental.runahead</code></a></h4>
 <p>Default: "1 ms"<br />
 Type: String OR null</p>
@@ -1542,11 +1547,6 @@ Type: Bool</p>
 <p>Each worker thread will spin in a <code>sched_yield</code> loop while waiting for a new task. This is ignored
 if not using the thread-per-core scheduler.</p>
 <p>This may improve runtime performance in some environments.</p>
-<h4 id="experimentallog_errors_to_tty"><a class="header" href="#experimentallog_errors_to_tty"><code>experimental.log_errors_to_tty</code></a></h4>
-<p>Default: true<br />
-Type: Bool</p>
-<p>Log <code>Error</code>-level log lines to shadow's <code>stderr</code> in addition to <code>stdout</code>, if
-<code>stdout</code> is not a tty but <code>stderr</code> is.</p>
 <h4 id="host_option_defaults"><a class="header" href="#host_option_defaults"><code>host_option_defaults</code></a></h4>
 <p>Default options for all hosts. These options can also be overridden for each
 host individually in the host's <a href="shadow_config_spec.html#hostshostnamehost_options"><code>hosts.&lt;hostname&gt;.host_options</code></a>
@@ -2387,6 +2387,16 @@ will be unrealistic during this time period, it can significantly reduce the
 simulation's wall clock time. After this bootstrapping period ends, the network
 bandwidth/reliability is reverted back to the values specified in the
 simulation and network configuration.</p>
+<h3 id="log_level"><a class="header" href="#log_level"><a href="https://shadow.github.io/docs/guide/shadow_config_spec.html#generallog_level"><code>log_level</code></a></a></h3>
+<p>Using lower log levels such as <code>debug</code> or <code>trace</code> will lead to a much greater
+volume of log messages. Writing these messages to disk can significantly impact
+the simulation run time performance, even if you're writing to an SSD. Unless
+you're actively debugging an issue in Shadow, you should use <code>info</code> level or
+higher.</p>
+<p>Along these same lines, you should try to reduce the amount of disk I/O of the
+managed applications running within Shadow. Even if they each write a
+reasonably small amount, it can add up to a lot of disk I/O when running
+simulations with thousands of processes.</p>
 <h3 id="heartbeat_interval-and-host_heartbeat_interval"><a class="header" href="#heartbeat_interval-and-host_heartbeat_interval"><a href="https://shadow.github.io/docs/guide/shadow_config_spec.html#generalheartbeat_interval"><code>heartbeat_interval</code></a> and <a href="https://shadow.github.io/docs/guide/shadow_config_spec.html#experimentalhost_heartbeat_interval"><code>host_heartbeat_interval</code></a></a></h3>
 <p>Shadow logs simulation statistics at given simulation time intervals. If any of
 these time intervals are small relative to the <a href="https://shadow.github.io/docs/guide/shadow_config_spec.html#generalstop_time">total time</a> of the

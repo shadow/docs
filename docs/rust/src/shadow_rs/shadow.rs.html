@@ -504,7 +504,6 @@
 </span><span class="kw">use </span>std::borrow::Borrow;
 <span class="kw">use </span>std::ffi::{CStr, OsStr};
 <span class="kw">use </span>std::fmt::Write;
-<span class="kw">use </span>std::io::IsTerminal;
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 <span class="kw">use </span>std::thread;
 
@@ -612,10 +611,11 @@
     <span class="kw">let </span>log_level: log::Level = log_level.into();
 
     <span class="comment">// start up the logging subsystem to handle all future messages
-    </span><span class="kw">let </span>log_errors_to_stderr = shadow_config.experimental.log_errors_to_tty.unwrap()
-        &amp;&amp; !std::io::stdout().lock().is_terminal()
-        &amp;&amp; std::io::stderr().lock().is_terminal();
-    shadow_logger::init(log_level.to_level_filter(), log_errors_to_stderr).unwrap();
+    </span>shadow_logger::init(
+        log_level.to_level_filter(),
+        shadow_config.experimental.report_errors_to_stderr.unwrap(),
+    )
+    .unwrap();
 
     <span class="comment">// disable log buffering during startup so that we see every message immediately in the terminal
     </span>shadow_logger::set_buffering_enabled(<span class="bool-val">false</span>);

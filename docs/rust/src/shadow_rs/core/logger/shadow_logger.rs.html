@@ -465,6 +465,23 @@
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::sync::mpsc::{Receiver, Sender};
 <span class="kw">use </span>std::sync::Arc;
@@ -497,9 +514,12 @@
 <span class="kw">static </span>SHADOW_LOGGER: Lazy&lt;ShadowLogger&gt; = Lazy::new(ShadowLogger::new);
 
 <span class="doccomment">/// Initialize the Shadow logger.
-</span><span class="kw">pub fn </span>init(max_log_level: LevelFilter, log_errors_to_stderr: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetLoggerError&gt; {
+</span><span class="kw">pub fn </span>init(
+    max_log_level: LevelFilter,
+    report_errors_to_stderr: bool,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), SetLoggerError&gt; {
     SHADOW_LOGGER.set_max_level(max_log_level);
-    SHADOW_LOGGER.set_log_errors_to_stderr(log_errors_to_stderr);
+    SHADOW_LOGGER.set_report_errors_to_stderr(report_errors_to_stderr);
 
     log::set_logger(<span class="kw-2">&amp;*</span>SHADOW_LOGGER)<span class="question-mark">?</span>;
 
@@ -564,8 +584,8 @@
     <span class="comment">// The maximum log level, unless overridden by a host-specific log level.
     </span>max_log_level: OnceCell&lt;LevelFilter&gt;,
 
-    <span class="comment">// Whether to log errors to stderr in addition to stdout.
-    </span>log_errors_to_stderr: OnceCell&lt;bool&gt;,
+    <span class="comment">// Whether to report errors to stderr in addition to logging to stdout.
+    </span>report_errors_to_stderr: OnceCell&lt;bool&gt;,
 }
 
 <span class="macro">thread_local!</span>(<span class="kw">static </span>SENDER: RefCell&lt;<span class="prelude-ty">Option</span>&lt;Sender&lt;LoggerCommand&gt;&gt;&gt; = <span class="kw">const</span>{ RefCell::new(<span class="prelude-val">None</span>)});
@@ -615,7 +635,7 @@
             command_receiver: Mutex::new(receiver),
             buffering_enabled: RwLock::new(<span class="bool-val">false</span>),
             max_log_level: OnceCell::new(),
-            log_errors_to_stderr: OnceCell::new(),
+            report_errors_to_stderr: OnceCell::new(),
         }
     }
 
@@ -666,19 +686,33 @@
             };
             toflush -= <span class="number">1</span>;
 
-            <span class="kw">if </span>record.level &lt;= Level::Error &amp;&amp; <span class="kw-2">*</span><span class="self">self</span>.log_errors_to_stderr.get().unwrap() {
-                <span class="comment">// Send to both stdout and stderr.
+            <span class="macro">write!</span>(stdout, <span class="string">"{record}"</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">if </span>record.level &lt;= Level::Error &amp;&amp; <span class="kw-2">*</span><span class="self">self</span>.report_errors_to_stderr.get().unwrap() {
+                <span class="comment">// *also* summarize on stderr.
+
+                // First flush stdout to avoid confusing interleaving if stdout and stderr are merged.
+                </span>stdout.flush()<span class="question-mark">?</span>;
+
+                <span class="comment">// Summarize on stderr. We use a `BufWriter` to try to help
+                // ensure we ultimately make a single `write` syscall, though
+                // the flushes above and below *should* already prevent any
+                // interleaving with stdout.
                 </span><span class="kw">let </span>stderr_unlocked = std::io::stderr();
                 <span class="kw">let </span>stderr_locked = stderr_unlocked.lock();
                 <span class="kw">let </span><span class="kw-2">mut </span>stderr = std::io::BufWriter::new(stderr_locked);
+                <span class="macro">writeln!</span>(stderr, <span class="string">"Error: {}"</span>, record.message)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>line = <span class="macro">format!</span>(<span class="string">"{record}"</span>);
-                <span class="macro">write!</span>(stdout, <span class="string">"{line}"</span>)<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(stderr, <span class="string">"{line}"</span>)<span class="question-mark">?</span>;
-            } <span class="kw">else </span>{
-                <span class="macro">write!</span>(stdout, <span class="string">"{record}"</span>)<span class="question-mark">?</span>;
+                <span class="comment">// Explicitly flush before dropping to detect errors.
+                </span>stderr.flush()<span class="question-mark">?</span>;
+                drop(stderr);
             }
         }
+
+        <span class="comment">// Explicitly flush before dropping to detect errors.
+        </span>stdout.flush()<span class="question-mark">?</span>;
+        drop(stdout);
+
         <span class="kw">if let </span><span class="prelude-val">Some</span>(done_sender) = done_sender {
             <span class="comment">// We can't log from this thread without risking deadlock, so in the
             // unlikely case that the calling thread has gone away, just print
@@ -716,12 +750,12 @@
         <span class="self">self</span>.max_log_level.set(level).unwrap()
     }
 
-    <span class="doccomment">/// Set whether to log errors to stderr in addition to stdout.
+    <span class="doccomment">/// Set whether to report errors to stderr in addition to logging on stdout.
     ///
     /// Is only intended to be called from `init()`. Will panic if called more
     /// than once.
-    </span><span class="kw">fn </span>set_log_errors_to_stderr(<span class="kw-2">&amp;</span><span class="self">self</span>, val: bool) {
-        <span class="self">self</span>.log_errors_to_stderr.set(val).unwrap()
+    </span><span class="kw">fn </span>set_report_errors_to_stderr(<span class="kw-2">&amp;</span><span class="self">self</span>, val: bool) {
+        <span class="self">self</span>.report_errors_to_stderr.set(val).unwrap()
     }
 
     <span class="comment">// Send a flush command to the logger thread.
