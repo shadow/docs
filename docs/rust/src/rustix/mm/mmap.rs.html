@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.37/src/mm/mmap.rs`."><title>mmap.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rustix-0.38.39/src/mm/mmap.rs`."><title>mmap.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -407,12 +407,44 @@
 <a href="#407" id="407">407</a>
 <a href="#408" id="408">408</a>
 <a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The `mmap` API.
 //!
 //! # Safety
 //!
 //! `mmap` and related functions manipulate raw pointers and have special
-//! semantics and are wildly unsafe.
+//! semantics.
 </span><span class="attr">#![allow(unsafe_code)]
 
 </span><span class="kw">use crate</span>::{backend, io};
@@ -461,7 +493,16 @@
 ///
 /// # Safety
 ///
-/// Raw pointers and lots of special semantics.
+/// If `ptr` is not null, it must be aligned to the applicable page size, and
+/// the range of memory starting at `ptr` and extending for `len` bytes,
+/// rounded up to the applicable page size, must be valid to mutate using
+/// `ptr`'s provenance.
+///
+/// If there exist any Rust references referring to the memory region, or if
+/// you subsequently create a Rust reference referring to the resulting region,
+/// it is your responsibility to ensure that the Rust reference invariants are
+/// preserved, including ensuring that the memory is not mutated in a way that
+/// a Rust reference would not expect.
 ///
 /// # References
 ///  - [POSIX]
@@ -482,7 +523,7 @@
 /// [OpenBSD]: https://man.openbsd.org/mmap.2
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=mmap&amp;section=2
 /// [illumos]: https://illumos.org/man/2/mmap
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Memory_002dmapped-I_002fO.html#index-mmap
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Memory_002dmapped-I_002fO.html#index-mmap
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>mmap&lt;Fd: AsFd&gt;(
     ptr: <span class="kw-2">*mut </span>c_void,
@@ -502,7 +543,10 @@
 ///
 /// # Safety
 ///
-/// Raw pointers and lots of special semantics.
+/// If `ptr` is not null, it must be aligned to the applicable page size, and
+/// the range of memory starting at `ptr` and extending for `len` bytes,
+/// rounded up to the applicable page size, must be valid to mutate with
+/// `ptr`'s provenance.
 ///
 /// # References
 ///  - [POSIX]
@@ -523,7 +567,7 @@
 /// [OpenBSD]: https://man.openbsd.org/mmap.2
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=mmap&amp;section=2
 /// [illumos]: https://illumos.org/man/2/mmap
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Memory_002dmapped-I_002fO.html#index-mmap
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Memory_002dmapped-I_002fO.html#index-mmap
 </span><span class="attr">#[inline]
 #[doc(alias = <span class="string">"mmap"</span>)]
 </span><span class="kw">pub unsafe fn </span>mmap_anonymous(
@@ -539,7 +583,10 @@
 ///
 /// # Safety
 ///
-/// Raw pointers and lots of special semantics.
+/// `ptr` must be aligned to the applicable page size, and the range of memory
+/// starting at `ptr` and extending for `len` bytes, rounded up to the
+/// applicable page size, must be valid to mutate with `ptr`'s provenance. And
+/// there must be no Rust references referring to that memory.
 ///
 /// # References
 ///  - [POSIX]
@@ -560,7 +607,7 @@
 /// [OpenBSD]: https://man.openbsd.org/munmap.2
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=munmap&amp;section=2
 /// [illumos]: https://illumos.org/man/2/munmap
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Memory_002dmapped-I_002fO.html#index-munmap
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Memory_002dmapped-I_002fO.html#index-munmap
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>munmap(ptr: <span class="kw-2">*mut </span>c_void, len: usize) -&gt; io::Result&lt;()&gt; {
     backend::mm::syscalls::munmap(ptr, len)
@@ -574,7 +621,15 @@
 ///
 /// # Safety
 ///
-/// Raw pointers and lots of special semantics.
+/// `old_address` must be aligned to the applicable page size, and the range of
+/// memory starting at `old_address` and extending for `old_size` bytes,
+/// rounded up to the applicable page size, must be valid to mutate with
+/// `old_address`'s provenance. If `MremapFlags::MAY_MOVE` is set in `flags`,
+/// there must be no Rust references referring to that the memory.
+///
+/// If `new_size` is less than `old_size`, than there must be no Rust
+/// references referring to the memory starting at offset `new_size` and ending
+/// at `old_size`.
 ///
 /// # References
 ///  - [Linux]
@@ -599,7 +654,16 @@
 ///
 /// # Safety
 ///
-/// Raw pointers and lots of special semantics.
+/// `old_address` and `new_address` must be aligned to the applicable page
+/// size, the range of memory starting at `old_address` and extending for
+/// `old_size` bytes, rounded up to the applicable page size, must be valid to
+/// mutate with `old_address`'s provenance, and the range of memory starting at
+/// `new_address` and extending for `new_size` bytes, rounded up to the
+/// applicable page size, must be valid to mutate with `new_address`'s
+/// provenance.
+///
+/// There must be no Rust references referring to either of those memory
+/// regions.
 ///
 /// # References
 ///  - [Linux]
@@ -623,7 +687,9 @@
 ///
 /// # Safety
 ///
-/// Raw pointers and lots of special semantics.
+/// The range of memory starting at `ptr` and extending for `len` bytes,
+/// rounded up to the applicable page size, must be valid to read with `ptr`'s
+/// provenance.
 ///
 /// # References
 ///  - [POSIX]
@@ -650,17 +716,16 @@
 
 <span class="doccomment">/// `mlock(ptr, len)`—Lock memory into RAM.
 ///
-/// # Safety
-///
-/// This function operates on raw pointers, but it should only be used on
-/// memory which the caller owns. Technically, locking memory shouldn't violate
-/// any invariants, but since unlocking it can violate invariants, this
-/// function is also unsafe for symmetry.
-///
 /// Some implementations implicitly round the memory region out to the nearest
 /// page boundaries, so this function may lock more memory than explicitly
 /// requested if the memory isn't page-aligned. Other implementations fail if
 /// the memory isn't page-aligned.
+///
+/// # Safety
+///
+/// The range of memory starting at `ptr`, rounded down to the applicable page
+/// boundary, and extending for `len` bytes, rounded up to the applicable page
+/// size, must be valid to read with `ptr`'s provenance.
 ///
 /// # References
 ///  - [POSIX]
@@ -681,7 +746,7 @@
 /// [OpenBSD]: https://man.openbsd.org/mlock.2
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=mlock&amp;section=2
 /// [illumos]: https://illumos.org/man/3C/mlock
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Page-Lock-Functions.html#index-mlock
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Page-Lock-Functions.html#index-mlock
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>mlock(ptr: <span class="kw-2">*mut </span>c_void, len: usize) -&gt; io::Result&lt;()&gt; {
     backend::mm::syscalls::mlock(ptr, len)
@@ -691,23 +756,22 @@
 ///
 /// `mlock_with` is the same as [`mlock`] but adds an additional flags operand.
 ///
-/// # Safety
-///
-/// This function operates on raw pointers, but it should only be used on
-/// memory which the caller owns. Technically, locking memory shouldn't violate
-/// any invariants, but since unlocking it can violate invariants, this
-/// function is also unsafe for symmetry.
-///
 /// Some implementations implicitly round the memory region out to the nearest
 /// page boundaries, so this function may lock more memory than explicitly
 /// requested if the memory isn't page-aligned.
+///
+/// # Safety
+///
+/// The range of memory starting at `ptr`, rounded down to the applicable page
+/// boundary, and extending for `len` bytes, rounded up to the applicable page
+/// size, must be valid to read with `ptr`'s provenance.
 ///
 /// # References
 ///  - [Linux]
 ///  - [glibc]
 ///
 /// [Linux]: https://man7.org/linux/man-pages/man2/mlock2.2.html
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Page-Lock-Functions.html#index-mlock2
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Page-Lock-Functions.html#index-mlock2
 </span><span class="attr">#[cfg(linux_kernel)]
 #[inline]
 #[doc(alias = <span class="string">"mlock2"</span>)]
@@ -717,15 +781,15 @@
 
 <span class="doccomment">/// `munlock(ptr, len)`—Unlock memory.
 ///
-/// # Safety
-///
-/// This function operates on raw pointers, but it should only be used on
-/// memory which the caller owns, to avoid compromising the `mlock` invariants
-/// of other unrelated code in the process.
-///
 /// Some implementations implicitly round the memory region out to the nearest
 /// page boundaries, so this function may unlock more memory than explicitly
 /// requested if the memory isn't page-aligned.
+///
+/// # Safety
+///
+/// The range of memory starting at `ptr`, rounded down to the applicable page
+/// boundary, and extending for `len` bytes, rounded up to the applicable page
+/// size, must be valid to read with `ptr`'s provenance.
 ///
 /// # References
 ///  - [POSIX]
@@ -746,7 +810,7 @@
 /// [OpenBSD]: https://man.openbsd.org/munlock.2
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=munlock&amp;section=2
 /// [illumos]: https://illumos.org/man/3C/munlock
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Page-Lock-Functions.html#index-munlock
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Page-Lock-Functions.html#index-munlock
 </span><span class="attr">#[inline]
 </span><span class="kw">pub unsafe fn </span>munlock(ptr: <span class="kw-2">*mut </span>c_void, len: usize) -&gt; io::Result&lt;()&gt; {
     backend::mm::syscalls::munlock(ptr, len)
@@ -777,7 +841,7 @@
 /// [OpenBSD]: https://man.openbsd.org/mlockall.2
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=mlockall&amp;section=2
 /// [illumos]: https://illumos.org/man/3C/mlockall
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Page-Lock-Functions.html#index-mlockall
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Page-Lock-Functions.html#index-mlockall
 </span><span class="attr">#[cfg(any(linux_kernel, freebsdlike, netbsdlike))]
 #[inline]
 </span><span class="kw">pub fn </span>mlockall(flags: MlockAllFlags) -&gt; io::Result&lt;()&gt; {
@@ -810,7 +874,7 @@
 /// [OpenBSD]: https://man.openbsd.org/munlockall.2
 /// [DragonFly BSD]: https://man.dragonflybsd.org/?command=munlockall&amp;section=2
 /// [illumos]: https://illumos.org/man/3C/munlockall
-/// [glibc]: https://www.gnu.org/software/libc/manual/html_node/Page-Lock-Functions.html#index-munlockall
+/// [glibc]: https://sourceware.org/glibc/manual/latest/html_node/Page-Lock-Functions.html#index-munlockall
 </span><span class="attr">#[cfg(any(linux_kernel, freebsdlike, netbsdlike))]
 #[inline]
 </span><span class="kw">pub fn </span>munlockall() -&gt; io::Result&lt;()&gt; {
