@@ -836,31 +836,7 @@
 <a href="#835" id="835">835</a>
 <a href="#836" id="836">836</a>
 <a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#838" id="838">838</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::ffi::{CStr, CString, OsStr, OsString};
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
@@ -1215,19 +1191,6 @@
                 });
             });
 
-            <span class="comment">// boot each host
-            </span>scheduler.scope(|s| {
-                s.run_with_hosts(<span class="kw">move </span>|<span class="kw">_</span>, hosts| {
-                    for_each_host(hosts, |host| {
-                        worker::Worker::set_current_time(EmulatedTime::SIMULATION_START);
-                        host.lock_shmem();
-                        host.boot();
-                        host.unlock_shmem();
-                        worker::Worker::clear_current_time();
-                    });
-                });
-            });
-
             <span class="comment">// the current simulation interval
             </span><span class="kw">let </span><span class="kw-2">mut </span>window = <span class="prelude-val">Some</span>((
                 EmulatedTime::SIMULATION_START,
@@ -1438,21 +1401,10 @@
                 requested_bw_up_bits: host_info.bandwidth_up_bits.unwrap(),
                 cpu_threshold: host_info.cpu_threshold,
                 cpu_precision: host_info.cpu_precision,
-                heartbeat_interval: host_info.heartbeat_interval,
-                heartbeat_log_level: host_info
-                    .heartbeat_log_level
-                    .map(|x| x.to_c_loglevel())
-                    .unwrap_or(c::_LogLevel_LOGLEVEL_UNSET),
-                heartbeat_log_info: host_info
-                    .heartbeat_log_info
-                    .iter()
-                    .map(|x| x.to_c_loginfoflag())
-                    .reduce(|x, y| x | y)
-                    .unwrap_or(c::_LogInfoFlags_LOG_INFO_FLAGS_NONE),
                 log_level: host_info
                     .log_level
                     .map(|x| x.to_c_loglevel())
-                    .unwrap_or(c::_LogLevel_LOGLEVEL_UNSET),
+                    .unwrap_or(logger::_LogLevel_LOGLEVEL_UNSET),
                 pcap_config: host_info.pcap_config,
                 qdisc: host_info.qdisc,
                 init_sock_recv_buf_size: host_info.recv_buf_size,
