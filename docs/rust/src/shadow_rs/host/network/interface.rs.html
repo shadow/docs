@@ -166,11 +166,7 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::{CString, OsStr};
+<a href="#168" id="168">168</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::{CString, OsStr};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 <span class="kw">use </span>std::path::PathBuf;
@@ -204,16 +200,9 @@
 
 <span class="kw">impl </span>NetworkInterface {
     <span class="doccomment">/// Create a new network interface for `host_id` with the assigned `addr`.
-    ///
-    /// # Safety
-    ///
-    /// This function will trigger undefined behavior if `addr` is
-    /// invalid. The reference count of `addr` will be increased by one using
-    /// `address_ref()`, so the caller should call `address_unref()` on it to
-    /// drop their reference when they no longer need it.
-    </span><span class="kw">pub unsafe fn </span>new(
+    </span><span class="kw">pub fn </span>new(
         host_id: HostId,
-        addr: <span class="kw-2">*mut </span>c::Address,
+        addr: Ipv4Addr,
         name: <span class="kw-2">&amp;</span>OsStr,
         pcap_options: <span class="prelude-ty">Option</span>&lt;PcapOptions&gt;,
         qdisc: QDiscMode,
@@ -234,18 +223,21 @@
         name.push(<span class="number">0</span>);
         <span class="kw">let </span>name = CString::from_vec_with_nul(name).unwrap();
 
-        <span class="kw">let </span>c_ptr = <span class="kw">unsafe </span>{
-            c::networkinterface_new(addr, name.as_ptr(), pcap_dir_cptr, pcap_capture_size, qdisc)
-        };
+        <span class="kw">let </span>net_addr = u32::from(addr).to_be();
 
-        <span class="kw">let </span>ipv4_addr: Ipv4Addr = {
-            <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ c::address_toNetworkIP(addr) };
-            u32::from_be(addr).into()
+        <span class="kw">let </span>c_ptr = <span class="kw">unsafe </span>{
+            c::networkinterface_new(
+                net_addr,
+                name.as_ptr(),
+                pcap_dir_cptr,
+                pcap_capture_size,
+                qdisc,
+            )
         };
 
         NetworkInterface {
             c_ptr: HostTreePointer::new_for_host(host_id, c_ptr),
-            addr: ipv4_addr,
+            addr,
         }
     }
 

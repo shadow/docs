@@ -384,20 +384,7 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
+<a href="#386" id="386">386</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::ffi::{CString, OsStr};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::num::NonZeroU8;
@@ -405,7 +392,6 @@
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
-<span class="kw">use </span>shadow_shim_helper_rs::util::SyncSendPointer;
 <span class="kw">use </span>shadow_shim_helper_rs::HostId;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::configuration::QDiscMode;
@@ -432,8 +418,6 @@
     <span class="kw">pub </span>localhost: RefCell&lt;NetworkInterface&gt;,
     <span class="kw">pub </span>internet: RefCell&lt;NetworkInterface&gt;,
 
-    <span class="comment">// TODO: use a Rust address type
-    </span><span class="kw">pub </span>default_address: SyncSendPointer&lt;cshadow::Address&gt;,
     <span class="kw">pub </span>default_ip: Ipv4Addr,
 
     <span class="comment">// used for debugging to make sure we've cleaned up before being dropped
@@ -452,7 +436,7 @@
         qdisc: QDiscMode,
         dns: <span class="kw-2">*mut </span>cshadow::DNS,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>(localhost, local_addr) = <span class="kw">unsafe </span>{
+        <span class="kw">let </span>localhost = <span class="kw">unsafe </span>{
             <span class="self">Self</span>::setup_net_interface(
                 OsStr::new(<span class="string">"lo"</span>),
                 <span class="kw-2">&amp;</span>InterfaceOptions {
@@ -466,9 +450,7 @@
             )
         };
 
-        <span class="kw">unsafe </span>{ cshadow::address_unref(local_addr) };
-
-        <span class="kw">let </span>(internet, public_addr) = <span class="kw">unsafe </span>{
+        <span class="kw">let </span>internet = <span class="kw">unsafe </span>{
             <span class="self">Self</span>::setup_net_interface(
                 OsStr::new(<span class="string">"eth0"</span>),
                 <span class="kw-2">&amp;</span>InterfaceOptions {
@@ -486,18 +468,16 @@
             unix: Arc::new(AtomicRefCell::new(AbstractUnixNamespace::new())),
             localhost: RefCell::new(localhost),
             internet: RefCell::new(internet),
-            default_address: <span class="kw">unsafe </span>{ SyncSendPointer::new(public_addr) },
             default_ip: public_ip,
             has_run_cleanup: Cell::new(<span class="bool-val">false</span>),
         }
     }
 
-    <span class="doccomment">/// Must free the returned `*mut cshadow::Address` using [`cshadow::address_unref`].
-    </span><span class="kw">unsafe fn </span>setup_net_interface(
+    <span class="kw">unsafe fn </span>setup_net_interface(
         name: <span class="kw-2">&amp;</span>OsStr,
         options: <span class="kw-2">&amp;</span>InterfaceOptions,
         dns: <span class="kw-2">*mut </span>cshadow::DNS,
-    ) -&gt; (NetworkInterface, <span class="kw-2">*mut </span>cshadow::Address) {
+    ) -&gt; NetworkInterface {
         <span class="kw">let </span>ip = u32::from(options.ip).to_be();
 
         <span class="comment">// hostname is shadowed so that we can't accidentally drop the CString before the end of the
@@ -505,20 +485,15 @@
         </span><span class="kw">let </span>hostname: CString = options.hostname.clone().into();
         <span class="kw">let </span>hostname = hostname.as_ptr();
 
-        <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ cshadow::dns_register(dns, options.host_id, hostname, ip) };
-        <span class="macro">assert!</span>(!addr.is_null());
+        <span class="kw">unsafe </span>{ cshadow::dns_register(dns, options.host_id, hostname, ip) };
 
-        <span class="kw">let </span>interface = <span class="kw">unsafe </span>{
-            NetworkInterface::new(
-                options.host_id,
-                addr,
-                name,
-                options.pcap.clone(),
-                options.qdisc,
-            )
-        };
-
-        (interface, addr)
+        NetworkInterface::new(
+            options.host_id,
+            options.ip,
+            name,
+            options.pcap.clone(),
+            options.qdisc,
+        )
     }
 
     <span class="doccomment">/// Clean up the network namespace. This should be called while `Worker` has the active host
@@ -529,8 +504,9 @@
 
         <span class="kw">let </span>dns = std::ptr::from_ref(dns);
         <span class="comment">// deregistering localhost is a no-op, so we skip it
-        </span><span class="kw">unsafe </span>{
-            cshadow::dns_deregister(dns.cast_mut(), <span class="self">self</span>.default_address.ptr());
+        </span><span class="kw">let </span>ip = u32::from(<span class="self">self</span>.default_ip).to_be();
+        <span class="kw">unsafe </span>{
+            cshadow::dns_deregister(dns.cast_mut(), ip);
         }
 
         <span class="comment">// we need to unref all sockets and free them before we drop the host, otherwise they'll try
@@ -736,8 +712,6 @@
 
 <span class="kw">impl </span>std::ops::Drop <span class="kw">for </span>NetworkNamespace {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ cshadow::address_unref(<span class="self">self</span>.default_address.ptr()) };
-
         <span class="kw">if </span>!<span class="self">self</span>.has_run_cleanup.get() &amp;&amp; !std::thread::panicking() {
             <span class="macro">debug_panic!</span>(<span class="string">"Dropped the network namespace before it has been cleaned up"</span>);
         }
