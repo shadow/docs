@@ -836,7 +836,22 @@
 <a href="#835" id="835">835</a>
 <a href="#836" id="836">836</a>
 <a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::ffi::{CStr, CString, OsStr, OsString};
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
@@ -1080,9 +1095,6 @@
                 .unwrap(),
         );
 
-        <span class="kw">let </span>dns = <span class="kw">unsafe </span>{ c::dns_new() };
-        <span class="macro">assert!</span>(!dns.is_null());
-
         <span class="kw">let </span>parallelism: usize = <span class="kw">match </span><span class="self">self</span>.config.general.parallelism.unwrap() {
             <span class="number">0 </span>=&gt; {
                 <span class="kw">let </span>cores = cpu::count_physical_cores().try_into().unwrap();
@@ -1092,17 +1104,43 @@
             x =&gt; x.try_into().unwrap(),
         };
 
-        <span class="comment">// note: there are several return points before we add these hosts to the scheduler and we
-        // would leak memory if we return before then, but not worrying about that since the issues
-        // will go away when we move the hosts to rust, and if we don't add them to the scheduler
-        // then it means there was an error and we're going to exit anyways
-        </span><span class="kw">let </span><span class="kw-2">mut </span>hosts: Vec&lt;<span class="kw">_</span>&gt; = manager_config
+        <span class="comment">// Set up the global DNS before building the hosts
+        </span><span class="kw">let </span>dns = <span class="kw">unsafe </span>{ c::dns_new() };
+        <span class="macro">assert!</span>(!dns.is_null());
+
+        <span class="comment">// Assign the host id only once to guarantee it stays associated with its host.
+        </span><span class="kw">let </span>host_init: Vec&lt;(<span class="kw-2">&amp;</span>HostInfo, HostId)&gt; = manager_config
             .hosts
             .iter()
             .enumerate()
-            .map(|(i, x)| {
-                <span class="self">self</span>.build_host(HostId::from(u32::try_from(i).unwrap()), x, dns)
-                    .with_context(|| <span class="macro">format!</span>(<span class="string">"Failed to build host '{}'"</span>, x.name))
+            .map(|(i, info)| (info, HostId::from(u32::try_from(i).unwrap())))
+            .collect();
+
+        <span class="kw">for </span>(info, id) <span class="kw">in </span><span class="kw-2">&amp;</span>host_init {
+            <span class="comment">// Set up the host identity.
+            </span><span class="kw">let </span>std::net::IpAddr::V4(addr) = info.ip_addr.unwrap() <span class="kw">else </span>{
+                <span class="macro">unreachable!</span>(<span class="string">"IPv6 not supported"</span>);
+            };
+            <span class="kw">let </span>name = info.name.clone();
+
+            <span class="comment">// Register in the global DNS.
+            </span>{
+                <span class="kw">let </span>chostname = CString::new(<span class="kw-2">&amp;*</span>name).unwrap();
+                <span class="kw">let </span>caddr = u32::from(addr).to_be();
+                <span class="kw">unsafe </span>{ c::dns_register(dns, <span class="kw-2">*</span>id, chostname.as_ptr(), caddr) };
+            }
+        }
+
+        <span class="comment">// Now build the hosts using the assigned host ids.
+        // note: there are several return points before we add these hosts to the scheduler and we
+        // would leak memory if we return before then, but not worrying about that since the issues
+        // will go away when we move the hosts to rust, and if we don't add them to the scheduler
+        // then it means there was an error and we're going to exit anyways
+        </span><span class="kw">let </span><span class="kw-2">mut </span>hosts: Vec&lt;<span class="kw">_</span>&gt; = host_init
+            .iter()
+            .map(|(info, id)| {
+                <span class="self">self</span>.build_host(<span class="kw-2">*</span>id, info)
+                    .with_context(|| <span class="macro">format!</span>(<span class="string">"Failed to build host '{}'"</span>, info.name))
             })
             .collect::&lt;anyhow::Result&lt;<span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
 
@@ -1373,12 +1411,7 @@
         <span class="prelude-val">Ok</span>(num_plugin_errors)
     }
 
-    <span class="kw">fn </span>build_host(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        host_id: HostId,
-        host_info: <span class="kw-2">&amp;</span>HostInfo,
-        dns: <span class="kw-2">*mut </span>c::DNS,
-    ) -&gt; anyhow::Result&lt;Box&lt;Host&gt;&gt; {
+    <span class="kw">fn </span>build_host(<span class="kw-2">&amp;</span><span class="self">self</span>, host_id: HostId, host_info: <span class="kw-2">&amp;</span>HostInfo) -&gt; anyhow::Result&lt;Box&lt;Host&gt;&gt; {
         <span class="kw">let </span>hostname = CString::new(<span class="kw-2">&amp;*</span>host_info.name).unwrap();
 
         <span class="comment">// scope used to enforce drop order for pointers
@@ -1426,16 +1459,13 @@
                 use_syscall_counters: <span class="self">self</span>.config.experimental.use_syscall_counters.unwrap(),
             };
 
-            Box::new(<span class="kw">unsafe </span>{
-                Host::new(
-                    params,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.hosts_path,
-                    <span class="self">self</span>.raw_frequency,
-                    dns,
-                    <span class="self">self</span>.shmem(),
-                    <span class="self">self</span>.preload_paths.clone(),
-                )
-            })
+            Box::new(Host::new(
+                params,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.hosts_path,
+                <span class="self">self</span>.raw_frequency,
+                <span class="self">self</span>.shmem(),
+                <span class="self">self</span>.preload_paths.clone(),
+            ))
         };
 
         host.lock_shmem();

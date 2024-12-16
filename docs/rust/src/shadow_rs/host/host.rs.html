@@ -1326,34 +1326,12 @@
 <a href="#1325" id="1325">1325</a>
 <a href="#1326" id="1326">1326</a>
 <a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
+<a href="#1328" id="1328">1328</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut, UnsafeCell};
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::ffi::{CStr, CString, OsString};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
-<span class="kw">use </span>std::num::NonZeroU8;
 <span class="kw">use </span>std::ops::{Deref, DerefMut};
 <span class="kw">use </span>std::os::unix::prelude::OsStringExt;
 <span class="kw">use </span>std::path::{Path, PathBuf};
@@ -1557,14 +1535,10 @@
 }
 
 <span class="kw">impl </span>Host {
-    <span class="doccomment">/// # Safety
-    ///
-    /// `dns` must be a valid pointer, and must outlive the returned Host.
-    </span><span class="kw">pub unsafe fn </span>new(
+    <span class="kw">pub fn </span>new(
         params: HostParameters,
         host_root_path: <span class="kw-2">&amp;</span>Path,
         raw_cpu_freq_khz: u64,
-        dns: <span class="kw-2">*mut </span>cshadow::DNS,
         manager_shmem: <span class="kw-2">&amp;</span>ShMemBlock&lt;ManagerShmem&gt;,
         preload_paths: Arc&lt;Vec&lt;PathBuf&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
@@ -1611,28 +1585,12 @@
 
         </span><span class="kw">let </span>public_ip: Ipv4Addr = u32::from_be(params.ip_addr).into();
 
-        <span class="kw">let </span>hostname: Vec&lt;NonZeroU8&gt; = params
-            .hostname
-            .as_bytes()
-            .iter()
-            .map(|x| (<span class="kw-2">*</span>x).try_into().unwrap())
-            .collect();
-
         <span class="kw">let </span>pcap_options = params.pcap_config.as_ref().map(|x| PcapOptions {
             path: data_dir_path.clone(),
             capture_size_bytes: x.capture_size.try_into().unwrap(),
         });
 
-        <span class="kw">let </span>net_ns = <span class="kw">unsafe </span>{
-            NetworkNamespace::new(
-                params.id,
-                hostname,
-                public_ip,
-                pcap_options,
-                params.qdisc,
-                dns,
-            )
-        };
+        <span class="kw">let </span>net_ns = NetworkNamespace::new(params.id, public_ip, pcap_options, params.qdisc);
 
         <span class="comment">// Packets that are not for localhost or our public ip go to the router.
         // Use `Ipv4Addr::UNSPECIFIED` for the router to encode this for our
@@ -2083,7 +2041,7 @@
         <span class="macro">debug!</span>(<span class="string">"shutting down host {}"</span>, <span class="self">self</span>.name());
 
         <span class="comment">// the network namespace object needs to be cleaned up before it's dropped
-        </span>Worker::with_dns(|dns| <span class="self">self</span>.net_ns.cleanup(dns));
+        </span><span class="self">self</span>.net_ns.cleanup();
 
         <span class="macro">assert!</span>(<span class="self">self</span>.processes.borrow().is_empty());
 

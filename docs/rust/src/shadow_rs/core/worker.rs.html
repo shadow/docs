@@ -806,15 +806,7 @@
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
 <a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a>
-<a href="#809" id="809">809</a>
-<a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
+<a href="#808" id="808">808</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicU32};
 <span class="kw">use </span>std::sync::{Arc, Mutex};
@@ -988,7 +980,7 @@
     <span class="doccomment">/// Run `f` with a reference to the global DNS.
     ///
     /// Panics if the Worker or its DNS hasn't yet been initialized.
-    </span><span class="kw">pub fn </span>with_dns&lt;F, R&gt;(f: F) -&gt; R
+    </span><span class="kw">fn </span>with_dns&lt;F, R&gt;(f: F) -&gt; R
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>cshadow::DNS) -&gt; R,
     {
@@ -1165,8 +1157,7 @@
         <span class="kw">let </span>src_ip: std::net::Ipv4Addr = u32::from_be(src_ip).into();
         <span class="kw">let </span>dst_ip: std::net::Ipv4Addr = u32::from_be(dst_ip).into();
 
-        <span class="kw">let </span><span class="prelude-val">Some</span>(dst_host_id) = Worker::with(|w| w.shared.resolve_ip_to_host_id(dst_ip)).unwrap()
-        <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(dst_host_id) = Worker::resolve_ip_to_host_id(dst_ip) <span class="kw">else </span>{
             <span class="macro">log_once_per_value_at_level!</span>(
                 dst_ip,
                 std::net::Ipv4Addr,
@@ -1333,6 +1324,18 @@
             <span class="prelude-val">Some</span>(u32::from_be(addr).into())
         })
     }
+
+    <span class="kw">fn </span>resolve_ip_to_host_id(ip: std::net::Ipv4Addr) -&gt; <span class="prelude-ty">Option</span>&lt;HostId&gt; {
+        Worker::with_dns(|dns| {
+            <span class="kw">let </span>ip = u32::from(ip).to_be();
+            <span class="kw">let </span>addr =
+                <span class="kw">unsafe </span>{ cshadow::dns_resolveIPToAddress(std::ptr::from_ref(dns).cast_mut(), ip) };
+            <span class="kw">if </span>addr.is_null() {
+                <span class="kw">return </span><span class="prelude-val">None</span>;
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ cshadow::address_getID(addr) })
+        })
+    }
 }
 
 <span class="attr">#[derive(Debug)]
@@ -1406,16 +1409,6 @@
         <span class="comment">// the network graph is required to be a connected graph, so they must be routable
         </span><span class="bool-val">true
     </span>}
-
-    <span class="kw">pub fn </span>resolve_ip_to_host_id(<span class="kw-2">&amp;</span><span class="self">self</span>, ip: std::net::Ipv4Addr) -&gt; <span class="prelude-ty">Option</span>&lt;HostId&gt; {
-        <span class="kw">let </span>dns = <span class="self">self</span>.dns.ptr();
-        <span class="kw">let </span>ip = u32::from(ip).to_be();
-        <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ cshadow::dns_resolveIPToAddress(dns, ip) };
-        <span class="kw">if </span>addr.is_null() {
-            <span class="kw">return </span><span class="prelude-val">None</span>;
-        }
-        <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ cshadow::address_getID(addr) })
-    }
 
     <span class="kw">pub fn </span>increment_plugin_error_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let </span>old_count = <span class="self">self
@@ -1492,8 +1485,10 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getDNS() -&gt; <span class="kw-2">*mut </span>cshadow::DNS {
-        Worker::with_dns(std::ptr::from_ref).cast_mut()
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getHostsFilePath() -&gt; <span class="kw-2">*mut </span>std::ffi::c_char {
+        Worker::with_dns(|dns| <span class="kw">unsafe </span>{
+            cshadow::dns_getHostsFilePath(std::ptr::from_ref(dns).cast_mut())
+        })
     }
 
     <span class="doccomment">/// Addresses must be provided in network byte order.
@@ -1586,17 +1581,6 @@
     <span class="attr">#[no_mangle]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getCurrentEmulatedTime() -&gt; CEmulatedTime {
         EmulatedTime::to_c_emutime(Worker::current_time())
-    }
-
-    <span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_resolveIPToAddress(
-        ip: libc::in_addr_t,
-    ) -&gt; <span class="kw-2">*const </span>cshadow::Address {
-        Worker::with(|w| {
-            <span class="kw">let </span>dns = w.shared.dns.ptr();
-            <span class="kw">unsafe </span>{ cshadow::dns_resolveIPToAddress(dns, ip) }
-        })
-        .unwrap()
     }
 
     <span class="doccomment">/// Returns a pointer to the current running host. The returned pointer is
