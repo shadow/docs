@@ -1288,14 +1288,52 @@
 <a href="#1287" id="1287">1287</a>
 <a href="#1288" id="1288">1288</a>
 <a href="#1289" id="1289">1289</a>
-<a href="#1290" id="1290">1290</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::io::{Cursor, ErrorKind, Read, Write};
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::io::{Cursor, ErrorKind, Read, Write};
 <span class="kw">use </span>std::net::Ipv4Addr;
 <span class="kw">use </span>std::sync::{Arc, Weak};
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
-<span class="kw">use </span>linux_api::netlink::nlmsghdr;
+<span class="kw">use </span>linux_api::netlink::{ifaddrmsg, ifinfomsg, nlmsghdr};
 <span class="kw">use </span>linux_api::rtnetlink::{RTMGRP_IPV4_IFADDR, RTMGRP_IPV6_IFADDR, RTM_GETADDR, RTM_GETLINK};
 <span class="kw">use </span>linux_api::socket::Shutdown;
 <span class="kw">use </span>neli::consts::nl::{NlmF, NlmFFlags, Nlmsg};
@@ -1969,18 +2007,56 @@
         <span class="comment">// We set the source address as the netlink address of the kernel
         </span><span class="kw">let </span>src_addr = SockaddrStorage::from_netlink(<span class="kw-2">&amp;</span>NetlinkAddr::new(<span class="number">0</span>, <span class="number">0</span>));
 
-        <span class="kw">let </span>buffer = (|| {
-            <span class="kw">if </span>packet_buffer.len() &lt; std::mem::size_of::&lt;nlmsghdr&gt;() {
-                <span class="macro">log::warn!</span>(<span class="string">"The processed packet is too short"</span>);
-                <span class="kw">return </span><span class="self">self</span>.handle_error(<span class="kw-2">&amp;</span>packet_buffer[..]);
-            }
+        <span class="kw">if </span>packet_buffer.len() &lt; std::mem::size_of::&lt;nlmsghdr&gt;() {
+            <span class="macro">log::warn!</span>(<span class="string">"The processed packet is too short"</span>);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+        }
 
+        <span class="kw">let </span>buffer = {
             <span class="kw">let </span>nlmsg_type = <span class="kw-2">&amp;</span>packet_buffer[<span class="macro">memoffset::span_of!</span>(nlmsghdr, nlmsg_type)];
             <span class="kw">let </span>nlmsg_type = u16::from_ne_bytes(nlmsg_type.try_into().unwrap());
 
             <span class="kw">match </span>nlmsg_type {
-                RTM_GETLINK =&gt; <span class="self">self</span>.handle_ifinfomsg(common, <span class="kw-2">&amp;</span>packet_buffer[..]),
-                RTM_GETADDR =&gt; <span class="self">self</span>.handle_ifaddrmsg(common, <span class="kw-2">&amp;</span>packet_buffer[..]),
+                RTM_GETLINK =&gt; {
+                    <span class="kw">let </span>nlmsghdr_len = std::mem::size_of::&lt;nlmsghdr&gt;();
+                    <span class="kw">let </span>ifinfomsg_len = std::mem::size_of::&lt;ifinfomsg&gt;();
+                    <span class="kw">let </span>header_len = nlmsghdr_len + ifinfomsg_len;
+
+                    <span class="comment">// Pad the message if it's too short and update the len field
+                    //
+                    // We typically try not to zero-fill structs when the bytes are missing,
+                    // but it should be okay here since we don't yet support most of the fields
+                    // of ifinfomsg
+                    </span><span class="kw">if </span>(nlmsghdr_len..header_len).contains(<span class="kw-2">&amp;</span>packet_buffer.len()) {
+                        <span class="macro">log::debug!</span>(
+                            <span class="string">"Padding the RTM_GETLINK with zeroes to meet the minimum length"
+                        </span>);
+                        packet_buffer.resize(header_len, <span class="number">0</span>);
+                        packet_buffer[<span class="macro">memoffset::span_of!</span>(nlmsghdr, nlmsg_len)]
+                            .copy_from_slice(<span class="kw-2">&amp;</span>(header_len <span class="kw">as </span>u32).to_ne_bytes()[..]);
+                    }
+                    <span class="self">self</span>.handle_ifinfomsg(common, <span class="kw-2">&amp;</span>packet_buffer[..])
+                }
+                RTM_GETADDR =&gt; {
+                    <span class="kw">let </span>nlmsghdr_len = std::mem::size_of::&lt;nlmsghdr&gt;();
+                    <span class="kw">let </span>ifaddrmsg_len = std::mem::size_of::&lt;ifaddrmsg&gt;();
+                    <span class="kw">let </span>header_len = nlmsghdr_len + ifaddrmsg_len;
+
+                    <span class="comment">// Pad the message if it's too short and update the len field
+                    //
+                    // We typically try not to zero-fill structs when the bytes are missing,
+                    // but it should be okay here since we don't yet support most of the fields
+                    // of ifaddrmsg
+                    </span><span class="kw">if </span>(nlmsghdr_len..header_len).contains(<span class="kw-2">&amp;</span>packet_buffer.len()) {
+                        <span class="macro">log::debug!</span>(
+                            <span class="string">"Padding the RTM_GETADDR with zeroes to meet the minimum length"
+                        </span>);
+                        packet_buffer.resize(header_len, <span class="number">0</span>);
+                        packet_buffer[<span class="macro">memoffset::span_of!</span>(nlmsghdr, nlmsg_len)]
+                            .copy_from_slice(<span class="kw-2">&amp;</span>(header_len <span class="kw">as </span>u32).to_ne_bytes()[..]);
+                    }
+                    <span class="self">self</span>.handle_ifaddrmsg(common, <span class="kw-2">&amp;</span>packet_buffer[..])
+                }
                 <span class="kw">_ </span>=&gt; {
                     <span class="macro">warn_once_then_debug!</span>(
                         <span class="string">"Found unsupported nlmsg_type: {nlmsg_type} (only RTM_GETLINK
@@ -1989,7 +2065,7 @@
                     <span class="self">self</span>.handle_error(<span class="kw-2">&amp;</span>packet_buffer[..])
                 }
             }
-        })();
+        };
 
         <span class="comment">// Try to write as much as we can. If the buffer is too small, just discard the rest
         </span><span class="kw">let </span><span class="kw-2">mut </span>total_copied = <span class="number">0</span>;

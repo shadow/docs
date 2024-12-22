@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"type":["nlmsghdr"]};
+window.SIDEBAR_ITEMS = {"type":["ifaddrmsg","ifinfomsg","nlmsghdr"]};
