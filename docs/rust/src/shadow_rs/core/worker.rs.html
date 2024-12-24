@@ -797,16 +797,7 @@
 <a href="#796" id="796">796</a>
 <a href="#797" id="797">797</a>
 <a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
-<a href="#801" id="801">801</a>
-<a href="#802" id="802">802</a>
-<a href="#803" id="803">803</a>
-<a href="#804" id="804">804</a>
-<a href="#805" id="805">805</a>
-<a href="#806" id="806">806</a>
-<a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
+<a href="#799" id="799">799</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicU32};
 <span class="kw">use </span>std::sync::{Arc, Mutex};
@@ -819,7 +810,6 @@
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
-<span class="kw">use </span>shadow_shim_helper_rs::util::SyncSendPointer;
 <span class="kw">use </span>shadow_shim_helper_rs::HostId;
 
 <span class="kw">use </span><span class="kw">super</span>::work::event_queue::EventQueue;
@@ -832,6 +822,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::host::Host;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::{Process, ProcessId};
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::{Thread, ThreadId};
+<span class="kw">use </span><span class="kw">crate</span>::network::dns::Dns;
 <span class="kw">use </span><span class="kw">crate</span>::network::graph::{IpAssignment, RoutingInfo};
 <span class="kw">use </span><span class="kw">crate</span>::network::packet::PacketRc;
 <span class="kw">use </span><span class="kw">crate</span>::utility::childpid_watcher::ChildPidWatcher;
@@ -982,7 +973,7 @@
     /// Panics if the Worker or its DNS hasn't yet been initialized.
     </span><span class="kw">fn </span>with_dns&lt;F, R&gt;(f: F) -&gt; R
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span>cshadow::DNS) -&gt; R,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>Dns) -&gt; R,
     {
         Worker::with(|w| f(w.shared.dns())).unwrap()
     }
@@ -1313,28 +1304,15 @@
     }
 
     <span class="kw">pub fn </span>resolve_name_to_ip(name: <span class="kw-2">&amp;</span>std::ffi::CStr) -&gt; <span class="prelude-ty">Option</span>&lt;std::net::Ipv4Addr&gt; {
-        Worker::with_dns(|dns| {
-            <span class="kw">let </span>addr = <span class="kw">unsafe </span>{
-                cshadow::dns_resolveNameToAddress(std::ptr::from_ref(dns).cast_mut(), name.as_ptr())
-            };
-            <span class="kw">if </span>addr.is_null() {
-                <span class="kw">return </span><span class="prelude-val">None</span>;
-            }
-            <span class="kw">let </span>addr = <span class="kw">unsafe </span>{ cshadow::address_toNetworkIP(addr) };
-            <span class="prelude-val">Some</span>(u32::from_be(addr).into())
-        })
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(name) = name.to_str() {
+            Worker::with_dns(|dns| dns.name_to_addr(name))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
     <span class="kw">fn </span>resolve_ip_to_host_id(ip: std::net::Ipv4Addr) -&gt; <span class="prelude-ty">Option</span>&lt;HostId&gt; {
-        Worker::with_dns(|dns| {
-            <span class="kw">let </span>ip = u32::from(ip).to_be();
-            <span class="kw">let </span>addr =
-                <span class="kw">unsafe </span>{ cshadow::dns_resolveIPToAddress(std::ptr::from_ref(dns).cast_mut(), ip) };
-            <span class="kw">if </span>addr.is_null() {
-                <span class="kw">return </span><span class="prelude-val">None</span>;
-            }
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ cshadow::address_getID(addr) })
-        })
+        Worker::with_dns(|dns| dns.addr_to_host_id(ip))
     }
 }
 
@@ -1343,7 +1321,7 @@
     <span class="kw">pub </span>ip_assignment: IpAssignment&lt;u32&gt;,
     <span class="kw">pub </span>routing_info: RoutingInfo&lt;u32&gt;,
     <span class="kw">pub </span>host_bandwidths: HashMap&lt;std::net::IpAddr, Bandwidth&gt;,
-    <span class="kw">pub </span>dns: SyncSendPointer&lt;cshadow::DNS&gt;,
+    <span class="kw">pub </span>dns: Dns,
     <span class="comment">// allows for easy updating of the status bar's state
     </span><span class="kw">pub </span>status_logger_state: <span class="prelude-ty">Option</span>&lt;Arc&lt;status_bar::Status&lt;ShadowStatusBarState&gt;&gt;&gt;,
     <span class="comment">// number of plugins that failed with a non-zero exit code
@@ -1358,16 +1336,8 @@
 }
 
 <span class="kw">impl </span>WorkerShared {
-    <span class="kw">pub fn </span>dns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>cshadow::DNS {
-        <span class="comment">// SAFETY: The DNS object effectively uses interior mutability outside of an UnsafeCell (the
-        // data within DNS can change but is thread-safe due to a GMutex), so normally we couldn't
-        // cast it to a shared reference. But bindgen generates a definition for DNS that is
-        // zero-sized, so rust should be fine with casting this as a shared reference, since rust
-        // doesn't know that DNS has any data associated with it.
-        </span><span class="macro">assert_eq!</span>(<span class="number">0</span>, std::mem::size_of::&lt;cshadow::DNS&gt;());
-
-        <span class="comment">// assume that the dns pointer was initialized correctly
-        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.dns.ptr().as_ref() }.unwrap()
+    <span class="kw">pub fn </span>dns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Dns {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.dns
     }
 
     <span class="kw">pub fn </span>latency(<span class="kw-2">&amp;</span><span class="self">self</span>, src: std::net::IpAddr, dst: std::net::IpAddr) -&gt; <span class="prelude-ty">Option</span>&lt;SimulationTime&gt; {
@@ -1463,12 +1433,6 @@
     }
 }
 
-<span class="kw">impl </span>std::ops::Drop <span class="kw">for </span>WorkerShared {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ cshadow::dns_free(<span class="self">self</span>.dns.ptr()) };
-    }
-}
-
 <span class="doccomment">/// Enable object counters. Should be called near the beginning of the program.
 </span><span class="kw">pub fn </span>enable_object_counters() {
     USE_OBJECT_COUNTERS.store(<span class="bool-val">true</span>, std::sync::atomic::Ordering::Relaxed);
@@ -1479,16 +1443,34 @@
 }
 
 <span class="kw">mod </span>export {
+    <span class="kw">use </span>std::ffi::CString;
+    <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
+
     <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::CEmulatedTime;
     <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::CSimulationTime;
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getHostsFilePath() -&gt; <span class="kw-2">*mut </span>std::ffi::c_char {
-        Worker::with_dns(|dns| <span class="kw">unsafe </span>{
-            cshadow::dns_getHostsFilePath(std::ptr::from_ref(dns).cast_mut())
-        })
+    <span class="doccomment">/// # Safety
+    /// The returned string should be returned to rust to be deallocated by calling
+    /// `worker_freeHostsFilePath()`.
+    </span><span class="attr">#[no_mangle]
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getHostsFilePath() -&gt; <span class="kw-2">*const </span>std::ffi::c_char {
+        <span class="kw">let </span>pathbuf = Worker::with_dns(|dns| dns.hosts_path());
+        <span class="kw">let </span>pathstr = CString::new(pathbuf.as_os_str().as_bytes()).unwrap();
+        <span class="comment">// Move ownership to C.
+        </span>pathstr.into_raw()
+    }
+
+    <span class="doccomment">/// # Safety
+    /// The path should be a valid pointer to the string allocated by rust, such as
+    /// the string returned in `worker_getHostsFilePath()`.
+    </span><span class="attr">#[no_mangle]
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_freeHostsFilePath(path: <span class="kw-2">*const </span>std::ffi::c_char) {
+        <span class="comment">// Take the ownership back to rust and drop the owner
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let _ </span>= CString::from_raw(path <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
+        }
     }
 
     <span class="doccomment">/// Addresses must be provided in network byte order.

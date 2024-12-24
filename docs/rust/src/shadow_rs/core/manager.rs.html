@@ -860,7 +860,7 @@
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::Duration;
 
-<span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>anyhow::{bail, Context};
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>rand::seq::SliceRandom;
@@ -871,7 +871,6 @@
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::ManagerShmem;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
-<span class="kw">use </span>shadow_shim_helper_rs::util::SyncSendPointer;
 <span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shmem::allocator::ShMemBlock;
 
@@ -885,6 +884,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::worker;
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
 <span class="kw">use </span><span class="kw">crate</span>::host::host::{Host, HostParameters};
+<span class="kw">use </span><span class="kw">crate</span>::network::dns::DnsBuilder;
 <span class="kw">use </span><span class="kw">crate</span>::network::graph::{IpAssignment, RoutingInfo};
 <span class="kw">use </span><span class="kw">crate</span>::utility;
 <span class="kw">use </span><span class="kw">crate</span>::utility::childpid_watcher::ChildPidWatcher;
@@ -1105,8 +1105,7 @@
         };
 
         <span class="comment">// Set up the global DNS before building the hosts
-        </span><span class="kw">let </span>dns = <span class="kw">unsafe </span>{ c::dns_new() };
-        <span class="macro">assert!</span>(!dns.is_null());
+        </span><span class="kw">let </span><span class="kw-2">mut </span>dns_builder = DnsBuilder::new();
 
         <span class="comment">// Assign the host id only once to guarantee it stays associated with its host.
         </span><span class="kw">let </span>host_init: Vec&lt;(<span class="kw-2">&amp;</span>HostInfo, HostId)&gt; = manager_config
@@ -1124,12 +1123,13 @@
             <span class="kw">let </span>name = info.name.clone();
 
             <span class="comment">// Register in the global DNS.
-            </span>{
-                <span class="kw">let </span>chostname = CString::new(<span class="kw-2">&amp;*</span>name).unwrap();
-                <span class="kw">let </span>caddr = u32::from(addr).to_be();
-                <span class="kw">unsafe </span>{ c::dns_register(dns, <span class="kw-2">*</span>id, chostname.as_ptr(), caddr) };
+            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = dns_builder.register(<span class="kw-2">*</span>id, addr, name) {
+                <span class="macro">bail!</span>(e);
             }
         }
+
+        <span class="comment">// Convert to a global read-only DNS struct.
+        </span><span class="kw">let </span>dns = dns_builder.into_dns()<span class="question-mark">?</span>;
 
         <span class="comment">// Now build the hosts using the assigned host ids.
         // note: there are several return points before we add these hosts to the scheduler and we
@@ -1181,7 +1181,7 @@
                 routing_info: manager_config.routing_info,
                 host_bandwidths: manager_config.host_bandwidths,
                 <span class="comment">// safe since the DNS type has an internal mutex
-                </span>dns: <span class="kw">unsafe </span>{ SyncSendPointer::new(dns) },
+                </span>dns,
                 num_plugin_errors: AtomicU32::new(<span class="number">0</span>),
                 <span class="comment">// allow the status logger's state to be updated from anywhere
                 </span>status_logger_state: status_logger_state.map(Arc::clone),
