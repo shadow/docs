@@ -851,7 +851,11 @@
 <a href="#850" id="850">850</a>
 <a href="#851" id="851">851</a>
 <a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::ffi::{CStr, CString, OsStr, OsString};
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
@@ -860,7 +864,7 @@
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::Duration;
 
-<span class="kw">use </span>anyhow::{bail, Context};
+<span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>rand::seq::SliceRandom;
@@ -1116,16 +1120,20 @@
             .collect();
 
         <span class="kw">for </span>(info, id) <span class="kw">in </span><span class="kw-2">&amp;</span>host_init {
-            <span class="comment">// Set up the host identity.
+            <span class="comment">// Extract the host address.
             </span><span class="kw">let </span>std::net::IpAddr::V4(addr) = info.ip_addr.unwrap() <span class="kw">else </span>{
                 <span class="macro">unreachable!</span>(<span class="string">"IPv6 not supported"</span>);
             };
-            <span class="kw">let </span>name = info.name.clone();
 
             <span class="comment">// Register in the global DNS.
-            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = dns_builder.register(<span class="kw-2">*</span>id, addr, name) {
-                <span class="macro">bail!</span>(e);
-            }
+            </span>dns_builder
+                .register(<span class="kw-2">*</span>id, addr, info.name.clone())
+                .with_context(|| {
+                    <span class="macro">format!</span>(
+                        <span class="string">"Failed to register a host with id='{:?}', addr='{}', and name='{}' in the DNS module"</span>,
+                        <span class="kw-2">*</span>id, addr, info.name
+                    )
+                })<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Convert to a global read-only DNS struct.

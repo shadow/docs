@@ -250,7 +250,56 @@
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::hash_map::Entry;
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::hash_map::Entry;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fmt::Display;
 <span class="kw">use </span>std::fs::File;
@@ -282,26 +331,52 @@
 
 <span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub enum </span>RegistrationError {
-    InvalidAddr,
-    InvalidName,
-    AddrExists,
-    NameExists,
+    BroadcastAddrInvalid,
+    LoopbackAddrInvalid(Ipv4Addr),
+    MulticastAddrInvalid(Ipv4Addr),
+    UnspecifiedAddrInvalid,
+    NameInvalid(String),
+    AddrExists(Ipv4Addr),
+    NameExists(String),
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>RegistrationError {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            RegistrationError::InvalidAddr =&gt; <span class="macro">write!</span>(f, <span class="string">"address is invalid for registration"</span>),
-            RegistrationError::InvalidName =&gt; <span class="macro">write!</span>(f, <span class="string">"name is invalid for registration"</span>),
-            RegistrationError::NameExists =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">"a registration record already exists for name"</span>)
+            RegistrationError::BroadcastAddrInvalid =&gt; <span class="macro">write!</span>(
+                f,
+                <span class="string">"broadcast address '{}' is invalid in DNS"</span>,
+                Ipv4Addr::BROADCAST
+            ),
+            RegistrationError::LoopbackAddrInvalid(addr) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">"loopback address '{addr}' is invalid in DNS"</span>,)
             }
-            RegistrationError::AddrExists =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">"a registration record already exists for address"</span>)
+            RegistrationError::MulticastAddrInvalid(addr) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">"multicast address '{addr}' is invalid in DNS"</span>)
+            }
+            RegistrationError::UnspecifiedAddrInvalid =&gt; <span class="macro">write!</span>(
+                f,
+                <span class="string">"unspecified address '{}' is invalid in DNS"</span>,
+                Ipv4Addr::UNSPECIFIED
+            ),
+            RegistrationError::NameInvalid(name) =&gt; <span class="macro">write!</span>(f, <span class="string">"name '{name}' is invalid in DNS"</span>),
+            RegistrationError::NameExists(name) =&gt; {
+                <span class="macro">write!</span>(
+                    f,
+                    <span class="string">"a DNS registration record already exists for name '{name}'"
+                </span>)
+            }
+            RegistrationError::AddrExists(addr) =&gt; {
+                <span class="macro">write!</span>(
+                    f,
+                    <span class="string">"a DNS registration record already exists for address '{addr}'"
+                </span>)
             }
         }
     }
 }
+
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>RegistrationError {}
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>DnsBuilder {
@@ -325,18 +400,24 @@
         name: String,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), RegistrationError&gt; {
         <span class="comment">// Make sure we don't register reserved addresses or names.
-        </span><span class="kw">if </span>addr.is_loopback() || addr.is_unspecified() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(RegistrationError::InvalidAddr);
+        </span><span class="kw">if </span>addr.is_unspecified() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(RegistrationError::UnspecifiedAddrInvalid);
+        } <span class="kw">else if </span>addr.is_loopback() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(RegistrationError::LoopbackAddrInvalid(addr));
+        } <span class="kw">else if </span>addr.is_broadcast() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(RegistrationError::BroadcastAddrInvalid);
+        } <span class="kw">else if </span>addr.is_multicast() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(RegistrationError::MulticastAddrInvalid(addr));
         } <span class="kw">else if </span>name.eq_ignore_ascii_case(<span class="string">"localhost"</span>) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(RegistrationError::InvalidName);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(RegistrationError::NameInvalid(name));
         }
 
         <span class="comment">// A single HostId is allowed to register multiple name/addr mappings,
         // but only vacant addresses and names are allowed.
         </span><span class="kw">match </span><span class="self">self</span>.db.addr_index.entry(addr) {
-            Entry::Occupied(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(RegistrationError::AddrExists),
+            Entry::Occupied(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(RegistrationError::AddrExists(addr)),
             Entry::Vacant(addr_entry) =&gt; <span class="kw">match </span><span class="self">self</span>.db.name_index.entry(name.clone()) {
-                Entry::Occupied(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(RegistrationError::NameExists),
+                Entry::Occupied(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(RegistrationError::NameExists(name)),
                 Entry::Vacant(name_entry) =&gt; {
                     <span class="kw">let </span>record = Arc::new(Record { id, addr, name });
                     addr_entry.insert(record.clone());
@@ -440,20 +521,37 @@
         <span class="macro">assert!</span>(builder.register(id_a, addr_a, name_a.clone()).is_ok());
 
         <span class="macro">assert_eq!</span>(
-            builder.register(id_b, Ipv4Addr::LOCALHOST, name_b.clone()),
-            <span class="prelude-val">Err</span>(RegistrationError::InvalidAddr)
+            builder.register(id_b, Ipv4Addr::UNSPECIFIED, name_b.clone()),
+            <span class="prelude-val">Err</span>(RegistrationError::UnspecifiedAddrInvalid)
         );
         <span class="macro">assert_eq!</span>(
-            builder.register(id_b, addr_b, String::from(<span class="string">"localhost"</span>)),
-            <span class="prelude-val">Err</span>(RegistrationError::InvalidName)
+            builder.register(id_b, Ipv4Addr::BROADCAST, name_b.clone()),
+            <span class="prelude-val">Err</span>(RegistrationError::BroadcastAddrInvalid)
+        );
+        <span class="kw">let </span>multicast_example_addr = Ipv4Addr::new(<span class="number">224</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="comment">// Multicast addresses not allowed.
+            </span>builder.register(id_b, multicast_example_addr, name_b.clone()),
+            <span class="prelude-val">Err</span>(RegistrationError::MulticastAddrInvalid(
+                multicast_example_addr
+            ))
+        );
+        <span class="macro">assert_eq!</span>(
+            builder.register(id_b, Ipv4Addr::LOCALHOST, name_b.clone()),
+            <span class="prelude-val">Err</span>(RegistrationError::LoopbackAddrInvalid(Ipv4Addr::LOCALHOST))
+        );
+        <span class="kw">let </span>localhost_string = String::from(<span class="string">"localhost"</span>);
+        <span class="macro">assert_eq!</span>(
+            builder.register(id_b, addr_b, localhost_string.clone()),
+            <span class="prelude-val">Err</span>(RegistrationError::NameInvalid(localhost_string))
         );
         <span class="macro">assert_eq!</span>(
             builder.register(id_b, addr_a, name_b.clone()),
-            <span class="prelude-val">Err</span>(RegistrationError::AddrExists)
+            <span class="prelude-val">Err</span>(RegistrationError::AddrExists(addr_a))
         );
         <span class="macro">assert_eq!</span>(
             builder.register(id_b, addr_b, name_a.clone()),
-            <span class="prelude-val">Err</span>(RegistrationError::NameExists)
+            <span class="prelude-val">Err</span>(RegistrationError::NameExists(name_a))
         );
 
         <span class="macro">assert!</span>(builder.register(id_b, addr_b, name_b.clone()).is_ok());
