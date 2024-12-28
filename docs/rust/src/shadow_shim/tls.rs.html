@@ -831,7 +831,9 @@
 <a href="#830" id="830">830</a>
 <a href="#831" id="831">831</a>
 <a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a></pre></div><pre class="rust"><code><span class="doccomment">//! no_std thread-local storage
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a></pre></div><pre class="rust"><code><span class="doccomment">//! no_std thread-local storage
 //!
 //! This module provides a level of indirection for thread-local storage, with
 //! different options trading off performance and stability. See [`Mode`] for more
@@ -1293,7 +1295,7 @@
     Mapped(atomic_tls_map::Ref&lt;<span class="lifetime">'tls</span>, MmapBox&lt;TlsOneThreadStorage&gt;&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>&gt; Deref <span class="kw">for </span>TlsOneThreadBackingStoreRef&lt;<span class="lifetime">'tls</span>&gt; {
+<span class="kw">impl </span>Deref <span class="kw">for </span>TlsOneThreadBackingStoreRef&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Target = TlsOneThreadStorage;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
@@ -1374,7 +1376,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>&gt; lazy_lock::Producer&lt;usize&gt; <span class="kw">for </span>OffsetInitializer&lt;<span class="lifetime">'tls</span>&gt; {
+<span class="kw">impl </span>lazy_lock::Producer&lt;usize&gt; <span class="kw">for </span>OffsetInitializer&lt;<span class="lifetime">'_</span>&gt; {
     <span class="comment">// Finds and assigns the next free and suitably aligned offset within
     // thread-local-storage for a value of type `T`, initialized with function
     // `F`.
@@ -1408,7 +1410,7 @@
 <span class="comment">// SAFETY: Still `Sync` even if T is `!Sync`, since each thread gets its own
 // instance of the value. `F` must still be `Sync`, though, since that *is*
 // shared across threads.
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'tls</span>, T, F&gt; Sync <span class="kw">for </span>ShimTlsVar&lt;<span class="lifetime">'tls</span>, T, F&gt; <span class="kw">where </span>F: Sync + Fn() -&gt; T {}
+</span><span class="kw">unsafe impl</span>&lt;T, F&gt; Sync <span class="kw">for </span>ShimTlsVar&lt;<span class="lifetime">'_</span>, T, F&gt; <span class="kw">where </span>F: Sync + Fn() -&gt; T {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>, T, F&gt; ShimTlsVar&lt;<span class="lifetime">'tls</span>, T, F&gt;
 <span class="kw">where
@@ -1498,7 +1500,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F: Fn() -&gt; T&gt; Deref <span class="kw">for </span>TlsVarRef&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F&gt; {
+<span class="comment">// there are multiple named lifetimes, so let's just be explicit about them rather than hide them
+</span><span class="attr">#[allow(clippy::needless_lifetimes)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F: Fn() -&gt; T&gt; Deref <span class="kw">for </span>TlsVarRef&lt;<span class="lifetime">'tls</span>, <span class="lifetime">'var</span>, T, F&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {

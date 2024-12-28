@@ -532,15 +532,7 @@
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
 <a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
-<a href="#535" id="535">535</a>
-<a href="#536" id="536">536</a>
-<a href="#537" id="537">537</a>
-<a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a></pre></div><pre class="rust"><code><span class="doccomment">//! In this module is a shared memory allocator that can be used in Shadow to share data between
+<a href="#534" id="534">534</a></pre></div><pre class="rust"><code><span class="doccomment">//! In this module is a shared memory allocator that can be used in Shadow to share data between
 //! the main simulator process and managed processes. There are three main global functions that
 //! are provided:
 //!
@@ -677,7 +669,7 @@
     phantom: core::marker::PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'allocator </span>T&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt;
+<span class="kw">impl</span>&lt;T&gt; ShMemBlock&lt;<span class="lifetime">'_</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -691,16 +683,10 @@
 
 <span class="comment">// SAFETY: T is already required to be Sync, and ShMemBlock only exposes
 // immutable references to the underlying data.
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; Sync <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt; <span class="kw">where
-    </span>T: Sync + VirtualAddressSpaceIndependent
-{
-}
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; Send <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt; <span class="kw">where
-    </span>T: Send + Sync + VirtualAddressSpaceIndependent
-{
-}
+</span><span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'_</span>, T&gt; <span class="kw">where </span>T: Sync + VirtualAddressSpaceIndependent {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'_</span>, T&gt; <span class="kw">where </span>T: Send + Sync + VirtualAddressSpaceIndependent {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt;
+<span class="kw">impl</span>&lt;T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'_</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -712,7 +698,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'allocator</span>, T&gt; core::ops::Drop <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'allocator</span>, T&gt;
+<span class="kw">impl</span>&lt;T&gt; core::ops::Drop <span class="kw">for </span>ShMemBlock&lt;<span class="lifetime">'_</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -742,16 +728,10 @@
 
 <span class="comment">// SAFETY: T is already required to be Sync, and ShMemBlock only exposes
 // immutable references to the underlying data.
-</span><span class="kw">unsafe impl</span>&lt;<span class="lifetime">'deserializer</span>, T&gt; Sync <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt; <span class="kw">where
-    </span>T: Sync + VirtualAddressSpaceIndependent
-{
-}
-<span class="kw">unsafe impl</span>&lt;<span class="lifetime">'deserializer</span>, T&gt; Send <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt; <span class="kw">where
-    </span>T: Send + Sync + VirtualAddressSpaceIndependent
-{
-}
+</span><span class="kw">unsafe impl</span>&lt;T&gt; Sync <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'_</span>, T&gt; <span class="kw">where </span>T: Sync + VirtualAddressSpaceIndependent {}
+<span class="kw">unsafe impl</span>&lt;T&gt; Send <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'_</span>, T&gt; <span class="kw">where </span>T: Send + Sync + VirtualAddressSpaceIndependent {}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'deserializer</span>, T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'deserializer</span>, T&gt;
+<span class="kw">impl</span>&lt;T&gt; core::ops::Deref <span class="kw">for </span>ShMemBlockAlias&lt;<span class="lifetime">'_</span>, T&gt;
 <span class="kw">where
     </span>T: Sync + VirtualAddressSpaceIndependent,
 {
@@ -1043,7 +1023,10 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
         <span class="kw">let </span>block_addr = <span class="kw-2">&amp;</span>original_block <span class="kw">as </span><span class="kw-2">*const </span>ShMemBlock&lt;T&gt;;
         <span class="kw">let </span>data_addr = <span class="kw-2">*</span>original_block <span class="kw">as </span><span class="kw-2">*const </span>T;
 
-        <span class="kw">let </span>block = <span class="prelude-val">Some</span>(original_block);
+        <span class="comment">// Use an `Option` to move the `ShMemBlock`. We have no guarantee here that it actually
+        // moves and that the compiler doesn't optimize the move away, so the before/after addresses
+        // are compared below.
+        </span><span class="kw">let </span>block = <span class="prelude-val">Some</span>(original_block);
 
         <span class="comment">// Validate that the block itself actually moved.
         </span><span class="kw">let </span>new_block_addr = block.as_ref().unwrap() <span class="kw">as </span><span class="kw-2">*const </span>ShMemBlock&lt;T&gt;;
@@ -1053,7 +1036,8 @@ unsafe impl core::alloc::GlobalAlloc for GlobalAllocator {
         </span><span class="kw">let </span>new_data_addr = <span class="kw-2">**</span>(block.as_ref().unwrap()) <span class="kw">as </span><span class="kw-2">*const </span>T;
         <span class="macro">assert_eq!</span>(data_addr, new_data_addr);
 
-        shfree(block.unwrap());
+        <span class="attr">#[allow(clippy::unnecessary_literal_unwrap)]
+        </span>shfree(block.unwrap());
     }
 
     <span class="comment">// Validate our guarantee that the data pointer doesn't move, even if the block does.

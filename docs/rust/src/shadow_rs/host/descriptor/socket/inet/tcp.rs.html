@@ -1133,7 +1133,29 @@
 <a href="#1132" id="1132">1132</a>
 <a href="#1133" id="1133">1133</a>
 <a href="#1134" id="1134">1134</a>
-<a href="#1135" id="1135">1135</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
+<a href="#1140" id="1140">1140</a>
+<a href="#1141" id="1141">1141</a>
+<a href="#1142" id="1142">1142</a>
+<a href="#1143" id="1143">1143</a>
+<a href="#1144" id="1144">1144</a>
+<a href="#1145" id="1145">1145</a>
+<a href="#1146" id="1146">1146</a>
+<a href="#1147" id="1147">1147</a>
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
+<a href="#1152" id="1152">1152</a>
+<a href="#1153" id="1153">1153</a>
+<a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::{Arc, Weak};
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
@@ -2065,6 +2087,13 @@
 
                 <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
             }
+            (libc::SOL_SOCKET, libc::SO_BROADCAST) =&gt; {
+                <span class="kw">let </span>optval_ptr = optval_ptr.cast::&lt;libc::c_int&gt;();
+                <span class="comment">// we don't support broadcast sockets, so just just return the default 0
+                </span><span class="kw">let </span>bytes_written = write_partial(mem, <span class="kw-2">&amp;</span><span class="number">0</span>, optval_ptr, optlen <span class="kw">as </span>usize)<span class="question-mark">?</span>;
+
+                <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
+            }
             <span class="kw">_ </span>=&gt; {
                 <span class="macro">log_once_per_value_at_level!</span>(
                     (level, optname),
@@ -2082,9 +2111,9 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         level: libc::c_int,
         optname: libc::c_int,
-        _optval_ptr: ForeignPtr&lt;()&gt;,
-        _optlen: libc::socklen_t,
-        _mem: <span class="kw-2">&amp;</span>MemoryManager,
+        optval_ptr: ForeignPtr&lt;()&gt;,
+        optlen: libc::socklen_t,
+        mem: <span class="kw-2">&amp;</span>MemoryManager,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">match </span>(level, optname) {
             (libc::SOL_SOCKET, libc::SO_REUSEADDR) =&gt; {
@@ -2100,8 +2129,23 @@
                 </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_KEEPALIVE not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_BROADCAST) =&gt; {
-                <span class="comment">// TODO: implement this, pkg.go.dev/net uses it
-                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_BROADCAST not yet implemented"</span>);
+                <span class="kw">type </span>OptType = libc::c_int;
+
+                <span class="kw">if </span>usize::try_from(optlen).unwrap() &lt; std::mem::size_of::&lt;OptType&gt;() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                }
+
+                <span class="kw">let </span>optval_ptr = optval_ptr.cast::&lt;OptType&gt;();
+                <span class="kw">let </span>val = mem.read(optval_ptr)<span class="question-mark">?</span>;
+
+                <span class="kw">if </span>val == <span class="number">0 </span>{
+                    <span class="comment">// we don't support broadcast sockets, so an attempt to disable is okay
+                </span>} <span class="kw">else </span>{
+                    <span class="comment">// TODO: implement this, pkg.go.dev/net uses it
+                    </span><span class="macro">warn_once_then_debug!</span>(
+                        <span class="string">"setsockopt SO_BROADCAST not yet implemented for tcp; ignoring and returning 0"
+                    </span>);
+                }
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="macro">log_once_per_value_at_level!</span>(

@@ -325,7 +325,9 @@
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a></pre></div><pre class="rust"><code><span class="doccomment">//! A thread-per-core host scheduler.
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a></pre></div><pre class="rust"><code><span class="doccomment">//! A thread-per-core host scheduler.
 
 </span><span class="comment">// unsafe code should be isolated to the thread pool
 </span><span class="attr">#![forbid(unsafe_code)]
@@ -456,7 +458,9 @@
     runner: TaskRunner&lt;<span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt; {
+<span class="comment">// there are multiple named lifetimes, so let's just be explicit about them rather than hide them
+</span><span class="attr">#[allow(clippy::needless_lifetimes)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt; {
     <span class="doccomment">/// See [`crate::SchedulerScope::run`].
     </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize) + Sync + Send + <span class="lifetime">'scope</span>) {
         <span class="self">self</span>.runner.run(f);
@@ -516,7 +520,7 @@
     </span>this_thread_index: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, HostType: Host&gt; HostIter&lt;<span class="lifetime">'a</span>, HostType&gt; {
+<span class="kw">impl</span>&lt;HostType: Host&gt; HostIter&lt;<span class="lifetime">'_</span>, HostType&gt; {
     <span class="doccomment">/// See [`crate::HostIter::for_each`].
     </span><span class="kw">pub fn </span>for_each&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F)
     <span class="kw">where

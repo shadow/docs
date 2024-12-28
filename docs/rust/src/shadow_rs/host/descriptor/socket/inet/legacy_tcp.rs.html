@@ -1310,7 +1310,29 @@
 <a href="#1309" id="1309">1309</a>
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::CStr;
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::CStr;
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::Arc;
 
@@ -2418,6 +2440,13 @@
 
                 <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
             }
+            (libc::SOL_SOCKET, libc::SO_BROADCAST) =&gt; {
+                <span class="kw">let </span>optval_ptr = optval_ptr.cast::&lt;libc::c_int&gt;();
+                <span class="comment">// we don't support broadcast sockets, so just just return the default 0
+                </span><span class="kw">let </span>bytes_written = write_partial(memory_manager, <span class="kw-2">&amp;</span><span class="number">0</span>, optval_ptr, optlen <span class="kw">as </span>usize)<span class="question-mark">?</span>;
+
+                <span class="prelude-val">Ok</span>(bytes_written <span class="kw">as </span>libc::socklen_t)
+            }
             <span class="kw">_ </span>=&gt; {
                 <span class="macro">log_once_per_value_at_level!</span>(
                     (level, optname),
@@ -2566,8 +2595,23 @@
                 </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_KEEPALIVE not yet implemented"</span>);
             }
             (libc::SOL_SOCKET, libc::SO_BROADCAST) =&gt; {
-                <span class="comment">// TODO: implement this, pkg.go.dev/net uses it
-                </span><span class="macro">log::trace!</span>(<span class="string">"setsockopt SO_BROADCAST not yet implemented"</span>);
+                <span class="kw">type </span>OptType = libc::c_int;
+
+                <span class="kw">if </span>usize::try_from(optlen).unwrap() &lt; std::mem::size_of::&lt;OptType&gt;() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+                }
+
+                <span class="kw">let </span>optval_ptr = optval_ptr.cast::&lt;OptType&gt;();
+                <span class="kw">let </span>val = memory_manager.read(optval_ptr)<span class="question-mark">?</span>;
+
+                <span class="kw">if </span>val == <span class="number">0 </span>{
+                    <span class="comment">// we don't support broadcast sockets, so an attempt to disable is okay
+                </span>} <span class="kw">else </span>{
+                    <span class="comment">// TODO: implement this, pkg.go.dev/net uses it
+                    </span><span class="macro">warn_once_then_debug!</span>(
+                        <span class="string">"setsockopt SO_BROADCAST not yet implemented for tcp; ignoring and returning 0"
+                    </span>);
+                }
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="macro">log_once_per_value_at_level!</span>(

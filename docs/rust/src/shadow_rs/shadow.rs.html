@@ -497,7 +497,8 @@
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
-<a href="#499" id="499">499</a></pre></div><pre class="rust"><code><span class="doccomment">//! The main entrypoint to Shadow.
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a></pre></div><pre class="rust"><code><span class="doccomment">//! The main entrypoint to Shadow.
 //!
 //! This is called from a small C wrapper for build complexity reasons.
 
@@ -676,7 +677,7 @@
     // branch on memory addresses.
     </span><span class="kw">match </span>disable_aslr() {
         <span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">log::debug!</span>(<span class="string">"ASLR disabled for processes forked from this parent process"</span>),
-        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">log::warn!</span>(<span class="string">"Could not disable address space layout randomization. This may affect determinism: {:?}"</span>, e),
+        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">log::warn!</span>(<span class="string">"Could not disable address space layout randomization. This may affect determinism: {e:#}"</span>),
     };
 
     <span class="comment">// check sidechannel mitigations
@@ -924,8 +925,9 @@
 }
 
 <span class="kw">fn </span>disable_aslr() -&gt; anyhow::Result&lt;()&gt; {
-    <span class="kw">let </span>pers = personality::get()<span class="question-mark">?</span>;
-    personality::set(pers | personality::Persona::ADDR_NO_RANDOMIZE)<span class="question-mark">?</span>;
+    <span class="kw">let </span>pers = personality::get().context(<span class="string">"Could not get personality"</span>)<span class="question-mark">?</span>;
+    personality::set(pers | personality::Persona::ADDR_NO_RANDOMIZE)
+        .context(<span class="string">"Could not set personality"</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 

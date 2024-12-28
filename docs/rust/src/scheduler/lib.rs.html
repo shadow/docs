@@ -250,7 +250,9 @@
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a></pre></div><pre class="rust"><code><span class="doccomment">//! Scheduler for Shadow discrete-event simulations.
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a></pre></div><pre class="rust"><code><span class="doccomment">//! Scheduler for Shadow discrete-event simulations.
 //!
 //! In Shadow, each host has a queue of events it must process, and within a given scheduling round
 //! the host can process these events independently of all other hosts. This means that Shadow can
@@ -418,7 +420,9 @@
     ThreadPerCore(thread_per_core::SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt; {
+<span class="comment">// there are multiple named lifetimes, so let's just be explicit about them rather than hide them
+</span><span class="attr">#[allow(clippy::needless_lifetimes)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType: Host&gt; SchedulerScope&lt;<span class="lifetime">'sched</span>, <span class="lifetime">'pool</span>, <span class="lifetime">'scope</span>, HostType&gt; {
     <span class="doccomment">/// Run the closure on all threads. The closure is given an index of the currently running
     /// thread.
     </span><span class="kw">pub fn </span>run(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(usize) + Sync + Send + <span class="lifetime">'scope</span>) {
@@ -487,7 +491,7 @@
     ThreadPerCore(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>thread_per_core::HostIter&lt;<span class="lifetime">'b</span>, HostType&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, HostType: Host&gt; HostIter&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, HostType&gt; {
+<span class="kw">impl</span>&lt;HostType: Host&gt; HostIter&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, HostType&gt; {
     <span class="doccomment">/// For each [`Host`], calls `f` with the host. The `Host` must be returned by the closure. The
     /// ownership of the `Host` is transferred in and out of the closure rather than using a mutable
     /// reference since Shadow needs to put the host in a global with `'static` lifetime (the
