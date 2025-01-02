@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/petgraph-0.6.5/src/csr.rs`."><title>csr.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="petgraph" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">petgraph/</div>csr.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/petgraph-0.7.0/src/csr.rs`."><title>csr.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="petgraph" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">petgraph/</div>csr.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1146,7 +1146,10 @@
 <a href="#1145" id="1145">1145</a>
 <a href="#1146" id="1146">1146</a>
 <a href="#1147" id="1147">1147</a>
-<a href="#1148" id="1148">1148</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compressed Sparse Row (CSR) is a sparse adjacency matrix graph.
+<a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compressed Sparse Row (CSR) is a sparse adjacency matrix graph.
 
 </span><span class="kw">use </span>std::cmp::{max, Ordering};
 <span class="kw">use </span>std::iter::{Enumerate, Zip};
@@ -1279,7 +1282,8 @@
 <span class="doccomment">/// Csr creation error: edges were not in sorted order.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>EdgesNotSorted {
-    first_error: (usize, usize),
+    <span class="attr">#[allow(unused)]
+    </span>first_error: (usize, usize),
 }
 
 <span class="kw">impl</span>&lt;N, E, Ix&gt; Csr&lt;N, E, Directed, Ix&gt;
@@ -1558,13 +1562,13 @@
     ty: PhantomData&lt;Ty&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, E, Ty, Ix: Copy&gt; Clone <span class="kw">for </span>EdgeReference&lt;<span class="lifetime">'a</span>, E, Ty, Ix&gt; {
+<span class="kw">impl</span>&lt;E, Ty, Ix: Copy&gt; Clone <span class="kw">for </span>EdgeReference&lt;<span class="lifetime">'_</span>, E, Ty, Ix&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw-2">*</span><span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, E, Ty, Ix: Copy&gt; Copy <span class="kw">for </span>EdgeReference&lt;<span class="lifetime">'a</span>, E, Ty, Ix&gt; {}
+<span class="kw">impl</span>&lt;E, Ty, Ix: Copy&gt; Copy <span class="kw">for </span>EdgeReference&lt;<span class="lifetime">'_</span>, E, Ty, Ix&gt; {}
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Ty, E, Ix&gt; EdgeReference&lt;<span class="lifetime">'a</span>, E, Ty, Ix&gt;
 <span class="kw">where
@@ -1579,7 +1583,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, E, Ty, Ix&gt; EdgeRef <span class="kw">for </span>EdgeReference&lt;<span class="lifetime">'a</span>, E, Ty, Ix&gt;
+<span class="kw">impl</span>&lt;E, Ty, Ix&gt; EdgeRef <span class="kw">for </span>EdgeReference&lt;<span class="lifetime">'_</span>, E, Ty, Ix&gt;
 <span class="kw">where
     </span>Ty: EdgeType,
     Ix: IndexType,
@@ -1741,7 +1745,7 @@
     iter: SliceIter&lt;<span class="lifetime">'a</span>, NodeIndex&lt;Ix&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Ix&gt; Iterator <span class="kw">for </span>Neighbors&lt;<span class="lifetime">'a</span>, Ix&gt;
+<span class="kw">impl</span>&lt;Ix&gt; Iterator <span class="kw">for </span>Neighbors&lt;<span class="lifetime">'_</span>, Ix&gt;
 <span class="kw">where
     </span>Ix: IndexType,
 {
@@ -1843,7 +1847,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, N, E, Ty, Ix&gt; IntoNodeIdentifiers <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Csr&lt;N, E, Ty, Ix&gt;
+<span class="kw">impl</span>&lt;N, E, Ty, Ix&gt; IntoNodeIdentifiers <span class="kw">for </span><span class="kw-2">&amp;</span>Csr&lt;N, E, Ty, Ix&gt;
 <span class="kw">where
     </span>Ty: EdgeType,
     Ix: IndexType,
@@ -1923,7 +1927,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, N, Ix&gt; DoubleEndedIterator <span class="kw">for </span>NodeReferences&lt;<span class="lifetime">'a</span>, N, Ix&gt;
+<span class="kw">impl</span>&lt;N, Ix&gt; DoubleEndedIterator <span class="kw">for </span>NodeReferences&lt;<span class="lifetime">'_</span>, N, Ix&gt;
 <span class="kw">where
     </span>Ix: IndexType,
 {
@@ -1934,11 +1938,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, N, Ix&gt; ExactSizeIterator <span class="kw">for </span>NodeReferences&lt;<span class="lifetime">'a</span>, N, Ix&gt; <span class="kw">where </span>Ix: IndexType {}
+<span class="kw">impl</span>&lt;N, Ix&gt; ExactSizeIterator <span class="kw">for </span>NodeReferences&lt;<span class="lifetime">'_</span>, N, Ix&gt; <span class="kw">where </span>Ix: IndexType {}
 
 <span class="doccomment">/// The adjacency matrix for **Csr** is a bitmap that's computed by
 /// `.adjacency_matrix()`.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, N, E, Ty, Ix&gt; GetAdjacencyMatrix <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Csr&lt;N, E, Ty, Ix&gt;
+</span><span class="kw">impl</span>&lt;N, E, Ty, Ix&gt; GetAdjacencyMatrix <span class="kw">for </span><span class="kw-2">&amp;</span>Csr&lt;N, E, Ty, Ix&gt;
 <span class="kw">where
     </span>Ix: IndexType,
     Ty: EdgeType,
@@ -1949,17 +1953,19 @@
         <span class="kw">let </span>n = <span class="self">self</span>.node_count();
         <span class="kw">let </span><span class="kw-2">mut </span>matrix = FixedBitSet::with_capacity(n * n);
         <span class="kw">for </span>edge <span class="kw">in </span><span class="self">self</span>.edge_references() {
-            <span class="kw">let </span>i = edge.source().index() * n + edge.target().index();
+            <span class="kw">let </span>i = n * edge.source().index() + edge.target().index();
             matrix.put(i);
 
-            <span class="kw">let </span>j = edge.source().index() + n * edge.target().index();
-            matrix.put(j);
+            <span class="kw">if </span>!<span class="self">self</span>.is_directed() {
+                <span class="kw">let </span>j = edge.source().index() + n * edge.target().index();
+                matrix.put(j);
+            }
         }
         matrix
     }
 
     <span class="kw">fn </span>is_adjacent(<span class="kw-2">&amp;</span><span class="self">self</span>, matrix: <span class="kw-2">&amp;</span>FixedBitSet, a: NodeIndex&lt;Ix&gt;, b: NodeIndex&lt;Ix&gt;) -&gt; bool {
-        <span class="kw">let </span>n = <span class="self">self</span>.edge_count();
+        <span class="kw">let </span>n = <span class="self">self</span>.node_count();
         <span class="kw">let </span>index = n * a.index() + b.index();
         matrix.contains(index)
     }
@@ -2076,7 +2082,7 @@ Row   : [0, 2, 5]   &lt;- value index of row start
         .unwrap();
         <span class="macro">println!</span>(<span class="string">"{:?}"</span>, m);
         <span class="kw">let </span><span class="kw-2">mut </span>dfs = Dfs::new(<span class="kw-2">&amp;</span>m, <span class="number">0</span>);
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) = dfs.next(<span class="kw-2">&amp;</span>m) {}
+        <span class="kw">while </span>dfs.next(<span class="kw-2">&amp;</span>m).is_some() {}
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..m.node_count() - <span class="number">2 </span>{
             <span class="macro">assert!</span>(dfs.discovered.is_visited(<span class="kw-2">&amp;</span>i), <span class="string">"visited {}"</span>, i)
         }
@@ -2088,7 +2094,7 @@ Row   : [0, 2, 5]   &lt;- value index of row start
 
         dfs.reset(<span class="kw-2">&amp;</span>m);
         dfs.move_to(<span class="number">0</span>);
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) = dfs.next(<span class="kw-2">&amp;</span>m) {}
+        <span class="kw">while </span>dfs.next(<span class="kw-2">&amp;</span>m).is_some() {}
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..m.node_count() {
             <span class="macro">assert!</span>(dfs.discovered[i], <span class="string">"visited {}"</span>, i)
