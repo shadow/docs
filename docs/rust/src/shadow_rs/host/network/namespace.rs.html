@@ -308,27 +308,12 @@
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
-<span class="kw">use </span>std::ffi::OsStr;
+<a href="#310" id="310">310</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::ops::{Deref, DerefMut};
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
-<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::configuration::QDiscMode;
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
@@ -361,21 +346,10 @@
 }
 
 <span class="kw">impl </span>NetworkNamespace {
-    <span class="kw">pub fn </span>new(
-        host_id: HostId,
-        public_ip: Ipv4Addr,
-        pcap: <span class="prelude-ty">Option</span>&lt;PcapOptions&gt;,
-        qdisc: QDiscMode,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>localhost = NetworkInterface::new(
-            host_id,
-            Ipv4Addr::LOCALHOST,
-            OsStr::new(<span class="string">"lo"</span>),
-            pcap.clone(),
-            qdisc,
-        );
+    <span class="kw">pub fn </span>new(public_ip: Ipv4Addr, pcap: <span class="prelude-ty">Option</span>&lt;PcapOptions&gt;, qdisc: QDiscMode) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>localhost = NetworkInterface::new(<span class="string">"lo"</span>, Ipv4Addr::LOCALHOST, pcap.clone(), qdisc);
 
-        <span class="kw">let </span>internet = NetworkInterface::new(host_id, public_ip, OsStr::new(<span class="string">"eth0"</span>), pcap, qdisc);
+        <span class="kw">let </span>internet = NetworkInterface::new(<span class="string">"eth0"</span>, public_ip, pcap, qdisc);
 
         <span class="self">Self </span>{
             unix: Arc::new(AtomicRefCell::new(AbstractUnixNamespace::new())),
