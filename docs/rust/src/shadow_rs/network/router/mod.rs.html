@@ -108,16 +108,11 @@
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#110" id="110">110</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::net::Ipv4Addr;
 
 <span class="kw">use </span><span class="self">self</span>::codel_queue::CoDelQueue;
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
-<span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
 <span class="kw">use </span><span class="kw">crate</span>::network::packet::PacketRc;
 <span class="kw">use </span><span class="kw">crate</span>::network::PacketDevice;
 <span class="kw">use </span><span class="kw">crate</span>::utility::{Magic, ObjectCounter};
@@ -162,10 +157,7 @@
     /// the destination host.
     </span><span class="kw">fn </span>route_outgoing_packet(<span class="kw-2">&amp;</span><span class="self">self</span>, packet: PacketRc) {
         <span class="comment">// TODO: move Worker::send_packet to here?
-        </span><span class="kw">let </span>cpacket = packet.into_inner();
-        Worker::with_active_host(|src_host| <span class="kw">unsafe </span>{ Worker::send_packet(src_host, cpacket) })
-            .unwrap();
-        <span class="kw">unsafe </span>{ c::packet_unref(cpacket) };
+        </span>Worker::with_active_host(|src_host| Worker::send_packet(src_host, packet)).unwrap();
     }
 
     <span class="doccomment">/// Routes the packet from the virtual internet into our CoDel queue, which

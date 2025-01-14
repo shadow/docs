@@ -770,34 +770,7 @@
 <a href="#769" id="769">769</a>
 <a href="#770" id="770">770</a>
 <a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
-<a href="#775" id="775">775</a>
-<a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
-<a href="#778" id="778">778</a>
-<a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
+<a href="#772" id="772">772</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, AtomicU32};
 <span class="kw">use </span>std::sync::{Arc, Mutex};
@@ -818,13 +791,12 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::sim_config::Bandwidth;
 <span class="kw">use </span><span class="kw">crate</span>::core::sim_stats::{LocalSimStats, SharedSimStats};
 <span class="kw">use </span><span class="kw">crate</span>::core::work::event::Event;
-<span class="kw">use </span><span class="kw">crate</span>::cshadow;
 <span class="kw">use </span><span class="kw">crate</span>::host::host::Host;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::{Process, ProcessId};
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::{Thread, ThreadId};
 <span class="kw">use </span><span class="kw">crate</span>::network::dns::Dns;
 <span class="kw">use </span><span class="kw">crate</span>::network::graph::{IpAssignment, RoutingInfo};
-<span class="kw">use </span><span class="kw">crate</span>::network::packet::PacketRc;
+<span class="kw">use </span><span class="kw">crate</span>::network::packet::{PacketRc, PacketStatus};
 <span class="kw">use </span><span class="kw">crate</span>::utility::childpid_watcher::ChildPidWatcher;
 <span class="kw">use </span><span class="kw">crate</span>::utility::counter::Counter;
 <span class="kw">use </span><span class="kw">crate</span>::utility::status_bar;
@@ -1121,14 +1093,7 @@
 
     <span class="doccomment">/// The packet will be dropped if the packet's destination IP is not part of the simulation (no
     /// host has been configured for the IP).
-    ///
-    /// # Safety
-    ///
-    /// `packet` must be valid and not accessed by another thread while this function is
-    /// running.
-    </span><span class="kw">pub unsafe fn </span>send_packet(src_host: <span class="kw-2">&amp;</span>Host, packet: <span class="kw-2">*mut </span>cshadow::Packet) {
-        <span class="macro">assert!</span>(!packet.is_null());
-
+    </span><span class="kw">pub fn </span>send_packet(src_host: <span class="kw-2">&amp;</span>Host, <span class="kw-2">mut </span>packetrc: PacketRc) {
         <span class="kw">let </span>current_time = Worker::current_time().unwrap();
         <span class="kw">let </span>round_end_time = Worker::round_end_time().unwrap();
 
@@ -1141,12 +1106,9 @@
             </span><span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>src_ip = <span class="kw">unsafe </span>{ cshadow::packet_getSourceIP(packet) };
-        <span class="kw">let </span>dst_ip = <span class="kw">unsafe </span>{ cshadow::packet_getDestinationIP(packet) };
-        <span class="kw">let </span>payload_size = <span class="kw">unsafe </span>{ cshadow::packet_getPayloadSize(packet) };
-
-        <span class="kw">let </span>src_ip: std::net::Ipv4Addr = u32::from_be(src_ip).into();
-        <span class="kw">let </span>dst_ip: std::net::Ipv4Addr = u32::from_be(dst_ip).into();
+        <span class="kw">let </span>src_ip = <span class="kw-2">*</span>packetrc.src_address().ip();
+        <span class="kw">let </span>dst_ip = <span class="kw-2">*</span>packetrc.dst_address().ip();
+        <span class="kw">let </span>payload_size = packetrc.payload_size();
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(dst_host_id) = Worker::resolve_ip_to_host_id(dst_ip) <span class="kw">else </span>{
             <span class="macro">log_once_per_value_at_level!</span>(
@@ -1156,12 +1118,7 @@
                 log::Level::Debug,
                 <span class="string">"Packet has destination {dst_ip} which doesn't exist in the simulation. Dropping the packet."</span>,
             );
-            <span class="kw">unsafe </span>{
-                cshadow::packet_addDeliveryStatus(
-                    packet,
-                    cshadow::_PacketDeliveryStatusFlags_PDS_INET_DROPPED,
-                )
-            };
+            packetrc.add_status(PacketStatus::InetDropped);
             <span class="kw">return</span>;
         };
 
@@ -1178,12 +1135,7 @@
         // responding to packet loss
         // https://github.com/shadow/shadow/issues/2517
         </span><span class="kw">if </span>!is_bootstrapping &amp;&amp; chance &gt;= reliability &amp;&amp; payload_size &gt; <span class="number">0 </span>{
-            <span class="kw">unsafe </span>{
-                cshadow::packet_addDeliveryStatus(
-                    packet,
-                    cshadow::_PacketDeliveryStatusFlags_PDS_INET_DROPPED,
-                )
-            };
+            packetrc.add_status(PacketStatus::InetDropped);
             <span class="kw">return</span>;
         }
 
@@ -1195,15 +1147,7 @@
         <span class="comment">// TODO: this should change for sending to remote manager (on a different machine); this is
         // the only place where tasks are sent between separate host
 
-        </span><span class="kw">unsafe </span>{
-            cshadow::packet_addDeliveryStatus(
-                packet,
-                cshadow::_PacketDeliveryStatusFlags_PDS_INET_SENT,
-            )
-        };
-
-        <span class="comment">// copy the packet
-        </span><span class="kw">let </span>packet = PacketRc::from_raw(<span class="kw">unsafe </span>{ cshadow::packet_copy(packet) });
+        </span>packetrc.add_status(PacketStatus::InetSent);
 
         <span class="comment">// delay the packet until the next round
         </span><span class="kw">let </span><span class="kw-2">mut </span>deliver_time = current_time + delay;
@@ -1215,9 +1159,11 @@
         // round and calculated its min event time, so we put this in our min event time instead
         </span>Worker::update_next_event_time(deliver_time);
 
+        <span class="comment">// copy the packet (except the payload) so the dst gets its own header info
+        </span><span class="kw">let </span>dst_packet = packetrc.copy();
         Worker::with(|w| {
             w.shared
-                .push_packet_to_host(packet, dst_host_id, deliver_time, src_host)
+                .push_packet_to_host(dst_packet, dst_host_id, deliver_time, src_host)
         })
         .unwrap();
     }
