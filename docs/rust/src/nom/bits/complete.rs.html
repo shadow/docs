@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-7.1.3/src/bits/complete.rs`."><title>complete.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.1 (e71f9a9a9 2025-01-27)" data-channel="1.84.1" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">nom/bits/</div>complete.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-8.0.0/src/bits/complete.rs`."><title>complete.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.1 (e71f9a9a9 2025-01-27)" data-channel="1.84.1" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">nom/bits/</div>complete.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -193,15 +193,13 @@
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a></pre></div><pre class="rust"><code><span class="doccomment">//! Bit level parsers
+<a href="#195" id="195">195</a></pre></div><pre class="rust"><code><span class="doccomment">//! Bit level parsers
 //!
 
 </span><span class="kw">use </span><span class="kw">crate</span>::error::{ErrorKind, ParseError};
 <span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, IResult};
-<span class="kw">use </span><span class="kw">crate</span>::lib::std::ops::{AddAssign, Div, RangeFrom, Shl, Shr};
-<span class="kw">use </span><span class="kw">crate</span>::traits::{InputIter, InputLength, Slice, ToUsize};
+<span class="kw">use </span><span class="kw">crate</span>::lib::std::ops::{AddAssign, Div, Shl, Shr};
+<span class="kw">use </span><span class="kw">crate</span>::traits::{Input, ToUsize};
 
 <span class="doccomment">/// Generates a parser taking `count` bits
 ///
@@ -231,7 +229,7 @@
   count: C,
 ) -&gt; <span class="kw">impl </span>Fn((I, usize)) -&gt; IResult&lt;(I, usize), O, E&gt;
 <span class="kw">where
-  </span>I: Slice&lt;RangeFrom&lt;usize&gt;&gt; + InputIter&lt;Item = u8&gt; + InputLength,
+  </span>I: Input&lt;Item = u8&gt;,
   C: ToUsize,
   O: From&lt;u8&gt; + AddAssign + Shl&lt;usize, Output = O&gt; + Shr&lt;usize, Output = O&gt;,
 {
@@ -239,41 +237,39 @@
   <span class="kw">move </span>|(input, bit_offset): (I, usize)| {
     <span class="kw">if </span>count == <span class="number">0 </span>{
       <span class="prelude-val">Ok</span>(((input, bit_offset), <span class="number">0u8</span>.into()))
+    } <span class="kw">else if </span>input.input_len() * <span class="number">8 </span>&lt; count + bit_offset {
+      <span class="prelude-val">Err</span>(Err::Error(E::from_error_kind(
+        (input, bit_offset),
+        ErrorKind::Eof,
+      )))
     } <span class="kw">else </span>{
       <span class="kw">let </span>cnt = (count + bit_offset).div(<span class="number">8</span>);
-      <span class="kw">if </span>input.input_len() * <span class="number">8 </span>&lt; count + bit_offset {
-        <span class="prelude-val">Err</span>(Err::Error(E::from_error_kind(
-          (input, bit_offset),
-          ErrorKind::Eof,
-        )))
-      } <span class="kw">else </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>acc: O = <span class="number">0_u8</span>.into();
-        <span class="kw">let </span><span class="kw-2">mut </span>offset: usize = bit_offset;
-        <span class="kw">let </span><span class="kw-2">mut </span>remaining: usize = count;
-        <span class="kw">let </span><span class="kw-2">mut </span>end_offset: usize = <span class="number">0</span>;
+      <span class="kw">let </span><span class="kw-2">mut </span>acc: O = <span class="number">0_u8</span>.into();
+      <span class="kw">let </span><span class="kw-2">mut </span>offset: usize = bit_offset;
+      <span class="kw">let </span><span class="kw-2">mut </span>remaining: usize = count;
+      <span class="kw">let </span><span class="kw-2">mut </span>end_offset: usize = <span class="number">0</span>;
 
-        <span class="kw">for </span>byte <span class="kw">in </span>input.iter_elements().take(cnt + <span class="number">1</span>) {
-          <span class="kw">if </span>remaining == <span class="number">0 </span>{
-            <span class="kw">break</span>;
-          }
-          <span class="kw">let </span>val: O = <span class="kw">if </span>offset == <span class="number">0 </span>{
-            byte.into()
-          } <span class="kw">else </span>{
-            ((byte &lt;&lt; offset) <span class="kw">as </span>u8 &gt;&gt; offset).into()
-          };
-
-          <span class="kw">if </span>remaining &lt; <span class="number">8 </span>- offset {
-            acc += val &gt;&gt; (<span class="number">8 </span>- offset - remaining);
-            end_offset = remaining + offset;
-            <span class="kw">break</span>;
-          } <span class="kw">else </span>{
-            acc += val &lt;&lt; (remaining - (<span class="number">8 </span>- offset));
-            remaining -= <span class="number">8 </span>- offset;
-            offset = <span class="number">0</span>;
-          }
+      <span class="kw">for </span>byte <span class="kw">in </span>input.iter_elements().take(cnt + <span class="number">1</span>) {
+        <span class="kw">if </span>remaining == <span class="number">0 </span>{
+          <span class="kw">break</span>;
         }
-        <span class="prelude-val">Ok</span>(((input.slice(cnt..), end_offset), acc))
+        <span class="kw">let </span>val: O = <span class="kw">if </span>offset == <span class="number">0 </span>{
+          byte.into()
+        } <span class="kw">else </span>{
+          ((byte &lt;&lt; offset) &gt;&gt; offset).into()
+        };
+
+        <span class="kw">if </span>remaining &lt; <span class="number">8 </span>- offset {
+          acc += val &gt;&gt; (<span class="number">8 </span>- offset - remaining);
+          end_offset = remaining + offset;
+          <span class="kw">break</span>;
+        } <span class="kw">else </span>{
+          acc += val &lt;&lt; (remaining - (<span class="number">8 </span>- offset));
+          remaining -= <span class="number">8 </span>- offset;
+          offset = <span class="number">0</span>;
+        }
       }
+      <span class="prelude-val">Ok</span>(((input.take_from(cnt), end_offset), acc))
     }
   }
 }
@@ -284,7 +280,7 @@
   count: C,
 ) -&gt; <span class="kw">impl </span>Fn((I, usize)) -&gt; IResult&lt;(I, usize), O, E&gt;
 <span class="kw">where
-  </span>I: Slice&lt;RangeFrom&lt;usize&gt;&gt; + InputIter&lt;Item = u8&gt; + InputLength + Clone,
+  </span>I: Input&lt;Item = u8&gt; + Clone,
   C: ToUsize,
   O: From&lt;u8&gt; + AddAssign + Shl&lt;usize, Output = O&gt; + Shr&lt;usize, Output = O&gt; + PartialEq,
 {
@@ -319,7 +315,7 @@
 /// ```
 </span><span class="kw">pub fn </span>bool&lt;I, E: ParseError&lt;(I, usize)&gt;&gt;(input: (I, usize)) -&gt; IResult&lt;(I, usize), bool, E&gt;
 <span class="kw">where
-  </span>I: Slice&lt;RangeFrom&lt;usize&gt;&gt; + InputIter&lt;Item = u8&gt; + InputLength,
+  </span>I: Input&lt;Item = u8&gt;,
 {
   <span class="kw">let </span>(res, bit): (<span class="kw">_</span>, u32) = take(<span class="number">1usize</span>)(input)<span class="question-mark">?</span>;
   <span class="prelude-val">Ok</span>((res, bit != <span class="number">0</span>))

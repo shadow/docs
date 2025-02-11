@@ -299,11 +299,7 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a></pre></div><pre class="rust"><code><span class="doccomment">/*!
+<a href="#301" id="301">301</a></pre></div><pre class="rust"><code><span class="doccomment">/*!
 A nom-based GML parser.
 */
 
@@ -312,11 +308,9 @@ A nom-based GML parser.
 <span class="kw">use </span>nom::{
     bytes::complete::{escaped_transform, is_not, tag, take, take_while},
     character::complete::{digit1, multispace0, multispace1, space0},
-    character::{is_alphabetic, is_alphanumeric},
     combinator::{<span class="self">self</span>, map_res, recognize, verify},
     error::{ErrorKind, FromExternalError, ParseError},
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 
 <span class="kw">use </span><span class="kw">crate</span>::gml::{Edge, Gml, GmlItem, Node, Value};
@@ -343,15 +337,15 @@ A nom-based GML parser.
     count: u32,
     cond: <span class="kw">impl </span>Fn(char) -&gt; bool,
 ) -&gt; <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, E&gt; {
-    <span class="kw">move </span>|i| verify(take(count), |s: <span class="kw-2">&amp;</span>str| s.chars().all(<span class="kw-2">&amp;</span>cond))(i)
+    <span class="kw">move </span>|i| verify(take(count), |s: <span class="kw-2">&amp;</span>str| s.chars().all(<span class="kw-2">&amp;</span>cond)).parse(i)
 }
 
 <span class="doccomment">/// Parse a GML key.
 </span><span class="kw">pub fn </span>key&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, E&gt; {
     <span class="comment">// a key starts with the a character [a-zA-Z_], and has remaining characters [a-zA-Z0-9_]
-    </span><span class="kw">let </span>take_first = take_verify(<span class="number">1</span>, |chr| is_alphabetic(chr <span class="kw">as </span>u8) || chr == <span class="string">'_'</span>);
-    <span class="kw">let </span>take_remaining = take_while(|chr| is_alphanumeric(chr <span class="kw">as </span>u8) || chr == <span class="string">'_'</span>);
-    <span class="kw">let </span>(input, key) = recognize(tuple((take_first, take_remaining)))(input)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>take_first = take_verify(<span class="number">1</span>, |chr| chr.is_ascii_alphabetic() || chr == <span class="string">'_'</span>);
+    <span class="kw">let </span>take_remaining = take_while(|chr: char| chr.is_ascii_alphanumeric() || chr == <span class="string">'_'</span>);
+    <span class="kw">let </span>(input, key) = recognize((take_first, take_remaining)).parse(input)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((input, key))
 }
 
@@ -377,7 +371,7 @@ A nom-based GML parser.
     <span class="kw">let </span>(input, <span class="kw">_</span>) = tag(<span class="string">"["</span>)(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = newline(input)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(input, (items, <span class="kw">_</span>)) = nom::multi::many_till(item, tag(<span class="string">"]"</span>))(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(input, (items, <span class="kw">_</span>)) = nom::multi::many_till(item, tag(<span class="string">"]"</span>)).parse(input)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>[nodes, edges, directed, others]: [Vec&lt;<span class="kw">_</span>&gt;; <span class="number">4</span>] = partition(items.into_iter(), |x| <span class="kw">match </span>x {
         GmlItem::Node(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
@@ -460,7 +454,7 @@ A nom-based GML parser.
     <span class="kw">let </span>(input, <span class="kw">_</span>) = tag(<span class="string">"["</span>)(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = newline(input)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(input, (key_values, <span class="kw">_</span>)) = nom::multi::many_till(tuple((key, value)), tag(<span class="string">"]"</span>))(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(input, (key_values, <span class="kw">_</span>)) = nom::multi::many_till((key, value), tag(<span class="string">"]"</span>)).parse(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>expected_len = key_values.len();
     <span class="kw">let </span><span class="kw-2">mut </span>key_values: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = key_values.into_iter().collect();
     <span class="kw">if </span>key_values.len() != expected_len {
@@ -488,7 +482,7 @@ A nom-based GML parser.
     <span class="kw">let </span>(input, <span class="kw">_</span>) = tag(<span class="string">"["</span>)(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>(input, <span class="kw">_</span>) = newline(input)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(input, (key_values, <span class="kw">_</span>)) = nom::multi::many_till(tuple((key, value)), tag(<span class="string">"]"</span>))(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(input, (key_values, <span class="kw">_</span>)) = nom::multi::many_till((key, value), tag(<span class="string">"]"</span>)).parse(input)<span class="question-mark">?</span>;
     <span class="kw">let </span>expected_len = key_values.len();
     <span class="kw">let </span><span class="kw-2">mut </span>key_values: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = key_values.into_iter().collect();
     <span class="kw">if </span>key_values.len() != expected_len {
@@ -519,22 +513,20 @@ A nom-based GML parser.
 <span class="kw">fn </span>value&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
     <span class="kw">let </span>(input, <span class="kw">_</span>) = space0(input)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(input, (value, <span class="kw">_</span>)) = nom::branch::alt((
-        tuple((int, newline)),
-        tuple((float, newline)),
-        tuple((string, newline)),
-    ))(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(input, (value, <span class="kw">_</span>)) =
+        nom::branch::alt(((int, newline), (float, newline), (string, newline))).parse(input)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>((input, value))
 }
 
 <span class="kw">fn </span>int&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
-    <span class="kw">let </span>(input, value) = map_res(recognize(digit1), str::parse)(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(input, value) = map_res(recognize(digit1), str::parse).parse(input)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((input, Value::Int(value)))
 }
 
 <span class="kw">fn </span>float&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Value&lt;<span class="lifetime">'a</span>&gt;, E&gt; {
-    <span class="kw">let </span>(input, value) = map_res(nom::number::complete::recognize_float, str::parse)(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(input, value) =
+        map_res(nom::number::complete::recognize_float, str::parse).parse(input)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((input, Value::Float(value)))
 }
 
@@ -555,7 +547,7 @@ A nom-based GML parser.
 }
 
 <span class="kw">fn </span>newline&lt;<span class="lifetime">'a</span>, E: GmlParseError&lt;<span class="lifetime">'a</span>&gt;&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, E&gt; {
-    recognize(tuple((space0, multispace1, space0)))(input)
+    recognize((space0, multispace1, space0)).parse(input)
 }
 
 <span class="kw">fn </span>int_to_bool(x: i32) -&gt; <span class="prelude-ty">Result</span>&lt;bool, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {

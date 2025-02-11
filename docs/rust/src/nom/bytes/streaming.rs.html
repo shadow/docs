@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-7.1.3/src/bytes/streaming.rs`."><title>streaming.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.1 (e71f9a9a9 2025-01-27)" data-channel="1.84.1" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">nom/bytes/</div>streaming.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-8.0.0/src/bytes/streaming.rs`."><title>streaming.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.1 (e71f9a9a9 2025-01-27)" data-channel="1.84.1" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">nom/bytes/</div>streaming.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -497,218 +497,17 @@
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
-<a href="#499" id="499">499</a>
-<a href="#500" id="500">500</a>
-<a href="#501" id="501">501</a>
-<a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
-<a href="#505" id="505">505</a>
-<a href="#506" id="506">506</a>
-<a href="#507" id="507">507</a>
-<a href="#508" id="508">508</a>
-<a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a>
-<a href="#511" id="511">511</a>
-<a href="#512" id="512">512</a>
-<a href="#513" id="513">513</a>
-<a href="#514" id="514">514</a>
-<a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-<a href="#519" id="519">519</a>
-<a href="#520" id="520">520</a>
-<a href="#521" id="521">521</a>
-<a href="#522" id="522">522</a>
-<a href="#523" id="523">523</a>
-<a href="#524" id="524">524</a>
-<a href="#525" id="525">525</a>
-<a href="#526" id="526">526</a>
-<a href="#527" id="527">527</a>
-<a href="#528" id="528">528</a>
-<a href="#529" id="529">529</a>
-<a href="#530" id="530">530</a>
-<a href="#531" id="531">531</a>
-<a href="#532" id="532">532</a>
-<a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
-<a href="#535" id="535">535</a>
-<a href="#536" id="536">536</a>
-<a href="#537" id="537">537</a>
-<a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
-<a href="#638" id="638">638</a>
-<a href="#639" id="639">639</a>
-<a href="#640" id="640">640</a>
-<a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-<a href="#686" id="686">686</a>
-<a href="#687" id="687">687</a>
-<a href="#688" id="688">688</a>
-<a href="#689" id="689">689</a>
-<a href="#690" id="690">690</a>
-<a href="#691" id="691">691</a>
-<a href="#692" id="692">692</a>
-<a href="#693" id="693">693</a>
-<a href="#694" id="694">694</a>
-<a href="#695" id="695">695</a>
-<a href="#696" id="696">696</a>
-<a href="#697" id="697">697</a>
-<a href="#698" id="698">698</a>
-<a href="#699" id="699">699</a>
-<a href="#700" id="700">700</a></pre></div><pre class="rust"><code><span class="doccomment">//! Parsers recognizing bytes streams, streaming version
+<a href="#499" id="499">499</a></pre></div><pre class="rust"><code><span class="doccomment">//! Parsers recognizing bytes streams, streaming version
 
-</span><span class="kw">use </span><span class="kw">crate</span>::error::ErrorKind;
+</span><span class="kw">use </span>core::marker::PhantomData;
+
 <span class="kw">use </span><span class="kw">crate</span>::error::ParseError;
-<span class="kw">use </span><span class="kw">crate</span>::internal::{<span class="prelude-val">Err</span>, IResult, Needed, Parser};
-<span class="kw">use </span><span class="kw">crate</span>::lib::std::ops::RangeFrom;
-<span class="kw">use </span><span class="kw">crate</span>::lib::std::result::Result::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::traits::{
-  Compare, CompareResult, FindSubstring, FindToken, InputIter, InputLength, InputTake,
-  InputTakeAtPosition, Slice, ToUsize,
-};
+<span class="kw">use </span><span class="kw">crate</span>::internal::{IResult, Parser};
+<span class="kw">use </span><span class="kw">crate</span>::traits::{Compare, FindSubstring, FindToken, ToUsize};
+<span class="kw">use </span><span class="kw">crate</span>::Emit;
+<span class="kw">use </span><span class="kw">crate</span>::Input;
+<span class="kw">use </span><span class="kw">crate</span>::OutputM;
+<span class="kw">use </span><span class="kw">crate</span>::Streaming;
 
 <span class="doccomment">/// Recognizes a pattern.
 ///
@@ -728,26 +527,18 @@
 /// assert_eq!(parser("S"), Err(Err::Error(Error::new("S", ErrorKind::Tag))));
 /// assert_eq!(parser("H"), Err(Err::Incomplete(Needed::new(4))));
 /// ```
-</span><span class="kw">pub fn </span>tag&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
-  tag: T,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>tag&lt;T, I, Error: ParseError&lt;I&gt;&gt;(tag: T) -&gt; <span class="kw">impl </span>Fn(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTake + InputLength + Compare&lt;T&gt;,
-  T: InputLength + Clone,
+  </span>I: Input + Compare&lt;T&gt;,
+  T: Input + Clone,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>tag_len = tag.input_len();
-    <span class="kw">let </span>t = tag.clone();
-
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>i.compare(t) {
-      CompareResult::Ok =&gt; <span class="prelude-val">Ok</span>(i.take_split(tag_len)),
-      CompareResult::Incomplete =&gt; <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(tag_len - i.input_len()))),
-      CompareResult::Error =&gt; {
-        <span class="kw">let </span>e: ErrorKind = ErrorKind::Tag;
-        <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(i, e)))
-      }
+  <span class="kw">move </span>|i: I| {
+    <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::Tag {
+      tag: tag.clone(),
+      e: PhantomData,
     };
-    res
+
+    parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
   }
 }
 
@@ -770,26 +561,18 @@
 /// assert_eq!(parser("Something"), Err(Err::Error(Error::new("Something", ErrorKind::Tag))));
 /// assert_eq!(parser(""), Err(Err::Incomplete(Needed::new(5))));
 /// ```
-</span><span class="kw">pub fn </span>tag_no_case&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
-  tag: T,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>tag_no_case&lt;T, I, Error: ParseError&lt;I&gt;&gt;(tag: T) -&gt; <span class="kw">impl </span>Fn(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTake + InputLength + Compare&lt;T&gt;,
-  T: InputLength + Clone,
+  </span>I: Input + Compare&lt;T&gt;,
+  T: Input + Clone,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>tag_len = tag.input_len();
-    <span class="kw">let </span>t = tag.clone();
-
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>(i).compare_no_case(t) {
-      CompareResult::Ok =&gt; <span class="prelude-val">Ok</span>(i.take_split(tag_len)),
-      CompareResult::Incomplete =&gt; <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(tag_len - i.input_len()))),
-      CompareResult::Error =&gt; {
-        <span class="kw">let </span>e: ErrorKind = ErrorKind::Tag;
-        <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(i, e)))
-      }
+  <span class="kw">move </span>|i: I| {
+    <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::TagNoCase {
+      tag: tag.clone(),
+      e: PhantomData,
     };
-    res
+
+    parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
   }
 }
 
@@ -814,17 +597,14 @@
 /// assert_eq!(not_space("Nospace"), Err(Err::Incomplete(Needed::new(1))));
 /// assert_eq!(not_space(""), Err(Err::Incomplete(Needed::new(1))));
 /// ```
-</span><span class="kw">pub fn </span>is_not&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
-  arr: T,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>is_not&lt;T, I, Error: ParseError&lt;I&gt;&gt;(arr: T) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTakeAtPosition,
-  T: FindToken&lt;&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item&gt;,
+  </span>I: Input,
+  T: FindToken&lt;&lt;I <span class="kw">as </span>Input&gt;::Item&gt;,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: ErrorKind = ErrorKind::IsNot;
-    i.split_at_position1(|c| arr.find_token(c), e)
-  }
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::is_not(arr);
+
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the longest slice of the matches the pattern.
@@ -850,17 +630,14 @@
 /// assert_eq!(hex("D15EA5E"), Err(Err::Incomplete(Needed::new(1))));
 /// assert_eq!(hex(""), Err(Err::Incomplete(Needed::new(1))));
 /// ```
-</span><span class="kw">pub fn </span>is_a&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
-  arr: T,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>is_a&lt;T, I, Error: ParseError&lt;I&gt;&gt;(arr: T) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTakeAtPosition,
-  T: FindToken&lt;&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item&gt;,
+  </span>I: Input,
+  T: FindToken&lt;&lt;I <span class="kw">as </span>Input&gt;::Item&gt;,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: ErrorKind = ErrorKind::IsA;
-    i.split_at_position1(|c| !arr.find_token(c), e)
-  }
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::is_a(arr);
+
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the longest input slice (if any) that matches the predicate.
@@ -874,10 +651,10 @@
 /// ```rust
 /// # use nom::{Err, error::ErrorKind, Needed, IResult};
 /// use nom::bytes::streaming::take_while;
-/// use nom::character::is_alphabetic;
+/// use nom::AsChar;
 ///
 /// fn alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
-///   take_while(is_alphabetic)(s)
+///   take_while(AsChar::is_alpha)(s)
 /// }
 ///
 /// assert_eq!(alpha(b"latin123"), Ok((&amp;b"123"[..], &amp;b"latin"[..])));
@@ -885,14 +662,14 @@
 /// assert_eq!(alpha(b"latin"), Err(Err::Incomplete(Needed::new(1))));
 /// assert_eq!(alpha(b""), Err(Err::Incomplete(Needed::new(1))));
 /// ```
-</span><span class="kw">pub fn </span>take_while&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
-  cond: F,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>take_while&lt;F, I, Error: ParseError&lt;I&gt;&gt;(cond: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTakeAtPosition,
-  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; bool,
+  </span>I: Input,
+  F: Fn(&lt;I <span class="kw">as </span>Input&gt;::Item) -&gt; bool,
 {
-  <span class="kw">move </span>|i: Input| i.split_at_position(|c| !cond(c))
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take_while(cond);
+
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the longest (at least 1) input slice that matches the predicate.
@@ -909,27 +686,24 @@
 /// ```rust
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::streaming::take_while1;
-/// use nom::character::is_alphabetic;
+/// use nom::AsChar;
 ///
 /// fn alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
-///   take_while1(is_alphabetic)(s)
+///   take_while1(AsChar::is_alpha)(s)
 /// }
 ///
 /// assert_eq!(alpha(b"latin123"), Ok((&amp;b"123"[..], &amp;b"latin"[..])));
 /// assert_eq!(alpha(b"latin"), Err(Err::Incomplete(Needed::new(1))));
 /// assert_eq!(alpha(b"12345"), Err(Err::Error(Error::new(&amp;b"12345"[..], ErrorKind::TakeWhile1))));
 /// ```
-</span><span class="kw">pub fn </span>take_while1&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
-  cond: F,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>take_while1&lt;F, I, Error: ParseError&lt;I&gt;&gt;(cond: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTakeAtPosition,
-  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; bool,
+  </span>I: Input,
+  F: Fn(&lt;I <span class="kw">as </span>Input&gt;::Item) -&gt; bool,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: ErrorKind = ErrorKind::TakeWhile1;
-    i.split_at_position1(|c| !cond(c), e)
-  }
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take_while1(cond);
+
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the longest (m &lt;= len &lt;= n) input slice  that matches the predicate.
@@ -945,10 +719,10 @@
 /// ```rust
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::streaming::take_while_m_n;
-/// use nom::character::is_alphabetic;
+/// use nom::AsChar;
 ///
 /// fn short_alpha(s: &amp;[u8]) -&gt; IResult&lt;&amp;[u8], &amp;[u8]&gt; {
-///   take_while_m_n(3, 6, is_alphabetic)(s)
+///   take_while_m_n(3, 6, AsChar::is_alpha)(s)
 /// }
 ///
 /// assert_eq!(short_alpha(b"latin123"), Ok((&amp;b"123"[..], &amp;b"latin"[..])));
@@ -957,64 +731,18 @@
 /// assert_eq!(short_alpha(b"ed"), Err(Err::Incomplete(Needed::new(1))));
 /// assert_eq!(short_alpha(b"12345"), Err(Err::Error(Error::new(&amp;b"12345"[..], ErrorKind::TakeWhileMN))));
 /// ```
-</span><span class="kw">pub fn </span>take_while_m_n&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
+</span><span class="kw">pub fn </span>take_while_m_n&lt;F, I, Error: ParseError&lt;I&gt;&gt;(
   m: usize,
   n: usize,
   cond: F,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTake + InputIter + InputLength,
-  F: Fn(&lt;Input <span class="kw">as </span>InputIter&gt;::Item) -&gt; bool,
+  </span>I: Input,
+  F: Fn(&lt;I <span class="kw">as </span>Input&gt;::Item) -&gt; bool,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>input = i;
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take_while_m_n(m, n, cond);
 
-    <span class="kw">match </span>input.position(|c| !cond(c)) {
-      <span class="prelude-val">Some</span>(idx) =&gt; {
-        <span class="kw">if </span>idx &gt;= m {
-          <span class="kw">if </span>idx &lt;= n {
-            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = input.slice_index(idx) {
-              <span class="prelude-val">Ok</span>(input.take_split(index))
-            } <span class="kw">else </span>{
-              <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(
-                input,
-                ErrorKind::TakeWhileMN,
-              )))
-            };
-            res
-          } <span class="kw">else </span>{
-            <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">if let </span><span class="prelude-val">Ok</span>(index) = input.slice_index(n) {
-              <span class="prelude-val">Ok</span>(input.take_split(index))
-            } <span class="kw">else </span>{
-              <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(
-                input,
-                ErrorKind::TakeWhileMN,
-              )))
-            };
-            res
-          }
-        } <span class="kw">else </span>{
-          <span class="kw">let </span>e = ErrorKind::TakeWhileMN;
-          <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(input, e)))
-        }
-      }
-      <span class="prelude-val">None </span>=&gt; {
-        <span class="kw">let </span>len = input.input_len();
-        <span class="kw">if </span>len &gt;= n {
-          <span class="kw">match </span>input.slice_index(n) {
-            <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(input.take_split(index)),
-            <span class="prelude-val">Err</span>(_needed) =&gt; <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(
-              input,
-              ErrorKind::TakeWhileMN,
-            ))),
-          }
-        } <span class="kw">else </span>{
-          <span class="kw">let </span>needed = <span class="kw">if </span>m &gt; len { m - len } <span class="kw">else </span>{ <span class="number">1 </span>};
-          <span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(needed)))
-        }
-      }
-    }
-  }
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the longest input slice (if any) till a predicate is met.
@@ -1040,14 +768,15 @@
 /// assert_eq!(till_colon("12345"), Err(Err::Incomplete(Needed::new(1))));
 /// assert_eq!(till_colon(""), Err(Err::Incomplete(Needed::new(1))));
 /// ```
-</span><span class="kw">pub fn </span>take_till&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
-  cond: F,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="attr">#[allow(clippy::redundant_closure)]
+</span><span class="kw">pub fn </span>take_till&lt;F, I, Error: ParseError&lt;I&gt;&gt;(cond: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTakeAtPosition,
-  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; bool,
+  </span>I: Input,
+  F: Fn(&lt;I <span class="kw">as </span>Input&gt;::Item) -&gt; bool,
 {
-  <span class="kw">move </span>|i: Input| i.split_at_position(|c| cond(c))
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take_till(cond);
+
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the longest (at least 1) input slice till a predicate is met.
@@ -1072,17 +801,15 @@
 /// assert_eq!(till_colon("12345"), Err(Err::Incomplete(Needed::new(1))));
 /// assert_eq!(till_colon(""), Err(Err::Incomplete(Needed::new(1))));
 /// ```
-</span><span class="kw">pub fn </span>take_till1&lt;F, Input, Error: ParseError&lt;Input&gt;&gt;(
-  cond: F,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="attr">#[allow(clippy::redundant_closure)]
+</span><span class="kw">pub fn </span>take_till1&lt;F, I, Error: ParseError&lt;I&gt;&gt;(cond: F) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTakeAtPosition,
-  F: Fn(&lt;Input <span class="kw">as </span>InputTakeAtPosition&gt;::Item) -&gt; bool,
+  </span>I: Input,
+  F: Fn(&lt;I <span class="kw">as </span>Input&gt;::Item) -&gt; bool,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>e: ErrorKind = ErrorKind::TakeTill1;
-    i.split_at_position1(|c| cond(c), e)
-  }
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take_till1(cond);
+
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns an input slice containing the first N input elements (Input[..N]).
@@ -1108,18 +835,14 @@
 /// assert_eq!(take6("things"), Ok(("", "things")));
 /// assert_eq!(take6("short"), Err(Err::Incomplete(Needed::Unknown)));
 /// ```
-</span><span class="kw">pub fn </span>take&lt;C, Input, Error: ParseError&lt;Input&gt;&gt;(
-  count: C,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>take&lt;C, I, Error: ParseError&lt;I&gt;&gt;(count: C) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputIter + InputTake + InputLength,
+  </span>I: Input,
   C: ToUsize,
 {
-  <span class="kw">let </span>c = count.to_usize();
-  <span class="kw">move </span>|i: Input| <span class="kw">match </span>i.slice_index(c) {
-    <span class="prelude-val">Err</span>(i) =&gt; <span class="prelude-val">Err</span>(Err::Incomplete(i)),
-    <span class="prelude-val">Ok</span>(index) =&gt; <span class="prelude-val">Ok</span>(i.take_split(index)),
-  }
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take(count);
+
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the input slice up to the first occurrence of the pattern.
@@ -1143,22 +866,14 @@
 /// assert_eq!(until_eof("hello, worldeo"), Err(Err::Incomplete(Needed::Unknown)));
 /// assert_eq!(until_eof("1eof2eof"), Ok(("eof2eof", "1")));
 /// ```
-</span><span class="kw">pub fn </span>take_until&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
-  tag: T,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>take_until&lt;T, I, Error: ParseError&lt;I&gt;&gt;(tag: T) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTake + InputLength + FindSubstring&lt;T&gt;,
+  </span>I: Input + FindSubstring&lt;T&gt;,
   T: Clone,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>t = tag.clone();
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take_until(tag);
 
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>i.find_substring(t) {
-      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown)),
-      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(i.take_split(index)),
-    };
-    res
-  }
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Returns the non empty input slice up to the first occurrence of the pattern.
@@ -1183,23 +898,14 @@
 /// assert_eq!(until_eof("1eof2eof"), Ok(("eof2eof", "1")));
 /// assert_eq!(until_eof("eof"),  Err(Err::Error(Error::new("eof", ErrorKind::TakeUntil))));
 /// ```
-</span><span class="kw">pub fn </span>take_until1&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
-  tag: T,
-) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+</span><span class="kw">pub fn </span>take_until1&lt;T, I, Error: ParseError&lt;I&gt;&gt;(tag: T) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: InputTake + InputLength + FindSubstring&lt;T&gt;,
+  </span>I: Input + FindSubstring&lt;T&gt;,
   T: Clone,
 {
-  <span class="kw">move </span>|i: Input| {
-    <span class="kw">let </span>t = tag.clone();
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::take_until1(tag);
 
-    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>i.find_substring(t) {
-      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown)),
-      <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(i, ErrorKind::TakeUntil))),
-      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(i.take_split(index)),
-    };
-    res
-  }
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Matches a byte string with escaped characters.
@@ -1222,74 +928,21 @@
 /// assert_eq!(esc("12\\\"34;"), Ok((";", "12\\\"34")));
 /// ```
 ///
-</span><span class="kw">pub fn </span>escaped&lt;Input, Error, F, G, O1, O2&gt;(
-  <span class="kw-2">mut </span>normal: F,
+</span><span class="kw">pub fn </span>escaped&lt;I, Error, F, G&gt;(
+  normal: F,
   control_char: char,
-  <span class="kw-2">mut </span>escapable: G,
-) -&gt; <span class="kw">impl </span>FnMut(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+  escapable: G,
+) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, I, Error&gt;
 <span class="kw">where
-  </span>Input: Clone
-    + <span class="kw">crate</span>::traits::Offset
-    + InputLength
-    + InputTake
-    + InputTakeAtPosition
-    + Slice&lt;RangeFrom&lt;usize&gt;&gt;
-    + InputIter,
-  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <span class="kw">crate</span>::traits::AsChar,
-  F: Parser&lt;Input, O1, Error&gt;,
-  G: Parser&lt;Input, O2, Error&gt;,
-  Error: ParseError&lt;Input&gt;,
+  </span>I: Input + Clone + <span class="kw">crate</span>::traits::Offset,
+  &lt;I <span class="kw">as </span>Input&gt;::Item: <span class="kw">crate</span>::traits::AsChar,
+  F: Parser&lt;I, Error = Error&gt;,
+  G: Parser&lt;I, Error = Error&gt;,
+  Error: ParseError&lt;I&gt;,
 {
-  <span class="kw">use </span><span class="kw">crate</span>::traits::AsChar;
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::escaped(normal, control_char, escapable);
 
-  <span class="kw">move </span>|input: Input| {
-    <span class="kw">let </span><span class="kw-2">mut </span>i = input.clone();
-
-    <span class="kw">while </span>i.input_len() &gt; <span class="number">0 </span>{
-      <span class="kw">let </span>current_len = i.input_len();
-
-      <span class="kw">match </span>normal.parse(i.clone()) {
-        <span class="prelude-val">Ok</span>((i2, <span class="kw">_</span>)) =&gt; {
-          <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
-          } <span class="kw">else if </span>i2.input_len() == current_len {
-            <span class="kw">let </span>index = input.offset(<span class="kw-2">&amp;</span>i2);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(input.take_split(index));
-          } <span class="kw">else </span>{
-            i = i2;
-          }
-        }
-        <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; {
-          <span class="comment">// unwrap() should be safe here since index &lt; $i.input_len()
-          </span><span class="kw">if </span>i.iter_elements().next().unwrap().as_char() == control_char {
-            <span class="kw">let </span>next = control_char.len_utf8();
-            <span class="kw">if </span>next &gt;= i.input_len() {
-              <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::new(<span class="number">1</span>)));
-            } <span class="kw">else </span>{
-              <span class="kw">match </span>escapable.parse(i.slice(next..)) {
-                <span class="prelude-val">Ok</span>((i2, <span class="kw">_</span>)) =&gt; {
-                  <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
-                  } <span class="kw">else </span>{
-                    i = i2;
-                  }
-                }
-                <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
-              }
-            }
-          } <span class="kw">else </span>{
-            <span class="kw">let </span>index = input.offset(<span class="kw-2">&amp;</span>i);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(input.take_split(index));
-          }
-        }
-        <span class="prelude-val">Err</span>(e) =&gt; {
-          <span class="kw">return </span><span class="prelude-val">Err</span>(e);
-        }
-      }
-    }
-
-    <span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown))
-  }
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 
 <span class="doccomment">/// Matches a byte string with escaped characters.
@@ -1324,78 +977,23 @@
 /// ```
 </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 #[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
-</span><span class="kw">pub fn </span>escaped_transform&lt;Input, Error, F, G, O1, O2, ExtendItem, Output&gt;(
-  <span class="kw-2">mut </span>normal: F,
+</span><span class="kw">pub fn </span>escaped_transform&lt;I, Error, F, G, O1, O2, ExtendItem, Output&gt;(
+  normal: F,
   control_char: char,
-  <span class="kw-2">mut </span>transform: G,
-) -&gt; <span class="kw">impl </span>FnMut(Input) -&gt; IResult&lt;Input, Output, Error&gt;
+  transform: G,
+) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, Output, Error&gt;
 <span class="kw">where
-  </span>Input: Clone
-    + <span class="kw">crate</span>::traits::Offset
-    + InputLength
-    + InputTake
-    + InputTakeAtPosition
-    + Slice&lt;RangeFrom&lt;usize&gt;&gt;
-    + InputIter,
-  Input: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
+  </span>I: Clone + <span class="kw">crate</span>::traits::Offset + Input,
+  I: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
   O1: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
   O2: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
-  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <span class="kw">crate</span>::traits::AsChar,
-  F: Parser&lt;Input, O1, Error&gt;,
-  G: Parser&lt;Input, O2, Error&gt;,
-  Error: ParseError&lt;Input&gt;,
+  &lt;I <span class="kw">as </span>Input&gt;::Item: <span class="kw">crate</span>::traits::AsChar,
+  F: Parser&lt;I, Output = O1, Error = Error&gt;,
+  G: Parser&lt;I, Output = O2, Error = Error&gt;,
+  Error: ParseError&lt;I&gt;,
 {
-  <span class="kw">use </span><span class="kw">crate</span>::traits::AsChar;
+  <span class="kw">let </span><span class="kw-2">mut </span>parser = <span class="kw">super</span>::escaped_transform(normal, control_char, transform);
 
-  <span class="kw">move </span>|input: Input| {
-    <span class="kw">let </span><span class="kw-2">mut </span>index = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>res = input.new_builder();
-
-    <span class="kw">let </span>i = input.clone();
-
-    <span class="kw">while </span>index &lt; i.input_len() {
-      <span class="kw">let </span>current_len = i.input_len();
-      <span class="kw">let </span>remainder = i.slice(index..);
-      <span class="kw">match </span>normal.parse(remainder.clone()) {
-        <span class="prelude-val">Ok</span>((i2, o)) =&gt; {
-          o.extend_into(<span class="kw-2">&amp;mut </span>res);
-          <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
-          } <span class="kw">else if </span>i2.input_len() == current_len {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>((remainder, res));
-          } <span class="kw">else </span>{
-            index = input.offset(<span class="kw-2">&amp;</span>i2);
-          }
-        }
-        <span class="prelude-val">Err</span>(Err::Error(<span class="kw">_</span>)) =&gt; {
-          <span class="comment">// unwrap() should be safe here since index &lt; $i.input_len()
-          </span><span class="kw">if </span>remainder.iter_elements().next().unwrap().as_char() == control_char {
-            <span class="kw">let </span>next = index + control_char.len_utf8();
-            <span class="kw">let </span>input_len = input.input_len();
-
-            <span class="kw">if </span>next &gt;= input_len {
-              <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
-            } <span class="kw">else </span>{
-              <span class="kw">match </span>transform.parse(i.slice(next..)) {
-                <span class="prelude-val">Ok</span>((i2, o)) =&gt; {
-                  o.extend_into(<span class="kw-2">&amp;mut </span>res);
-                  <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown));
-                  } <span class="kw">else </span>{
-                    index = input.offset(<span class="kw-2">&amp;</span>i2);
-                  }
-                }
-                <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
-              }
-            }
-          } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>((remainder, res));
-          }
-        }
-        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
-      }
-    }
-    <span class="prelude-val">Err</span>(Err::Incomplete(Needed::Unknown))
-  }
+  <span class="kw">move </span>|i: I| parser.process::&lt;OutputM&lt;Emit, Emit, Streaming&gt;&gt;(i)
 }
 </code></pre></div></section></main></body></html>
