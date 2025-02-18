@@ -317,10 +317,10 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::configuration::QDiscMode;
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
-<span class="kw">use </span><span class="kw">crate</span>::cshadow;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::abstract_unix_ns::AbstractUnixNamespace;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
 <span class="kw">use </span><span class="kw">crate</span>::host::network::interface::{NetworkInterface, PcapOptions};
+<span class="kw">use </span><span class="kw">crate</span>::network::packet::IanaProtocol;
 
 <span class="comment">// The start of our random port range in host order, used if application doesn't
 // specify the port it wants to bind to, and for client connections.
@@ -419,7 +419,7 @@
 
     <span class="kw">pub fn </span>is_addr_in_use(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        protocol_type: cshadow::ProtocolType,
+        protocol_type: IanaProtocol,
         src: SocketAddrV4,
         dst: SocketAddrV4,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, NoInterface&gt; {
@@ -443,7 +443,7 @@
     <span class="doccomment">/// Returns a random port in host byte order.
     </span><span class="kw">pub fn </span>get_random_free_port(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        protocol_type: cshadow::ProtocolType,
+        protocol_type: IanaProtocol,
         interface_ip: Ipv4Addr,
         peer: SocketAddrV4,
         <span class="kw-2">mut </span>rng: <span class="kw">impl </span>rand::Rng,
@@ -498,7 +498,7 @@
             }
         }
 
-        <span class="macro">log::warn!</span>(<span class="string">"unable to find free ephemeral port for {protocol_type} peer {peer}"</span>);
+        <span class="macro">log::warn!</span>(<span class="string">"unable to find free ephemeral port for {protocol_type:?} peer {peer}"</span>);
         <span class="prelude-val">None
     </span>}
 
@@ -511,7 +511,7 @@
     </span><span class="kw">pub unsafe fn </span>associate_interface(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         socket: <span class="kw-2">&amp;</span>InetSocket,
-        protocol: cshadow::ProtocolType,
+        protocol: IanaProtocol,
         bind_addr: SocketAddrV4,
         peer_addr: SocketAddrV4,
     ) -&gt; AssociationHandle {
@@ -544,7 +544,7 @@
     /// should only be called from the [`AssociationHandle`].
     </span><span class="kw">pub fn </span>disassociate_interface(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        protocol: cshadow::ProtocolType,
+        protocol: IanaProtocol,
         bind_addr: SocketAddrV4,
         peer_addr: SocketAddrV4,
     ) {
@@ -591,7 +591,7 @@
 /// [`callback_queue::Handle`](crate::utility::callback_queue::Handle)).
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>AssociationHandle {
-    protocol: cshadow::ProtocolType,
+    protocol: IanaProtocol,
     local_addr: SocketAddrV4,
     remote_addr: SocketAddrV4,
 }

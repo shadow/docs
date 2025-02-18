@@ -1169,13 +1169,7 @@
 <a href="#1168" id="1168">1168</a>
 <a href="#1169" id="1169">1169</a>
 <a href="#1170" id="1170">1170</a>
-<a href="#1171" id="1171">1171</a>
-<a href="#1172" id="1172">1172</a>
-<a href="#1173" id="1173">1173</a>
-<a href="#1174" id="1174">1174</a>
-<a href="#1175" id="1175">1175</a>
-<a href="#1176" id="1176">1176</a>
-<a href="#1177" id="1177">1177</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::LinkedList;
+<a href="#1171" id="1171">1171</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::LinkedList;
 <span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::Arc;
@@ -1284,14 +1278,14 @@
 
     <span class="kw">pub fn </span>push_in_packet(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>packet: PacketRc,
+        packet: PacketRc,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
         recv_time: EmulatedTime,
     ) {
         packet.add_status(PacketStatus::RcvSocketProcessed);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(peer_addr) = <span class="self">self</span>.peer_addr {
-            <span class="kw">if </span>peer_addr != packet.src_address() {
+            <span class="kw">if </span>peer_addr != packet.src_ipv4_address() {
                 <span class="comment">// connect(2): "If the socket sockfd is of type SOCK_DGRAM, then addr is the address
                 // to which datagrams are sent by default, and the only address from which datagrams
                 // are received."
@@ -1319,24 +1313,23 @@
             <span class="kw">return</span>;
         }
 
-        <span class="comment">// in the future, the packet could contain the `Bytes` object itself and we could simply
-        // transfer the `Bytes` directly from the packet to the buffer without copying the bytes
+        <span class="comment">// transfer the `Bytes` directly from the packet to the buffer without copying the bytes.
+        // we use concat in case the payload has mutiple chunks, but that should not happen in
+        // the normal case since we only send UDP messages with a single `Bytes` object.
 
-        </span><span class="kw">let </span><span class="kw-2">mut </span>message = BytesMut::zeroed(packet.payload_size());
-        <span class="kw">let </span>num_bytes_copied = packet.get_payload(<span class="kw-2">&amp;mut </span>message);
-        <span class="macro">assert_eq!</span>(num_bytes_copied, packet.payload_size());
+        </span><span class="kw">let </span>payload = tcp::Payload(packet.payload());
+        <span class="macro">assert_eq!</span>(payload.len() <span class="kw">as </span>usize, packet.payload_len());
+        <span class="kw">let </span>message = payload.concat();
 
         <span class="kw">let </span>header = MessageRecvHeader {
-            src: packet.src_address(),
-            dst: packet.dst_address(),
+            src: packet.src_ipv4_address(),
+            dst: packet.dst_ipv4_address(),
             recv_time,
         };
 
         <span class="comment">// push the message to the receive buffer (shouldn't fail since we checked for available
         // space above)
-        </span><span class="self">self</span>.recv_buffer
-            .push_message(message.freeze(), header)
-            .unwrap();
+        </span><span class="self">self</span>.recv_buffer.push_message(message, header).unwrap();
 
         <span class="macro">log::trace!</span>(<span class="string">"Added a packet to the UDP socket's recv buffer"</span>);
         packet.add_status(PacketStatus::RcvSocketBuffered);
@@ -1356,14 +1349,9 @@
 
         <span class="macro">log::trace!</span>(<span class="string">"Removed a message from the UDP socket's send buffer"</span>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>packet = PacketRc::new();
-        <span class="kw">let </span>priority = header.packet_priority;
-
-        <span class="comment">// in the future, the packet could contain the `Bytes` object itself and we could simply
-        // transfer the `Bytes` directly from the buffer to the packet without copying the bytes
-
-        </span>packet.set_udp(header.src, header.dst);
-        packet.set_payload(<span class="kw-2">&amp;</span>message, priority);
+        <span class="comment">// We transfer the `Bytes` directly from the buffer to the packet without copying them.
+        </span><span class="kw">let </span>packet =
+            PacketRc::new_ipv4_udp(header.src, header.dst, message, header.packet_priority);
         packet.add_status(PacketStatus::SndCreated);
 
         <span class="self">self</span>.refresh_readable_writable(FileSignals::empty(), cb_queue);

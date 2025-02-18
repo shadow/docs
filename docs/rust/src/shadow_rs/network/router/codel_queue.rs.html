@@ -532,7 +532,8 @@
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
 <a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a></pre></div><pre class="rust"><code><span class="doccomment">//! An active queue management (AQM) algorithm implementing CoDel.
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a></pre></div><pre class="rust"><code><span class="doccomment">//! An active queue management (AQM) algorithm implementing CoDel.
 //! &lt;https://tools.ietf.org/html/rfc8289&gt;
 //!
 //!  The "Flow Queue" variant is not implemented.
@@ -676,9 +677,8 @@
             </span>}
         };
 
-        maybe_packet.map(|<span class="kw-2">mut </span>p| {
+        maybe_packet.inspect(|p| {
             p.add_status(PacketStatus::RouterDequeued);
-            p
         })
     }
 
@@ -740,10 +740,9 @@
         <span class="kw">match </span><span class="self">self</span>.elements.pop_front() {
             <span class="prelude-val">Some</span>(element) =&gt; {
                 <span class="comment">// Found a packet.
-                </span><span class="macro">debug_assert!</span>(element.packet.total_size() &lt;= <span class="self">self</span>.total_bytes_stored);
-                <span class="self">self</span>.total_bytes_stored = <span class="self">self
-                    </span>.total_bytes_stored
-                    .saturating_sub(element.packet.total_size());
+                </span><span class="macro">debug_assert!</span>(element.packet.len() &lt;= <span class="self">self</span>.total_bytes_stored);
+                <span class="self">self</span>.total_bytes_stored =
+                    <span class="self">self</span>.total_bytes_stored.saturating_sub(element.packet.len());
 
                 <span class="macro">debug_assert!</span>(now &gt;= <span class="kw-2">&amp;</span>element.enqueue_ts);
                 <span class="kw">let </span>standing_delay = now.saturating_duration_since(<span class="kw-2">&amp;</span>element.enqueue_ts);
@@ -836,10 +835,10 @@
     <span class="doccomment">/// Append a packet to the end of the queue.
     /// Requires the current time as an argument to avoid calling into the
     /// worker module internally.
-    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>packet: PacketRc, now: EmulatedTime) {
+    </span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, packet: PacketRc, now: EmulatedTime) {
         <span class="kw">if </span><span class="self">self</span>.elements.len() &lt; LIMIT {
             packet.add_status(PacketStatus::RouterEnqueued);
-            <span class="self">self</span>.total_bytes_stored += packet.total_size();
+            <span class="self">self</span>.total_bytes_stored += packet.len();
             <span class="self">self</span>.elements.push_back(CoDelElement {
                 packet,
                 enqueue_ts: now,
@@ -852,7 +851,7 @@
         }
     }
 
-    <span class="kw">fn </span>drop_packet(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>packet: PacketRc) {
+    <span class="kw">fn </span>drop_packet(<span class="kw-2">&amp;</span><span class="self">self</span>, packet: PacketRc) {
         packet.add_status(PacketStatus::RouterDropped);
     }
 }
@@ -885,7 +884,7 @@
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..=N {
             <span class="macro">assert_eq!</span>(cdq.len(), i - <span class="number">1</span>);
-            cdq.push(PacketRc::mock_new(), now);
+            cdq.push(PacketRc::new_ipv4_udp_mock(), now);
             <span class="macro">assert_eq!</span>(cdq.len(), i);
         }
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..=N {
@@ -930,7 +929,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>cdq = CoDelQueue::new();
         <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">5 </span>{
-            cdq.push(PacketRc::mock_new(), start);
+            cdq.push(PacketRc::new_ipv4_udp_mock(), start);
         }
         <span class="macro">assert!</span>(cdq.total_bytes_stored &gt; c::CONFIG_MTU.try_into().unwrap());
 
@@ -976,7 +975,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>cdq = CoDelQueue::new();
         <span class="kw">const </span>N: usize = <span class="number">6</span>;
         <span class="kw">for _ in </span><span class="number">0</span>..N {
-            cdq.push(PacketRc::mock_new(), start);
+            cdq.push(PacketRc::new_ipv4_udp_mock(), start);
         }
         <span class="macro">assert!</span>(cdq.total_bytes_stored &gt; c::CONFIG_MTU.try_into().unwrap());
         <span class="macro">assert_eq!</span>(cdq.len(), N);
@@ -1009,7 +1008,10 @@
         // low-delay packets should put us back into store mode.
         </span><span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
             <span class="comment">// Add some low-delay packets
-            </span>cdq.push(PacketRc::mock_new(), start + TARGET + INTERVAL * <span class="number">2u32 </span>- one);
+            </span>cdq.push(
+                PacketRc::new_ipv4_udp_mock(),
+                start + TARGET + INTERVAL * <span class="number">2u32 </span>- one,
+            );
         }
         cdq.pop(start + TARGET + INTERVAL * <span class="number">2u32</span>);
         <span class="macro">assert_eq!</span>(cdq.mode, CoDelMode::Store);
@@ -1033,7 +1035,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>cdq = CoDelQueue::new();
         <span class="kw">const </span>N: usize = <span class="number">20</span>;
         <span class="kw">for _ in </span><span class="number">0</span>..N {
-            cdq.push(PacketRc::mock_new(), start);
+            cdq.push(PacketRc::new_ipv4_udp_mock(), start);
         }
         <span class="macro">assert_eq!</span>(cdq.len(), N);
 

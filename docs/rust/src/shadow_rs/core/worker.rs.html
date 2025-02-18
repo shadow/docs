@@ -1093,7 +1093,7 @@
 
     <span class="doccomment">/// The packet will be dropped if the packet's destination IP is not part of the simulation (no
     /// host has been configured for the IP).
-    </span><span class="kw">pub fn </span>send_packet(src_host: <span class="kw-2">&amp;</span>Host, <span class="kw-2">mut </span>packetrc: PacketRc) {
+    </span><span class="kw">pub fn </span>send_packet(src_host: <span class="kw-2">&amp;</span>Host, packetrc: PacketRc) {
         <span class="kw">let </span>current_time = Worker::current_time().unwrap();
         <span class="kw">let </span>round_end_time = Worker::round_end_time().unwrap();
 
@@ -1106,9 +1106,9 @@
             </span><span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>src_ip = <span class="kw-2">*</span>packetrc.src_address().ip();
-        <span class="kw">let </span>dst_ip = <span class="kw-2">*</span>packetrc.dst_address().ip();
-        <span class="kw">let </span>payload_size = packetrc.payload_size();
+        <span class="kw">let </span>src_ip = <span class="kw-2">*</span>packetrc.src_ipv4_address().ip();
+        <span class="kw">let </span>dst_ip = <span class="kw-2">*</span>packetrc.dst_ipv4_address().ip();
+        <span class="kw">let </span>payload_size = packetrc.payload_len();
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(dst_host_id) = Worker::resolve_ip_to_host_id(dst_ip) <span class="kw">else </span>{
             <span class="macro">log_once_per_value_at_level!</span>(
@@ -1160,7 +1160,7 @@
         </span>Worker::update_next_event_time(deliver_time);
 
         <span class="comment">// copy the packet (except the payload) so the dst gets its own header info
-        </span><span class="kw">let </span>dst_packet = packetrc.copy();
+        </span><span class="kw">let </span>dst_packet = packetrc.new_copy_inner();
         Worker::with(|w| {
             w.shared
                 .push_packet_to_host(dst_packet, dst_host_id, deliver_time, src_host)

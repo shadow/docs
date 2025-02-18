@@ -1143,23 +1143,10 @@
 <a href="#1142" id="1142">1142</a>
 <a href="#1143" id="1143">1143</a>
 <a href="#1144" id="1144">1144</a>
-<a href="#1145" id="1145">1145</a>
-<a href="#1146" id="1146">1146</a>
-<a href="#1147" id="1147">1147</a>
-<a href="#1148" id="1148">1148</a>
-<a href="#1149" id="1149">1149</a>
-<a href="#1150" id="1150">1150</a>
-<a href="#1151" id="1151">1151</a>
-<a href="#1152" id="1152">1152</a>
-<a href="#1153" id="1153">1153</a>
-<a href="#1154" id="1154">1154</a>
-<a href="#1155" id="1155">1155</a>
-<a href="#1156" id="1156">1156</a>
-<a href="#1157" id="1157">1157</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
+<a href="#1145" id="1145">1145</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::{Arc, Weak};
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
-<span class="kw">use </span>bytes::BytesMut;
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::ioctls::IoctlRequest;
 <span class="kw">use </span>linux_api::socket::Shutdown;
@@ -1354,7 +1341,7 @@
 
     <span class="kw">pub fn </span>push_in_packet(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw-2">mut </span>packet: PacketRc,
+        packet: PacketRc,
         cb_queue: <span class="kw-2">&amp;mut </span>CallbackQueue,
         _recv_time: EmulatedTime,
     ) {
@@ -1366,17 +1353,14 @@
         // the packet
 
         </span><span class="kw">let </span>header = packet
-            .get_tcp()
+            .ipv4_tcp_header()
             .expect(<span class="string">"TCP socket received a non-tcp packet"</span>);
 
-        <span class="comment">// in the future, the packet could contain an array of `Bytes` objects and we could simply
-        // transfer the `Bytes` objects directly from the payload to the tcp state without copying
+        <span class="comment">// transfer the `Bytes` objects directly from the payload to the tcp state without copying
         // the bytes themselves
 
-        </span><span class="kw">let </span><span class="kw-2">mut </span>payload = BytesMut::zeroed(packet.payload_size());
-        <span class="kw">let </span>num_bytes_copied = packet.get_payload(<span class="kw-2">&amp;mut </span>payload);
-        <span class="macro">assert_eq!</span>(num_bytes_copied, packet.payload_size());
-        <span class="kw">let </span>payload = tcp::Payload(<span class="macro">vec!</span>[payload.freeze()]);
+        </span><span class="kw">let </span>payload = tcp::Payload(packet.payload());
+        <span class="macro">assert_eq!</span>(payload.len() <span class="kw">as </span>usize, packet.payload_len());
 
         <span class="self">self</span>.with_tcp_state_and_signal(cb_queue, |s| {
             <span class="kw">let </span>pushed_len = s.push_packet(<span class="kw-2">&amp;</span>header, payload).unwrap();
@@ -1419,18 +1403,10 @@
         <span class="attr">#[cfg(debug_assertions)]
         </span><span class="macro">debug_assert!</span>(wants_to_send);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>packet = PacketRc::new();
-
-        <span class="comment">// TODO: This is expensive. Here we allocate a new buffer, copy all of the payload bytes to
-        // this new buffer, and then copy the bytes in this new buffer to the packet's buffer. In
-        // the future, the packet could contain an array of `Bytes` objects and we could simply
-        // transfer the `Bytes` objects directly from the tcp state's `Payload` object to the packet
-        // without copying the bytes themselves.
-        </span><span class="kw">let </span>payload = payload.concat();
-
-        packet.set_tcp(<span class="kw-2">&amp;</span>header);
-        <span class="comment">// TODO: set packet priority?
-        </span>packet.set_payload(<span class="kw-2">&amp;</span>payload, <span class="comment">/* priority= */ </span><span class="number">0</span>);
+        <span class="comment">// We transfer the `Bytes` objects directly from the tcp state's `Payload` object to the
+        // packet without copying the bytes themselves.
+        // TODO: set packet priority?
+        </span><span class="kw">let </span>packet = PacketRc::new_ipv4_tcp(header, payload, <span class="number">0</span>);
         packet.add_status(PacketStatus::SndCreated);
 
         <span class="prelude-val">Some</span>(packet)

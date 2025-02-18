@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["PacketStatus"],"fn":["from_legacy_tcp_flags","to_legacy_tcp_flags"],"struct":["PacketRc"]};
+window.SIDEBAR_ITEMS = {"enum":["IanaProtocol","PacketStatus","TypeOfService"],"struct":["Packet","PacketRc"]};

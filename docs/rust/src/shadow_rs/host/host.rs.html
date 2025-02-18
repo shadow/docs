@@ -1326,7 +1326,12 @@
 <a href="#1325" id="1325">1325</a>
 <a href="#1326" id="1326">1326</a>
 <a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut, UnsafeCell};
 <span class="kw">use </span>std::collections::BTreeMap;
@@ -2307,6 +2312,7 @@
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::cshadow::{CEmulatedTime, CSimulationTime};
+    <span class="kw">use </span><span class="kw">crate</span>::network::packet::IanaProtocol;
 
     <span class="attr">#[no_mangle]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_execute(hostrc: <span class="kw-2">*const </span>Host, until: CEmulatedTime) {
@@ -2421,7 +2427,7 @@
     <span class="attr">#[no_mangle]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_disassociateInterface(
         hostrc: <span class="kw-2">*const </span>Host,
-        protocol: cshadow::ProtocolType,
+        c_protocol: cshadow::ProtocolType,
         bind_ip: in_addr_t,
         bind_port: in_port_t,
         peer_ip: in_addr_t,
@@ -2437,6 +2443,8 @@
         <span class="kw">let </span>bind_addr = SocketAddrV4::new(bind_ip, bind_port);
         <span class="kw">let </span>peer_addr = SocketAddrV4::new(peer_ip, peer_port);
 
+        <span class="kw">let </span>protocol = IanaProtocol::from(c_protocol);
+
         <span class="comment">// associate the interfaces corresponding to bind_addr with socket
         </span>hostrc
             .net_ns
@@ -2446,7 +2454,7 @@
     <span class="attr">#[no_mangle]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getRandomFreePort(
         hostrc: <span class="kw-2">*const </span>Host,
-        protocol_type: cshadow::ProtocolType,
+        c_protocol: cshadow::ProtocolType,
         interface_ip: in_addr_t,
         peer_ip: in_addr_t,
         peer_port: in_port_t,
@@ -2459,10 +2467,12 @@
             u16::from_be(peer_port),
         );
 
+        <span class="kw">let </span>protocol = IanaProtocol::from(c_protocol);
+
         hostrc
             .net_ns
             .get_random_free_port(
-                protocol_type,
+                protocol,
                 interface_ip,
                 peer_addr,
                 hostrc.random.borrow_mut().deref_mut(),
