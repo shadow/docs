@@ -2269,18 +2269,7 @@
 <a href="#2268" id="2268">2268</a>
 <a href="#2269" id="2269">2269</a>
 <a href="#2270" id="2270">2270</a>
-<a href="#2271" id="2271">2271</a>
-<a href="#2272" id="2272">2272</a>
-<a href="#2273" id="2273">2273</a>
-<a href="#2274" id="2274">2274</a>
-<a href="#2275" id="2275">2275</a>
-<a href="#2276" id="2276">2276</a>
-<a href="#2277" id="2277">2277</a>
-<a href="#2278" id="2278">2278</a>
-<a href="#2279" id="2279">2279</a>
-<a href="#2280" id="2280">2280</a>
-<a href="#2281" id="2281">2281</a>
-<a href="#2282" id="2282">2282</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux process.
+<a href="#2271" id="2271">2271</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux process.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut};
 <span class="kw">use </span>std::collections::BTreeMap;
@@ -2935,7 +2924,7 @@
             dumpable: <span class="self">self</span>.dumpable.clone(),
             native_pid,
             <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
-            </span>cpu_delay_timer: RefCell::new(PerfTimer::new()),
+            </span>cpu_delay_timer: RefCell::new(PerfTimer::new_stopped()),
             <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
             </span>total_run_time: Cell::new(Duration::ZERO),
             itimer_real,
@@ -3277,18 +3266,7 @@
             std::fs::canonicalize(host.data_dir_path()).unwrap(),
         );
 
-        <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
-        </span><span class="kw">let </span>cpu_delay_timer = {
-            <span class="kw">let </span><span class="kw-2">mut </span>t = PerfTimer::new();
-            t.stop();
-            RefCell::new(t)
-        };
-
-        <span class="comment">// TODO: measure execution time of creating the main_thread with
-        // cpu_delay_timer? We previously did, but it's a little complex to do so,
-        // and it shouldn't matter much.
-
-        </span>{
+        {
             <span class="kw">let </span><span class="kw-2">mut </span>descriptor_table = desc_table.borrow_mut(host.root());
             <span class="self">Self</span>::open_stdio_file_helper(
                 <span class="kw-2">&amp;mut </span>descriptor_table,
@@ -3400,7 +3378,7 @@
                         unsafe_borrows: RefCell::new(Vec::new()),
                         threads,
                         <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
-                        </span>cpu_delay_timer,
+                        </span>cpu_delay_timer: RefCell::new(PerfTimer::new_stopped()),
                         <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
                         </span>total_run_time: Cell::new(Duration::ZERO),
                         child_process_event_listeners: Default::default(),
