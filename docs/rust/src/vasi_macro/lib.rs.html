@@ -298,7 +298,7 @@
 
 </span><span class="kw">use </span>proc_macro2::TokenStream;
 <span class="kw">use </span>quote::quote;
-<span class="kw">use </span>syn::{parse_quote, Attribute, GenericParam, Generics, Type};
+<span class="kw">use </span>syn::{Attribute, GenericParam, Generics, Type, parse_quote};
 
 <span class="doccomment">/// Implement `vasi::VirtualAddressSpaceIndependent` for the annotated type.
 /// Requires all fields to implement `vasi::VirtualAddressSpaceIndependent`.
@@ -573,7 +573,7 @@
     </span><span class="kw">let </span>generics = add_trait_bounds(ast.generics);
     <span class="kw">let </span>(impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    <span class="kw">let </span>gen = <span class="macro">quote!</span> {
+    <span class="macro">quote!</span> {
         <span class="kw">unsafe impl </span>#impl_generics vasi::VirtualAddressSpaceIndependent <span class="kw">for </span>#name #ty_generics #where_clause {
             <span class="kw">const </span>IGNORE: () = {
                 <span class="kw">const fn </span>check&lt;T: ::vasi::VirtualAddressSpaceIndependent&gt;() {}
@@ -585,7 +585,7 @@
             <span class="comment">// Force compilation to fail if the type isn't FFI safe.
             </span><span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>_vasi_validate_ffi_safe #impl_generics (<span class="kw">_</span>: #name #ty_generics) #where_clause {}
         };
-    };
-    gen.into()
+    }
+    .into()
 }
 </code></pre></div></section></main></body></html>

@@ -237,8 +237,8 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::core::worker;
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{FileSignals, FileState};
-<span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::{CallbackQueue, EventSource, Handle};
 <span class="kw">use </span><span class="kw">crate</span>::utility::HostTreePointer;
+<span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::{CallbackQueue, EventSource, Handle};
 
 <span class="attr">#[derive(Clone, Copy, Debug)]
 </span><span class="kw">pub enum </span>StateListenerFilter {
@@ -354,9 +354,9 @@
         monitoring_signals: FileSignals,
         filter: StateListenerFilter,
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
-            + Send
-            + Sync
-            + <span class="lifetime">'static</span>,
+        + Send
+        + Sync
+        + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="self">self</span>.inner
             .add_listener(<span class="kw">move </span>|(state, changed, signals), cb_queue| {
@@ -423,7 +423,7 @@
 
     <span class="kw">use </span><span class="kw">crate</span>::utility::legacy_callback_queue::RootedRefCell_StateEventSource;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>eventsource_new() -&gt; <span class="kw-2">*mut </span>RootedRefCell_StateEventSource {
         <span class="kw">let </span>event_source = worker::Worker::with_active_host(|host| {
             Box::new(RootedRefCell::new(host.root(), StateEventSource::new()))
@@ -432,13 +432,13 @@
         Box::into_raw(event_source)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>eventsource_free(event_source: <span class="kw-2">*mut </span>RootedRefCell_StateEventSource) {
         <span class="macro">assert!</span>(!event_source.is_null());
         drop(<span class="kw">unsafe </span>{ Box::from_raw(event_source) });
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>eventsource_addLegacyListener(
         event_source: <span class="kw-2">*const </span>RootedRefCell_StateEventSource,
         listener: <span class="kw-2">*mut </span>c::StatusListener,
@@ -452,7 +452,7 @@
         .unwrap();
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>eventsource_removeLegacyListener(
         event_source: <span class="kw-2">*const </span>RootedRefCell_StateEventSource,
         listener: <span class="kw-2">*mut </span>c::StatusListener,

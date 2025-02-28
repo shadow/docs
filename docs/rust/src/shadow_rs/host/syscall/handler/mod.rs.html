@@ -953,24 +953,30 @@
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
 <a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span>std::time::Duration;
 
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::syscall::SyscallNum;
+<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::SyscallArgs;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::SyscallReg;
 <span class="kw">use </span>shadow_shim_helper_rs::util::SendPointer;
-<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
 <span class="kw">use </span><span class="kw">crate</span>::host::context::ThreadContext;
-<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::{DescriptorHandle, DescriptorTable};
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::Descriptor;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table::{DescriptorHandle, DescriptorTable};
 <span class="kw">use </span><span class="kw">crate</span>::host::process::ProcessId;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::formatter::log_syscall_simple;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::is_shadow_syscall;
@@ -1080,7 +1086,9 @@
         // that same syscall should be executed again when it becomes unblocked
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(blocked_syscall) = <span class="self">self</span>.blocked_syscall {
             <span class="kw">if </span>blocked_syscall != syscall {
-                <span class="macro">panic!</span>(<span class="string">"We blocked syscall {blocked_syscall} but syscall {syscall} is unexpectedly being invoked"</span>);
+                <span class="macro">panic!</span>(
+                    <span class="string">"We blocked syscall {blocked_syscall} but syscall {syscall} is unexpectedly being invoked"
+                </span>);
             }
         }
 
@@ -1555,7 +1563,9 @@
             </span><span class="kw">_ </span>=&gt; {
                 <span class="macro">log_once_per_value_at_level!</span>(
                     syscall,
-                    SyscallNum, log::Level::Warn, log::Level::Debug,
+                    SyscallNum,
+                    log::Level::Warn,
+                    log::Level::Debug,
                     <span class="string">"Detected unsupported syscall {} ({}) called from thread {} in process {} on host {}"</span>,
                     syscall_name,
                     ctx.args.number,
@@ -1639,7 +1649,9 @@
         // memory without an incompatible borrow
         </span><span class="kw">if </span>rv.is_err() {
             <span class="comment">// the syscall didn't complete successfully; don't write back pointers
-            </span><span class="macro">log::trace!</span>(<span class="string">"Syscall didn't complete successfully; discarding plugin ptrs without writing back."</span>);
+            </span><span class="macro">log::trace!</span>(
+                <span class="string">"Syscall didn't complete successfully; discarding plugin ptrs without writing back."
+            </span>);
             ctx.objs.process.free_unsafe_borrows_noflush();
         } <span class="kw">else </span>{
             ctx.objs
@@ -1835,7 +1847,7 @@
     <span class="doccomment">/// Returns a pointer to the current running host. The returned pointer is invalidated the next
     /// time the worker switches hosts. Rust syscall handlers should get the host from the
     /// [`SyscallContext`] instead.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>rustsyscallhandler_getHost(sys: <span class="kw-2">*const </span>SyscallHandler) -&gt; <span class="kw-2">*const </span>Host {
         <span class="kw">let </span>sys = <span class="kw">unsafe </span>{ sys.as_ref() }.unwrap();
         Worker::with_active_host(|h| {
@@ -1848,7 +1860,7 @@
     <span class="doccomment">/// Returns a pointer to the current running process. The returned pointer is invalidated the
     /// next time the worker switches processes. Rust syscall handlers should get the process from
     /// the [`SyscallContext`] instead.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>rustsyscallhandler_getProcess(
         sys: <span class="kw-2">*const </span>SyscallHandler,
     ) -&gt; <span class="kw-2">*const </span>Process {
@@ -1863,7 +1875,7 @@
     <span class="doccomment">/// Returns a pointer to the current running thread. The returned pointer is invalidated the
     /// next time the worker switches threads. Rust syscall handlers should get the thread from the
     /// [`SyscallContext`] instead.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>rustsyscallhandler_getThread(
         sys: <span class="kw-2">*const </span>SyscallHandler,
     ) -&gt; <span class="kw-2">*const </span>Thread {
@@ -1875,13 +1887,13 @@
         .unwrap()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>rustsyscallhandler_wasBlocked(sys: <span class="kw-2">*const </span>SyscallHandler) -&gt; bool {
         <span class="kw">let </span>sys = <span class="kw">unsafe </span>{ sys.as_ref() }.unwrap();
         sys.is_blocked()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>rustsyscallhandler_didListenTimeoutExpire(
         sys: <span class="kw-2">*const </span>SyscallHandler,
     ) -&gt; bool {
@@ -1900,7 +1912,7 @@
             .unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>rustsyscallhandler_getEpoll(
         sys: <span class="kw-2">*const </span>SyscallHandler,
     ) -&gt; <span class="kw-2">*mut </span>c::Epoll {

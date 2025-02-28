@@ -766,16 +766,16 @@
 <a href="#765" id="765">765</a>
 <a href="#766" id="766">766</a>
 <a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::signal::{sigaction, siginfo_t, sigset_t, stack_t, Signal};
+<a href="#768" id="768">768</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::signal::{Signal, sigaction, siginfo_t, sigset_t, stack_t};
 <span class="kw">use </span>shadow_shmem::allocator::{ShMemBlock, ShMemBlockSerialized};
 <span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
 <span class="kw">use </span>vasi_sync::scmutex::SelfContainedMutex;
 
-<span class="kw">use </span><span class="kw">crate</span>::option::FfiOption;
 <span class="kw">use </span><span class="kw">crate</span>::HostId;
+<span class="kw">use </span><span class="kw">crate</span>::option::FfiOption;
 <span class="kw">use crate</span>::{
     emulated_time::{AtomicEmulatedTime, EmulatedTime},
-    rootedcell::{refcell::RootedRefCell, Root},
+    rootedcell::{Root, refcell::RootedRefCell},
     simulation_time::SimulationTime,
 };
 
@@ -1204,7 +1204,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// `host` must be valid. The returned pointer must not be accessed from other threads.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmemhost_lock(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; <span class="kw-2">*mut </span>ShimShmemHostLock {
@@ -1219,7 +1219,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// `host` and `lock` must be valid.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmemhost_unlock(
         host: <span class="kw-2">*const </span>ShimShmemHost,
         lock: <span class="kw-2">*mut *mut </span>ShimShmemHostLock,
@@ -1235,7 +1235,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getShadowPid(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; libc::pid_t {
@@ -1246,7 +1246,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getTscHz(host_mem: <span class="kw-2">*const </span>ShimShmemHost) -&gt; u64 {
         <span class="kw">let </span>host_mem = <span class="kw">unsafe </span>{ host_mem.as_ref().unwrap() };
         host_mem.tsc_hz
@@ -1255,7 +1255,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getLogLevel(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; ::logger::LogLevel {
@@ -1266,7 +1266,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getEmulatedTime(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CEmulatedTime {
@@ -1277,7 +1277,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setEmulatedTime(
         host_mem: <span class="kw-2">*const </span>ShimShmemHost,
         t: CEmulatedTime,
@@ -1291,7 +1291,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getMaxRunaheadTime(
         host_mem: <span class="kw-2">*const </span>ShimShmemHostLock,
     ) -&gt; CEmulatedTime {
@@ -1302,7 +1302,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setMaxRunaheadTime(
         host_mem: <span class="kw-2">*mut </span>ShimShmemHostLock,
         t: CEmulatedTime,
@@ -1314,7 +1314,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getProcessStraceFd(
         process: <span class="kw-2">*const </span>ShimShmemProcess,
     ) -&gt; libc::c_int {
@@ -1325,7 +1325,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getSignalAction(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         process: <span class="kw-2">*const </span>ShimShmemProcess,
@@ -1340,7 +1340,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setSignalAction(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         process: <span class="kw-2">*const </span>ShimShmemProcess,
@@ -1354,7 +1354,7 @@
         <span class="kw">unsafe </span>{ <span class="kw-2">*</span>protected.signal_action_mut(Signal::try_from(sig).unwrap()) = <span class="kw-2">*</span>action };
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmemthread_size() -&gt; usize {
         std::mem::size_of::&lt;ThreadShmem&gt;()
     }
@@ -1362,7 +1362,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getThreadId(
         thread: <span class="kw-2">*const </span>ShimShmemThread,
     ) -&gt; libc::pid_t {
@@ -1373,7 +1373,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getBlockedSignals(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
@@ -1389,7 +1389,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setBlockedSignals(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
@@ -1406,7 +1406,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getSigAltStack(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
@@ -1422,7 +1422,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_setSigAltStack(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
         thread: <span class="kw-2">*const </span>ShimShmemThread,
@@ -1437,7 +1437,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_incrementUnappliedCpuLatency(
         lock: <span class="kw-2">*mut </span>ShimShmemHostLock,
         dt: CSimulationTime,
@@ -1449,7 +1449,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getUnappliedCpuLatency(
         lock: <span class="kw-2">*const </span>ShimShmemHostLock,
     ) -&gt; CSimulationTime {
@@ -1460,7 +1460,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_resetUnappliedCpuLatency(
         lock: <span class="kw-2">*mut </span>ShimShmemHostLock,
     ) {
@@ -1473,7 +1473,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getModelUnblockedSyscallLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; bool {
@@ -1487,7 +1487,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_maxUnappliedCpuLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CSimulationTime {
@@ -1500,7 +1500,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_unblockedSyscallLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CSimulationTime {
@@ -1513,7 +1513,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_unblockedVdsoLatency(
         host: <span class="kw-2">*const </span>ShimShmemHost,
     ) -&gt; CSimulationTime {
@@ -1526,7 +1526,7 @@
     /// # Safety
     ///
     /// Pointer args must be safely dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shimshmem_getLoggingStartTime(
         manager: <span class="kw-2">*const </span>ShimShmemManager,
     ) -&gt; i64 {

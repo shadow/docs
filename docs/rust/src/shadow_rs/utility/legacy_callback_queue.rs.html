@@ -124,13 +124,15 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::ops::DerefMut;
 
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 
-<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::listener::StateEventSource;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::FileState;
+<span class="kw">use </span><span class="kw">crate</span>::host::descriptor::listener::StateEventSource;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 
 <span class="doccomment">/// An event source stored by a `LegacyFile`.
@@ -158,10 +160,12 @@
         }
 
         <span class="comment">// set the global queue
-        </span><span class="macro">assert!</span>(cb_queue
-            .borrow_mut()
-            .replace(CallbackQueue::new())
-            .is_none());
+        </span><span class="macro">assert!</span>(
+            cb_queue
+                .borrow_mut()
+                .replace(CallbackQueue::new())
+                .is_none()
+        );
 
         <span class="kw">let </span>rv = f();
 
@@ -188,13 +192,13 @@
     <span class="kw">use </span>std::net::Ipv4Addr;
 
     <span class="kw">use </span><span class="kw">crate</span>::core::worker;
-    <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
     <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::FileSignals;
+    <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
     <span class="kw">use </span><span class="kw">crate</span>::host::host::Host;
 
     <span class="doccomment">/// Notify listeners using the global callback queue. If the queue hasn't been set using
     /// [`with_global_cb_queue`], the listeners will be notified here before returning.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>notify_listeners_with_global_cb_queue(
         event_source: <span class="kw-2">*const </span>RootedRefCell_StateEventSource,
         state: FileState,
@@ -221,7 +225,7 @@
     <span class="doccomment">/// Tell the host that the socket wants to send packets using the global callback queue. If the
     /// queue hasn't been set using [`with_global_cb_queue`], the host will be notified here before
     /// returning. Takes ownership of `inetSocket` (will free/drop).
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>socket_wants_to_send_with_global_cb_queue(
         host: <span class="kw-2">*const </span>Host,
         socket: <span class="kw-2">*mut </span>InetSocket,

@@ -784,7 +784,9 @@
 <a href="#783" id="783">783</a>
 <a href="#784" id="784">784</a>
 <a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a></pre></div><pre class="rust"><code><span class="doccomment">//! A thread of a managed process.
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a></pre></div><pre class="rust"><code><span class="doccomment">//! A thread of a managed process.
 //!
 //! This contains the code where the simulator can create or communicate with a managed process.
 
@@ -794,13 +796,13 @@
 <span class="kw">use </span>std::os::fd::AsRawFd;
 <span class="kw">use </span>std::os::unix::prelude::OsStrExt;
 <span class="kw">use </span>std::path::PathBuf;
-<span class="kw">use </span>std::sync::{atomic, Arc};
+<span class="kw">use </span>std::sync::{Arc, atomic};
 
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>linux_api::sched::CloneFlags;
 <span class="kw">use </span>linux_api::signal::tgkill;
-<span class="kw">use </span>log::{debug, error, log_enabled, trace, Level};
+<span class="kw">use </span>log::{Level, debug, error, log_enabled, trace};
 <span class="kw">use </span>rustix::pipe::PipeFlags;
 <span class="kw">use </span>rustix::process::WaitOptions;
 <span class="kw">use </span>shadow_shim_helper_rs::ipc::IPCData;
@@ -815,11 +817,11 @@
 <span class="kw">use </span><span class="kw">super</span>::context::ThreadContext;
 <span class="kw">use </span><span class="kw">super</span>::host::Host;
 <span class="kw">use </span><span class="kw">super</span>::syscall::condition::SyscallCondition;
-<span class="kw">use </span><span class="kw">crate</span>::core::worker::{Worker, WORKER_SHARED};
+<span class="kw">use </span><span class="kw">crate</span>::core::worker::{WORKER_SHARED, Worker};
 <span class="kw">use </span><span class="kw">crate</span>::cshadow;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::SyscallHandler;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallReturn};
-<span class="kw">use </span><span class="kw">crate</span>::utility::{inject_preloads, syscall, verify_plugin_path, VerifyPluginPathError};
+<span class="kw">use </span><span class="kw">crate</span>::utility::{VerifyPluginPathError, inject_preloads, syscall, verify_plugin_path};
 
 <span class="doccomment">/// The ManagedThread's state after having been allowed to execute some code.
 </span><span class="attr">#[derive(Debug)]
@@ -887,7 +889,9 @@
         log_file: <span class="kw-2">&amp;</span>std::fs::File,
         injected_preloads: <span class="kw-2">&amp;</span>[PathBuf],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Errno&gt; {
-        <span class="macro">debug!</span>(<span class="string">"spawning new mthread '{plugin_path:?}' with environment '{envv:?}', arguments '{argv:?}'"</span>);
+        <span class="macro">debug!</span>(
+            <span class="string">"spawning new mthread '{plugin_path:?}' with environment '{envv:?}', arguments '{argv:?}'"
+        </span>);
 
         <span class="kw">let </span>envv = inject_preloads(envv, injected_preloads);
 
@@ -1074,7 +1078,7 @@
                         SyscallReturn::Block(b) =&gt; {
                             <span class="kw">return </span>ResumeResult::Blocked(<span class="kw">unsafe </span>{
                                 SyscallCondition::consume_from_c(b.cond)
-                            })
+                            });
                         }
                         SyscallReturn::Done(d) =&gt; <span class="self">self</span>.continue_plugin(
                             ctx.host,

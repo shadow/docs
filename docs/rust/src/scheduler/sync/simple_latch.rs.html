@@ -272,8 +272,8 @@
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::atomic::{AtomicU32, Ordering};
-<span class="kw">use </span>std::sync::Arc;
+<a href="#274" id="274">274</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::sync::atomic::{AtomicU32, Ordering};
 
 <span class="kw">use </span>nix::errno::Errno;
 
@@ -303,7 +303,7 @@
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>LatchWaiter {
     <span class="doccomment">/// The generation of this waiter.
-    </span>gen: u32,
+    </span>waiter_gen: u32,
     <span class="doccomment">/// The read-only generation of the latch.
     </span>latch_gen: Arc&lt;AtomicU32&gt;,
     <span class="doccomment">/// Should we sched_yield in a spinloop indefinitely rather than futex-wait?
@@ -329,7 +329,7 @@
         LatchWaiter {
             <span class="comment">// we're the only one who can mutate the atomic,
             // so there's no race condition here
-            </span>gen: <span class="self">self</span>.latch_gen.load(Ordering::Relaxed),
+            </span>waiter_gen: <span class="self">self</span>.latch_gen.load(Ordering::Relaxed),
             latch_gen: Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.latch_gen),
             spin_yield,
         }
@@ -367,7 +367,7 @@
         <span class="kw">loop </span>{
             <span class="kw">let </span>latch_gen = <span class="self">self</span>.latch_gen.load(Ordering::Acquire);
 
-            <span class="kw">match </span>latch_gen.wrapping_sub(<span class="self">self</span>.gen) {
+            <span class="kw">match </span>latch_gen.wrapping_sub(<span class="self">self</span>.waiter_gen) {
                 <span class="comment">// the latch has been opened and we can advance to the next generation
                 </span><span class="number">1 </span>=&gt; <span class="kw">break</span>,
                 <span class="comment">// the latch has not been opened and we're at the same generation
@@ -398,7 +398,7 @@
             }
         }
 
-        <span class="self">self</span>.gen = <span class="self">self</span>.gen.wrapping_add(<span class="number">1</span>);
+        <span class="self">self</span>.waiter_gen = <span class="self">self</span>.waiter_gen.wrapping_add(<span class="number">1</span>);
     }
 }
 

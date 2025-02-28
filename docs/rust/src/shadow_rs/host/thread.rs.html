@@ -840,14 +840,14 @@
 <span class="kw">use </span>linux_api::mman::{MapFlags, ProtFlags};
 <span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>linux_api::signal::stack_t;
+<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDrop;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::{HostShmemProtected, ThreadShmem};
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{ForeignPtr, SyscallReg};
 <span class="kw">use </span>shadow_shim_helper_rs::util::SendPointer;
-<span class="kw">use </span>shadow_shim_helper_rs::HostId;
-<span class="kw">use </span>shadow_shmem::allocator::{shmalloc, ShMemBlock};
+<span class="kw">use </span>shadow_shmem::allocator::{ShMemBlock, shmalloc};
 
 <span class="kw">use </span><span class="kw">super</span>::context::ProcessContext;
 <span class="kw">use </span><span class="kw">super</span>::descriptor::descriptor_table::{DescriptorHandle, DescriptorTable};
@@ -858,7 +858,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::condition::{SyscallConditionRef, SyscallConditionRefMut};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::SyscallHandler;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
-<span class="kw">use </span><span class="kw">crate</span>::utility::{syscall, IsSend, ObjectCounter};
+<span class="kw">use </span><span class="kw">crate</span>::utility::{IsSend, ObjectCounter, syscall};
 
 <span class="doccomment">/// The thread's state after having been allowed to execute some code.
 </span><span class="attr">#[derive(Debug)]
@@ -1443,8 +1443,8 @@
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::core::worker::Worker;
-    <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
     <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::Socket;
+    <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::socket::inet::InetSocket;
     <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{CompatFile, Descriptor, File};
 
     <span class="doccomment">/// Make the requested syscall from within the plugin.
@@ -1461,7 +1461,7 @@
     // declaration is ABI compatible with a caller who sees this function declared
     // with arguments `Thread* thread, long n, ...`. We manually generate that declartion
     // in our bindings.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_nativeSyscall(
         thread: <span class="kw-2">*const </span>Thread,
         n: libc::c_long,
@@ -1486,14 +1486,14 @@
         .unwrap()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getID(thread: <span class="kw-2">*const </span>Thread) -&gt; libc::pid_t {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         thread.id().into()
     }
 
     <span class="doccomment">/// Gets the `clear_child_tid` attribute, as set by `thread_setTidAddress`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getTidAddress(
         thread: <span class="kw-2">*const </span>Thread,
     ) -&gt; UntypedForeignPtr {
@@ -1503,7 +1503,7 @@
 
     <span class="doccomment">/// Returns a typed pointer to memory shared with the shim (which is backed by
     /// the block returned by thread_getShMBlock).
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_sharedMem(
         thread: <span class="kw-2">*const </span>Thread,
     ) -&gt; <span class="kw-2">*const </span>ShimShmemThread {
@@ -1511,7 +1511,7 @@
         <span class="kw-2">&amp;*</span>thread.shim_shared_memory
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getProcess(thread: <span class="kw-2">*const </span>Thread) -&gt; <span class="kw-2">*const </span>Process {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         Worker::with_active_host(|host| {
@@ -1522,7 +1522,7 @@
         .unwrap()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getHost(thread: <span class="kw-2">*const </span>Thread) -&gt; <span class="kw-2">*const </span>Host {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         Worker::with_active_host(|host| {
@@ -1532,7 +1532,7 @@
         .unwrap()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_clearSysCallCondition(thread: <span class="kw-2">*const </span>Thread) {
         <span class="kw">let </span>thread = <span class="kw">unsafe </span>{ thread.as_ref().unwrap() };
         thread.cleanup_syscall_condition();
@@ -1540,7 +1540,7 @@
 
     <span class="doccomment">/// Returns true iff there is an unblocked, unignored signal pending for this
     /// thread (or its process).
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_unblockedSignalPending(
         thread: <span class="kw-2">*const </span>Thread,
         host_lock: <span class="kw-2">*const </span>ShimShmemHostLock,
@@ -1558,7 +1558,7 @@
 
     <span class="doccomment">/// Register a `Descriptor`. This takes ownership of the descriptor and you must not access it
     /// after.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_registerDescriptor(
         thread: <span class="kw-2">*const </span>Thread,
         desc: <span class="kw-2">*mut </span>Descriptor,
@@ -1577,7 +1577,7 @@
     }
 
     <span class="doccomment">/// Get a temporary reference to a descriptor.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getRegisteredDescriptor(
         thread: <span class="kw-2">*const </span>Thread,
         handle: libc::c_int,
@@ -1602,7 +1602,7 @@
     }
 
     <span class="doccomment">/// Get a temporary mutable reference to a descriptor.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getRegisteredDescriptorMut(
         thread: <span class="kw-2">*const </span>Thread,
         handle: libc::c_int,
@@ -1627,7 +1627,7 @@
     }
 
     <span class="doccomment">/// Get a temporary reference to a legacy file.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>thread_getRegisteredLegacyFile(
         thread: <span class="kw-2">*const </span>Thread,
         handle: libc::c_int,

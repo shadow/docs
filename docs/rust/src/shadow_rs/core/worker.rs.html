@@ -779,11 +779,11 @@
 <span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>rand::Rng;
+<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
-<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 
 <span class="kw">use </span><span class="kw">super</span>::work::event_queue::EventQueue;
 <span class="kw">use </span><span class="kw">crate</span>::core::controller::ShadowStatusBarState;
@@ -1400,7 +1400,7 @@
     <span class="doccomment">/// # Safety
     /// The returned string should be returned to rust to be deallocated by calling
     /// `worker_freeHostsFilePath()`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getHostsFilePath() -&gt; <span class="kw-2">*const </span>std::ffi::c_char {
         <span class="kw">let </span>pathbuf = Worker::with_dns(|dns| dns.hosts_path());
         <span class="kw">let </span>pathstr = CString::new(pathbuf.as_os_str().as_bytes()).unwrap();
@@ -1411,7 +1411,7 @@
     <span class="doccomment">/// # Safety
     /// The path should be a valid pointer to the string allocated by rust, such as
     /// the string returned in `worker_getHostsFilePath()`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_freeHostsFilePath(path: <span class="kw-2">*const </span>std::ffi::c_char) {
         <span class="comment">// Take the ownership back to rust and drop the owner
         </span><span class="kw">unsafe </span>{
@@ -1420,7 +1420,7 @@
     }
 
     <span class="doccomment">/// Addresses must be provided in network byte order.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getLatency(
         src: libc::in_addr_t,
         dst: libc::in_addr_t,
@@ -1433,21 +1433,21 @@
     }
 
     <span class="doccomment">/// Addresses must be provided in network byte order.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getBandwidthDownBytes(ip: libc::in_addr_t) -&gt; u64 {
         <span class="kw">let </span>ip = std::net::IpAddr::V4(u32::from_be(ip).into());
         Worker::with(|w| w.shared.bandwidth(ip).unwrap().down_bytes).unwrap()
     }
 
     <span class="doccomment">/// Addresses must be provided in network byte order.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getBandwidthUpBytes(ip: libc::in_addr_t) -&gt; u64 {
         <span class="kw">let </span>ip = std::net::IpAddr::V4(u32::from_be(ip).into());
         Worker::with(|w| w.shared.bandwidth(ip).unwrap().up_bytes).unwrap()
     }
 
     <span class="doccomment">/// Addresses must be provided in network byte order.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_isRoutable(src: libc::in_addr_t, dst: libc::in_addr_t) -&gt; bool {
         <span class="kw">let </span>src = std::net::IpAddr::V4(u32::from_be(src).into());
         <span class="kw">let </span>dst = std::net::IpAddr::V4(u32::from_be(dst).into());
@@ -1456,14 +1456,14 @@
     }
 
     <span class="doccomment">/// SAFETY: The returned pointer must not be accessed after this worker thread has exited.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getChildPidWatcher() -&gt; <span class="kw-2">*const </span>ChildPidWatcher {
         Worker::with(|w| std::ptr::from_ref(w.shared.child_pid_watcher())).unwrap()
     }
 
     <span class="doccomment">/// Implementation for counting allocated objects. Do not use this function directly.
     /// Use worker_count_allocation instead from the call site.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_increment_object_alloc_counter(
         object_name: <span class="kw-2">*const </span>libc::c_char,
     ) {
@@ -1476,7 +1476,7 @@
 
     <span class="doccomment">/// Implementation for counting deallocated objects. Do not use this function directly.
     /// Use worker_count_deallocation instead from the call site.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_increment_object_dealloc_counter(
         object_name: <span class="kw-2">*const </span>libc::c_char,
     ) {
@@ -1488,7 +1488,7 @@
     }
 
     <span class="doccomment">/// Aggregate the given syscall counts in a worker syscall counter.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_add_syscall_counts(syscall_counts: <span class="kw-2">*const </span>Counter) {
         <span class="macro">assert!</span>(!syscall_counts.is_null());
         <span class="kw">let </span>syscall_counts = <span class="kw">unsafe </span>{ syscall_counts.as_ref() }.unwrap();
@@ -1496,31 +1496,31 @@
         Worker::add_syscall_counts(syscall_counts);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_setCurrentEmulatedTime(t: CEmulatedTime) {
         Worker::set_current_time(EmulatedTime::from_c_emutime(t).unwrap());
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getCurrentSimulationTime() -&gt; CSimulationTime {
         SimulationTime::to_c_simtime(Worker::current_time().map(|t| t.to_abs_simtime()))
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getCurrentEmulatedTime() -&gt; CEmulatedTime {
         EmulatedTime::to_c_emutime(Worker::current_time())
     }
 
     <span class="doccomment">/// Returns a pointer to the current running host. The returned pointer is
     /// invalidated the next time the worker switches hosts.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getCurrentHost() -&gt; <span class="kw-2">*const </span>Host {
         Worker::with_active_host(std::ptr::from_ref).unwrap()
     }
 
     <span class="doccomment">/// Returns a pointer to the current running process. The returned pointer is
     /// invalidated the next time the worker switches processes.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getCurrentProcess() -&gt; <span class="kw-2">*const </span>Process {
         <span class="comment">// We can't use `with_active_process` here since that returns the &amp;Process instead
         // of the enclosing &amp;Process.
@@ -1529,14 +1529,14 @@
 
     <span class="doccomment">/// Returns a pointer to the current running thread. The returned pointer is
     /// invalidated the next time the worker switches threads.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_getCurrentThread() -&gt; <span class="kw-2">*const </span>Thread {
         Worker::with_active_thread(std::ptr::from_ref).unwrap()
     }
 
     <span class="doccomment">/// Maximum time that the current event may run ahead to. Must only be called if we hold the
     /// host lock.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>worker_maxEventRunaheadTime(host: <span class="kw-2">*const </span>Host) -&gt; CEmulatedTime {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref() }.unwrap();
         EmulatedTime::to_c_emutime(<span class="prelude-val">Some</span>(Worker::max_event_runahead_time(host)))

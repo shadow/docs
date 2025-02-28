@@ -1594,8 +1594,8 @@
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span><span class="kw">crate</span>::host::network::interface::FifoPacketPriority;
-<span class="kw">use </span><span class="kw">crate</span>::utility::pcap_writer::PacketDisplay;
 <span class="kw">use </span><span class="kw">crate</span>::utility::ObjectCounter;
+<span class="kw">use </span><span class="kw">crate</span>::utility::pcap_writer::PacketDisplay;
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
 <span class="kw">use </span>bytes::Bytes;
@@ -2676,7 +2676,7 @@
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_new_tcp(
         host_id: HostId,
         packet_id: u64,
@@ -2718,19 +2718,19 @@
         </span>PacketRc::from(packet).into_raw()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_ref(packet_ptr: <span class="kw-2">*mut </span>Packet) {
         <span class="macro">assert!</span>(!packet_ptr.is_null());
         <span class="kw">unsafe </span>{ Arc::increment_strong_count(packet_ptr) };
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_unref(packet_ptr: <span class="kw-2">*mut </span>Packet) {
         <span class="macro">assert!</span>(!packet_ptr.is_null());
         <span class="kw">unsafe </span>{ Arc::decrement_strong_count(packet_ptr) };
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_updateTCP(
         packet_ptr: <span class="kw-2">*mut </span>Packet,
         ack: libc::c_uint,
@@ -2766,7 +2766,7 @@
         tcp.header.timestamp_echo = from_legacy_timestamp(ts_echo);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_getTCPHeader(packet_ptr: <span class="kw-2">*const </span>Packet) -&gt; c::PacketTCPHeader {
         <span class="kw">let </span>packet = PacketRc::borrow_raw(packet_ptr);
 
@@ -2802,7 +2802,7 @@
         c_hdr
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_appendPayloadWithMemoryManager(
         packet_ptr: <span class="kw-2">*mut </span>Packet,
         src: UntypedForeignPtr,
@@ -2852,7 +2852,7 @@
         </span>tcp.borrow_mut().payload.push(Bytes::from(dst));
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_copyPayloadWithMemoryManager(
         packet_ptr: <span class="kw-2">*const </span>Packet,
         payload_offset: u64,
@@ -2935,25 +2935,25 @@
         i64::try_from(tot_written).unwrap()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_getPriority(packet_ptr: <span class="kw-2">*const </span>Packet) -&gt; u64 {
         <span class="kw">let </span>packet = PacketRc::borrow_raw(packet_ptr);
         packet.priority()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_getPayloadSize(packet_ptr: <span class="kw-2">*const </span>Packet) -&gt; u64 {
         <span class="kw">let </span>packet = PacketRc::borrow_raw(packet_ptr);
         packet.payload_len().try_into().unwrap()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_getDestinationIP(packet_ptr: <span class="kw-2">*const </span>Packet) -&gt; libc::in_addr_t {
         <span class="kw">let </span>packet = PacketRc::borrow_raw(packet_ptr);
         u32::to_be((<span class="kw-2">*</span>packet.dst_ipv4_address().ip()).into())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_getDestinationPort(
         packet_ptr: <span class="kw-2">*const </span>Packet,
     ) -&gt; libc::in_port_t {
@@ -2961,19 +2961,19 @@
         u16::to_be(packet.dst_ipv4_address().port())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_getSourceIP(packet_ptr: <span class="kw-2">*const </span>Packet) -&gt; libc::in_addr_t {
         <span class="kw">let </span>packet = PacketRc::borrow_raw(packet_ptr);
         u32::to_be((<span class="kw-2">*</span>packet.src_ipv4_address().ip()).into())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_getSourcePort(packet_ptr: <span class="kw-2">*const </span>Packet) -&gt; libc::in_port_t {
         <span class="kw">let </span>packet = PacketRc::borrow_raw(packet_ptr);
         u16::to_be(packet.src_ipv4_address().port())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_addDeliveryStatus(
         packet_ptr: <span class="kw-2">*mut </span>Packet,
         status: c::PacketDeliveryStatusFlags,
@@ -2982,7 +2982,7 @@
         packet.add_status(PacketStatus::from(status));
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>packet_compareTCPSequence(
         packet_ptr1: <span class="kw-2">*mut </span>Packet,
         packet_ptr2: <span class="kw-2">*mut </span>Packet,

@@ -498,7 +498,9 @@
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
 <a href="#499" id="499">499</a>
-<a href="#500" id="500">500</a></pre></div><pre class="rust"><code><span class="doccomment">//! The main entrypoint to Shadow.
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a></pre></div><pre class="rust"><code><span class="doccomment">//! The main entrypoint to Shadow.
 //!
 //! This is called from a small C wrapper for build complexity reasons.
 
@@ -677,7 +679,9 @@
     // branch on memory addresses.
     </span><span class="kw">match </span>disable_aslr() {
         <span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">log::debug!</span>(<span class="string">"ASLR disabled for processes forked from this parent process"</span>),
-        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">log::warn!</span>(<span class="string">"Could not disable address space layout randomization. This may affect determinism: {e:#}"</span>),
+        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">log::warn!</span>(
+            <span class="string">"Could not disable address space layout randomization. This may affect determinism: {e:#}"
+        </span>),
     };
 
     <span class="comment">// check sidechannel mitigations
@@ -870,7 +874,7 @@
             .context(<span class="string">"Could not merge '&lt;&lt;' keys"</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// remove top-level extension fields
-        </span><span class="kw">if let </span>serde_yaml::Value::Mapping(<span class="kw-2">ref mut </span>mapping) = <span class="kw-2">&amp;mut </span>config_file {
+        </span><span class="kw">if let </span>serde_yaml::Value::Mapping(mapping) = <span class="kw-2">&amp;mut </span>config_file {
             <span class="comment">// remove entries having a key beginning with "x-" (follows docker's convention:
             // https://docs.docker.com/compose/compose-file/#extension)
             </span>mapping.retain(|key, _value| {
@@ -963,7 +967,7 @@
 <span class="kw">mod </span>export {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>main_runShadow(
         argc: libc::c_int,
         argv: <span class="kw-2">*const *const </span>libc::c_char,

@@ -628,8 +628,7 @@
 <a href="#627" id="627">627</a>
 <a href="#628" id="628">628</a>
 <a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
+<a href="#630" id="630">630</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::{Arc, Weak};
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
@@ -651,9 +650,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::io::IoVec;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 <span class="kw">use </span><span class="kw">crate</span>::network::packet::{IanaProtocol, PacketRc};
+<span class="kw">use </span><span class="kw">crate</span>::utility::HostTreePointer;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 <span class="kw">use </span><span class="kw">crate</span>::utility::sockaddr::SockaddrStorage;
-<span class="kw">use </span><span class="kw">crate</span>::utility::HostTreePointer;
 
 <span class="kw">use </span><span class="self">self</span>::legacy_tcp::LegacyTcpSocket;
 <span class="kw">use </span><span class="self">self</span>::tcp::TcpSocket;
@@ -673,33 +672,33 @@
 <span class="kw">impl </span>InetSocket {
     <span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InetSocketRef {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::LegacyTcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRef::LegacyTcp(f.borrow()),
-            <span class="self">Self</span>::Tcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRef::Tcp(f.borrow()),
-            <span class="self">Self</span>::Udp(<span class="kw-2">ref </span>f) =&gt; InetSocketRef::Udp(f.borrow()),
+            <span class="self">Self</span>::LegacyTcp(f) =&gt; InetSocketRef::LegacyTcp(f.borrow()),
+            <span class="self">Self</span>::Tcp(f) =&gt; InetSocketRef::Tcp(f.borrow()),
+            <span class="self">Self</span>::Udp(f) =&gt; InetSocketRef::Udp(f.borrow()),
         }
     }
 
     <span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;InetSocketRef, atomic_refcell::BorrowError&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::LegacyTcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRef::LegacyTcp(f.try_borrow()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Tcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRef::Tcp(f.try_borrow()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Udp(<span class="kw-2">ref </span>f) =&gt; InetSocketRef::Udp(f.try_borrow()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::LegacyTcp(f) =&gt; InetSocketRef::LegacyTcp(f.try_borrow()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Tcp(f) =&gt; InetSocketRef::Tcp(f.try_borrow()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Udp(f) =&gt; InetSocketRef::Udp(f.try_borrow()<span class="question-mark">?</span>),
         })
     }
 
     <span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InetSocketRefMut {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::LegacyTcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRefMut::LegacyTcp(f.borrow_mut()),
-            <span class="self">Self</span>::Tcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRefMut::Tcp(f.borrow_mut()),
-            <span class="self">Self</span>::Udp(<span class="kw-2">ref </span>f) =&gt; InetSocketRefMut::Udp(f.borrow_mut()),
+            <span class="self">Self</span>::LegacyTcp(f) =&gt; InetSocketRefMut::LegacyTcp(f.borrow_mut()),
+            <span class="self">Self</span>::Tcp(f) =&gt; InetSocketRefMut::Tcp(f.borrow_mut()),
+            <span class="self">Self</span>::Udp(f) =&gt; InetSocketRefMut::Udp(f.borrow_mut()),
         }
     }
 
     <span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;InetSocketRefMut, atomic_refcell::BorrowMutError&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::LegacyTcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRefMut::LegacyTcp(f.try_borrow_mut()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Tcp(<span class="kw-2">ref </span>f) =&gt; InetSocketRefMut::Tcp(f.try_borrow_mut()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Udp(<span class="kw-2">ref </span>f) =&gt; InetSocketRefMut::Udp(f.try_borrow_mut()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::LegacyTcp(f) =&gt; InetSocketRefMut::LegacyTcp(f.try_borrow_mut()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Tcp(f) =&gt; InetSocketRefMut::Tcp(f.try_borrow_mut()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Udp(f) =&gt; InetSocketRefMut::Udp(f.try_borrow_mut()<span class="question-mark">?</span>),
         })
     }
 
@@ -1206,27 +1205,26 @@
 
     <span class="doccomment">/// Decrement the ref count of the `InetSocket` object. The pointer must not be used after
     /// calling this function.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>inetsocket_drop(socket: <span class="kw-2">*const </span>InetSocket) {
         <span class="macro">assert!</span>(!socket.is_null());
         drop(<span class="kw">unsafe </span>{ Box::from_raw(socket.cast_mut()) });
     }
 
     <span class="doccomment">/// Helper for GLib functions that take a `TaskObjectFreeFunc`. See [`inetsocket_drop`].
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>inetsocket_dropVoid(socket: <span class="kw-2">*mut </span>libc::c_void) {
         inetsocket_drop(socket.cast_const().cast())
     }
 
     <span class="doccomment">/// Get a legacy C [`TCP`](c::TCP) pointer for the socket. Will panic if `socket` is not a
     /// legacy TCP socket or if `socket` is already mutably borrowed. Will never return `NULL`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>inetsocket_asLegacyTcp(socket: <span class="kw-2">*const </span>InetSocket) -&gt; <span class="kw-2">*mut </span>c::TCP {
         <span class="kw">let </span>socket = <span class="kw">unsafe </span>{ socket.as_ref() }.unwrap();
 
         <span class="attr">#[allow(irrefutable_let_patterns)]
-        </span><span class="kw">let </span>InetSocket::LegacyTcp(socket) = socket
-        <span class="kw">else </span>{
+        </span><span class="kw">let </span>InetSocket::LegacyTcp(socket) = socket <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">"Socket was not a legacy TCP socket: {socket:?}"</span>);
         };
 
@@ -1239,7 +1237,7 @@
 
     <span class="doccomment">/// Decrement the ref count of the `InetSocketWeak` object. The pointer must not be used after
     /// calling this function.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>inetsocketweak_drop(socket: <span class="kw-2">*mut </span>InetSocketWeak) {
         <span class="macro">assert!</span>(!socket.is_null());
         drop(<span class="kw">unsafe </span>{ Box::from_raw(socket) });
@@ -1248,7 +1246,7 @@
     <span class="doccomment">/// Upgrade the weak reference. May return `NULL` if the socket has no remaining strong
     /// references and has been dropped. Returns an owned `InetSocket` that must be dropped as a
     /// `Box` later (for example using `inetsocket_drop`).
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>inetsocketweak_upgrade(
         socket: <span class="kw-2">*const </span>InetSocketWeak,
     ) -&gt; <span class="kw-2">*mut </span>InetSocket {

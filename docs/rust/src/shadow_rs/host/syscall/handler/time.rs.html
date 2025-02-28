@@ -315,7 +315,8 @@
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::time::{ClockId, ClockNanosleepFlags, ITimerId};
 <span class="kw">use </span>log::<span class="kw-2">*</span>;
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
@@ -327,8 +328,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::SyscallError;
 <span class="kw">use </span><span class="kw">crate</span>::host::timer::Timer;
 
-<span class="kw">fn </span>itimerval_from_timer(timer: <span class="kw-2">&amp;</span>Timer) -&gt; linux_api::time::itimerval {
-    linux_api::time::itimerval {
+<span class="kw">fn </span>kernel_old_itimerval_from_timer(timer: <span class="kw-2">&amp;</span>Timer) -&gt; linux_api::time::kernel_old_itimerval {
+    linux_api::time::kernel_old_itimerval {
         it_interval: timer
             .expire_interval()
             .unwrap_or(SimulationTime::ZERO)
@@ -347,12 +348,12 @@
         getitimer,
         <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* which */ </span>linux_api::time::ITimerId,
-        <span class="comment">/*curr_value*/ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/*curr_value*/ </span><span class="kw-2">*const </span>linux_api::time::kernel_old_itimerval,
     );
     <span class="kw">pub fn </span>getitimer(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         which: std::ffi::c_int,
-        curr_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
+        curr_value_ptr: ForeignPtr&lt;linux_api::time::kernel_old_itimerval&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(which) = ITimerId::try_from(which) <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">"Bad itimerid {which}"</span>);
@@ -364,7 +365,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         }
 
-        <span class="kw">let </span>itimerval = itimerval_from_timer(<span class="kw-2">&amp;</span>ctx.objs.process.realtime_timer_borrow());
+        <span class="kw">let </span>itimerval = kernel_old_itimerval_from_timer(<span class="kw-2">&amp;</span>ctx.objs.process.realtime_timer_borrow());
         ctx.objs
             .process
             .memory_borrow_mut()
@@ -377,14 +378,14 @@
         setitimer,
         <span class="comment">/* rv */ </span>std::ffi::c_int,
         <span class="comment">/* which */ </span>linux_api::time::ITimerId,
-        <span class="comment">/* new_value */ </span><span class="kw-2">*const </span>std::ffi::c_void,
-        <span class="comment">/* old_value */ </span><span class="kw-2">*const </span>std::ffi::c_void,
+        <span class="comment">/* new_value */ </span><span class="kw-2">*const </span>linux_api::time::kernel_old_itimerval,
+        <span class="comment">/* old_value */ </span><span class="kw-2">*const </span>linux_api::time::kernel_old_itimerval,
     );
     <span class="kw">pub fn </span>setitimer(
         ctx: <span class="kw-2">&amp;mut </span>SyscallContext,
         which: std::ffi::c_int,
-        new_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
-        old_value_ptr: ForeignPtr&lt;linux_api::time::itimerval&gt;,
+        new_value_ptr: ForeignPtr&lt;linux_api::time::kernel_old_itimerval&gt;,
+        old_value_ptr: ForeignPtr&lt;linux_api::time::kernel_old_itimerval&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SyscallError&gt; {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(which) = ITimerId::try_from(which) <span class="kw">else </span>{
             <span class="macro">debug!</span>(<span class="string">"Bad itimerid {which}"</span>);
@@ -397,7 +398,8 @@
         }
 
         <span class="kw">if </span>!old_value_ptr.is_null() {
-            <span class="kw">let </span>itimerval = itimerval_from_timer(<span class="kw-2">&amp;</span>ctx.objs.process.realtime_timer_borrow());
+            <span class="kw">let </span>itimerval =
+                kernel_old_itimerval_from_timer(<span class="kw-2">&amp;</span>ctx.objs.process.realtime_timer_borrow());
             ctx.objs
                 .process
                 .memory_borrow_mut()

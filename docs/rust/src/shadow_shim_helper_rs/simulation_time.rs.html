@@ -990,7 +990,31 @@
 <a href="#989" id="989">989</a>
 <a href="#990" id="990">990</a>
 <a href="#991" id="991">991</a>
-<a href="#992" id="992">992</a></pre></div><pre class="rust"><code><span class="doccomment">/*!
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a></pre></div><pre class="rust"><code><span class="doccomment">/*!
 Values for working with a simulated duration. Use `EmulatedTime` to represent an instant in time.
 
 In Rust, use `EmulatedTime` to represent an instant in time, or
@@ -1357,6 +1381,19 @@ This module contains some identically-named constants defined as C macros in
     }
 }
 
+<span class="kw">impl </span>std::convert::TryFrom&lt;linux_api::time::kernel_old_timeval&gt; <span class="kw">for </span>SimulationTime {
+    <span class="kw">type </span>Error = ();
+
+    <span class="kw">fn </span>try_from(value: linux_api::time::kernel_old_timeval) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">if </span>value.tv_sec &lt; <span class="number">0 </span>|| value.tv_usec &lt; <span class="number">0 </span>|| value.tv_usec &gt; <span class="number">999_999 </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(());
+        }
+        <span class="kw">let </span>secs = Duration::from_secs(value.tv_sec.try_into().unwrap());
+        <span class="kw">let </span>micros = Duration::from_micros(value.tv_usec.try_into().unwrap());
+        <span class="self">Self</span>::try_from(secs + micros)
+    }
+}
+
 <span class="kw">impl </span>std::convert::TryFrom&lt;SimulationTime&gt; <span class="kw">for </span>linux_api::time::timeval {
     <span class="kw">type </span>Error = ();
 
@@ -1365,6 +1402,17 @@ This module contains some identically-named constants defined as C macros in
         <span class="kw">let </span>tv_sec = value.as_secs().try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
         <span class="kw">let </span>tv_usec = value.subsec_micros().into();
         <span class="prelude-val">Ok</span>(linux_api::time::timeval { tv_sec, tv_usec })
+    }
+}
+
+<span class="kw">impl </span>std::convert::TryFrom&lt;SimulationTime&gt; <span class="kw">for </span>linux_api::time::kernel_old_timeval {
+    <span class="kw">type </span>Error = ();
+
+    <span class="kw">fn </span>try_from(value: SimulationTime) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span>value = Duration::from(value);
+        <span class="kw">let </span>tv_sec = value.as_secs().try_into().map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
+        <span class="kw">let </span>tv_usec = value.subsec_micros().into();
+        <span class="prelude-val">Ok</span>(linux_api::time::kernel_old_timeval { tv_sec, tv_usec })
     }
 }
 
@@ -1507,12 +1555,12 @@ This module contains some identically-named constants defined as C macros in
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::notnull::<span class="kw-2">*</span>;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>simtime_from_timeval(val: libc::timeval) -&gt; CSimulationTime {
         SimulationTime::to_c_simtime(SimulationTime::try_from(val).ok())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>simtime_from_timespec(val: libc::timespec) -&gt; CSimulationTime {
         SimulationTime::to_c_simtime(SimulationTime::try_from(val).ok())
     }
@@ -1521,7 +1569,7 @@ This module contains some identically-named constants defined as C macros in
     ///
     /// Pointer args must be safe to write to.
     </span><span class="attr">#[must_use]
-    #[no_mangle]
+    #[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>simtime_to_timeval(
         val: CSimulationTime,
         out: <span class="kw-2">*mut </span>libc::timeval,
@@ -1540,7 +1588,7 @@ This module contains some identically-named constants defined as C macros in
     ///
     /// Pointer args must be safe to write to.
     </span><span class="attr">#[must_use]
-    #[no_mangle]
+    #[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>simtime_to_timespec(
         val: CSimulationTime,
         out: <span class="kw-2">*mut </span>libc::timespec,

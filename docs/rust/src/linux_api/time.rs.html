@@ -135,9 +135,68 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_syscall::syscall;
-<span class="kw">use </span>linux_syscall::Result <span class="kw">as </span>LinuxSyscallResult;
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_syscall::Result <span class="kw">as </span>LinuxSyscallResult;
 <span class="kw">use </span>linux_syscall::Result64;
+<span class="kw">use </span>linux_syscall::syscall;
 <span class="kw">use </span>num_enum::{IntoPrimitive, TryFromPrimitive};
 
 <span class="kw">use </span><span class="kw">crate</span>::bindings;
@@ -238,6 +297,11 @@
 </span><span class="kw">pub type </span>itimerval = linux_itimerval;
 <span class="kw">unsafe impl </span>shadow_pod::Pod <span class="kw">for </span>itimerval {}
 
+<span class="kw">pub use </span>bindings::linux___kernel_old_itimerval;
+<span class="attr">#[allow(non_camel_case_types)]
+</span><span class="kw">pub type </span>kernel_old_itimerval = linux___kernel_old_itimerval;
+<span class="kw">unsafe impl </span>shadow_pod::Pod <span class="kw">for </span>kernel_old_itimerval {}
+
 <span class="doccomment">/// Raw `alarm` syscall. Permits u64 arg and return value for generality with
 /// the general syscall ABI, but note that the `alarm` syscall definition itself
 /// uses u32.
@@ -255,10 +319,64 @@
     </span><span class="prelude-val">Ok</span>(res.try_into().unwrap())
 }
 
+<span class="doccomment">/// Make a `getitimer` syscall.
+///
+/// # Safety
+///
+/// `curr_value` must be safe for the kernel to write to.
+</span><span class="comment">//
+// Kernel decl:
+// ```
+// kernel/time/itimer.c:SYSCALL_DEFINE2(getitimer, int, which, struct __kernel_old_itimerval __user *, value)
+// ```
+</span><span class="kw">pub unsafe fn </span>getitimer_raw(
+    which: core::ffi::c_int,
+    curr_value: <span class="kw-2">*mut </span>kernel_old_itimerval,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
+    <span class="kw">unsafe </span>{ <span class="macro">syscall!</span>(linux_syscall::SYS_getitimer, which, curr_value) }
+        .check()
+        .map_err(Errno::from)
+}
+
+<span class="doccomment">/// Make a `getitimer` syscall.
+</span><span class="kw">pub fn </span>getitimer(which: ITimerId, curr_value: <span class="kw-2">&amp;mut </span>kernel_old_itimerval) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
+    <span class="kw">unsafe </span>{ getitimer_raw(which.into(), curr_value) }
+}
+
+<span class="doccomment">/// Make a `setitimer` syscall.
+///
+/// # Safety
+///
+/// `old_value` must be safe for the kernel to write to, or NULL.
+///
+/// An invalid or inaccessible `new_value` *isn't* a safety violation, but may
+/// cause the syscall to fail e.g. with `EFAULT`.
+</span><span class="kw">pub unsafe fn </span>setitimer_raw(
+    which: core::ffi::c_int,
+    new_value: <span class="kw-2">*const </span>kernel_old_itimerval,
+    old_value: <span class="kw-2">*mut </span>kernel_old_itimerval,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
+    <span class="kw">unsafe </span>{ <span class="macro">syscall!</span>(linux_syscall::SYS_setitimer, which, new_value, old_value) }
+        .check()
+        .map_err(Errno::from)
+}
+
+<span class="doccomment">/// Make a `setitimer` syscall.
+</span><span class="kw">pub fn </span>setitimer(
+    which: ITimerId,
+    new_value: <span class="kw-2">&amp;</span>kernel_old_itimerval,
+    old_value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>kernel_old_itimerval&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
+    <span class="kw">let </span>old_value = old_value
+        .map(core::ptr::from_mut)
+        .unwrap_or(core::ptr::null_mut());
+    <span class="kw">unsafe </span>{ setitimer_raw(which.into(), new_value, old_value) }
+}
+
 <span class="kw">mod </span>export {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_clock_gettime(
         clockid: i32,
         res: <span class="kw-2">*mut </span>linux_timespec,

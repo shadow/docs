@@ -378,10 +378,7 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a></pre></div><pre class="rust"><code><span class="doccomment">//! Types used in emulating syscalls.
+<a href="#380" id="380">380</a></pre></div><pre class="rust"><code><span class="doccomment">//! Types used in emulating syscalls.
 
 </span><span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::mem::size_of;
@@ -394,8 +391,8 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::cshadow <span class="kw">as </span>c;
 <span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{File, FileState};
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::condition::SyscallCondition;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::Trigger;
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::condition::SyscallCondition;
 
 <span class="doccomment">/// Wrapper around a [`ForeignPtr`] that encapsulates its size and current position.
 </span><span class="attr">#[derive(Copy, Clone)]
@@ -627,10 +624,7 @@
 
     <span class="doccomment">/// Returns the [condition](SyscallCondition) that the syscall is blocked on.
     </span><span class="kw">pub fn </span>blocked_condition(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>SyscallCondition&gt; {
-        <span class="kw">if let </span><span class="self">Self</span>::Blocked(Blocked {
-            <span class="kw-2">ref mut </span>condition, ..
-        }) = <span class="self">self
-        </span>{
+        <span class="kw">if let </span><span class="self">Self</span>::Blocked(Blocked { condition, .. }) = <span class="self">self </span>{
             <span class="prelude-val">Some</span>(condition)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -674,7 +668,7 @@
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeDone(retval: SyscallReg) -&gt; SyscallReturn {
         SyscallReturn::Done(SyscallReturnDone {
             retval,
@@ -682,7 +676,7 @@
         })
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeDoneI64(retval: i64) -&gt; SyscallReturn {
         SyscallReturn::Done(SyscallReturnDone {
             retval: retval.into(),
@@ -690,7 +684,7 @@
         })
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeDoneU64(retval: u64) -&gt; SyscallReturn {
         SyscallReturn::Done(SyscallReturnDone {
             retval: retval.into(),
@@ -698,7 +692,7 @@
         })
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeDonePtr(
         retval: UntypedForeignPtr,
     ) -&gt; SyscallReturn {
@@ -708,7 +702,7 @@
         })
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeDoneErrno(err: i32) -&gt; SyscallReturn {
         <span class="macro">debug_assert!</span>(err &gt; <span class="number">0</span>);
         <span class="comment">// Should use `syscallreturn_makeInterrupted` instead
@@ -719,7 +713,7 @@
         })
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeInterrupted(
         restartable: bool,
     ) -&gt; SyscallReturn {
@@ -729,7 +723,7 @@
         })
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeBlocked(
         cond: <span class="kw-2">*mut </span>c::SysCallCondition,
         restartable: bool,
@@ -737,12 +731,12 @@
         SyscallReturn::Block(SyscallReturnBlocked { cond, restartable })
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_makeNative() -&gt; SyscallReturn {
         SyscallReturn::Native
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_blocked(
         scr: <span class="kw-2">*mut </span>SyscallReturn,
     ) -&gt; <span class="kw-2">*mut </span>SyscallReturnBlocked {
@@ -753,7 +747,7 @@
         b
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>syscallreturn_done(
         scr: <span class="kw-2">*mut </span>SyscallReturn,
     ) -&gt; <span class="kw-2">*mut </span>SyscallReturnDone {

@@ -2273,14 +2273,14 @@
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut};
 <span class="kw">use </span>std::collections::BTreeMap;
-<span class="kw">use </span>std::ffi::{c_char, c_void, CStr, CString};
+<span class="kw">use </span>std::ffi::{CStr, CString, c_char, c_void};
 <span class="kw">use </span>std::fmt::Write;
 <span class="kw">use </span>std::num::TryFromIntError;
 <span class="kw">use </span>std::ops::{Deref, DerefMut};
 <span class="kw">use </span>std::os::fd::AsRawFd;
 <span class="kw">use </span>std::path::{Path, PathBuf};
-<span class="kw">use </span>std::sync::atomic::Ordering;
 <span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::sync::atomic::Ordering;
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span>std::time::Duration;
 
@@ -2289,19 +2289,19 @@
 <span class="kw">use </span>linux_api::posix_types::Pid;
 <span class="kw">use </span>linux_api::sched::{CloneFlags, SuidDump};
 <span class="kw">use </span>linux_api::signal::{
-    defaultaction, siginfo_t, sigset_t, LinuxDefaultAction, SigActionFlags, Signal,
-    SignalFromI32Error,
+    LinuxDefaultAction, SigActionFlags, Signal, SignalFromI32Error, defaultaction, siginfo_t,
+    sigset_t,
 };
 <span class="kw">use </span>log::{debug, trace, warn};
 <span class="kw">use </span>rustix::process::{WaitOptions, WaitStatus};
+<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::{ExplicitDrop, ExplicitDropper};
+<span class="kw">use </span>shadow_shim_helper_rs::rootedcell::Root;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
-<span class="kw">use </span>shadow_shim_helper_rs::rootedcell::Root;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::ProcessShmem;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{ForeignPtr, ManagedPhysicalMemoryAddr};
-<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shmem::allocator::ShMemBlock;
 
 <span class="kw">use </span><span class="kw">super</span>::descriptor::descriptor_table::{DescriptorHandle, DescriptorTable};
@@ -4237,7 +4237,7 @@
 
     <span class="doccomment">/// Copy `n` bytes from `src` to `dst`. Returns 0 on success or -EFAULT if any of
     /// the specified range couldn't be accessed. Always succeeds with n==0.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_readPtr(
         proc: <span class="kw-2">*const </span>Process,
         dst: <span class="kw-2">*mut </span>c_void,
@@ -4259,7 +4259,7 @@
 
     <span class="doccomment">/// Copy `n` bytes from `src` to `dst`. Returns 0 on success or -EFAULT if any of
     /// the specified range couldn't be accessed. The write is flushed immediately.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_writePtr(
         proc: <span class="kw-2">*const </span>Process,
         dst: UntypedForeignPtr,
@@ -4282,7 +4282,7 @@
     ///
     /// The returned pointer is invalidated when one of the process memory flush
     /// methods is called; typically after a syscall has completed.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getReadablePtr(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
@@ -4302,7 +4302,7 @@
     /// CAUTION: if the unspecified contents aren't overwritten, and the pointer
     /// isn't explicitly freed via `process_freePtrsWithoutFlushing`, those
     /// unspecified contents may be written back into process memory.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getWriteablePtr(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
@@ -4318,7 +4318,7 @@
     ///
     /// The returned pointer is invalidated when one of the process memory flush
     /// methods is called; typically after a syscall has completed.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getMutablePtr(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
@@ -4335,7 +4335,7 @@
     /// strlen(str) on success.
     /// -ENAMETOOLONG if there was no NULL byte in the first `n` characters.
     /// -EFAULT if the string extends beyond the accessible address space.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_readString(
         proc: <span class="kw-2">*const </span>Process,
         strbuf: <span class="kw-2">*mut </span>libc::c_char,
@@ -4361,7 +4361,7 @@
     /// strlen(str) on success.
     /// -ENAMETOOLONG if there was no NULL byte in the first `n` characters.
     /// -EFAULT if the string extends beyond the accessible address space.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getReadableString(
         proc: <span class="kw-2">*const </span>Process,
         plugin_src: UntypedForeignPtr,
@@ -4385,13 +4385,13 @@
     }
 
     <span class="doccomment">/// Returns the processID that was assigned to us in process_new
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getProcessID(proc: <span class="kw-2">*const </span>Process) -&gt; libc::pid_t {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.id().into()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getName(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>c_char {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.common().name.as_ptr()
@@ -4401,7 +4401,7 @@
     ///
     /// The returned pointer is invalidated when the host shmem lock is released, e.g. via
     /// Host::unlock_shmem.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getSharedMem(
         proc: <span class="kw-2">*const </span>Process,
     ) -&gt; <span class="kw-2">*const </span>ShimShmemProcess {
@@ -4409,13 +4409,13 @@
         std::ptr::from_ref(proc.as_runnable().unwrap().shim_shared_mem_block.deref())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getWorkingDir(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>c_char {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.common().working_dir.as_ptr()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_straceLoggingMode(
         proc: <span class="kw-2">*const </span>Process,
     ) -&gt; StraceFmtMode {
@@ -4423,7 +4423,7 @@
         proc.strace_logging_options().into()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getNativePid(proc: <span class="kw-2">*const </span>Process) -&gt; libc::pid_t {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.native_pid().as_raw_nonzero().get()
@@ -4435,7 +4435,7 @@
     /// to gracefully handle failed writes.
     ///
     /// Returns 0 on success or a negative errno on failure.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_flushPtrs(proc: <span class="kw-2">*const </span>Process) -&gt; i32 {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         <span class="kw">match </span>proc.free_unsafe_borrows_flush() {
@@ -4449,13 +4449,13 @@
     /// if an uninitialized writable pointer was obtained via `process_getWriteablePtr`,
     /// and we end up not wanting to write anything after all (in particular, don't
     /// write back whatever garbage data was in the uninialized bueffer).
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_freePtrsWithoutFlushing(proc: <span class="kw-2">*const </span>Process) {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.free_unsafe_borrows_noflush();
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getThread(
         proc: <span class="kw-2">*const </span>Process,
         tid: libc::pid_t,
@@ -4473,7 +4473,7 @@
     }
 
     <span class="doccomment">/// Returns a pointer to an arbitrary live thread in the process.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_firstLiveThread(proc: <span class="kw-2">*const </span>Process) -&gt; <span class="kw-2">*const </span>Thread {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         Worker::with_active_host(|host| {
@@ -4486,7 +4486,7 @@
         .unwrap()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_isRunning(proc: <span class="kw-2">*const </span>Process) -&gt; bool {
         <span class="kw">let </span>proc = <span class="kw">unsafe </span>{ proc.as_ref().unwrap() };
         proc.is_running()
@@ -4494,12 +4494,12 @@
 
     <span class="comment">// FIXME: still needed? Time is now updated more granularly in the Thread code
     // when xferring control to/from shim.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_setSharedTime() {
         Worker::with_active_host(Process::set_shared_time).unwrap();
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_getPhysicalAddress(
         proc: <span class="kw-2">*const </span>Process,
         vptr: UntypedForeignPtr,
@@ -4508,7 +4508,7 @@
         proc.physical_address(vptr)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_addChildEventListener(
         host: <span class="kw-2">*const </span>Host,
         process: <span class="kw-2">*const </span>Process,
@@ -4525,7 +4525,7 @@
             .add_legacy_listener(listener)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>process_removeChildEventListener(
         _host: <span class="kw-2">*const </span>Host,
         process: <span class="kw-2">*const </span>Process,

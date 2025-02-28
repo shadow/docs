@@ -1331,7 +1331,9 @@
 <a href="#1330" id="1330">1330</a>
 <a href="#1331" id="1331">1331</a>
 <a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a></pre></div><pre class="rust"><code><span class="doccomment">//! An emulated Linux system.
 
 </span><span class="kw">use </span>std::cell::{Cell, Ref, RefCell, RefMut, UnsafeCell};
 <span class="kw">use </span>std::collections::BTreeMap;
@@ -1343,21 +1345,21 @@
 <span class="kw">use </span>std::sync::{Arc, Mutex};
 
 <span class="kw">use </span>atomic_refcell::AtomicRefCell;
-<span class="kw">use </span>linux_api::signal::{siginfo_t, Signal};
+<span class="kw">use </span>linux_api::signal::{Signal, siginfo_t};
 <span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>logger::LogLevel;
 <span class="kw">use </span>once_cell::unsync::OnceCell;
 <span class="kw">use </span>rand::SeedableRng;
 <span class="kw">use </span>rand_xoshiro::Xoshiro256PlusPlus;
+<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
 <span class="kw">use </span>shadow_shim_helper_rs::explicit_drop::ExplicitDropper;
+<span class="kw">use </span>shadow_shim_helper_rs::rootedcell::Root;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::cell::RootedCell;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::rc::RootedRc;
 <span class="kw">use </span>shadow_shim_helper_rs::rootedcell::refcell::RootedRefCell;
-<span class="kw">use </span>shadow_shim_helper_rs::rootedcell::Root;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::{HostShmem, HostShmemProtected, ManagerShmem};
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
-<span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shmem::allocator::ShMemBlock;
 <span class="kw">use </span>shadow_tsc::Tsc;
 <span class="kw">use </span>vasi_sync::scmutex::SelfContainedMutexGuard;
@@ -1376,9 +1378,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::network::namespace::NetworkNamespace;
 <span class="kw">use </span><span class="kw">crate</span>::host::process::Process;
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::{Thread, ThreadId};
+<span class="kw">use </span><span class="kw">crate</span>::network::PacketDevice;
 <span class="kw">use </span><span class="kw">crate</span>::network::relay::{RateLimit, Relay};
 <span class="kw">use </span><span class="kw">crate</span>::network::router::Router;
-<span class="kw">use </span><span class="kw">crate</span>::network::PacketDevice;
 <span class="kw">use </span><span class="kw">crate</span>::utility;
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::utility::perf_timer::PerfTimer;
@@ -1735,7 +1737,9 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(shutdown_time) = shutdown_time {
                 <span class="kw">let </span>task = TaskRef::new(<span class="kw">move </span>|host| {
                     <span class="kw">let </span><span class="prelude-val">Some</span>(process) = host.process_borrow(process_id) <span class="kw">else </span>{
-                        <span class="macro">debug!</span>(<span class="string">"Can't send shutdown signal to process {process_id}; it no longer exists"</span>);
+                        <span class="macro">debug!</span>(
+                            <span class="string">"Can't send shutdown signal to process {process_id}; it no longer exists"
+                        </span>);
                         <span class="kw">return</span>;
                     };
                     <span class="kw">let </span>process = process.borrow(host.root());
@@ -2314,32 +2318,32 @@
     <span class="kw">use </span><span class="kw">crate</span>::cshadow::{CEmulatedTime, CSimulationTime};
     <span class="kw">use </span><span class="kw">crate</span>::network::packet::IanaProtocol;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_execute(hostrc: <span class="kw-2">*const </span>Host, until: CEmulatedTime) {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         <span class="kw">let </span>until = EmulatedTime::from_c_emutime(until).unwrap();
         hostrc.execute(until)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_nextEventTime(hostrc: <span class="kw-2">*const </span>Host) -&gt; CEmulatedTime {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         EmulatedTime::to_c_emutime(hostrc.next_event_time())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getNewPacketID(hostrc: <span class="kw-2">*const </span>Host) -&gt; u64 {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.get_new_packet_id()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_freeAllApplications(hostrc: <span class="kw-2">*const </span>Host) {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.free_all_applications()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getID(hostrc: <span class="kw-2">*const </span>Host) -&gt; HostId {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.id()
@@ -2347,26 +2351,26 @@
 
     <span class="doccomment">/// SAFETY: The returned pointer belongs to Host, and is invalidated when
     /// `host` is moved or freed.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getTsc(host: <span class="kw-2">*const </span>Host) -&gt; <span class="kw-2">*const </span>Tsc {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
         hostrc.tsc()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getName(hostrc: <span class="kw-2">*const </span>Host) -&gt; <span class="kw-2">*const </span>c_char {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.params.hostname.as_ptr()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getDefaultIP(hostrc: <span class="kw-2">*const </span>Host) -&gt; in_addr_t {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         <span class="kw">let </span>ip = hostrc.default_ip();
         u32::from(ip).to_be()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getNextPacketPriority(
         hostrc: <span class="kw-2">*const </span>Host,
     ) -&gt; FifoPacketPriority {
@@ -2374,43 +2378,43 @@
         hostrc.get_next_packet_priority()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_autotuneReceiveBuffer(hostrc: <span class="kw-2">*const </span>Host) -&gt; bool {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.params.autotune_recv_buf
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_autotuneSendBuffer(hostrc: <span class="kw-2">*const </span>Host) -&gt; bool {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.params.autotune_send_buf
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getConfiguredRecvBufSize(hostrc: <span class="kw-2">*const </span>Host) -&gt; u64 {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.params.init_sock_recv_buf_size
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getConfiguredSendBufSize(hostrc: <span class="kw-2">*const </span>Host) -&gt; u64 {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.params.init_sock_send_buf_size
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getUpstreamRouter(hostrc: <span class="kw-2">*const </span>Host) -&gt; <span class="kw-2">*mut </span>Router {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         <span class="kw-2">&amp;mut *</span>hostrc.upstream_router_borrow_mut()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_get_bw_down_kiBps(hostrc: <span class="kw-2">*const </span>Host) -&gt; u64 {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.bw_down_kiBps()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_get_bw_up_kiBps(hostrc: <span class="kw-2">*const </span>Host) -&gt; u64 {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.bw_up_kiBps()
@@ -2418,13 +2422,13 @@
 
     <span class="doccomment">/// SAFETY: The returned pointer is owned by the Host, and will be invalidated when
     /// the Host is destroyed, and possibly when it is otherwise moved or mutated.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getDataPath(hostrc: <span class="kw-2">*const </span>Host) -&gt; <span class="kw-2">*const </span>c_char {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.data_dir_path_cstring.as_ptr()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_disassociateInterface(
         hostrc: <span class="kw-2">*const </span>Host,
         c_protocol: cshadow::ProtocolType,
@@ -2451,7 +2455,7 @@
             .disassociate_interface(protocol, bind_addr, peer_addr);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getRandomFreePort(
         hostrc: <span class="kw-2">*const </span>Host,
         c_protocol: cshadow::ProtocolType,
@@ -2486,14 +2490,14 @@
     /// SAFETY: The returned pointer belongs to and is synchronized by the Host,
     /// and is invalidated when the Host is no longer accessible to the current
     /// thread, or something else accesses its FutexTable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getFutexTable(hostrc: <span class="kw-2">*const </span>Host) -&gt; <span class="kw-2">*mut </span>FutexTable {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         <span class="kw-2">&amp;mut *</span>hostrc.futextable_borrow_mut()
     }
 
     <span class="doccomment">/// Returns the specified process, or NULL if it doesn't exist.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getProcess(
         host: <span class="kw-2">*const </span>Host,
         virtual_pid: libc::pid_t,
@@ -2513,7 +2517,7 @@
     ///
     /// The pointer should not be accessed from threads other than the calling thread,
     /// or after `host` is no longer active on the current thread.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getThread(
         host: <span class="kw-2">*const </span>Host,
         virtual_tid: libc::pid_t,
@@ -2551,7 +2555,7 @@
     ///
     /// SAFETY: The returned pointer is invalidated when the memory is unlocked, e.g.
     /// via `host_unlockShimShmemLock`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getShimShmemLock(
         hostrc: <span class="kw-2">*const </span>Host,
     ) -&gt; <span class="kw-2">*mut </span>shim_shmem::export::ShimShmemHostLock {
@@ -2564,14 +2568,14 @@
     }
 
     <span class="doccomment">/// Take the host's shared memory lock. See `host_getShimShmemLock`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_lockShimShmemLock(hostrc: <span class="kw-2">*const </span>Host) {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.lock_shmem()
     }
 
     <span class="doccomment">/// Release the host's shared memory lock. See `host_getShimShmemLock`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_unlockShimShmemLock(hostrc: <span class="kw-2">*const </span>Host) {
         <span class="kw">let </span>hostrc = <span class="kw">unsafe </span>{ hostrc.as_ref().unwrap() };
         hostrc.unlock_shmem()
@@ -2581,7 +2585,7 @@
     /// determinism sequence counter. The resulting values can be sorted to
     /// established a deterministic ordering, which can be useful when iterating
     /// items that are otherwise inconsistently ordered (e.g. hash table iterators).
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_getNextDeterministicSequenceValue(
         hostrc: <span class="kw-2">*const </span>Host,
     ) -&gt; u64 {
@@ -2590,7 +2594,7 @@
     }
 
     <span class="doccomment">/// Schedule a task for this host at time 'time'.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_scheduleTaskAtEmulatedTime(
         hostrc: <span class="kw-2">*const </span>Host,
         task: <span class="kw-2">*mut </span>TaskRef,
@@ -2603,7 +2607,7 @@
     }
 
     <span class="doccomment">/// Schedule a task for this host at a time 'nanoDelay' from now,.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_scheduleTaskWithDelay(
         hostrc: <span class="kw-2">*const </span>Host,
         task: <span class="kw-2">*mut </span>TaskRef,
@@ -2615,34 +2619,34 @@
         hostrc.schedule_task_with_delay(task, delay)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_rngDouble(host: <span class="kw-2">*const </span>Host) -&gt; f64 {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
         host.random_mut().random()
     }
 
     <span class="doccomment">/// Fills the buffer with pseudo-random bytes.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_rngNextNBytes(host: <span class="kw-2">*const </span>Host, buf: <span class="kw-2">*mut </span>u8, len: usize) {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
         <span class="kw">let </span>buf = <span class="kw">unsafe </span>{ std::slice::from_raw_parts_mut(buf, len) };
         host.random_mut().fill_bytes(buf);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_paramsCpuFrequencyHz(host: <span class="kw-2">*const </span>Host) -&gt; u64 {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
         host.params.cpu_frequency
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_addDelayNanos(host: <span class="kw-2">*const </span>Host, delay_nanos: u64) {
         <span class="kw">let </span>host = <span class="kw">unsafe </span>{ host.as_ref().unwrap() };
         <span class="kw">let </span>delay = Duration::from_nanos(delay_nanos);
         host.cpu.borrow_mut().add_delay(delay);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_socketWantsToSend(
         hostrc: <span class="kw-2">*const </span>Host,
         socket: <span class="kw-2">*const </span>InetSocket,
@@ -2654,7 +2658,7 @@
         host.notify_socket_has_packets(addr, socket);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>host_continue(
         host: <span class="kw-2">*const </span>Host,
         pid: libc::pid_t,

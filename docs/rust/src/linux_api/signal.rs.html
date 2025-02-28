@@ -1683,9 +1683,17 @@
 <a href="#1682" id="1682">1682</a>
 <a href="#1683" id="1683">1683</a>
 <a href="#1684" id="1684">1684</a>
-<a href="#1685" id="1685">1685</a></pre></div><pre class="rust"><code><span class="kw">use </span>bytemuck::TransparentWrapper;
-<span class="kw">use </span>linux_syscall::syscall;
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a></pre></div><pre class="rust"><code><span class="kw">use </span>bytemuck::TransparentWrapper;
 <span class="kw">use </span>linux_syscall::Result <span class="kw">as </span>LinuxSyscallResult;
+<span class="kw">use </span>linux_syscall::syscall;
 <span class="kw">use </span>num_enum::{IntoPrimitive, TryFromPrimitive};
 <span class="kw">use </span>shadow_pod::Pod;
 <span class="kw">use </span>vasi::VirtualAddressSpaceIndependent;
@@ -1694,8 +1702,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::const_conversions;
 <span class="kw">use </span><span class="kw">crate</span>::const_conversions::i32_from_u32_allowing_wraparound;
 <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
-<span class="kw">use </span><span class="kw">crate</span>::posix_types::kernel_pid_t;
 <span class="kw">use </span><span class="kw">crate</span>::posix_types::Pid;
+<span class="kw">use </span><span class="kw">crate</span>::posix_types::kernel_pid_t;
 
 <span class="comment">// signal names. This is a `struct` instead of an `enum` to support
 // realtime signals.
@@ -2494,11 +2502,19 @@
 <span class="doccomment">/// Compatible with the Linux kernel's definition of sigset_t on x86_64.
 ///
 /// This is analagous to, but typically smaller than, libc's sigset_t.
-</span><span class="attr">#[repr(transparent)]
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Default, VirtualAddressSpaceIndependent)]
+</span><span class="attr">#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Debug,
+    Default,
+    VirtualAddressSpaceIndependent,
+    bytemuck_derive::TransparentWrapper,
+)]
+#[repr(transparent)]
 #[allow(non_camel_case_types)]
 </span><span class="kw">pub struct </span>sigset_t(linux_sigset_t);
-<span class="kw">unsafe impl </span>TransparentWrapper&lt;linux_sigset_t&gt; <span class="kw">for </span>sigset_t {}
 <span class="kw">unsafe impl </span>shadow_pod::Pod <span class="kw">for </span>sigset_t {}
 
 <span class="kw">impl </span>sigset_t {
@@ -3220,12 +3236,12 @@
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_signal_is_valid(signo: i32) -&gt; bool {
         Signal::try_from(signo).is_ok()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_signal_is_realtime(signo: i32) -&gt; bool {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(signal) = Signal::try_from(signo) <span class="kw">else </span>{
             <span class="kw">return </span><span class="bool-val">false</span>;
@@ -3233,31 +3249,31 @@
         signal.is_realtime()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigemptyset() -&gt; linux_sigset_t {
         sigset_t::EMPTY.<span class="number">0
     </span>}
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigfullset() -&gt; linux_sigset_t {
         sigset_t::FULL.<span class="number">0
     </span>}
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigaddset(set: <span class="kw-2">*mut </span>linux_sigset_t, signo: i32) {
         <span class="kw">let </span>set = sigset_t::wrap_mut(<span class="kw">unsafe </span>{ set.as_mut().unwrap() });
         <span class="kw">let </span>signo = Signal::try_from(signo).unwrap();
         set.add(signo);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigdelset(set: <span class="kw-2">*mut </span>linux_sigset_t, signo: i32) {
         <span class="kw">let </span>set = sigset_t::wrap_mut(<span class="kw">unsafe </span>{ set.as_mut().unwrap() });
         <span class="kw">let </span>signo = Signal::try_from(signo).unwrap();
         set.del(signo);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigismember(
         set: <span class="kw-2">*const </span>linux_sigset_t,
         signo: i32,
@@ -3266,13 +3282,13 @@
         set.has(signo.try_into().unwrap())
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigisemptyset(set: <span class="kw-2">*const </span>linux_sigset_t) -&gt; bool {
         <span class="kw">let </span>set = sigset_t::wrap_ref(<span class="kw">unsafe </span>{ set.as_ref().unwrap() });
         set.is_empty()
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigorset(
         lhs: <span class="kw-2">*const </span>linux_sigset_t,
         rhs: <span class="kw-2">*const </span>linux_sigset_t,
@@ -3282,7 +3298,7 @@
         sigset_t(<span class="kw-2">*</span>lhs | <span class="kw-2">*</span>rhs).<span class="number">0
     </span>}
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigandset(
         lhs: <span class="kw-2">*const </span>linux_sigset_t,
         rhs: <span class="kw-2">*const </span>linux_sigset_t,
@@ -3292,13 +3308,13 @@
         sigset_t(<span class="kw-2">*</span>lhs &amp; <span class="kw-2">*</span>rhs).<span class="number">0
     </span>}
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_signotset(set: <span class="kw-2">*const </span>linux_sigset_t) -&gt; linux_sigset_t {
         <span class="kw">let </span>set = <span class="kw">unsafe </span>{ set.as_ref().unwrap() };
         sigset_t(!<span class="kw-2">*</span>set).<span class="number">0
     </span>}
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_siglowest(set: <span class="kw-2">*const </span>linux_sigset_t) -&gt; i32 {
         <span class="kw">let </span>set = sigset_t::wrap_ref(<span class="kw">unsafe </span>{ set.as_ref().unwrap() });
         <span class="kw">match </span>set.lowest() {
@@ -3307,13 +3323,13 @@
         }
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_defaultAction(signo: i32) -&gt; LinuxDefaultAction {
         <span class="kw">let </span>sig = Signal::try_from(signo).unwrap();
         defaultaction(sig)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_kill(pid: i32, sig: i32) -&gt; i32 {
         <span class="kw">match </span>kill_raw(pid, sig) {
             <span class="prelude-val">Ok</span>(()) =&gt; <span class="number">0</span>,
@@ -3322,7 +3338,7 @@
     }
 
     <span class="doccomment">/// Returns the handler if there is one, or else NULL.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigaction_handler(
         sa: <span class="kw-2">*const </span>linux_sigaction,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(i32)&gt; {
@@ -3334,7 +3350,7 @@
     }
 
     <span class="doccomment">/// Returns the action if there is one, else NULL.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigaction_action(
         sa: <span class="kw-2">*const </span>linux_sigaction,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(i32, <span class="kw-2">*mut </span>linux_siginfo_t, <span class="kw-2">*mut </span>core::ffi::c_void)&gt; {
@@ -3356,13 +3372,13 @@
         }
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigaction_is_ign(sa: <span class="kw-2">*const </span>linux_sigaction) -&gt; bool {
         <span class="kw">let </span>sa = sigaction::wrap_ref(<span class="kw">unsafe </span>{ sa.as_ref().unwrap() });
         <span class="macro">matches!</span>(<span class="kw">unsafe </span>{ sa.handler() }, SignalHandler::SigIgn)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>linux_sigaction_is_dfl(sa: <span class="kw-2">*const </span>linux_sigaction) -&gt; bool {
         <span class="kw">let </span>sa = sigaction::wrap_ref(<span class="kw">unsafe </span>{ sa.as_ref().unwrap() });
         <span class="macro">matches!</span>(<span class="kw">unsafe </span>{ sa.handler() }, SignalHandler::SigDfl)

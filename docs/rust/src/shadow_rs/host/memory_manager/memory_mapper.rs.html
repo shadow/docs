@@ -1097,7 +1097,13 @@
 <a href="#1096" id="1096">1096</a>
 <a href="#1097" id="1097">1097</a>
 <a href="#1098" id="1098">1098</a>
-<a href="#1099" id="1099">1099</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::ffi::CString;
 <span class="kw">use </span>std::fmt::Debug;
@@ -1120,7 +1126,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::host::context::ProcessContext;
 <span class="kw">use </span><span class="kw">crate</span>::host::context::ThreadContext;
-<span class="kw">use </span><span class="kw">crate</span>::host::memory_manager::{page_size, MemoryManager};
+<span class="kw">use </span><span class="kw">crate</span>::host::memory_manager::{MemoryManager, page_size};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::ForeignArrayPtr;
 <span class="kw">use </span><span class="kw">crate</span>::utility::interval_map::{Interval, IntervalMap, Mutation};
 <span class="kw">use </span><span class="kw">crate</span>::utility::proc_maps;
@@ -1422,7 +1428,9 @@
         <span class="kw">if </span>misses.is_empty() {
             <span class="macro">debug!</span>(<span class="string">"MemoryManager misses: None"</span>);
         } <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">"MemoryManager misses: (consider extending MemoryManager to remap regions with a high miss count)"</span>);
+            <span class="macro">debug!</span>(
+                <span class="string">"MemoryManager misses: (consider extending MemoryManager to remap regions with a high miss count)"
+            </span>);
             <span class="kw">for </span>(path, count) <span class="kw">in </span>misses.iter() {
                 <span class="macro">debug!</span>(<span class="string">"\t{} in {}"</span>, count, path);
             }
@@ -2028,10 +2036,11 @@
                         });
                     }
                     <span class="comment">// Reinsert region with updated prot.
-                    </span><span class="macro">assert!</span>(<span class="self">self
-                        </span>.regions
-                        .insert(modified_interval, modified_region)
-                        .is_empty());
+                    </span><span class="macro">assert!</span>(
+                        <span class="self">self</span>.regions
+                            .insert(modified_interval, modified_region)
+                            .is_empty()
+                    );
                 }
                 Mutation::ModifiedEnd(interval, new_end) =&gt; {
                     <span class="comment">// Modified prot of end of region.
@@ -2052,10 +2061,11 @@
                         }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"mprotect: {}"</span>, e));
                     }
-                    <span class="macro">assert!</span>(<span class="self">self
-                        </span>.regions
-                        .insert(modified_interval, modified_region)
-                        .is_empty());
+                    <span class="macro">assert!</span>(
+                        <span class="self">self</span>.regions
+                            .insert(modified_interval, modified_region)
+                            .is_empty()
+                    );
                 }
                 Mutation::Split(_original, left_interval, right_interval) =&gt; {
                     <span class="kw">let </span>right_region = <span class="self">self</span>.regions.get_mut(right_interval.start).unwrap().<span class="number">1</span>;
@@ -2079,10 +2089,11 @@
                         }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"mprotect: {}"</span>, e));
                     }
-                    <span class="macro">assert!</span>(<span class="self">self
-                        </span>.regions
-                        .insert(modified_interval, modified_region)
-                        .is_empty());
+                    <span class="macro">assert!</span>(
+                        <span class="self">self</span>.regions
+                            .insert(modified_interval, modified_region)
+                            .is_empty()
+                    );
                 }
                 Mutation::Removed(modified_interval, <span class="kw-2">mut </span>modified_region) =&gt; {
                     modified_region.prot = prot;
@@ -2096,10 +2107,11 @@
                         }
                         .unwrap_or_else(|e| <span class="macro">warn!</span>(<span class="string">"mprotect: {}"</span>, e));
                     }
-                    <span class="macro">assert!</span>(<span class="self">self
-                        </span>.regions
-                        .insert(modified_interval, modified_region)
-                        .is_empty());
+                    <span class="macro">assert!</span>(
+                        <span class="self">self</span>.regions
+                            .insert(modified_interval, modified_region)
+                            .is_empty()
+                    );
                 }
             }
         }

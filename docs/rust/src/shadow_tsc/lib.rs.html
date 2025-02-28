@@ -263,11 +263,7 @@
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
 <a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a></pre></div><pre class="rust"><code><span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/2585-unsafe-block-in-unsafe-fn.md
+<a href="#265" id="265">265</a></pre></div><pre class="rust"><code><span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/2585-unsafe-block-in-unsafe-fn.md
 </span><span class="attr">#![deny(unsafe_op_in_unsafe_fn)]
 
 </span><span class="comment">// Force cargo to link against crates that aren't (yet) referenced from Rust
@@ -303,11 +299,7 @@
     /// e.g. see &lt;https://github.com/shadow/shadow/issues/1519&gt;.
     </span><span class="kw">pub fn </span>native_cycles_per_second() -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
         <span class="kw">let </span>res = <span class="kw">unsafe </span>{ c_internal::TscC_nativeCyclesPerSecond() };
-        <span class="kw">if </span>res == <span class="number">0 </span>{
-            <span class="prelude-val">None
-        </span>} <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(res)
-        }
+        <span class="kw">if </span>res == <span class="number">0 </span>{ <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(res) }
     }
 
     <span class="kw">pub fn </span>new(cycles_per_second: u64) -&gt; <span class="self">Self </span>{
@@ -413,20 +405,20 @@
     /// (particularly AMD), and can return the wrong value for others. i.e. this
     /// needs more work if we need to dependably get the host's TSC rate.
     /// e.g. see https://github.com/shadow/shadow/issues/1519.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>Tsc_nativeCyclesPerSecond() -&gt; u64 {
         Tsc::native_cycles_per_second().unwrap_or(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Instantiate a TSC with the given clock rate.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>Tsc_create(cycles_per_second: u64) -&gt; Tsc {
         Tsc::new(cycles_per_second)
     }
 
     <span class="doccomment">/// Updates `regs` to reflect the result of executing an rdtsc instruction at
     /// time `nanos`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>Tsc_emulateRdtsc(
         tsc: <span class="kw-2">*const </span>Tsc,
         rax: <span class="kw-2">*mut </span>u64,
@@ -443,7 +435,7 @@
 
     <span class="doccomment">/// Updates `regs` to reflect the result of executing an rdtscp instruction at
     /// time `nanos`.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>Tsc_emulateRdtscp(
         tsc: <span class="kw-2">*const </span>Tsc,
         rax: <span class="kw-2">*mut </span>u64,
@@ -461,13 +453,13 @@
     }
 
     <span class="doccomment">/// Whether `buf` begins with an rdtsc instruction.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>isRdtsc(ip: <span class="kw-2">*const </span>u8) -&gt; bool {
         <span class="kw">unsafe </span>{ Tsc::ip_is_rdtsc(ip) }
     }
 
     <span class="doccomment">/// Whether `buf` begins with an rdtscp instruction.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>isRdtscp(ip: <span class="kw-2">*const </span>u8) -&gt; bool {
         <span class="kw">unsafe </span>{ Tsc::ip_is_rdtscp(ip) }
     }

@@ -696,13 +696,13 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::tls::ShimTlsVar;
 
-<span class="kw">use </span>linux_api::signal::{rt_sigprocmask, SigProcMaskAction};
+<span class="kw">use </span>linux_api::signal::{SigProcMaskAction, rt_sigprocmask};
 <span class="kw">use </span>shadow_shim_helper_rs::ipc::IPCData;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_event::{ShimEventStartReq, ShimEventToShadow, ShimEventToShim};
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::{HostShmem, ManagerShmem, ProcessShmem, ThreadShmem};
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::ForeignPtr;
-<span class="kw">use </span>shadow_shmem::allocator::{shdeserialize, ShMemBlockAlias, ShMemBlockSerialized};
+<span class="kw">use </span>shadow_shmem::allocator::{ShMemBlockAlias, ShMemBlockSerialized, shdeserialize};
 <span class="kw">use </span>tls::ThreadLocalStorage;
 <span class="kw">use </span>vasi_sync::lazy_lock::LazyLock;
 <span class="kw">use </span>vasi_sync::scmutex::SelfContainedMutex;
@@ -942,8 +942,8 @@
         SHMEM.force()
     }
 
-    <span class="kw">pub fn </span>try_get(
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, ManagerShmem&gt;&gt; + <span class="lifetime">'static</span>&gt;
+    <span class="kw">pub fn </span>try_get()
+    -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, ManagerShmem&gt;&gt; + <span class="lifetime">'static</span>&gt;
     {
         <span class="kw">if </span>!SHMEM.initd() {
             <span class="comment">// No need to do the more-expensive `INITIALIZER` check; `set`
@@ -987,8 +987,8 @@
         SHMEM.force()
     }
 
-    <span class="kw">pub fn </span>try_get(
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, HostShmem&gt;&gt; + <span class="lifetime">'static</span>&gt; {
+    <span class="kw">pub fn </span>try_get()
+    -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, HostShmem&gt;&gt; + <span class="lifetime">'static</span>&gt; {
         <span class="kw">if </span>!SHMEM.initd() {
             <span class="comment">// No need to do the more-expensive `INITIALIZER` check; `set`
             // forces `SHMEM` to initialize.
@@ -1157,7 +1157,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// The syscall itself must be safe to make.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_syscall(
         n: core::ffi::c_long,
         arg1: u64,
@@ -1173,7 +1173,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointers must be dereferenceable.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_getaddrinfo(
         node: <span class="kw-2">*const </span>core::ffi::c_char,
         service: <span class="kw-2">*const </span>core::ffi::c_char,
@@ -1187,7 +1187,7 @@
     ///
     /// * Pointers must be dereferenceable.
     /// * `res` is invalidated afterwards.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_freeaddrinfo(res: <span class="kw-2">*mut </span>libc::addrinfo) {
         <span class="kw">unsafe </span>{ bindings::shimc_api_freeaddrinfo(res) }
     }
@@ -1195,7 +1195,7 @@
     <span class="doccomment">/// # Safety
     ///
     /// Pointers must be dereferenceable
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_getifaddrs(ifap: <span class="kw-2">*mut *mut </span>libc::ifaddrs) -&gt; i32 {
         <span class="kw">unsafe </span>{ bindings::shimc_api_getifaddrs(ifap) }
     }
@@ -1204,7 +1204,7 @@
     ///
     /// * Pointers must be dereferenceable.
     /// * `ifa` is invalidated afterwards.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_freeifaddrs(ifa: <span class="kw-2">*mut </span>libc::ifaddrs) {
         <span class="kw">unsafe </span>{ bindings::shimc_api_freeifaddrs(ifa) }
     }
@@ -1214,13 +1214,13 @@
     ///
     /// Typical usage is to set this to the desired value at the beginning of an
     /// operation, and restore the old value afterwards.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_swapAllowNativeSyscalls(new: bool) -&gt; bool {
         tls_allow_native_syscalls::swap(new)
     }
 
     <span class="doccomment">/// Whether syscall interposition is currently enabled.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_interpositionEnabled() -&gt; bool {
         !tls_allow_native_syscalls::get()
     }
@@ -1232,7 +1232,7 @@
     ///
     /// This should be called once per thread before any signal handlers run.
     /// Panics if already called on the current thread.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_init_signal_stack() {
         tls_thread_signal_stack::init();
     }
@@ -1247,7 +1247,7 @@
     /// Generally in the shim we rely on Shadow's scheduling model to ensure
     /// this, since we know Shadow won't permit another thread to run
     /// preemptively before the curent thread has a chance to finish exiting.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_freeSignalStack() {
         <span class="kw">unsafe </span>{ tls_thread_signal_stack::free() };
     }
@@ -1256,7 +1256,7 @@
     ///
     /// stdin must contained a serialized block of
     /// type `IPCData`, which outlives the current thread.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_parent_init_ipc() {
         <span class="kw">let </span><span class="kw-2">mut </span>bytes = [<span class="number">0</span>; core::mem::size_of::&lt;ShMemBlockSerialized&gt;()];
         <span class="kw">let </span>bytes_read = rustix::io::read(
@@ -1276,7 +1276,7 @@
     /// # Safety
     ///
     /// The returned pointer must not outlive the current thread.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_thisThreadEventIPC() -&gt; <span class="kw-2">*const </span>IPCData {
         tls_ipc::with(core::ptr::from_ref)
     }
@@ -1286,13 +1286,13 @@
     /// # Safety
     ///
     /// The returned pointer must not outlive the current thread.
-    </span><span class="attr">#[no_mangle]
-    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_threadSharedMem(
-    ) -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemThread {
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
+    </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_threadSharedMem()
+    -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemThread {
         tls_thread_shmem::with(core::ptr::from_ref)
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_load() {
         init_process();
     }
@@ -1304,14 +1304,14 @@
     /// In the case that this function somehow panics, caller must not
     /// access thread local storage again from the current thread, e.g.
     /// using `std::panic::catch_unwind` or a custom panic hook.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_release_and_exit_current_thread(status: i32) {
         <span class="kw">unsafe </span>{ release_and_exit_current_thread(status) }
     }
 
-    <span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_managerSharedMem(
-    ) -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemManager {
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_managerSharedMem()
+    -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemManager {
         <span class="kw">let </span>rv = global_manager_shmem::try_get();
         rv.map(|x| {
             <span class="kw">let </span>rv: <span class="kw-2">&amp;</span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemManager = x.deref();
@@ -1323,9 +1323,9 @@
         .unwrap_or(core::ptr::null())
     }
 
-    <span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_hostSharedMem(
-    ) -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemHost {
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_hostSharedMem()
+    -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemHost {
         <span class="kw">let </span>rv = global_host_shmem::try_get();
         rv.map(|x| {
             <span class="kw">let </span>rv: <span class="kw-2">&amp;</span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemHost = x.deref();
@@ -1337,9 +1337,9 @@
         .unwrap_or(core::ptr::null())
     }
 
-    <span class="attr">#[no_mangle]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_processSharedMem(
-    ) -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemProcess {
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_processSharedMem()
+    -&gt; <span class="kw-2">*const </span>shadow_shim_helper_rs::shim_shmem::export::ShimShmemProcess {
         tls_process_shmem::with(|process| {
             <span class="comment">// We know this pointer will be live for the lifetime of the
             // process, and that we never construct a mutable reference to the
@@ -1349,27 +1349,27 @@
     }
 
     <span class="doccomment">/// Wait for start event from shadow, from a newly spawned thread.
-    </span><span class="attr">#[no_mangle]
+    </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_preload_only_child_ipc_wait_for_start_event() {
         wait_for_start_event(<span class="bool-val">false</span>);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_ipc_wait_for_start_event() {
         wait_for_start_event(<span class="bool-val">true</span>);
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_parent_init_manager_shm() {
         <span class="kw">unsafe </span>{ global_manager_shmem::set(<span class="kw-2">&amp;</span>global_host_shmem::get().manager_shmem) }
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_parent_init_host_shm() {
         tls_process_shmem::with(|process| <span class="kw">unsafe </span>{ global_host_shmem::set(<span class="kw-2">&amp;</span>process.host_shmem) });
     }
 
-    <span class="attr">#[no_mangle]
+    <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>_shim_parent_close_stdin() {
         <span class="kw">unsafe </span>{ rustix::io::close(libc::STDIN_FILENO) };
     }

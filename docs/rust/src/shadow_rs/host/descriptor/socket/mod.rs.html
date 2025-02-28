@@ -436,9 +436,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::network::namespace::NetworkNamespace;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::io::IoVec;
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallError};
+<span class="kw">use </span><span class="kw">crate</span>::utility::HostTreePointer;
 <span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 <span class="kw">use </span><span class="kw">crate</span>::utility::sockaddr::SockaddrStorage;
-<span class="kw">use </span><span class="kw">crate</span>::utility::HostTreePointer;
 
 <span class="kw">pub mod </span>abstract_unix_ns;
 <span class="kw">pub mod </span>inet;
@@ -465,40 +465,40 @@
 <span class="kw">impl </span>Socket {
     <span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SocketRef {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRef::Unix(f.borrow()),
-            <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRef::Inet(f.borrow()),
-            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRef::Netlink(f.borrow()),
+            <span class="self">Self</span>::Unix(f) =&gt; SocketRef::Unix(f.borrow()),
+            <span class="self">Self</span>::Inet(f) =&gt; SocketRef::Inet(f.borrow()),
+            <span class="self">Self</span>::Netlink(f) =&gt; SocketRef::Netlink(f.borrow()),
         }
     }
 
     <span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;SocketRef, atomic_refcell::BorrowError&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRef::Unix(f.try_borrow()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRef::Inet(f.try_borrow()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRef::Netlink(f.try_borrow()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Unix(f) =&gt; SocketRef::Unix(f.try_borrow()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Inet(f) =&gt; SocketRef::Inet(f.try_borrow()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Netlink(f) =&gt; SocketRef::Netlink(f.try_borrow()<span class="question-mark">?</span>),
         })
     }
 
     <span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SocketRefMut {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Unix(f.borrow_mut()),
-            <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Inet(f.borrow_mut()),
-            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Netlink(f.borrow_mut()),
+            <span class="self">Self</span>::Unix(f) =&gt; SocketRefMut::Unix(f.borrow_mut()),
+            <span class="self">Self</span>::Inet(f) =&gt; SocketRefMut::Inet(f.borrow_mut()),
+            <span class="self">Self</span>::Netlink(f) =&gt; SocketRefMut::Netlink(f.borrow_mut()),
         }
     }
 
     <span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;SocketRefMut, atomic_refcell::BorrowMutError&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Unix(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Unix(f.try_borrow_mut()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Inet(f.try_borrow_mut()<span class="question-mark">?</span>),
-            <span class="self">Self</span>::Netlink(<span class="kw-2">ref </span>f) =&gt; SocketRefMut::Netlink(f.try_borrow_mut()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Unix(f) =&gt; SocketRefMut::Unix(f.try_borrow_mut()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Inet(f) =&gt; SocketRefMut::Inet(f.try_borrow_mut()<span class="question-mark">?</span>),
+            <span class="self">Self</span>::Netlink(f) =&gt; SocketRefMut::Netlink(f.try_borrow_mut()<span class="question-mark">?</span>),
         })
     }
 
     <span class="kw">pub fn </span>canonical_handle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(f) =&gt; Arc::as_ptr(f) <span class="kw">as </span>usize,
-            <span class="self">Self</span>::Inet(<span class="kw-2">ref </span>f) =&gt; f.canonical_handle(),
+            <span class="self">Self</span>::Inet(f) =&gt; f.canonical_handle(),
             <span class="self">Self</span>::Netlink(f) =&gt; Arc::as_ptr(f) <span class="kw">as </span>usize,
         }
     }
@@ -639,7 +639,7 @@
     <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
-            <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername(),
             <span class="self">Self</span>::Netlink(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
         }
     }
@@ -647,7 +647,7 @@
     <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
-            <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname(),
             <span class="self">Self</span>::Netlink(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
         }
     }
@@ -719,7 +719,7 @@
     <span class="kw">pub fn </span>getpeername(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
-            <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Inet(socket) =&gt; socket.getpeername(),
             <span class="self">Self</span>::Netlink(socket) =&gt; socket.getpeername().map(|opt| opt.map(Into::into)),
         }
     }
@@ -727,7 +727,7 @@
     <span class="kw">pub fn </span>getsockname(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SockaddrStorage&gt;, Errno&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Unix(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
-            <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
+            <span class="self">Self</span>::Inet(socket) =&gt; socket.getsockname(),
             <span class="self">Self</span>::Netlink(socket) =&gt; socket.getsockname().map(|opt| opt.map(Into::into)),
         }
     }

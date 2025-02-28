@@ -1335,7 +1335,11 @@
 <a href="#1334" id="1334">1334</a>
 <a href="#1335" id="1335">1335</a>
 <a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::CStr;
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::CStr;
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::Arc;
 
@@ -1359,7 +1363,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::host::memory_manager::MemoryManager;
 <span class="kw">use </span><span class="kw">crate</span>::host::network::interface::FifoPacketPriority;
 <span class="kw">use </span><span class="kw">crate</span>::host::network::namespace::NetworkNamespace;
-<span class="kw">use </span><span class="kw">crate</span>::host::syscall::io::{write_partial, IoVec};
+<span class="kw">use </span><span class="kw">crate</span>::host::syscall::io::{IoVec, write_partial};
 <span class="kw">use </span><span class="kw">crate</span>::host::syscall::types::{ForeignArrayPtr, SyscallError};
 <span class="kw">use </span><span class="kw">crate</span>::host::thread::ThreadId;
 <span class="kw">use </span><span class="kw">crate</span>::network::packet::PacketRc;
@@ -2255,7 +2259,9 @@
         .unwrap();
 
         <span class="kw">let </span>CompatFile::New(open_file) = new_descriptor.into_file() <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">"The TCP code should have added the TCP socket to the descriptor table as a rust socket"</span>);
+            <span class="macro">panic!</span>(
+                <span class="string">"The TCP code should have added the TCP socket to the descriptor table as a rust socket"
+            </span>);
         };
 
         <span class="comment">// sanity check: make sure new socket peer address matches address returned from
@@ -2495,7 +2501,9 @@
                     </span><span class="macro">log::debug!</span>(<span class="string">"Ignoring TCP_NODELAY"</span>);
                 } <span class="kw">else </span>{
                     <span class="comment">// wants to disable TCP_NODELAY
-                    </span><span class="macro">log::warn!</span>(<span class="string">"Cannot disable TCP_NODELAY since shadow does not implement Nagle's algorithm."</span>);
+                    </span><span class="macro">log::warn!</span>(
+                        <span class="string">"Cannot disable TCP_NODELAY since shadow does not implement Nagle's algorithm."
+                    </span>);
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::ENOPROTOOPT.into());
                 }
             }
@@ -2640,9 +2648,9 @@
         monitoring_signals: FileSignals,
         filter: StateListenerFilter,
         notify_fn: <span class="kw">impl </span>Fn(FileState, FileState, FileSignals, <span class="kw-2">&amp;mut </span>CallbackQueue)
-            + Send
-            + Sync
-            + <span class="lifetime">'static</span>,
+        + Send
+        + Sync
+        + <span class="lifetime">'static</span>,
     ) -&gt; StateListenHandle {
         <span class="kw">let </span>event_source = <span class="kw">unsafe </span>{ c::legacyfile_getEventSource(<span class="self">self</span>.as_legacy_file()) };
         <span class="kw">let </span>event_source = <span class="kw">unsafe </span>{ event_source.as_ref() }.unwrap();
