@@ -646,7 +646,22 @@
 <a href="#645" id="645">645</a>
 <a href="#646" id="646">646</a>
 <a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a></pre></div><pre class="rust"><code><span class="kw">mod </span>petgraph_wrapper;
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a></pre></div><pre class="rust"><code><span class="kw">mod </span>petgraph_wrapper;
 
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::collections::hash_map::Entry;
@@ -1053,15 +1068,19 @@
 
     <span class="kw">fn </span>increment_address(addr: <span class="kw-2">&amp;</span>std::net::IpAddr) -&gt; std::net::IpAddr {
         <span class="kw">match </span>addr {
-            std::net::IpAddr::V4(x) =&gt; <span class="kw">loop </span>{
-                <span class="comment">// increment the address
-                </span><span class="kw">let </span>x = std::net::Ipv4Addr::from(u32::from(<span class="kw-2">*</span>x) + <span class="number">1</span>);
-                <span class="kw">match </span>x.octets()[<span class="number">3</span>] {
-                    <span class="comment">// if the address ends in ".0" or ".255" (broadcast), try the next
-                    </span><span class="number">0 </span>| <span class="number">255 </span>=&gt; {}
-                    <span class="kw">_ </span>=&gt; <span class="kw">break </span>std::net::IpAddr::V4(x),
+            std::net::IpAddr::V4(x) =&gt; {
+                <span class="kw">let </span>addr_bits = u32::from(<span class="kw-2">*</span>x);
+                <span class="kw">let </span><span class="kw-2">mut </span>increment = <span class="number">1</span>;
+                <span class="kw">loop </span>{
+                    <span class="comment">// increment the address
+                    </span><span class="kw">let </span>next_addr = std::net::Ipv4Addr::from(addr_bits + increment);
+                    <span class="kw">match </span>next_addr.octets()[<span class="number">3</span>] {
+                        <span class="comment">// if the address ends in ".0" or ".255" (broadcast), try the next
+                        </span><span class="number">0 </span>| <span class="number">255 </span>=&gt; increment += <span class="number">1</span>,
+                        <span class="kw">_ </span>=&gt; <span class="kw">break </span>std::net::IpAddr::V4(next_addr),
+                    }
                 }
-            },
+            }
             std::net::IpAddr::V6(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
         }
     }
@@ -1292,6 +1311,17 @@
                 <span class="macro">assert_eq!</span>(lookup_latency(node_2, node_2), <span class="number">7777</span>);
             }
         }
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_increment_address_skip_broadcast() {
+        <span class="kw">let </span>addr = std::net::IpAddr::V4(std::net::Ipv4Addr::new(<span class="number">11</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">254</span>));
+        <span class="kw">let </span>incremented = IpAssignment::&lt;i32&gt;::increment_address(<span class="kw-2">&amp;</span>addr);
+        <span class="macro">assert!</span>(incremented &gt; addr);
+        <span class="macro">assert_ne!</span>(
+            incremented,
+            std::net::IpAddr::V4(std::net::Ipv4Addr::new(<span class="number">11</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>))
+        );
     }
 }
 </code></pre></div></section></main></body></html>
