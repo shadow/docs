@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["release_and_exit_current_thread","simtime"],"mod":["clone","export","mmap_box","shimlogger","signals","syscall","tls"]};
+window.SIDEBAR_ITEMS = {"constant":["EXECUTION_CONTEXT_APPLICATION_CONST","EXECUTION_CONTEXT_SHADOW_CONST"],"enum":["ExecutionContext"],"fn":["release_and_exit_current_thread","simtime"],"mod":["clone","export","mmap_box","shimlogger","signals","syscall","tls"],"struct":["ExecutionContextRestorer"]};

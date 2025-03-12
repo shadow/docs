@@ -686,7 +686,89 @@
 <a href="#685" id="685">685</a>
 <a href="#686" id="686">686</a>
 <a href="#687" id="687">687</a>
-<a href="#688" id="688">688</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(test), no_std)]
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(test), no_std)]
 </span><span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/2585-unsafe-block-in-unsafe-fn.md
 </span><span class="attr">#![deny(unsafe_op_in_unsafe_fn)]
 
@@ -697,6 +779,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::tls::ShimTlsVar;
 
 <span class="kw">use </span>linux_api::signal::{SigProcMaskAction, rt_sigprocmask};
+<span class="kw">use </span>num_enum::{IntoPrimitive, TryFromPrimitive};
 <span class="kw">use </span>shadow_shim_helper_rs::ipc::IPCData;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_event::{ShimEventStartReq, ShimEventToShadow, ShimEventToShim};
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::{HostShmem, ManagerShmem, ProcessShmem, ThreadShmem};
@@ -732,18 +815,66 @@
     SimulationTime::from_c_simtime(<span class="kw">unsafe </span>{ bindings::shim_sys_get_simtime_nanos() })
 }
 
-<span class="kw">mod </span>tls_allow_native_syscalls {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="doccomment">/// Values of this enum describes whether something occurred within the context
+/// of the shadow (shim) code, or the application/plugin code.
+///
+/// Methods of this enum interact with a private thread-local that tracks the
+/// current `ExecutionContext` for that thread.
+</span><span class="comment">// See `CURRENT_EXECUTION_CONTEXT`.
+</span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
+</span><span class="kw">pub enum </span>ExecutionContext {
+    <span class="comment">// Redirect through constants below so that we can access in const contexts.
+    </span>Shadow = EXECUTION_CONTEXT_SHADOW_CONST,
+    Application = EXECUTION_CONTEXT_APPLICATION_CONST,
+}
 
-    <span class="kw">static </span>ALLOW_NATIVE_SYSCALLS: ShimTlsVar&lt;Cell&lt;bool&gt;&gt; =
-        ShimTlsVar::new(<span class="kw-2">&amp;</span>SHIM_TLS, || Cell::new(<span class="bool-val">false</span>));
+<span class="kw">pub const </span>EXECUTION_CONTEXT_SHADOW_CONST: u8 = <span class="number">0</span>;
+<span class="kw">pub const </span>EXECUTION_CONTEXT_APPLICATION_CONST: u8 = <span class="number">1</span>;
 
-    <span class="kw">pub fn </span>get() -&gt; bool {
-        ALLOW_NATIVE_SYSCALLS.get().get()
+<span class="doccomment">/// The `ExecutionContext` of the current thread. Should only be manipulated via
+/// methods of `ExecutionContext`.
+</span><span class="kw">static </span>CURRENT_EXECUTION_CONTEXT: ShimTlsVar&lt;Cell&lt;ExecutionContext&gt;&gt; =
+    ShimTlsVar::new(<span class="kw-2">&amp;</span>SHIM_TLS, || Cell::new(ExecutionContext::Application));
+
+<span class="kw">impl </span>ExecutionContext {
+    <span class="doccomment">/// Returns the current context for the current thread.
+    </span><span class="kw">pub fn </span>current() -&gt; ExecutionContext {
+        CURRENT_EXECUTION_CONTEXT.get().get()
     }
 
-    <span class="kw">pub fn </span>swap(new: bool) -&gt; bool {
-        ALLOW_NATIVE_SYSCALLS.get().replace(new)
+    <span class="doccomment">/// Enter this context for the current thread, and return a restorer that
+    /// will restore the previous context when dropped.
+    </span><span class="kw">pub fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecutionContextRestorer {
+        ExecutionContextRestorer {
+            prev: CURRENT_EXECUTION_CONTEXT.get().replace(<span class="kw-2">*</span><span class="self">self</span>),
+        }
+    }
+
+    <span class="doccomment">/// Enter this context for the current thread, *without* creating a
+    /// restorer. Returns the previous context.
+    </span><span class="kw">pub fn </span>enter_without_restorer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecutionContext {
+        CURRENT_EXECUTION_CONTEXT.get().replace(<span class="kw-2">*</span><span class="self">self</span>)
+    }
+}
+
+<span class="doccomment">/// Restores an execution context when droped.
+</span><span class="attr">#[must_use]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>ExecutionContextRestorer {
+    prev: ExecutionContext,
+}
+
+<span class="kw">impl </span>ExecutionContextRestorer {
+    <span class="doccomment">/// Returns the context that this object will restore.
+    </span><span class="kw">pub fn </span>ctx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecutionContext {
+        <span class="self">self</span>.prev
+    }
+}
+
+<span class="kw">impl </span>Drop <span class="kw">for </span>ExecutionContextRestorer {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        ExecutionContext::enter_without_restorer(<span class="kw-2">&amp;</span><span class="self">self</span>.prev);
     }
 }
 
@@ -776,6 +907,7 @@
     /// This should be called once per thread before any signal handlers run.
     /// Panics if already called on the current thread.
     </span><span class="kw">pub fn </span>init() {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="kw">if </span>THREAD_SIGNAL_STACK.get().get().is_null() {
             <span class="comment">// Allocate
             </span><span class="kw">let </span>new_stack = <span class="kw">unsafe </span>{
@@ -834,6 +966,7 @@
     /// this, since we know Shadow won't permit another thread to run
     /// preemptively before the curent thread has a chance to finish exiting.
     </span><span class="kw">pub unsafe fn </span>free() {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="comment">// A signal stack waiting to be freed.
         //
         // We can't free the current thread's signal stack, since we may be running on it.
@@ -868,6 +1001,7 @@
 
     <span class="comment">// Panics if this thread's IPC hasn't been initialized yet.
     </span><span class="kw">pub fn </span>with&lt;O&gt;(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>IPCData) -&gt; O) -&gt; O {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="kw">let </span>ipc = IPC_DATA_BLOCK.get();
         <span class="kw">let </span>ipc = ipc.borrow();
         ipc.as_ref().map(|block| f(block)).unwrap()
@@ -880,6 +1014,7 @@
     /// `blk` must contained a serialized block referencing a `ShMemBlock` of type `IPCData`.
     /// The `ShMemBlock` must outlive the current thread.
     </span><span class="kw">pub unsafe fn </span>set(blk: <span class="kw-2">&amp;</span>ShMemBlockSerialized) {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="kw">let </span>blk: ShMemBlockAlias&lt;IPCData&gt; = <span class="kw">unsafe </span>{ shdeserialize(blk) };
         IPC_DATA_BLOCK.get().replace(<span class="prelude-val">Some</span>(blk));
     }
@@ -893,6 +1028,7 @@
 
     <span class="doccomment">/// Panics if `set` hasn't been called yet.
     </span><span class="kw">pub fn </span>with&lt;O&gt;(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>ThreadShmem) -&gt; O) -&gt; O {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         f(SHMEM.get().borrow().as_ref().unwrap())
     }
 
@@ -903,6 +1039,7 @@
     /// `blk` must contained a serialized block referencing a `ShMemBlock` of
     /// type `ThreadShmem`.  The `ShMemBlock` must outlive the current thread.
     </span><span class="kw">pub unsafe fn </span>set(blk: <span class="kw-2">&amp;</span>ShMemBlockSerialized) {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="comment">// SAFETY: Caller guarantees correct type.
         </span><span class="kw">let </span>blk = <span class="kw">unsafe </span>{ shdeserialize(blk) };
         SHMEM.get().borrow_mut().replace(blk);
@@ -919,6 +1056,7 @@
     <span class="comment">// The actual block is in a `LazyLock`, which is much faster to access.
     // It uses `INITIALIZER` to do its one-time init.
     </span><span class="kw">static </span>SHMEM: LazyLock&lt;ShMemBlockAlias&lt;ManagerShmem&gt;&gt; = LazyLock::const_new(|| {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="kw">let </span>serialized = INITIALIZER.lock().take().unwrap();
         <span class="kw">unsafe </span>{ shdeserialize(<span class="kw-2">&amp;</span>serialized) }
     });
@@ -928,6 +1066,7 @@
     /// `blk` must contained a serialized block referencing a `ShMemBlock` of type `ManagerShmem`.
     /// The `ShMemBlock` must outlive this process.
     </span><span class="kw">pub unsafe fn </span>set(blk: <span class="kw-2">&amp;</span>ShMemBlockSerialized) {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="macro">assert!</span>(!SHMEM.initd());
         <span class="macro">assert!</span>(INITIALIZER.lock().replace(<span class="kw-2">*</span>blk).is_none());
         <span class="comment">// Ensure that `try_get` returns true (without it having to take the
@@ -939,12 +1078,14 @@
     <span class="doccomment">/// Panics if `set` hasn't been called yet.
     </span><span class="kw">pub fn </span>get() -&gt; <span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, ManagerShmem&gt;&gt; + <span class="lifetime">'static
     </span>{
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         SHMEM.force()
     }
 
     <span class="kw">pub fn </span>try_get()
     -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, ManagerShmem&gt;&gt; + <span class="lifetime">'static</span>&gt;
     {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="kw">if </span>!SHMEM.initd() {
             <span class="comment">// No need to do the more-expensive `INITIALIZER` check; `set`
             // forces `SHMEM` to initialize.
@@ -965,6 +1106,7 @@
     <span class="comment">// The actual block is in a `LazyLock`, which is much faster to access.
     // It uses `INITIALIZER` to do its one-time init.
     </span><span class="kw">static </span>SHMEM: LazyLock&lt;ShMemBlockAlias&lt;HostShmem&gt;&gt; = LazyLock::const_new(|| {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="kw">let </span>serialized = INITIALIZER.lock().take().unwrap();
         <span class="kw">unsafe </span>{ shdeserialize(<span class="kw-2">&amp;</span>serialized) }
     });
@@ -974,6 +1116,7 @@
     /// `blk` must contained a serialized block referencing a `ShMemBlock` of type `HostShmem`.
     /// The `ShMemBlock` must outlive this process.
     </span><span class="kw">pub unsafe fn </span>set(blk: <span class="kw-2">&amp;</span>ShMemBlockSerialized) {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="macro">assert!</span>(!SHMEM.initd());
         <span class="macro">assert!</span>(INITIALIZER.lock().replace(<span class="kw-2">*</span>blk).is_none());
         <span class="comment">// Ensure that `try_get` returns true (without it having to take the
@@ -984,11 +1127,13 @@
 
     <span class="doccomment">/// Panics if `set` hasn't been called yet.
     </span><span class="kw">pub fn </span>get() -&gt; <span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, HostShmem&gt;&gt; + <span class="lifetime">'static </span>{
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         SHMEM.force()
     }
 
     <span class="kw">pub fn </span>try_get()
     -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>core::ops::Deref&lt;Target = ShMemBlockAlias&lt;<span class="lifetime">'static</span>, HostShmem&gt;&gt; + <span class="lifetime">'static</span>&gt; {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="kw">if </span>!SHMEM.initd() {
             <span class="comment">// No need to do the more-expensive `INITIALIZER` check; `set`
             // forces `SHMEM` to initialize.
@@ -1007,6 +1152,7 @@
 
     <span class="doccomment">/// Panics if `set` hasn't been called yet.
     </span><span class="kw">pub fn </span>with&lt;O&gt;(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>ProcessShmem) -&gt; O) -&gt; O {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         f(SHMEM.get().borrow().as_ref().unwrap())
     }
 
@@ -1017,6 +1163,7 @@
     /// `blk` must contained a serialized block referencing a `ShMemBlock` of
     /// type `ProcessShmem`.  The `ShMemBlock` must outlive the current thread.
     </span><span class="kw">pub unsafe fn </span>set(blk: <span class="kw-2">&amp;</span>ShMemBlockSerialized) {
+        <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
         <span class="comment">// SAFETY: Caller guarantees correct type.
         </span><span class="kw">let </span>blk = <span class="kw">unsafe </span>{ shdeserialize(blk) };
         SHMEM.get().borrow_mut().replace(blk);
@@ -1050,6 +1197,7 @@
 /// access thread local storage again from the current thread, e.g.
 /// using `std::panic::catch_unwind` or a custom panic hook.
 </span><span class="kw">pub unsafe fn </span>release_and_exit_current_thread(exit_status: i32) -&gt; ! {
+    <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
     <span class="comment">// Block all signals, to ensure a signal handler can't run and attempt to
     // access thread local storage.
     </span>rt_sigprocmask(
@@ -1074,6 +1222,7 @@
 ///
 /// Uses C ABI so that we can call from `asm`.
 </span><span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>init_thread() {
+    <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
     <span class="kw">unsafe </span>{ bindings::_shim_child_thread_init_preload() };
     <span class="macro">log::trace!</span>(<span class="string">"Finished shim thread init"</span>);
 }
@@ -1082,6 +1231,7 @@
 ///
 /// Safe and cheap to call repeatedly; e.g. from API entry points.
 </span><span class="kw">fn </span>init_process() {
+    <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
     <span class="kw">static </span>STARTED_INIT: LazyLock&lt;()&gt; = LazyLock::const_new(|| ());
     <span class="kw">if </span>STARTED_INIT.initd() {
         <span class="comment">// Avoid recursion in initialization.
@@ -1099,6 +1249,7 @@
 <span class="doccomment">/// Wait for "start" event from Shadow, use it to initialize the thread shared
 /// memory block, and optionally to initialize the process shared memory block.
 </span><span class="kw">fn </span>wait_for_start_event(get_initial_working_dir: bool) {
+    <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
     <span class="macro">log::trace!</span>(<span class="string">"waiting for start event"</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>working_dir = [<span class="number">0u8</span>; linux_api::limits::PATH_MAX];
@@ -1167,7 +1318,10 @@
         arg5: u64,
         arg6: u64,
     ) -&gt; i64 {
-        <span class="kw">unsafe </span>{ bindings::shimc_api_syscall(n, arg1, arg2, arg3, arg4, arg5, arg6) }
+        <span class="kw">let </span>_prev = ExecutionContext::Shadow.enter();
+        <span class="kw">unsafe </span>{
+            bindings::shimc_api_syscall(_prev.ctx().into(), n, arg1, arg2, arg3, arg4, arg5, arg6)
+        }
     }
 
     <span class="doccomment">/// # Safety
@@ -1180,6 +1334,7 @@
         hints: <span class="kw-2">*const </span>libc::addrinfo,
         res: <span class="kw-2">*mut *mut </span>libc::addrinfo,
     ) -&gt; i32 {
+        <span class="kw">let </span>_prev = ExecutionContext::Shadow.enter();
         <span class="kw">unsafe </span>{ bindings::shimc_api_getaddrinfo(node, service, hints, res) }
     }
 
@@ -1189,6 +1344,7 @@
     /// * `res` is invalidated afterwards.
     </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_freeaddrinfo(res: <span class="kw-2">*mut </span>libc::addrinfo) {
+        <span class="kw">let </span>_prev = ExecutionContext::Shadow.enter();
         <span class="kw">unsafe </span>{ bindings::shimc_api_freeaddrinfo(res) }
     }
 
@@ -1197,7 +1353,11 @@
     /// Pointers must be dereferenceable
     </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_getifaddrs(ifap: <span class="kw-2">*mut *mut </span>libc::ifaddrs) -&gt; i32 {
-        <span class="kw">unsafe </span>{ bindings::shimc_api_getifaddrs(ifap) }
+        <span class="comment">// We *don't* enter ExecutionContext::Shadow here, because this
+        // implementation is pure "userspace"; it doesn't directly access shadow
+        // internal functionality, but *does* use libc in a way that we want the
+        // underlying syscalls to be interposed.
+        </span><span class="kw">unsafe </span>{ bindings::shimc_api_getifaddrs(ifap) }
     }
 
     <span class="doccomment">/// # Safety
@@ -1206,7 +1366,11 @@
     /// * `ifa` is invalidated afterwards.
     </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_api_freeifaddrs(ifa: <span class="kw-2">*mut </span>libc::ifaddrs) {
-        <span class="kw">unsafe </span>{ bindings::shimc_api_freeifaddrs(ifa) }
+        <span class="comment">// We *don't* enter ExecutionContext::Shadow here, because this
+        // implementation is pure "userspace"; it doesn't directly access shadow
+        // internal functionality, but *does* use libc in a way that we want the
+        // underlying syscalls to be interposed.
+        </span><span class="kw">unsafe </span>{ bindings::shimc_api_freeifaddrs(ifa) }
     }
 
     <span class="doccomment">/// Sets the flag determining whether syscalls are passed through natively, and
@@ -1215,14 +1379,14 @@
     /// Typical usage is to set this to the desired value at the beginning of an
     /// operation, and restore the old value afterwards.
     </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_swapAllowNativeSyscalls(new: bool) -&gt; bool {
-        tls_allow_native_syscalls::swap(new)
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_swapExecutionContext(new: ExecutionContext) -&gt; ExecutionContext {
+        new.enter_without_restorer()
     }
 
     <span class="doccomment">/// Whether syscall interposition is currently enabled.
     </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
-    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_interpositionEnabled() -&gt; bool {
-        !tls_allow_native_syscalls::get()
+    </span><span class="kw">pub extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_getExecutionContext() -&gt; ExecutionContext {
+        ExecutionContext::current()
     }
 
     <span class="doccomment">/// Allocates and installs a signal stack.

@@ -349,14 +349,24 @@
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::ldt::linux_user_desc;
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a></pre></div><pre class="rust"><code><span class="kw">use </span>linux_api::ldt::linux_user_desc;
 <span class="kw">use </span>linux_api::sched::{CloneFlags, CloneResult};
 <span class="kw">use </span>linux_api::signal::Signal;
 <span class="kw">use </span>linux_api::ucontext::{sigcontext, ucontext};
 <span class="kw">use </span>shadow_shim_helper_rs::shim_event::ShimEventAddThreadReq;
 <span class="kw">use </span>shadow_shmem::allocator::ShMemBlockSerialized;
 
-<span class="kw">use </span><span class="kw">crate</span>::tls_allow_native_syscalls;
+<span class="kw">use </span><span class="kw">crate</span>::ExecutionContext;
 
 <span class="doccomment">/// Used below to validate the offset of `field` from `base`.
 /// TODO: replace with `core::ptr::offset_of` once stabilized.
@@ -463,13 +473,12 @@
 /// `blk` must contained a serialized block of
 /// type `IPCData`, which outlives the current thread.
 </span><span class="kw">unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>tls_ipc_set(blk: <span class="kw-2">*const </span>ShMemBlockSerialized) {
+    <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
+
     <span class="kw">let </span>blk = <span class="kw">unsafe </span>{ blk.as_ref().unwrap() };
-    <span class="kw">let </span>prev = <span class="kw">crate</span>::tls_allow_native_syscalls::swap(<span class="bool-val">true</span>);
 
     <span class="comment">// SAFETY: ensured by caller
     </span><span class="kw">unsafe </span>{ <span class="kw">crate</span>::tls_ipc::set(blk) };
-
-    <span class="kw">crate</span>::tls_allow_native_syscalls::swap(prev);
 }
 
 <span class="doccomment">/// Execute a native `clone` syscall to create a new thread in a new process.
@@ -543,7 +552,7 @@
             <span class="kw">if </span>!child_stack.is_null() {
                 <span class="comment">// Do the requested stack switch by long jumping out of the
                 // signal handler to an updated context.
-                </span>tls_allow_native_syscalls::swap(<span class="bool-val">false</span>);
+                </span>ExecutionContext::Application.enter_without_restorer();
                 <span class="kw">let </span><span class="kw-2">mut </span>mctx = ctx.uc_mcontext;
                 mctx.rsp = child_stack <span class="kw">as </span>u64;
                 <span class="kw">unsafe </span>{ set_context(<span class="kw-2">&amp;</span>mctx) };
@@ -640,12 +649,20 @@
             </span><span class="string">"cmp rax, 0"</span>,
             <span class="string">"jne 2f"</span>,
 
+            <span class="comment">// Set the current context to shadow
+            </span><span class="string">"mov rdi, {exe_ctx_shadow}"</span>,
+            <span class="string">"call {shim_swapExecutionContext}"</span>,
+
             <span class="comment">// Initialize the IPC block for this thread
             </span><span class="string">"mov rdi, {blk}"</span>,
             <span class="string">"call {tls_ipc_set}"</span>,
 
             <span class="comment">// Initialize state for this thread
             </span><span class="string">"call {shim_init_thread}"</span>,
+
+            <span class="comment">// Set the current context to application
+            </span><span class="string">"mov rdi, {exe_ctx_application}"</span>,
+            <span class="string">"call {shim_swapExecutionContext}"</span>,
 
             <span class="comment">// Set CPU state from ctx
             </span><span class="string">"mov rdi, r12"</span>,
@@ -665,6 +682,9 @@
             <span class="comment">// clone syscall arg5
             </span><span class="kw">in</span>(<span class="string">"r8"</span>) newtls,
             blk = <span class="kw">in</span>(reg) child_ipc_blk,
+            exe_ctx_shadow = <span class="kw">const </span><span class="kw">crate</span>::EXECUTION_CONTEXT_SHADOW_CONST,
+            exe_ctx_application = <span class="kw">const </span><span class="kw">crate</span>::EXECUTION_CONTEXT_APPLICATION_CONST,
+            shim_swapExecutionContext = sym <span class="kw">crate</span>::export::shim_swapExecutionContext,
             tls_ipc_set = sym tls_ipc_set,
             shim_init_thread = sym <span class="kw">crate</span>::init_thread,
             <span class="comment">// callee-saved register

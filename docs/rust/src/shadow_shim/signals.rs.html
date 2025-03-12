@@ -441,7 +441,53 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::cell::Cell;
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::cell::Cell;
 
 <span class="kw">use </span>linux_api::signal::{
     SigActionFlags, SigAltStackFlags, Signal, SignalHandler, defaultaction, sigaction, siginfo_t,
@@ -452,7 +498,7 @@
 <span class="kw">use </span>shadow_shim_helper_rs::shim_shmem;
 
 <span class="kw">use </span><span class="kw">crate</span>::tls::ShimTlsVar;
-<span class="kw">use crate</span>::{global_host_shmem, tls_allow_native_syscalls, tls_process_shmem, tls_thread_shmem};
+<span class="kw">use crate</span>::{ExecutionContext, global_host_shmem, tls_process_shmem, tls_thread_shmem};
 
 <span class="doccomment">/// Information passed through to the SIGUSR1 signal handler. Contains the info
 /// needed to call a managed code signal handler.
@@ -472,9 +518,14 @@
     ShimTlsVar::new(<span class="kw-2">&amp;</span><span class="kw">crate</span>::SHIM_TLS, || Cell::new(<span class="prelude-val">None</span>));
 
 <span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>handle_sigusr1(_signo: i32, _info: <span class="kw-2">*mut </span>siginfo_t, ctx: <span class="kw-2">*mut </span>core::ffi::c_void) {
+    <span class="macro">debug_assert_eq!</span>(
+        ExecutionContext::current(),
+        ExecutionContext::Shadow,
+        <span class="string">"Native sigusr1 unexpectedly raised from non-shadow code"
+    </span>);
+
     <span class="kw">let </span><span class="kw-2">mut </span>info = SIGUSR1_SIGINFO.get().take().unwrap();
     <span class="kw">let </span>signo = info.siginfo.signal().unwrap().as_i32();
-    <span class="macro">assert!</span>(<span class="kw">crate</span>::tls_allow_native_syscalls::swap(<span class="bool-val">false</span>));
     <span class="comment">// SAFETY: Should have been initialized correctly in `process_signals`.
     </span><span class="kw">let </span>handler = <span class="kw">unsafe </span>{ info.action.handler() };
 
@@ -489,7 +540,10 @@
     // we don't attempt to analyze or sandbox. A "well behaved" handler should be safe to
     // call here, but it could do anything including things that are unsound in Rust.
     </span><span class="kw">match </span>handler {
-        linux_api::signal::SignalHandler::Handler(handler_fn) =&gt; <span class="kw">unsafe </span>{ handler_fn(signo) },
+        linux_api::signal::SignalHandler::Handler(handler_fn) =&gt; {
+            <span class="kw">let </span>_prev = ExecutionContext::Application.enter();
+            <span class="kw">unsafe </span>{ handler_fn(signo) }
+        }
         linux_api::signal::SignalHandler::Action(action_fn) =&gt; <span class="kw">unsafe </span>{
             <span class="comment">// If there's an "earlier" context, we use it. This might be important e.g.
             // when handling a signal like SIGSEGV, where the handler might actually
@@ -505,17 +559,19 @@
             } <span class="kw">else </span>{
                 info.ctx
             };
-            action_fn(signo, <span class="kw-2">&amp;mut </span>info.siginfo, ctx.cast::&lt;core::ffi::c_void&gt;())
+            {
+                <span class="kw">let </span>_prev = ExecutionContext::Application.enter();
+                action_fn(signo, <span class="kw-2">&amp;mut </span>info.siginfo, ctx.cast::&lt;core::ffi::c_void&gt;())
+            }
         },
         linux_api::signal::SignalHandler::SigIgn | linux_api::signal::SignalHandler::SigDfl =&gt; {
             <span class="macro">panic!</span>(<span class="string">"No handler"</span>)
         }
     }
-    <span class="macro">assert!</span>(!<span class="kw">crate</span>::tls_allow_native_syscalls::swap(<span class="bool-val">true</span>));
 }
 
 <span class="kw">fn </span>die_with_fatal_signal(sig: Signal) -&gt; ! {
-    <span class="macro">assert!</span>(<span class="kw">crate</span>::tls_allow_native_syscalls::get());
+    <span class="macro">assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
     <span class="kw">if </span>sig == Signal::SIGKILL {
         <span class="comment">// No need to restore default action, and trying to do so would fail.
     </span>} <span class="kw">else </span>{
@@ -535,15 +591,13 @@
 <span class="doccomment">/// Handle pending unblocked signals, and return whether *all* corresponding
 /// signal actions had the SA_RESTART flag set.
 ///
-/// `ucontext` may be NULL.
-///
 /// # Safety
-///
-/// `ucontext` must be dereferenceable if not NULL.
 ///
 /// Configured handlers for all pending unblocked signals must be safe to call. (Which
 /// we basically can't ensure).
 </span><span class="kw">pub unsafe fn </span>process_signals(<span class="kw-2">mut </span>ucontext: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ucontext&gt;) -&gt; bool {
+    <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
+
     <span class="kw">let </span><span class="kw-2">mut </span>host = <span class="kw">crate</span>::global_host_shmem::get();
     <span class="kw">let </span><span class="kw-2">mut </span>host_lock = host.protected().lock();
 
@@ -750,6 +804,16 @@
         <span class="kw">let </span>tid = rustix::thread::gettid();
         linux_api::signal::tgkill(pid.into(), tid.into(), <span class="prelude-val">Some</span>(Signal::SIGUSR1)).unwrap();
 
+        <span class="comment">// It's not unheard of for a signal handler to use setcontext to jump
+        // out of the signal handler to the point where the signal was raised
+        // instead of returning normally, e.g. for userspace scheduling.
+        // In that case we'll still be in `ExecutionContext::Application`, since
+        // the jump would have skipped over the execution context restorer's
+        // drop impl above. This is done in our `test_signals.rs` test.
+        //
+        // Force back to `ExecutionContext::Shadow`.
+        </span>ExecutionContext::Shadow.enter_without_restorer();
+
         <span class="comment">// Reacquire locks and references.
         </span>host = <span class="kw">crate</span>::global_host_shmem::get();
         host_lock = host.protected().lock();
@@ -769,16 +833,19 @@
     restartable
 }
 
-<span class="kw">extern </span><span class="string">"C" </span><span class="kw">fn </span>handle_hardware_error_signal(
-    signo: i32,
-    info: <span class="kw-2">*mut </span>siginfo_t,
-    ctx: <span class="kw-2">*mut </span>core::ffi::c_void,
+<span class="doccomment">/// Handle a hardware error signal that was raised in `exe_ctx`.
+///
+/// # Safety
+///
+/// Configured handlers for all pending unblocked signals must be safe to call. (Which
+/// we basically can't ensure).
+</span><span class="kw">unsafe fn </span>handle_hardware_error_signal_inner(
+    exe_ctx: ExecutionContext,
+    signal: Signal,
+    info: <span class="kw-2">&amp;mut </span>siginfo_t,
+    uctx: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ucontext&gt;,
 ) {
-    <span class="kw">let </span>old_native_syscall_flag = tls_allow_native_syscalls::swap(<span class="bool-val">true</span>);
-
-    <span class="kw">let </span>signal = Signal::try_from(signo).unwrap();
-
-    <span class="kw">if </span>old_native_syscall_flag {
+    <span class="kw">if </span>exe_ctx == ExecutionContext::Shadow {
         <span class="comment">// Error was raised from shim code.
         </span>die_with_fatal_signal(signal);
     }
@@ -795,16 +862,26 @@
         } <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>thread_protected = thread.protected.borrow_mut(<span class="kw-2">&amp;</span>host_lock.root);
             thread_protected.pending_signals |= signal.into();
-            thread_protected
-                .set_pending_standard_siginfo(signal, <span class="kw">unsafe </span>{ info.as_ref().unwrap() });
+            thread_protected.set_pending_standard_siginfo(signal, info);
         }
     });
 
-    <span class="kw">let </span>ctx = ctx.cast::&lt;ucontext&gt;();
-    <span class="comment">// SAFETY: The kernel should have given us a valid `ucontext` here.
-    </span><span class="kw">unsafe </span>{ process_signals(ctx.as_mut()) };
+    <span class="kw">unsafe </span>{ process_signals(uctx) };
+}
 
-    tls_allow_native_syscalls::swap(old_native_syscall_flag);
+<span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn </span>handle_hardware_error_signal(
+    signo: i32,
+    info: <span class="kw-2">*mut </span>siginfo_t,
+    uctx: <span class="kw-2">*mut </span>core::ffi::c_void,
+) {
+    <span class="kw">let </span>prev_ctx = ExecutionContext::Shadow.enter();
+    <span class="kw">let </span>signal = Signal::try_from(signo).unwrap();
+    <span class="comment">// SAFETY: The kernel should have given us a valid `siginfo_t` here.
+    </span><span class="kw">let </span>info = <span class="kw">unsafe </span>{ info.as_mut().unwrap() };
+    <span class="comment">// SAFETY: The kernel should have given us a valid `ucontext` here.
+    </span><span class="kw">let </span>uctx = <span class="kw">unsafe </span>{ uctx.cast::&lt;ucontext&gt;().as_mut() };
+    <span class="comment">// SAFETY: We can only assume that the signal handlers are sound.
+    </span><span class="kw">unsafe </span>{ handle_hardware_error_signal_inner(prev_ctx.ctx(), signal, info, uctx) };
 }
 
 <span class="kw">pub fn </span>install_hardware_error_handlers() {
@@ -872,16 +949,31 @@
         install_hardware_error_handlers()
     }
 
-    <span class="doccomment">/// More-specialized error handlers (e.g. for rdtsc) can invoke this handler
+    <span class="doccomment">/// Handle a hardware error signal that was raised in `exe_ctx`.
+    ///
+    /// More-specialized error handlers (e.g. for rdtsc) can invoke this handler
     /// directly when unable to handle the current signal (e.g. when a SIGSEGV wasn't
-    /// caused by an rdtsc instruction)
+    /// caused by an rdtsc instruction).
+    ///
+    /// # Safety
+    ///
+    /// `info` and `ctx` must be non-NULL and safely dereferenceable.
     </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
     </span><span class="kw">pub unsafe extern </span><span class="string">"C-unwind" </span><span class="kw">fn </span>shim_handle_hardware_error_signal(
+        exe_ctx: ExecutionContext,
         signo: i32,
         info: <span class="kw-2">*mut </span>siginfo_t,
-        ctx: <span class="kw-2">*mut </span>core::ffi::c_void,
+        uctx: <span class="kw-2">*mut </span>linux_api::ucontext::linux_ucontext,
     ) {
-        handle_hardware_error_signal(signo, info, ctx)
+        <span class="kw">let </span>signal = Signal::try_from(signo).unwrap();
+        <span class="comment">// SAFETY: Caller ensures.
+        </span><span class="kw">let </span>info = <span class="kw">unsafe </span>{ info.as_mut().unwrap() };
+        <span class="comment">// SAFETY: Caller ensures.
+        </span><span class="kw">let </span>uctx = <span class="kw">unsafe </span>{ uctx.as_mut() };
+        <span class="comment">// SAFETY: We can only assume that the signal handlers are sound.
+        </span><span class="kw">unsafe </span>{
+            handle_hardware_error_signal_inner(exe_ctx, signal, info, uctx);
+        }
     }
 }
 </code></pre></div></section></main></body></html>

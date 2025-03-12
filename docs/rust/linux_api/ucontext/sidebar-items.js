@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"type":["sigcontext","ucontext"]};
+window.SIDEBAR_ITEMS = {"struct":["linux_sigcontext","linux_ucontext"],"type":["sigcontext","ucontext"]};
