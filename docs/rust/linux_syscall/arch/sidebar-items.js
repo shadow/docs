@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["aarch64","arm","riscv64","x86","x86_64"]};
+window.SIDEBAR_ITEMS = {"mod":["aarch64","arm","riscv64","s390x","x86","x86_64"]};
