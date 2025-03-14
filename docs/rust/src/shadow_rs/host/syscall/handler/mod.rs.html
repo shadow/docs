@@ -959,7 +959,10 @@
 <a href="#958" id="958">958</a>
 <a href="#959" id="959">959</a>
 <a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="attr">#[cfg(feature = <span class="string">"perf_timers"</span>)]
 </span><span class="kw">use </span>std::time::Duration;
@@ -967,6 +970,7 @@
 <span class="kw">use </span>linux_api::errno::Errno;
 <span class="kw">use </span>linux_api::syscall::SyscallNum;
 <span class="kw">use </span>shadow_shim_helper_rs::HostId;
+<span class="kw">use </span>shadow_shim_helper_rs::shadow_syscalls::ShadowSyscallNum;
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::SyscallArgs;
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::SyscallReg;
@@ -1293,12 +1297,6 @@
 
     <span class="attr">#[allow(non_upper_case_globals)]
     </span><span class="kw">fn </span>run_handler(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>ThreadContext, args: <span class="kw-2">&amp;</span>SyscallArgs) -&gt; SyscallResult {
-        <span class="kw">const </span>NR_shadow_yield: SyscallNum = SyscallNum::new(c::ShadowSyscallNum_SYS_shadow_yield);
-        <span class="kw">const </span>NR_shadow_init_memory_manager: SyscallNum =
-            SyscallNum::new(c::ShadowSyscallNum_SYS_shadow_init_memory_manager);
-        <span class="kw">const </span>NR_shadow_hostname_to_addr_ipv4: SyscallNum =
-            SyscallNum::new(c::ShadowSyscallNum_SYS_shadow_hostname_to_addr_ipv4);
-
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = SyscallContext {
             objs: ctx,
             args,
@@ -1475,9 +1473,17 @@
             <span class="comment">//
             // CUSTOM SHADOW-SPECIFIC SYSCALLS
             //
-            </span>NR_shadow_hostname_to_addr_ipv4 =&gt; <span class="macro">handle!</span>(shadow_hostname_to_addr_ipv4),
-            NR_shadow_init_memory_manager =&gt; <span class="macro">handle!</span>(shadow_init_memory_manager),
-            NR_shadow_yield =&gt; <span class="macro">handle!</span>(shadow_yield),
+            </span>x <span class="kw">if </span>ShadowSyscallNum::try_from(x).is_ok() =&gt; {
+                <span class="kw">match </span>ShadowSyscallNum::try_from(x).expect(<span class="string">"Conversion just succeeded above"</span>) {
+                    ShadowSyscallNum::hostname_to_addr_ipv4 =&gt; {
+                        <span class="macro">handle!</span>(shadow_hostname_to_addr_ipv4)
+                    }
+                    ShadowSyscallNum::init_memory_manager =&gt; {
+                        <span class="macro">handle!</span>(shadow_init_memory_manager)
+                    }
+                    ShadowSyscallNum::shadow_yield =&gt; <span class="macro">handle!</span>(shadow_yield),
+                }
+            }
             <span class="comment">//
             // SHIM-ONLY SYSCALLS
             //
