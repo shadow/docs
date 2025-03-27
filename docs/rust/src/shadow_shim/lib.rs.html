@@ -768,7 +768,45 @@
 <a href="#767" id="767">767</a>
 <a href="#768" id="768">768</a>
 <a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(test), no_std)]
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(test), no_std)]
 </span><span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/2585-unsafe-block-in-unsafe-fn.md
 </span><span class="attr">#![deny(unsafe_op_in_unsafe_fn)]
 
@@ -803,6 +841,7 @@
 
 <span class="kw">pub mod </span>clone;
 <span class="kw">pub mod </span>mmap_box;
+<span class="kw">pub mod </span>preempt;
 <span class="kw">pub mod </span>shimlogger;
 <span class="kw">pub mod </span>syscall;
 <span class="kw">pub mod </span>tls;
@@ -847,14 +886,51 @@
     /// will restore the previous context when dropped.
     </span><span class="kw">pub fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecutionContextRestorer {
         ExecutionContextRestorer {
-            prev: CURRENT_EXECUTION_CONTEXT.get().replace(<span class="kw-2">*</span><span class="self">self</span>),
+            prev: <span class="self">self</span>.enter_without_restorer(),
         }
     }
 
     <span class="doccomment">/// Enter this context for the current thread, *without* creating a
     /// restorer. Returns the previous context.
     </span><span class="kw">pub fn </span>enter_without_restorer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecutionContext {
-        CURRENT_EXECUTION_CONTEXT.get().replace(<span class="kw-2">*</span><span class="self">self</span>)
+        <span class="kw">let </span>current_execution_ctx = CURRENT_EXECUTION_CONTEXT.get();
+        <span class="kw">let </span>peeked_prev = current_execution_ctx.get();
+
+        <span class="comment">// Potentially enable/disable preemption, being careful that the current
+        // context is set to shadow when calling other internal functions that
+        // require it.
+        </span><span class="kw">let </span>replaced_prev = <span class="kw">match </span>(peeked_prev, <span class="kw-2">*</span><span class="self">self</span>) {
+            (ExecutionContext::Shadow, ExecutionContext::Application) =&gt; {
+                <span class="comment">// Call preempt::enable before changing context from shadow, so
+                // that it can access shim state.
+                // SAFETY: We only ever switch threads from the shadow execution
+                // context, and we disable preemption when entering the shadow
+                // execution context, so preemption should be disabled for all
+                // other threads in this process.
+                </span><span class="kw">unsafe </span>{ preempt::enable() };
+                current_execution_ctx.replace(<span class="kw-2">*</span><span class="self">self</span>)
+            }
+            (ExecutionContext::Application, ExecutionContext::Shadow) =&gt; {
+                <span class="comment">// Change context to shadow before calling preempt::disable, so
+                // that it can access shim state.
+                </span><span class="kw">let </span>c = current_execution_ctx.replace(<span class="kw-2">*</span><span class="self">self</span>);
+                preempt::disable();
+                c
+            }
+            (ExecutionContext::Application, ExecutionContext::Application) =&gt; {
+                <span class="comment">// No need to actually replace.
+                </span>ExecutionContext::Application
+            }
+            (ExecutionContext::Shadow, ExecutionContext::Shadow) =&gt; {
+                <span class="comment">// No need to actually replace.
+                </span>ExecutionContext::Shadow
+            }
+        };
+        <span class="comment">// It *shouldn't* be possible for the execution context to have changed
+        // out from under us in between the initial peek and the actual
+        // replacement.
+        </span><span class="macro">assert_eq!</span>(peeked_prev, replaced_prev);
+        peeked_prev
     }
 }
 

@@ -1232,53 +1232,53 @@
                 .expect(<span class="string">"flushing syscall ptrs"</span>);
         }
 
-        <span class="kw">if </span>ctx.host.shim_shmem().model_unblocked_syscall_latency
-            &amp;&amp; ctx.process.is_running()
-            &amp;&amp; !<span class="macro">matches!</span>(rv, <span class="prelude-val">Err</span>(SyscallError::Blocked(<span class="kw">_</span>)))
-        {
-            <span class="kw">let </span>max_unapplied_cpu_latency = ctx.host.shim_shmem().max_unapplied_cpu_latency;
+        <span class="kw">if </span>ctx.process.is_running() &amp;&amp; !<span class="macro">matches!</span>(rv, <span class="prelude-val">Err</span>(SyscallError::Blocked(<span class="kw">_</span>))) {
+            <span class="kw">let </span>host_shmem = ctx.host.shim_shmem();
+            <span class="kw">let </span><span class="kw-2">mut </span>host_shmem_prot = ctx.host.shim_shmem_lock_borrow_mut().unwrap();
 
             <span class="comment">// increment unblocked syscall latency, but only for non-shadow-syscalls, since the
             // latter are part of Shadow's internal plumbing; they shouldn't necessarily "consume"
             // time
-            </span><span class="kw">if </span>!is_shadow_syscall(syscall) {
-                ctx.host
-                    .shim_shmem_lock_borrow_mut()
-                    .unwrap()
-                    .unapplied_cpu_latency += ctx.host.shim_shmem().unblocked_syscall_latency;
+            </span><span class="kw">if </span>ctx.host.shim_shmem().model_unblocked_syscall_latency &amp;&amp; !is_shadow_syscall(syscall)
+            {
+                host_shmem_prot.unapplied_cpu_latency += host_shmem.unblocked_syscall_latency;
             }
-
-            <span class="kw">let </span>unapplied_cpu_latency = ctx
-                .host
-                .shim_shmem_lock_borrow()
-                .unwrap()
-                .unapplied_cpu_latency;
 
             <span class="macro">log::trace!</span>(
                 <span class="string">"Unapplied CPU latency amt={}ns max={}ns"</span>,
-                unapplied_cpu_latency.as_nanos(),
-                max_unapplied_cpu_latency.as_nanos()
+                host_shmem_prot.unapplied_cpu_latency.as_nanos(),
+                host_shmem.max_unapplied_cpu_latency.as_nanos()
             );
 
-            <span class="kw">if </span>unapplied_cpu_latency &gt; max_unapplied_cpu_latency {
-                <span class="kw">let </span>new_time = Worker::current_time().unwrap() + unapplied_cpu_latency;
-                <span class="kw">let </span>max_time = Worker::max_event_runahead_time(ctx.host);
-
-                <span class="kw">if </span>new_time &lt;= max_time {
-                    <span class="macro">log::trace!</span>(<span class="string">"Reached unblocked syscall limit; Incrementing time"</span>);
-
-                    ctx.host
-                        .shim_shmem_lock_borrow_mut()
-                        .unwrap()
-                        .unapplied_cpu_latency = SimulationTime::ZERO;
+            <span class="kw">if </span>host_shmem_prot.unapplied_cpu_latency &gt; host_shmem.max_unapplied_cpu_latency {
+                <span class="kw">let </span>new_time = Worker::current_time().unwrap()
+                    + core::mem::replace(
+                        <span class="kw-2">&amp;mut </span>host_shmem_prot.unapplied_cpu_latency,
+                        SimulationTime::ZERO,
+                    );
+                <span class="kw">if </span>new_time &lt;= Worker::max_event_runahead_time(ctx.host) {
+                    <span class="comment">// The new time is early enough that we can safely just increment to that time.
+                    // i.e. there are no threads or other events scheduled to
+                    // run on this worker before `new_time`.
+                    </span><span class="macro">log::trace!</span>(
+                        <span class="string">"Reached max-unapplied-cpu-latency, but not max runahead; Incrementing time"
+                    </span>);
                     Worker::set_current_time(new_time);
                 } <span class="kw">else </span>{
-                    <span class="macro">log::trace!</span>(<span class="string">"Reached unblocked syscall limit; Yielding"</span>);
+                    <span class="comment">// We can't safely increment to the new time, e.g. because
+                    // there are other events or the end of the current
+                    // scheduler round scheduled to happen first.  Reschedule
+                    // the current thread to run at the new time instead of
+                    // incrementing it.
+                    </span><span class="macro">log::trace!</span>(
+                        <span class="string">"Reached max-unapplied-cpu-latency, and max runahead; Rescheduling"
+                    </span>);
 
-                    <span class="comment">// block instead, but save the result so that we can return it later instead of
-                    // re-executing the syscall
+                    <span class="comment">// Save the syscall result so that we can return it later
+                    // instead of re-executing the syscall.
                     </span><span class="macro">assert!</span>(<span class="self">self</span>.pending_result.is_none());
                     <span class="self">self</span>.pending_result = <span class="prelude-val">Some</span>(rv);
+
                     rv = <span class="prelude-val">Err</span>(SyscallError::new_blocked_until(new_time, <span class="bool-val">false</span>));
                 }
             }

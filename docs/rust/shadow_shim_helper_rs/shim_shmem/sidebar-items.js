@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["take_pending_unblocked_signal"],"mod":["export"],"struct":["HostShmem","HostShmemProtected","ManagerShmem","ProcessShmem","ProcessShmemProtected","ThreadShmem","ThreadShmemProtected"]};
+window.SIDEBAR_ITEMS = {"fn":["take_pending_unblocked_signal"],"mod":["export"],"struct":["HostShmem","HostShmemProtected","ManagerShmem","NativePreemptionConfig","ProcessShmem","ProcessShmemProtected","ThreadShmem","ThreadShmemProtected"]};

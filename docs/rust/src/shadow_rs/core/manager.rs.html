@@ -855,7 +855,16 @@
 <a href="#854" id="854">854</a>
 <a href="#855" id="855">855</a>
 <a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::ffi::{CStr, CString, OsStr, OsString};
 <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
@@ -874,7 +883,8 @@
 <span class="kw">use </span>scheduler::{HostIter, Scheduler};
 <span class="kw">use </span>shadow_shim_helper_rs::HostId;
 <span class="kw">use </span>shadow_shim_helper_rs::emulated_time::EmulatedTime;
-<span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::ManagerShmem;
+<span class="kw">use </span>shadow_shim_helper_rs::option::FfiOption;
+<span class="kw">use </span>shadow_shim_helper_rs::shim_shmem::{ManagerShmem, NativePreemptionConfig};
 <span class="kw">use </span>shadow_shim_helper_rs::simulation_time::SimulationTime;
 <span class="kw">use </span>shadow_shmem::allocator::ShMemBlock;
 
@@ -1054,6 +1064,14 @@
 
         <span class="kw">let </span>shmem = shadow_shmem::allocator::shmalloc(ManagerShmem {
             log_start_time_micros: <span class="kw">unsafe </span>{ c::logger_get_global_start_time_micros() },
+            native_preemption_config: <span class="kw">if </span>config.native_preemption_enabled() {
+                FfiOption::Some(NativePreemptionConfig {
+                    native_duration: config.native_preemption_native_interval()<span class="question-mark">?</span>,
+                    sim_duration: config.native_preemption_sim_interval(),
+                })
+            } <span class="kw">else </span>{
+                FfiOption::None
+            },
         });
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
