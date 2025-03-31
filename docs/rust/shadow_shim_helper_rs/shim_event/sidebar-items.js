@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ShimEventToShadow","ShimEventToShim"],"struct":["ShimEventAddThreadReq","ShimEventAddThreadRes","ShimEventStartReq","ShimEventSyscall","ShimEventSyscallComplete"]};
+window.SIDEBAR_ITEMS = {"enum":["ShimEventToShadow","ShimEventToShim"],"struct":["ShimEventAddThreadReq","ShimEventAddThreadRes","ShimEventStartReq","ShimEventStartRes","ShimEventSyscall","ShimEventSyscallComplete"]};

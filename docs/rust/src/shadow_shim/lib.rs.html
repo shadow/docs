@@ -806,7 +806,22 @@
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
 <a href="#807" id="807">807</a>
-<a href="#808" id="808">808</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(test), no_std)]
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a></pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(test), no_std)]
 </span><span class="comment">// https://github.com/rust-lang/rfcs/blob/master/text/2585-unsafe-block-in-unsafe-fn.md
 </span><span class="attr">#![deny(unsafe_op_in_unsafe_fn)]
 
@@ -842,6 +857,7 @@
 <span class="kw">pub mod </span>clone;
 <span class="kw">pub mod </span>mmap_box;
 <span class="kw">pub mod </span>preempt;
+<span class="kw">pub mod </span>reinit_auxvec_random;
 <span class="kw">pub mod </span>shimlogger;
 <span class="kw">pub mod </span>syscall;
 <span class="kw">pub mod </span>tls;
@@ -1322,16 +1338,17 @@
     <span class="macro">log::trace!</span>(<span class="string">"Finished shim global init"</span>);
 }
 
-<span class="doccomment">/// Wait for "start" event from Shadow, use it to initialize the thread shared
-/// memory block, and optionally to initialize the process shared memory block.
-</span><span class="kw">fn </span>wait_for_start_event(get_initial_working_dir: bool) {
+<span class="doccomment">/// Wait for "start" event from Shadow, using it to set things up for the
+/// current thread, and if `is_first_thread` is true then also for the current
+/// process.
+</span><span class="kw">fn </span>wait_for_start_event(is_first_thread: bool) {
     <span class="macro">debug_assert_eq!</span>(ExecutionContext::current(), ExecutionContext::Shadow);
     <span class="macro">log::trace!</span>(<span class="string">"waiting for start event"</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>working_dir = [<span class="number">0u8</span>; linux_api::limits::PATH_MAX];
     <span class="kw">let </span>working_dir_ptr;
     <span class="kw">let </span>working_dir_len;
-    <span class="kw">if </span>get_initial_working_dir {
+    <span class="kw">if </span>is_first_thread {
         working_dir_ptr = ForeignPtr::from_raw_ptr(working_dir.as_mut_ptr());
         working_dir_len = working_dir.len();
     } <span class="kw">else </span>{
@@ -1351,7 +1368,20 @@
         ipc.to_shadow().send(start_req);
         ipc.from_shadow().receive().unwrap()
     });
-    <span class="macro">assert!</span>(<span class="macro">matches!</span>(res, ShimEventToShim::StartRes));
+    <span class="kw">let </span>ShimEventToShim::StartRes(res) = res <span class="kw">else </span>{
+        <span class="macro">panic!</span>(<span class="string">"Unexpected response: {res:?}"</span>);
+    };
+    <span class="kw">if </span>is_first_thread {
+        <span class="comment">// SAFETY: We're ensuring serial execution in this process, and no other
+        // Rust code in this library should have tried accessing the auxiliary
+        // vector yet, so no references should exist.
+        //
+        // WARNING: It's possible that the dynamic linker/loader or constructors
+        // in other dynamically linked libraries *have* run, and that rewriting
+        // this value here will violate safety assumptions in those objects.
+        // Fortunately we haven't observed this in practice.
+        </span><span class="kw">unsafe </span>{ reinit_auxvec_random::reinit_auxvec_random(<span class="kw-2">&amp;</span>res.auxvec_random) };
+    }
 
     <span class="comment">// SAFETY: shadow should have initialized
     </span><span class="kw">let </span>thread_blk_serialized = <span class="kw">unsafe </span>{ thread_blk_serialized.assume_init() };
@@ -1366,7 +1396,7 @@
     <span class="comment">// TODO: Instead use posix_spawn_file_actions_addchdir_np in the shadow process,
     // which was added in glibc 2.29. Currently this is blocked on debian-10, which
     // uses glibc 2.28.
-    </span><span class="kw">if </span>get_initial_working_dir {
+    </span><span class="kw">if </span>is_first_thread {
         <span class="kw">let </span>working_dir = CStr::from_bytes_until_nul(<span class="kw-2">&amp;</span>working_dir).unwrap();
         rustix::process::chdir(working_dir).unwrap();
     }

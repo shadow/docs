@@ -786,7 +786,13 @@
 <a href="#785" id="785">785</a>
 <a href="#786" id="786">786</a>
 <a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a></pre></div><pre class="rust"><code><span class="doccomment">//! A thread of a managed process.
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a></pre></div><pre class="rust"><code><span class="doccomment">//! A thread of a managed process.
 //!
 //! This contains the code where the simulator can create or communicate with a managed process.
 
@@ -803,12 +809,13 @@
 <span class="kw">use </span>linux_api::sched::CloneFlags;
 <span class="kw">use </span>linux_api::signal::tgkill;
 <span class="kw">use </span>log::{Level, debug, error, log_enabled, trace};
+<span class="kw">use </span>rand::Rng <span class="kw">as _</span>;
 <span class="kw">use </span>rustix::pipe::PipeFlags;
 <span class="kw">use </span>rustix::process::WaitOptions;
 <span class="kw">use </span>shadow_shim_helper_rs::ipc::IPCData;
 <span class="kw">use </span>shadow_shim_helper_rs::shim_event::{
-    ShimEventAddThreadReq, ShimEventAddThreadRes, ShimEventSyscall, ShimEventSyscallComplete,
-    ShimEventToShadow, ShimEventToShim,
+    ShimEventAddThreadReq, ShimEventAddThreadRes, ShimEventStartRes, ShimEventSyscall,
+    ShimEventSyscallComplete, ShimEventToShadow, ShimEventToShim,
 };
 <span class="kw">use </span>shadow_shim_helper_rs::syscall_types::{ForeignPtr, SyscallArgs, SyscallReg};
 <span class="kw">use </span>shadow_shmem::allocator::ShMemBlock;
@@ -1029,7 +1036,12 @@
 
                     <span class="comment">// send the message to the shim to call main().
                     </span><span class="macro">trace!</span>(<span class="string">"sending start event code to shim"</span>);
-                    <span class="self">self</span>.continue_plugin(ctx.host, <span class="kw-2">&amp;</span>ShimEventToShim::StartRes)
+                    <span class="self">self</span>.continue_plugin(
+                        ctx.host,
+                        <span class="kw-2">&amp;</span>ShimEventToShim::StartRes(ShimEventStartRes {
+                            auxvec_random: ctx.host.random_mut().random(),
+                        }),
+                    )
                 }
                 ShimEventToShadow::ProcessDeath =&gt; {
                     <span class="comment">// The native threads are all dead or zombies. Nothing to do but

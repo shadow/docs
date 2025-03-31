@@ -1169,7 +1169,24 @@
 <a href="#1168" id="1168">1168</a>
 <a href="#1169" id="1169">1169</a>
 <a href="#1170" id="1170">1170</a>
-<a href="#1171" id="1171">1171</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::LinkedList;
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::LinkedList;
 <span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::Arc;
@@ -1535,9 +1552,26 @@
         }
 
         <span class="comment">// make sure that we're bound
-        </span><span class="kw">if </span>socket_ref.bound_addr.is_some() {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(bound_addr) = socket_ref.bound_addr {
             <span class="comment">// we must have an association since we're bound
             </span><span class="macro">assert!</span>(socket_ref.association.is_some());
+
+            <span class="comment">// make sure the new peer address is connectable from the bound interface
+            </span><span class="kw">if </span>!bound_addr.ip().is_unspecified() {
+                <span class="comment">// assume that a socket bound to 0.0.0.0 can connect anywhere, so only check
+                // localhost
+                </span><span class="kw">match </span>(
+                    bound_addr.ip() == <span class="kw-2">&amp;</span>Ipv4Addr::LOCALHOST,
+                    dst_addr.ip() == <span class="kw-2">&amp;</span>Ipv4Addr::LOCALHOST,
+                ) {
+                    <span class="comment">// bound and peer on loopback interface
+                    </span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {}
+                    <span class="comment">// neither bound nor peer on loopback interface (shadow treats any
+                    // non-127.0.0.1 address as an "internet" address)
+                    </span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; {}
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into()),
+                }
+            }
         } <span class="kw">else </span>{
             <span class="comment">// we can't be unbound but have a peer
             </span><span class="macro">assert!</span>(socket_ref.peer_addr.is_none());
