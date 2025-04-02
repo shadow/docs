@@ -33,10 +33,11 @@
         <link rel="stylesheet" href="custom.css">
 
 
-        <!-- Provide site root to javascript -->
+        <!-- Provide site root and default themes to javascript -->
         <script>
-            var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc.js"></script>
@@ -46,8 +47,8 @@
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -61,7 +62,8 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             const html = document.documentElement;
@@ -74,8 +76,8 @@
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -111,6 +113,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
@@ -3828,77 +3831,6 @@ backtrace for the current stack:</p>
 <p>In multi-threaded applications, you can get a backtrace for all stacks:</p>
 <pre><code>(gdb) thread apply all bt
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="profiling-1"><a class="header" href="#profiling-1">Profiling</a></h1>
-<p>Profiling can be useful for improving the performance of experiments, either as
-improvements to the implementation of Shadow itself, or in altering the
-configuration of the experiments you are running.</p>
-<h2 id="profiling-with-tophtop-1"><a class="header" href="#profiling-with-tophtop-1">Profiling with <code>top</code>/<code>htop</code></a></h2>
-<p>Tools like <code>top</code> and <code>htop</code> will give good first-order approximations for what
-Shadow is doing. While they can only give system-wide to thread-level
-granularity, this can often still tell you important details such as whether
-Shadow, the simulated processes, or the kernel are consuming memory and
-processor cycles. E.g., if you're running into memory constraints, the <code>RES</code> or
-<code>MEM</code> column of these tools can tell you where to start looking for ways to
-address that. If execution time is too long, sorting by <code>CPU</code> or <code>TIME</code> can
-provide insight into where that time is being spent.</p>
-<p>One limitation to note is that Shadow relies on spinlocks in barriers for some
-of its operation. Especially when running with many threads, these spinlocks
-will show as consuming most of the CPU anytime the simulation is bottlenecked
-on few simulated processes. Telling when this is happening can be difficult in
-these tools, because no symbol information is available.</p>
-<h2 id="profiling-with-perf-1"><a class="header" href="#profiling-with-perf-1">Profiling with <code>perf</code></a></h2>
-<p>The <code>perf</code> tool is a powerful interface to the Linux kernel's performance
-counter subsystem. See <code>man perf</code> or <a href="https://perf.wiki.kernel.org/index.php/Tutorial">the perf
-wiki</a> for full details on how
-to use it, but some highlights most relevant to Shadow execution time are given
-here.</p>
-<p>Regardless of how you are using <code>perf</code>, the aforementioned complication of
-spinlocks in Shadow apply. Namely, when there is any bottleneck on the barrier,
-the symbols associated with the spinlocks will dominate the sample
-counts. Improving the performance of the spinlocks will not improve the
-performance of the experiment, but improving the performance of whatever is
-causing the bottleneck (likely something towards the top of non-spinlock
-symbols) can.</p>
-<h3 id="perf-top-1"><a class="header" href="#perf-top-1"><code>perf top</code></a></h3>
-<p>The <code>perf top</code> command will likely be the most practical mode of
-<code>perf</code> for profiling all parts of a Shadow experiment. It requires one
-of: root access, appropriately set up Linux capabilities, or a system
-configured to allow performance monitoring (similar to attaching to
-processes with <code>gdb</code>), so isn't always available, but is very simple
-when it is. The interface is similar to <code>top</code>'s, but provides
-information on the granularity of symbols, across the entire
-system. This means you will be able to tell which specific functions
-in Shadow, the simulated processes, and the kernel are consuming CPU
-time.</p>
-<p>When <code>perf top</code> can't find symbol information for a process, it will display
-the offset of the instruction as hex instead. (Note this means it will be
-ranked by instruction, rather than the entire function.) If you know where the
-respective executable or shared object file is, you can look up the name of the
-symbol for that instruction's function by opening the file with <code>gdb</code> and
-running <code>info symbol [ADDRESS]</code>. If <code>gdb</code> can't find the symbols either, you
-can look it up manually using <code>readelf -s</code> and finding the symbol with the
-largest address smaller than the offset you are looking for (note that
-<code>readelf</code> does not output the symbols in order of address; you can pipe the
-output to <code>awk '{$1=""; print $0}' | sort</code> to get a sorted list).</p>
-<p>Details on more options (e.g., for filtering the sampled CPUs or processes) can
-be found in <code>man perf top</code>.</p>
-<h3 id="perf-record-1"><a class="header" href="#perf-record-1"><code>perf record</code></a></h3>
-<p>If you know which particular process you wish to profile, <code>perf record</code> can
-give far greater detail than other options. To use it for Shadow, either run it
-when starting Shadow:</p>
-<pre><code class="language-bash">perf record shadow shadow.config.yaml &gt; shadow.log
-</code></pre>
-<p>Or, attach to a running Shadow process:</p>
-<pre><code class="language-bash">perf record -p &lt;PID&gt;
-</code></pre>
-<p>Attaching to a process requires similar permissions as <code>perf top</code>, but can be
-used to profile any process, including the simulated processes launched by
-Shadow.</p>
-<p>The <code>perf record</code> process will write a <code>perf.data</code> file when you press Ctrl-c,
-or Shadow ends. You can then analyze the report:</p>
-<pre><code class="language-bash">perf report
-</code></pre>
-<p>More details are available in <code>man perf record</code> and <code>man perf report</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="testing-for-nondeterminism"><a class="header" href="#testing-for-nondeterminism">Testing for Nondeterminism</a></h1>
 <p>If you run Shadow twice with the same seed (the <code>-s</code> or <code>--seed</code> command line
 options), then it <em>should</em> produce deterministic results (it's a bug if it

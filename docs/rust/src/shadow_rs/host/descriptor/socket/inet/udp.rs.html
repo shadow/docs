@@ -1183,10 +1183,7 @@
 <a href="#1182" id="1182">1182</a>
 <a href="#1183" id="1183">1183</a>
 <a href="#1184" id="1184">1184</a>
-<a href="#1185" id="1185">1185</a>
-<a href="#1186" id="1186">1186</a>
-<a href="#1187" id="1187">1187</a>
-<a href="#1188" id="1188">1188</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::LinkedList;
+<a href="#1185" id="1185">1185</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::LinkedList;
 <span class="kw">use </span>std::io::{Read, Write};
 <span class="kw">use </span>std::net::{Ipv4Addr, SocketAddrV4};
 <span class="kw">use </span>std::sync::Arc;
@@ -1526,7 +1523,9 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
         };
 
-        <span class="kw">let </span>dst_addr = <span class="kw">match </span>args.addr {
+        <span class="comment">// TODO: If we have a peer AND a destination address is provided, should we use the peer or
+        // the destination address? Do we have a test for this?
+        </span><span class="kw">let </span>dst_addr = <span class="kw">match </span>args.addr {
             <span class="prelude-val">Some</span>(addr) =&gt; <span class="kw">match </span>addr.as_inet() {
                 <span class="comment">// an inet socket address
                 </span><span class="prelude-val">Some</span>(x) =&gt; (<span class="kw-2">*</span>x).into(),
@@ -1577,13 +1576,8 @@
             </span><span class="macro">assert!</span>(socket_ref.peer_addr.is_none());
             <span class="macro">assert!</span>(socket_ref.association.is_none());
 
-            <span class="comment">// implicit bind (use default interface unless the remote peer is on loopback)
-            // TODO: is this correct? or should we bind to UNSPECIFIED?
-            </span><span class="kw">let </span>local_addr = <span class="kw">if </span>dst_addr.ip() == <span class="kw-2">&amp;</span>std::net::Ipv4Addr::LOCALHOST {
-                SocketAddrV4::new(Ipv4Addr::LOCALHOST, <span class="number">0</span>)
-            } <span class="kw">else </span>{
-                SocketAddrV4::new(net_ns.default_ip, <span class="number">0</span>)
-            };
+            <span class="comment">// implicit bind to 0.0.0.0
+            </span><span class="kw">let </span>local_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, <span class="number">0</span>);
 
             <span class="comment">// this will allow us to receive packets from any peer
             </span><span class="kw">let </span>unspecified_addr = SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, <span class="number">0</span>);
