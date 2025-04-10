@@ -94,12 +94,65 @@
 <a href=#94 id=94 data-nosnippet>94</a>    </span><span class="attr">#[cfg(not(miri))]
 <a href=#95 id=95 data-nosnippet>95</a>    </span><span class="kw">fn </span>test_getauxvec() {
 <a href=#96 id=96 data-nosnippet>96</a>        <span class="comment">// Test consistency with libc
-<a href=#97 id=97 data-nosnippet>97</a>        </span><span class="macro">assert_eq!</span>(<span class="kw">super</span>::getauxval(AuxVecTag::AT_RANDOM).unwrap(), <span class="kw">unsafe </span>{
-<a href=#98 id=98 data-nosnippet>98</a>            libc::getauxval(libc::AT_RANDOM)
-<a href=#99 id=99 data-nosnippet>99</a>        });
-<a href=#100 id=100 data-nosnippet>100</a>        <span class="macro">assert_eq!</span>(
-<a href=#101 id=101 data-nosnippet>101</a>            <span class="kw">super</span>::getauxval(AuxVecTag::AT_MINSIGSTKSZ).unwrap(),
-<a href=#102 id=102 data-nosnippet>102</a>            <span class="kw">unsafe </span>{ libc::getauxval(libc::AT_MINSIGSTKSZ) }
-<a href=#103 id=103 data-nosnippet>103</a>        );
-<a href=#104 id=104 data-nosnippet>104</a>    }
-<a href=#105 id=105 data-nosnippet>105</a>}</code></pre></div></section></main></body></html>
+<a href=#97 id=97 data-nosnippet>97</a>        </span><span class="kw">let </span>tags = [
+<a href=#98 id=98 data-nosnippet>98</a>            (AuxVecTag::AT_NULL, libc::AT_NULL),
+<a href=#99 id=99 data-nosnippet>99</a>            (AuxVecTag::AT_IGNORE, libc::AT_IGNORE),
+<a href=#100 id=100 data-nosnippet>100</a>            (AuxVecTag::AT_EXECFD, libc::AT_EXECFD),
+<a href=#101 id=101 data-nosnippet>101</a>            (AuxVecTag::AT_PHDR, libc::AT_PHDR),
+<a href=#102 id=102 data-nosnippet>102</a>            (AuxVecTag::AT_PHENT, libc::AT_PHENT),
+<a href=#103 id=103 data-nosnippet>103</a>            (AuxVecTag::AT_PHNUM, libc::AT_PHNUM),
+<a href=#104 id=104 data-nosnippet>104</a>            (AuxVecTag::AT_PAGESZ, libc::AT_PAGESZ),
+<a href=#105 id=105 data-nosnippet>105</a>            (AuxVecTag::AT_BASE, libc::AT_BASE),
+<a href=#106 id=106 data-nosnippet>106</a>            (AuxVecTag::AT_FLAGS, libc::AT_FLAGS),
+<a href=#107 id=107 data-nosnippet>107</a>            (AuxVecTag::AT_ENTRY, libc::AT_ENTRY),
+<a href=#108 id=108 data-nosnippet>108</a>            (AuxVecTag::AT_NOTELF, libc::AT_NOTELF),
+<a href=#109 id=109 data-nosnippet>109</a>            (AuxVecTag::AT_UID, libc::AT_UID),
+<a href=#110 id=110 data-nosnippet>110</a>            (AuxVecTag::AT_EUID, libc::AT_EUID),
+<a href=#111 id=111 data-nosnippet>111</a>            (AuxVecTag::AT_GID, libc::AT_GID),
+<a href=#112 id=112 data-nosnippet>112</a>            (AuxVecTag::AT_EGID, libc::AT_EGID),
+<a href=#113 id=113 data-nosnippet>113</a>            (AuxVecTag::AT_PLATFORM, libc::AT_PLATFORM),
+<a href=#114 id=114 data-nosnippet>114</a>            <span class="comment">// glibc appears to get this elsewhere, *and* experimentally
+<a href=#115 id=115 data-nosnippet>115</a>            // these values don't match.
+<a href=#116 id=116 data-nosnippet>116</a>            // &lt;https://github.com/bminor/glibc/blob/12a497c716f0a06be5946cabb8c3ec22a079771e/misc/getauxval.c#L32&gt;
+<a href=#117 id=117 data-nosnippet>117</a>            // (AuxVecTag::AT_HWCAP, libc::AT_HWCAP),
+<a href=#118 id=118 data-nosnippet>118</a>            </span>(AuxVecTag::AT_CLKTCK, libc::AT_CLKTCK),
+<a href=#119 id=119 data-nosnippet>119</a>            (AuxVecTag::AT_SECURE, libc::AT_SECURE),
+<a href=#120 id=120 data-nosnippet>120</a>            (AuxVecTag::AT_BASE_PLATFORM, libc::AT_BASE_PLATFORM),
+<a href=#121 id=121 data-nosnippet>121</a>            (AuxVecTag::AT_RANDOM, libc::AT_RANDOM),
+<a href=#122 id=122 data-nosnippet>122</a>            <span class="comment">// glibc handles AT_HWCAP2 specially. Experimentally it seems to
+<a href=#123 id=123 data-nosnippet>123</a>            // ultimately return the same value, but unclear whether that'll
+<a href=#124 id=124 data-nosnippet>124</a>            // always be the case.
+<a href=#125 id=125 data-nosnippet>125</a>            // &lt;https://github.com/bminor/glibc/blob/12a497c716f0a06be5946cabb8c3ec22a079771e/misc/getauxval.c#L37&gt;
+<a href=#126 id=126 data-nosnippet>126</a>            // (AuxVecTag::AT_HWCAP2, libc::AT_HWCAP2),
+<a href=#127 id=127 data-nosnippet>127</a>
+<a href=#128 id=128 data-nosnippet>128</a>            // These constants don't exist in the libc crate:
+<a href=#129 id=129 data-nosnippet>129</a>            /*
+<a href=#130 id=130 data-nosnippet>130</a>            (AuxVecTag::AT_RSEQ_FEATURE_SIZE, libc::AT_RSEQ_FEATURE_SIZE),
+<a href=#131 id=131 data-nosnippet>131</a>            (AuxVecTag::AT_RSEQ_ALIGN, libc::AT_RSEQ_ALIGN),
+<a href=#132 id=132 data-nosnippet>132</a>            (AuxVecTag::AT_HWCAP3, libc::AT_HWCAP3),
+<a href=#133 id=133 data-nosnippet>133</a>            (AuxVecTag::AT_HWCAP4, libc::AT_HWCAP4),
+<a href=#134 id=134 data-nosnippet>134</a>            */
+<a href=#135 id=135 data-nosnippet>135</a>            </span>(AuxVecTag::AT_EXECFN, libc::AT_EXECFN),
+<a href=#136 id=136 data-nosnippet>136</a>            (AuxVecTag::AT_MINSIGSTKSZ, libc::AT_MINSIGSTKSZ),
+<a href=#137 id=137 data-nosnippet>137</a>        ];
+<a href=#138 id=138 data-nosnippet>138</a>        <span class="kw">for </span>(linux_tag, libc_tag) <span class="kw">in </span>tags {
+<a href=#139 id=139 data-nosnippet>139</a>            <span class="comment">// Ensure errno *isn't* set to ENOENT so that we can distinguish
+<a href=#140 id=140 data-nosnippet>140</a>            // between libc returning value 0 and ENOENT.
+<a href=#141 id=141 data-nosnippet>141</a>            </span><span class="kw">unsafe </span>{ <span class="kw-2">*</span>libc::__errno_location() = libc::ENOENT + <span class="number">1 </span>};
+<a href=#142 id=142 data-nosnippet>142</a>
+<a href=#143 id=143 data-nosnippet>143</a>            <span class="kw">let </span>linux_res = <span class="kw">super</span>::getauxval(linux_tag);
+<a href=#144 id=144 data-nosnippet>144</a>            <span class="kw">let </span>libc_res = <span class="kw">unsafe </span>{ libc::getauxval(libc_tag) };
+<a href=#145 id=145 data-nosnippet>145</a>            <span class="kw">let </span>libc_errno = <span class="kw">unsafe </span>{ <span class="kw-2">*</span>libc::__errno_location() };
+<a href=#146 id=146 data-nosnippet>146</a>            <span class="macro">println!</span>(<span class="string">"{linux_tag:?}: {linux_res:?}"</span>);
+<a href=#147 id=147 data-nosnippet>147</a>            <span class="kw">match </span>linux_res {
+<a href=#148 id=148 data-nosnippet>148</a>                <span class="prelude-val">Some</span>(v) =&gt; {
+<a href=#149 id=149 data-nosnippet>149</a>                    <span class="macro">assert_eq!</span>(v, libc_res, <span class="string">"for {linux_tag:?}"</span>)
+<a href=#150 id=150 data-nosnippet>150</a>                }
+<a href=#151 id=151 data-nosnippet>151</a>                <span class="prelude-val">None </span>=&gt; {
+<a href=#152 id=152 data-nosnippet>152</a>                    <span class="macro">assert_eq!</span>(libc_res, <span class="number">0</span>, <span class="string">"for {linux_tag:?}"</span>);
+<a href=#153 id=153 data-nosnippet>153</a>                    <span class="macro">assert_eq!</span>(libc_errno, libc::ENOENT, <span class="string">"for {linux_tag:?}"</span>);
+<a href=#154 id=154 data-nosnippet>154</a>                }
+<a href=#155 id=155 data-nosnippet>155</a>            }
+<a href=#156 id=156 data-nosnippet>156</a>        }
+<a href=#157 id=157 data-nosnippet>157</a>    }
+<a href=#158 id=158 data-nosnippet>158</a>}</code></pre></div></section></main></body></html>
