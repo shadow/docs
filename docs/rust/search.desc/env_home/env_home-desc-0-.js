@@ -1,0 +1,1 @@
+searchState.loadedDescShard("env_home", 0, "env_home is a general purpose crate for determining the …\nReturns the path of the current user’s home directory if …")

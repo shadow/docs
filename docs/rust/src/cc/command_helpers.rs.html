@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cc-1.2.0/src/command_helpers.rs`."><title>command_helpers.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-6c3ea77c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="cc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0 (05f9846f8 2025-03-31)" data-channel="1.86.0" data-search-js="search-581efc7a.js" data-settings-js="settings-6dad6058.js" ><script src="../../static.files/storage-3a5871a4.js"></script><script defer src="../../static.files/src-script-b8d3f215.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-4d63596a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">cc/</div>command_helpers.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Miscellaneous helpers for running commands
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/cc-1.2.19/src/command_helpers.rs`."><title>command_helpers.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-6c3ea77c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="cc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0 (05f9846f8 2025-03-31)" data-channel="1.86.0" data-search-js="search-581efc7a.js" data-settings-js="settings-6dad6058.js" ><script src="../../static.files/storage-3a5871a4.js"></script><script defer src="../../static.files/src-script-b8d3f215.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-4d63596a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">cc/</div>command_helpers.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Miscellaneous helpers for running commands
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>std::{
 <a href=#4 id=4 data-nosnippet>4</a>    borrow::Cow,
@@ -46,7 +46,7 @@
 <a href=#46 id=46 data-nosnippet>46</a>            warnings: <span class="bool-val">true</span>,
 <a href=#47 id=47 data-nosnippet>47</a>            output: OutputKind::Forward,
 <a href=#48 id=48 data-nosnippet>48</a>            debug: <span class="kw">match </span>std::env::var_os(<span class="string">"CC_ENABLE_DEBUG_OUTPUT"</span>) {
-<a href=#49 id=49 data-nosnippet>49</a>                <span class="prelude-val">Some</span>(v) =&gt; v != <span class="string">"0" </span>&amp;&amp; v != <span class="string">"false" </span>&amp;&amp; v != <span class="string">""</span>,
+<a href=#49 id=49 data-nosnippet>49</a>                <span class="prelude-val">Some</span>(v) =&gt; v != <span class="string">"0" </span>&amp;&amp; v != <span class="string">"false" </span>&amp;&amp; !v.is_empty(),
 <a href=#50 id=50 data-nosnippet>50</a>                <span class="prelude-val">None </span>=&gt; <span class="bool-val">false</span>,
 <a href=#51 id=51 data-nosnippet>51</a>            },
 <a href=#52 id=52 data-nosnippet>52</a>            checked_dbg_var: Arc::new(AtomicBool::new(<span class="bool-val">false</span>)),
@@ -247,260 +247,215 @@
 <a href=#247 id=247 data-nosnippet>247</a>
 <a href=#248 id=248 data-nosnippet>248</a><span class="kw">fn </span>wait_on_child(
 <a href=#249 id=249 data-nosnippet>249</a>    cmd: <span class="kw-2">&amp;</span>Command,
-<a href=#250 id=250 data-nosnippet>250</a>    program: <span class="kw-2">&amp;</span>Path,
-<a href=#251 id=251 data-nosnippet>251</a>    child: <span class="kw-2">&amp;mut </span>Child,
-<a href=#252 id=252 data-nosnippet>252</a>    cargo_output: <span class="kw-2">&amp;</span>CargoOutput,
-<a href=#253 id=253 data-nosnippet>253</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-<a href=#254 id=254 data-nosnippet>254</a>    StderrForwarder::new(child).forward_all();
-<a href=#255 id=255 data-nosnippet>255</a>
-<a href=#256 id=256 data-nosnippet>256</a>    <span class="kw">let </span>status = <span class="kw">match </span>child.wait() {
-<a href=#257 id=257 data-nosnippet>257</a>        <span class="prelude-val">Ok</span>(s) =&gt; s,
-<a href=#258 id=258 data-nosnippet>258</a>        <span class="prelude-val">Err</span>(e) =&gt; {
-<a href=#259 id=259 data-nosnippet>259</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
-<a href=#260 id=260 data-nosnippet>260</a>                ErrorKind::ToolExecError,
-<a href=#261 id=261 data-nosnippet>261</a>                <span class="macro">format!</span>(
-<a href=#262 id=262 data-nosnippet>262</a>                    <span class="string">"Failed to wait on spawned child process, command {:?} with args {}: {}."</span>,
-<a href=#263 id=263 data-nosnippet>263</a>                    cmd,
-<a href=#264 id=264 data-nosnippet>264</a>                    program.display(),
-<a href=#265 id=265 data-nosnippet>265</a>                    e
-<a href=#266 id=266 data-nosnippet>266</a>                ),
-<a href=#267 id=267 data-nosnippet>267</a>            ));
-<a href=#268 id=268 data-nosnippet>268</a>        }
-<a href=#269 id=269 data-nosnippet>269</a>    };
-<a href=#270 id=270 data-nosnippet>270</a>
-<a href=#271 id=271 data-nosnippet>271</a>    cargo_output.print_debug(<span class="kw-2">&amp;</span>status);
-<a href=#272 id=272 data-nosnippet>272</a>
-<a href=#273 id=273 data-nosnippet>273</a>    <span class="kw">if </span>status.success() {
-<a href=#274 id=274 data-nosnippet>274</a>        <span class="prelude-val">Ok</span>(())
-<a href=#275 id=275 data-nosnippet>275</a>    } <span class="kw">else </span>{
-<a href=#276 id=276 data-nosnippet>276</a>        <span class="prelude-val">Err</span>(Error::new(
-<a href=#277 id=277 data-nosnippet>277</a>            ErrorKind::ToolExecError,
-<a href=#278 id=278 data-nosnippet>278</a>            <span class="macro">format!</span>(
-<a href=#279 id=279 data-nosnippet>279</a>                <span class="string">"Command {:?} with args {} did not execute successfully (status code {})."</span>,
-<a href=#280 id=280 data-nosnippet>280</a>                cmd,
-<a href=#281 id=281 data-nosnippet>281</a>                program.display(),
-<a href=#282 id=282 data-nosnippet>282</a>                status
-<a href=#283 id=283 data-nosnippet>283</a>            ),
-<a href=#284 id=284 data-nosnippet>284</a>        ))
-<a href=#285 id=285 data-nosnippet>285</a>    }
-<a href=#286 id=286 data-nosnippet>286</a>}
-<a href=#287 id=287 data-nosnippet>287</a>
-<a href=#288 id=288 data-nosnippet>288</a><span class="doccomment">/// Find the destination object path for each file in the input source files,
-<a href=#289 id=289 data-nosnippet>289</a>/// and store them in the output Object.
-<a href=#290 id=290 data-nosnippet>290</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>objects_from_files(files: <span class="kw-2">&amp;</span>[Arc&lt;Path&gt;], dst: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Object&gt;, Error&gt; {
-<a href=#291 id=291 data-nosnippet>291</a>    <span class="kw">let </span><span class="kw-2">mut </span>objects = Vec::with_capacity(files.len());
-<a href=#292 id=292 data-nosnippet>292</a>    <span class="kw">for </span>file <span class="kw">in </span>files {
-<a href=#293 id=293 data-nosnippet>293</a>        <span class="kw">let </span>basename = file
-<a href=#294 id=294 data-nosnippet>294</a>            .file_name()
-<a href=#295 id=295 data-nosnippet>295</a>            .ok_or_else(|| {
-<a href=#296 id=296 data-nosnippet>296</a>                Error::new(
-<a href=#297 id=297 data-nosnippet>297</a>                    ErrorKind::InvalidArgument,
-<a href=#298 id=298 data-nosnippet>298</a>                    <span class="string">"No file_name for object file path!"</span>,
-<a href=#299 id=299 data-nosnippet>299</a>                )
-<a href=#300 id=300 data-nosnippet>300</a>            })<span class="question-mark">?
-<a href=#301 id=301 data-nosnippet>301</a>            </span>.to_string_lossy();
-<a href=#302 id=302 data-nosnippet>302</a>        <span class="kw">let </span>dirname = file
-<a href=#303 id=303 data-nosnippet>303</a>            .parent()
-<a href=#304 id=304 data-nosnippet>304</a>            .ok_or_else(|| {
-<a href=#305 id=305 data-nosnippet>305</a>                Error::new(
-<a href=#306 id=306 data-nosnippet>306</a>                    ErrorKind::InvalidArgument,
-<a href=#307 id=307 data-nosnippet>307</a>                    <span class="string">"No parent for object file path!"</span>,
-<a href=#308 id=308 data-nosnippet>308</a>                )
-<a href=#309 id=309 data-nosnippet>309</a>            })<span class="question-mark">?
-<a href=#310 id=310 data-nosnippet>310</a>            </span>.to_string_lossy();
-<a href=#311 id=311 data-nosnippet>311</a>
-<a href=#312 id=312 data-nosnippet>312</a>        <span class="comment">// Hash the dirname. This should prevent conflicts if we have multiple
-<a href=#313 id=313 data-nosnippet>313</a>        // object files with the same filename in different subfolders.
-<a href=#314 id=314 data-nosnippet>314</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>hasher = hash_map::DefaultHasher::new();
-<a href=#315 id=315 data-nosnippet>315</a>
-<a href=#316 id=316 data-nosnippet>316</a>        <span class="comment">// Make the dirname relative (if possible) to avoid full system paths influencing the sha
-<a href=#317 id=317 data-nosnippet>317</a>        // and making the output system-dependent
-<a href=#318 id=318 data-nosnippet>318</a>        //
-<a href=#319 id=319 data-nosnippet>319</a>        // NOTE: Here we allow using std::env::var (instead of Build::getenv) because
-<a href=#320 id=320 data-nosnippet>320</a>        // CARGO_* variables always trigger a rebuild when changed
-<a href=#321 id=321 data-nosnippet>321</a>        </span><span class="attr">#[allow(clippy::disallowed_methods)]
-<a href=#322 id=322 data-nosnippet>322</a>        </span><span class="kw">let </span>dirname = <span class="kw">if let </span><span class="prelude-val">Some</span>(root) = std::env::var_os(<span class="string">"CARGO_MANIFEST_DIR"</span>) {
-<a href=#323 id=323 data-nosnippet>323</a>            <span class="kw">let </span>root = root.to_string_lossy();
-<a href=#324 id=324 data-nosnippet>324</a>            Cow::Borrowed(dirname.strip_prefix(<span class="kw-2">&amp;*</span>root).unwrap_or(<span class="kw-2">&amp;</span>dirname))
-<a href=#325 id=325 data-nosnippet>325</a>        } <span class="kw">else </span>{
-<a href=#326 id=326 data-nosnippet>326</a>            dirname
-<a href=#327 id=327 data-nosnippet>327</a>        };
-<a href=#328 id=328 data-nosnippet>328</a>
-<a href=#329 id=329 data-nosnippet>329</a>        hasher.write(dirname.as_bytes());
-<a href=#330 id=330 data-nosnippet>330</a>        <span class="kw">let </span>obj = dst
-<a href=#331 id=331 data-nosnippet>331</a>            .join(<span class="macro">format!</span>(<span class="string">"{:016x}-{}"</span>, hasher.finish(), basename))
-<a href=#332 id=332 data-nosnippet>332</a>            .with_extension(<span class="string">"o"</span>);
-<a href=#333 id=333 data-nosnippet>333</a>
-<a href=#334 id=334 data-nosnippet>334</a>        <span class="kw">match </span>obj.parent() {
-<a href=#335 id=335 data-nosnippet>335</a>            <span class="prelude-val">Some</span>(s) =&gt; fs::create_dir_all(s)<span class="question-mark">?</span>,
-<a href=#336 id=336 data-nosnippet>336</a>            <span class="prelude-val">None </span>=&gt; {
-<a href=#337 id=337 data-nosnippet>337</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
-<a href=#338 id=338 data-nosnippet>338</a>                    ErrorKind::InvalidArgument,
-<a href=#339 id=339 data-nosnippet>339</a>                    <span class="string">"dst is an invalid path with no parent"</span>,
-<a href=#340 id=340 data-nosnippet>340</a>                ));
-<a href=#341 id=341 data-nosnippet>341</a>            }
-<a href=#342 id=342 data-nosnippet>342</a>        };
-<a href=#343 id=343 data-nosnippet>343</a>
-<a href=#344 id=344 data-nosnippet>344</a>        objects.push(Object::new(file.to_path_buf(), obj));
-<a href=#345 id=345 data-nosnippet>345</a>    }
+<a href=#250 id=250 data-nosnippet>250</a>    child: <span class="kw-2">&amp;mut </span>Child,
+<a href=#251 id=251 data-nosnippet>251</a>    cargo_output: <span class="kw-2">&amp;</span>CargoOutput,
+<a href=#252 id=252 data-nosnippet>252</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+<a href=#253 id=253 data-nosnippet>253</a>    StderrForwarder::new(child).forward_all();
+<a href=#254 id=254 data-nosnippet>254</a>
+<a href=#255 id=255 data-nosnippet>255</a>    <span class="kw">let </span>status = <span class="kw">match </span>child.wait() {
+<a href=#256 id=256 data-nosnippet>256</a>        <span class="prelude-val">Ok</span>(s) =&gt; s,
+<a href=#257 id=257 data-nosnippet>257</a>        <span class="prelude-val">Err</span>(e) =&gt; {
+<a href=#258 id=258 data-nosnippet>258</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
+<a href=#259 id=259 data-nosnippet>259</a>                ErrorKind::ToolExecError,
+<a href=#260 id=260 data-nosnippet>260</a>                <span class="macro">format!</span>(<span class="string">"failed to wait on spawned child process `{cmd:?}`: {e}"</span>),
+<a href=#261 id=261 data-nosnippet>261</a>            ));
+<a href=#262 id=262 data-nosnippet>262</a>        }
+<a href=#263 id=263 data-nosnippet>263</a>    };
+<a href=#264 id=264 data-nosnippet>264</a>
+<a href=#265 id=265 data-nosnippet>265</a>    cargo_output.print_debug(<span class="kw-2">&amp;</span>status);
+<a href=#266 id=266 data-nosnippet>266</a>
+<a href=#267 id=267 data-nosnippet>267</a>    <span class="kw">if </span>status.success() {
+<a href=#268 id=268 data-nosnippet>268</a>        <span class="prelude-val">Ok</span>(())
+<a href=#269 id=269 data-nosnippet>269</a>    } <span class="kw">else </span>{
+<a href=#270 id=270 data-nosnippet>270</a>        <span class="prelude-val">Err</span>(Error::new(
+<a href=#271 id=271 data-nosnippet>271</a>            ErrorKind::ToolExecError,
+<a href=#272 id=272 data-nosnippet>272</a>            <span class="macro">format!</span>(<span class="string">"command did not execute successfully (status code {status}): {cmd:?}"</span>),
+<a href=#273 id=273 data-nosnippet>273</a>        ))
+<a href=#274 id=274 data-nosnippet>274</a>    }
+<a href=#275 id=275 data-nosnippet>275</a>}
+<a href=#276 id=276 data-nosnippet>276</a>
+<a href=#277 id=277 data-nosnippet>277</a><span class="doccomment">/// Find the destination object path for each file in the input source files,
+<a href=#278 id=278 data-nosnippet>278</a>/// and store them in the output Object.
+<a href=#279 id=279 data-nosnippet>279</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>objects_from_files(files: <span class="kw-2">&amp;</span>[Arc&lt;Path&gt;], dst: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Object&gt;, Error&gt; {
+<a href=#280 id=280 data-nosnippet>280</a>    <span class="kw">let </span><span class="kw-2">mut </span>objects = Vec::with_capacity(files.len());
+<a href=#281 id=281 data-nosnippet>281</a>    <span class="kw">for </span>file <span class="kw">in </span>files {
+<a href=#282 id=282 data-nosnippet>282</a>        <span class="kw">let </span>basename = file
+<a href=#283 id=283 data-nosnippet>283</a>            .file_name()
+<a href=#284 id=284 data-nosnippet>284</a>            .ok_or_else(|| {
+<a href=#285 id=285 data-nosnippet>285</a>                Error::new(
+<a href=#286 id=286 data-nosnippet>286</a>                    ErrorKind::InvalidArgument,
+<a href=#287 id=287 data-nosnippet>287</a>                    <span class="string">"No file_name for object file path!"</span>,
+<a href=#288 id=288 data-nosnippet>288</a>                )
+<a href=#289 id=289 data-nosnippet>289</a>            })<span class="question-mark">?
+<a href=#290 id=290 data-nosnippet>290</a>            </span>.to_string_lossy();
+<a href=#291 id=291 data-nosnippet>291</a>        <span class="kw">let </span>dirname = file
+<a href=#292 id=292 data-nosnippet>292</a>            .parent()
+<a href=#293 id=293 data-nosnippet>293</a>            .ok_or_else(|| {
+<a href=#294 id=294 data-nosnippet>294</a>                Error::new(
+<a href=#295 id=295 data-nosnippet>295</a>                    ErrorKind::InvalidArgument,
+<a href=#296 id=296 data-nosnippet>296</a>                    <span class="string">"No parent for object file path!"</span>,
+<a href=#297 id=297 data-nosnippet>297</a>                )
+<a href=#298 id=298 data-nosnippet>298</a>            })<span class="question-mark">?
+<a href=#299 id=299 data-nosnippet>299</a>            </span>.to_string_lossy();
+<a href=#300 id=300 data-nosnippet>300</a>
+<a href=#301 id=301 data-nosnippet>301</a>        <span class="comment">// Hash the dirname. This should prevent conflicts if we have multiple
+<a href=#302 id=302 data-nosnippet>302</a>        // object files with the same filename in different subfolders.
+<a href=#303 id=303 data-nosnippet>303</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>hasher = hash_map::DefaultHasher::new();
+<a href=#304 id=304 data-nosnippet>304</a>
+<a href=#305 id=305 data-nosnippet>305</a>        <span class="comment">// Make the dirname relative (if possible) to avoid full system paths influencing the sha
+<a href=#306 id=306 data-nosnippet>306</a>        // and making the output system-dependent
+<a href=#307 id=307 data-nosnippet>307</a>        //
+<a href=#308 id=308 data-nosnippet>308</a>        // NOTE: Here we allow using std::env::var (instead of Build::getenv) because
+<a href=#309 id=309 data-nosnippet>309</a>        // CARGO_* variables always trigger a rebuild when changed
+<a href=#310 id=310 data-nosnippet>310</a>        </span><span class="attr">#[allow(clippy::disallowed_methods)]
+<a href=#311 id=311 data-nosnippet>311</a>        </span><span class="kw">let </span>dirname = <span class="kw">if let </span><span class="prelude-val">Some</span>(root) = std::env::var_os(<span class="string">"CARGO_MANIFEST_DIR"</span>) {
+<a href=#312 id=312 data-nosnippet>312</a>            <span class="kw">let </span>root = root.to_string_lossy();
+<a href=#313 id=313 data-nosnippet>313</a>            Cow::Borrowed(dirname.strip_prefix(<span class="kw-2">&amp;*</span>root).unwrap_or(<span class="kw-2">&amp;</span>dirname))
+<a href=#314 id=314 data-nosnippet>314</a>        } <span class="kw">else </span>{
+<a href=#315 id=315 data-nosnippet>315</a>            dirname
+<a href=#316 id=316 data-nosnippet>316</a>        };
+<a href=#317 id=317 data-nosnippet>317</a>
+<a href=#318 id=318 data-nosnippet>318</a>        hasher.write(dirname.as_bytes());
+<a href=#319 id=319 data-nosnippet>319</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(extension) = file.extension() {
+<a href=#320 id=320 data-nosnippet>320</a>            hasher.write(extension.to_string_lossy().as_bytes());
+<a href=#321 id=321 data-nosnippet>321</a>        }
+<a href=#322 id=322 data-nosnippet>322</a>        <span class="kw">let </span>obj = dst
+<a href=#323 id=323 data-nosnippet>323</a>            .join(<span class="macro">format!</span>(<span class="string">"{:016x}-{}"</span>, hasher.finish(), basename))
+<a href=#324 id=324 data-nosnippet>324</a>            .with_extension(<span class="string">"o"</span>);
+<a href=#325 id=325 data-nosnippet>325</a>
+<a href=#326 id=326 data-nosnippet>326</a>        <span class="kw">match </span>obj.parent() {
+<a href=#327 id=327 data-nosnippet>327</a>            <span class="prelude-val">Some</span>(s) =&gt; fs::create_dir_all(s)<span class="question-mark">?</span>,
+<a href=#328 id=328 data-nosnippet>328</a>            <span class="prelude-val">None </span>=&gt; {
+<a href=#329 id=329 data-nosnippet>329</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
+<a href=#330 id=330 data-nosnippet>330</a>                    ErrorKind::InvalidArgument,
+<a href=#331 id=331 data-nosnippet>331</a>                    <span class="string">"dst is an invalid path with no parent"</span>,
+<a href=#332 id=332 data-nosnippet>332</a>                ));
+<a href=#333 id=333 data-nosnippet>333</a>            }
+<a href=#334 id=334 data-nosnippet>334</a>        };
+<a href=#335 id=335 data-nosnippet>335</a>
+<a href=#336 id=336 data-nosnippet>336</a>        objects.push(Object::new(file.to_path_buf(), obj));
+<a href=#337 id=337 data-nosnippet>337</a>    }
+<a href=#338 id=338 data-nosnippet>338</a>
+<a href=#339 id=339 data-nosnippet>339</a>    <span class="prelude-val">Ok</span>(objects)
+<a href=#340 id=340 data-nosnippet>340</a>}
+<a href=#341 id=341 data-nosnippet>341</a>
+<a href=#342 id=342 data-nosnippet>342</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(cmd: <span class="kw-2">&amp;mut </span>Command, cargo_output: <span class="kw-2">&amp;</span>CargoOutput) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+<a href=#343 id=343 data-nosnippet>343</a>    <span class="kw">let </span><span class="kw-2">mut </span>child = spawn(cmd, cargo_output)<span class="question-mark">?</span>;
+<a href=#344 id=344 data-nosnippet>344</a>    wait_on_child(cmd, <span class="kw-2">&amp;mut </span>child, cargo_output)
+<a href=#345 id=345 data-nosnippet>345</a>}
 <a href=#346 id=346 data-nosnippet>346</a>
-<a href=#347 id=347 data-nosnippet>347</a>    <span class="prelude-val">Ok</span>(objects)
-<a href=#348 id=348 data-nosnippet>348</a>}
-<a href=#349 id=349 data-nosnippet>349</a>
-<a href=#350 id=350 data-nosnippet>350</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run(
-<a href=#351 id=351 data-nosnippet>351</a>    cmd: <span class="kw-2">&amp;mut </span>Command,
-<a href=#352 id=352 data-nosnippet>352</a>    program: <span class="kw">impl </span>AsRef&lt;Path&gt;,
-<a href=#353 id=353 data-nosnippet>353</a>    cargo_output: <span class="kw-2">&amp;</span>CargoOutput,
-<a href=#354 id=354 data-nosnippet>354</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-<a href=#355 id=355 data-nosnippet>355</a>    <span class="kw">let </span>program = program.as_ref();
-<a href=#356 id=356 data-nosnippet>356</a>
-<a href=#357 id=357 data-nosnippet>357</a>    <span class="kw">let </span><span class="kw-2">mut </span>child = spawn(cmd, program, cargo_output)<span class="question-mark">?</span>;
-<a href=#358 id=358 data-nosnippet>358</a>    wait_on_child(cmd, program, <span class="kw-2">&amp;mut </span>child, cargo_output)
-<a href=#359 id=359 data-nosnippet>359</a>}
+<a href=#347 id=347 data-nosnippet>347</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run_output(cmd: <span class="kw-2">&amp;mut </span>Command, cargo_output: <span class="kw-2">&amp;</span>CargoOutput) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt; {
+<a href=#348 id=348 data-nosnippet>348</a>    <span class="comment">// We specifically need the output to be captured, so override default
+<a href=#349 id=349 data-nosnippet>349</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>captured_cargo_output = cargo_output.clone();
+<a href=#350 id=350 data-nosnippet>350</a>    captured_cargo_output.output = OutputKind::Capture;
+<a href=#351 id=351 data-nosnippet>351</a>    <span class="kw">let </span><span class="kw-2">mut </span>child = spawn(cmd, <span class="kw-2">&amp;</span>captured_cargo_output)<span class="question-mark">?</span>;
+<a href=#352 id=352 data-nosnippet>352</a>
+<a href=#353 id=353 data-nosnippet>353</a>    <span class="kw">let </span><span class="kw-2">mut </span>stdout = <span class="macro">vec!</span>[];
+<a href=#354 id=354 data-nosnippet>354</a>    child
+<a href=#355 id=355 data-nosnippet>355</a>        .stdout
+<a href=#356 id=356 data-nosnippet>356</a>        .take()
+<a href=#357 id=357 data-nosnippet>357</a>        .unwrap()
+<a href=#358 id=358 data-nosnippet>358</a>        .read_to_end(<span class="kw-2">&amp;mut </span>stdout)
+<a href=#359 id=359 data-nosnippet>359</a>        .unwrap();
 <a href=#360 id=360 data-nosnippet>360</a>
-<a href=#361 id=361 data-nosnippet>361</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run_output(
-<a href=#362 id=362 data-nosnippet>362</a>    cmd: <span class="kw-2">&amp;mut </span>Command,
-<a href=#363 id=363 data-nosnippet>363</a>    program: <span class="kw">impl </span>AsRef&lt;Path&gt;,
-<a href=#364 id=364 data-nosnippet>364</a>    cargo_output: <span class="kw-2">&amp;</span>CargoOutput,
-<a href=#365 id=365 data-nosnippet>365</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt; {
-<a href=#366 id=366 data-nosnippet>366</a>    <span class="kw">let </span>program = program.as_ref();
-<a href=#367 id=367 data-nosnippet>367</a>
-<a href=#368 id=368 data-nosnippet>368</a>    <span class="comment">// We specifically need the output to be captured, so override default
-<a href=#369 id=369 data-nosnippet>369</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>captured_cargo_output = cargo_output.clone();
-<a href=#370 id=370 data-nosnippet>370</a>    captured_cargo_output.output = OutputKind::Capture;
-<a href=#371 id=371 data-nosnippet>371</a>    <span class="kw">let </span><span class="kw-2">mut </span>child = spawn(cmd, program, <span class="kw-2">&amp;</span>captured_cargo_output)<span class="question-mark">?</span>;
-<a href=#372 id=372 data-nosnippet>372</a>
-<a href=#373 id=373 data-nosnippet>373</a>    <span class="kw">let </span><span class="kw-2">mut </span>stdout = <span class="macro">vec!</span>[];
-<a href=#374 id=374 data-nosnippet>374</a>    child
-<a href=#375 id=375 data-nosnippet>375</a>        .stdout
-<a href=#376 id=376 data-nosnippet>376</a>        .take()
-<a href=#377 id=377 data-nosnippet>377</a>        .unwrap()
-<a href=#378 id=378 data-nosnippet>378</a>        .read_to_end(<span class="kw-2">&amp;mut </span>stdout)
-<a href=#379 id=379 data-nosnippet>379</a>        .unwrap();
-<a href=#380 id=380 data-nosnippet>380</a>
-<a href=#381 id=381 data-nosnippet>381</a>    <span class="comment">// Don't care about this output, use the normal settings
-<a href=#382 id=382 data-nosnippet>382</a>    </span>wait_on_child(cmd, program, <span class="kw-2">&amp;mut </span>child, cargo_output)<span class="question-mark">?</span>;
-<a href=#383 id=383 data-nosnippet>383</a>
-<a href=#384 id=384 data-nosnippet>384</a>    <span class="prelude-val">Ok</span>(stdout)
-<a href=#385 id=385 data-nosnippet>385</a>}
-<a href=#386 id=386 data-nosnippet>386</a>
-<a href=#387 id=387 data-nosnippet>387</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn(
-<a href=#388 id=388 data-nosnippet>388</a>    cmd: <span class="kw-2">&amp;mut </span>Command,
-<a href=#389 id=389 data-nosnippet>389</a>    program: <span class="kw-2">&amp;</span>Path,
-<a href=#390 id=390 data-nosnippet>390</a>    cargo_output: <span class="kw-2">&amp;</span>CargoOutput,
-<a href=#391 id=391 data-nosnippet>391</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Child, Error&gt; {
-<a href=#392 id=392 data-nosnippet>392</a>    <span class="kw">struct </span>ResetStderr&lt;<span class="lifetime">'cmd</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'cmd </span><span class="kw-2">mut </span>Command);
-<a href=#393 id=393 data-nosnippet>393</a>
-<a href=#394 id=394 data-nosnippet>394</a>    <span class="kw">impl </span>Drop <span class="kw">for </span>ResetStderr&lt;<span class="lifetime">'_</span>&gt; {
-<a href=#395 id=395 data-nosnippet>395</a>        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#396 id=396 data-nosnippet>396</a>            <span class="comment">// Reset stderr to default to release pipe_writer so that print thread will
-<a href=#397 id=397 data-nosnippet>397</a>            // not block forever.
-<a href=#398 id=398 data-nosnippet>398</a>            </span><span class="self">self</span>.<span class="number">0</span>.stderr(Stdio::inherit());
-<a href=#399 id=399 data-nosnippet>399</a>        }
-<a href=#400 id=400 data-nosnippet>400</a>    }
-<a href=#401 id=401 data-nosnippet>401</a>
-<a href=#402 id=402 data-nosnippet>402</a>    cargo_output.print_debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"running: {:?}"</span>, cmd));
-<a href=#403 id=403 data-nosnippet>403</a>
-<a href=#404 id=404 data-nosnippet>404</a>    <span class="kw">let </span>cmd = ResetStderr(cmd);
-<a href=#405 id=405 data-nosnippet>405</a>    <span class="kw">let </span>child = cmd
-<a href=#406 id=406 data-nosnippet>406</a>        .<span class="number">0
-<a href=#407 id=407 data-nosnippet>407</a>        </span>.stderr(cargo_output.stdio_for_warnings())
-<a href=#408 id=408 data-nosnippet>408</a>        .stdout(cargo_output.stdio_for_output())
-<a href=#409 id=409 data-nosnippet>409</a>        .spawn();
-<a href=#410 id=410 data-nosnippet>410</a>    <span class="kw">match </span>child {
-<a href=#411 id=411 data-nosnippet>411</a>        <span class="prelude-val">Ok</span>(child) =&gt; <span class="prelude-val">Ok</span>(child),
-<a href=#412 id=412 data-nosnippet>412</a>        <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span>e.kind() == io::ErrorKind::NotFound =&gt; {
-<a href=#413 id=413 data-nosnippet>413</a>            <span class="kw">let </span>extra = <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
-<a href=#414 id=414 data-nosnippet>414</a>                <span class="string">" (see https://docs.rs/cc/latest/cc/#compile-time-requirements \
-<a href=#415 id=415 data-nosnippet>415</a>for help)"
-<a href=#416 id=416 data-nosnippet>416</a>            </span>} <span class="kw">else </span>{
-<a href=#417 id=417 data-nosnippet>417</a>                <span class="string">""
-<a href=#418 id=418 data-nosnippet>418</a>            </span>};
-<a href=#419 id=419 data-nosnippet>419</a>            <span class="prelude-val">Err</span>(Error::new(
-<a href=#420 id=420 data-nosnippet>420</a>                ErrorKind::ToolNotFound,
-<a href=#421 id=421 data-nosnippet>421</a>                <span class="macro">format!</span>(
-<a href=#422 id=422 data-nosnippet>422</a>                    <span class="string">"Failed to find tool. Is `{}` installed?{}"</span>,
-<a href=#423 id=423 data-nosnippet>423</a>                    program.display(),
-<a href=#424 id=424 data-nosnippet>424</a>                    extra
-<a href=#425 id=425 data-nosnippet>425</a>                ),
-<a href=#426 id=426 data-nosnippet>426</a>            ))
-<a href=#427 id=427 data-nosnippet>427</a>        }
-<a href=#428 id=428 data-nosnippet>428</a>        <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(Error::new(
-<a href=#429 id=429 data-nosnippet>429</a>            ErrorKind::ToolExecError,
-<a href=#430 id=430 data-nosnippet>430</a>            <span class="macro">format!</span>(
-<a href=#431 id=431 data-nosnippet>431</a>                <span class="string">"Command {:?} with args {} failed to start: {:?}"</span>,
-<a href=#432 id=432 data-nosnippet>432</a>                cmd.<span class="number">0</span>,
-<a href=#433 id=433 data-nosnippet>433</a>                program.display(),
-<a href=#434 id=434 data-nosnippet>434</a>                e
-<a href=#435 id=435 data-nosnippet>435</a>            ),
-<a href=#436 id=436 data-nosnippet>436</a>        )),
-<a href=#437 id=437 data-nosnippet>437</a>    }
-<a href=#438 id=438 data-nosnippet>438</a>}
-<a href=#439 id=439 data-nosnippet>439</a>
-<a href=#440 id=440 data-nosnippet>440</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CmdAddOutputFileArgs {
-<a href=#441 id=441 data-nosnippet>441</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) cuda: bool,
-<a href=#442 id=442 data-nosnippet>442</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) is_assembler_msvc: bool,
-<a href=#443 id=443 data-nosnippet>443</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) msvc: bool,
-<a href=#444 id=444 data-nosnippet>444</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) clang: bool,
-<a href=#445 id=445 data-nosnippet>445</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) gnu: bool,
-<a href=#446 id=446 data-nosnippet>446</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) is_asm: bool,
-<a href=#447 id=447 data-nosnippet>447</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) is_arm: bool,
-<a href=#448 id=448 data-nosnippet>448</a>}
-<a href=#449 id=449 data-nosnippet>449</a>
-<a href=#450 id=450 data-nosnippet>450</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>command_add_output_file(cmd: <span class="kw-2">&amp;mut </span>Command, dst: <span class="kw-2">&amp;</span>Path, args: CmdAddOutputFileArgs) {
-<a href=#451 id=451 data-nosnippet>451</a>    <span class="kw">if </span>args.is_assembler_msvc
-<a href=#452 id=452 data-nosnippet>452</a>        || !(!args.msvc || args.clang || args.gnu || args.cuda || (args.is_asm &amp;&amp; args.is_arm))
-<a href=#453 id=453 data-nosnippet>453</a>    {
-<a href=#454 id=454 data-nosnippet>454</a>        <span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<span class="string">"-Fo"</span>);
-<a href=#455 id=455 data-nosnippet>455</a>        s.push(dst);
-<a href=#456 id=456 data-nosnippet>456</a>        cmd.arg(s);
-<a href=#457 id=457 data-nosnippet>457</a>    } <span class="kw">else </span>{
-<a href=#458 id=458 data-nosnippet>458</a>        cmd.arg(<span class="string">"-o"</span>).arg(dst);
-<a href=#459 id=459 data-nosnippet>459</a>    }
-<a href=#460 id=460 data-nosnippet>460</a>}
-<a href=#461 id=461 data-nosnippet>461</a>
-<a href=#462 id=462 data-nosnippet>462</a><span class="attr">#[cfg(feature = <span class="string">"parallel"</span>)]
-<a href=#463 id=463 data-nosnippet>463</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_wait_on_child(
-<a href=#464 id=464 data-nosnippet>464</a>    cmd: <span class="kw-2">&amp;</span>Command,
-<a href=#465 id=465 data-nosnippet>465</a>    program: <span class="kw-2">&amp;</span>Path,
-<a href=#466 id=466 data-nosnippet>466</a>    child: <span class="kw-2">&amp;mut </span>Child,
-<a href=#467 id=467 data-nosnippet>467</a>    stdout: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write,
-<a href=#468 id=468 data-nosnippet>468</a>    stderr_forwarder: <span class="kw-2">&amp;mut </span>StderrForwarder,
-<a href=#469 id=469 data-nosnippet>469</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;()&gt;, Error&gt; {
-<a href=#470 id=470 data-nosnippet>470</a>    stderr_forwarder.forward_available();
-<a href=#471 id=471 data-nosnippet>471</a>
-<a href=#472 id=472 data-nosnippet>472</a>    <span class="kw">match </span>child.try_wait() {
-<a href=#473 id=473 data-nosnippet>473</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(status)) =&gt; {
-<a href=#474 id=474 data-nosnippet>474</a>            stderr_forwarder.forward_all();
-<a href=#475 id=475 data-nosnippet>475</a>
-<a href=#476 id=476 data-nosnippet>476</a>            <span class="kw">let _ </span>= <span class="macro">writeln!</span>(stdout, <span class="string">"{}"</span>, status);
-<a href=#477 id=477 data-nosnippet>477</a>
-<a href=#478 id=478 data-nosnippet>478</a>            <span class="kw">if </span>status.success() {
-<a href=#479 id=479 data-nosnippet>479</a>                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(()))
-<a href=#480 id=480 data-nosnippet>480</a>            } <span class="kw">else </span>{
-<a href=#481 id=481 data-nosnippet>481</a>                <span class="prelude-val">Err</span>(Error::new(
-<a href=#482 id=482 data-nosnippet>482</a>                    ErrorKind::ToolExecError,
-<a href=#483 id=483 data-nosnippet>483</a>                    <span class="macro">format!</span>(
-<a href=#484 id=484 data-nosnippet>484</a>                        <span class="string">"Command {:?} with args {} did not execute successfully (status code {})."</span>,
-<a href=#485 id=485 data-nosnippet>485</a>                        cmd,
-<a href=#486 id=486 data-nosnippet>486</a>                        program.display(),
-<a href=#487 id=487 data-nosnippet>487</a>                        status
-<a href=#488 id=488 data-nosnippet>488</a>                    ),
-<a href=#489 id=489 data-nosnippet>489</a>                ))
-<a href=#490 id=490 data-nosnippet>490</a>            }
-<a href=#491 id=491 data-nosnippet>491</a>        }
-<a href=#492 id=492 data-nosnippet>492</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-<a href=#493 id=493 data-nosnippet>493</a>        <span class="prelude-val">Err</span>(e) =&gt; {
-<a href=#494 id=494 data-nosnippet>494</a>            stderr_forwarder.forward_all();
-<a href=#495 id=495 data-nosnippet>495</a>            <span class="prelude-val">Err</span>(Error::new(
-<a href=#496 id=496 data-nosnippet>496</a>                ErrorKind::ToolExecError,
-<a href=#497 id=497 data-nosnippet>497</a>                <span class="macro">format!</span>(
-<a href=#498 id=498 data-nosnippet>498</a>                    <span class="string">"Failed to wait on spawned child process, command {:?} with args {}: {}."</span>,
-<a href=#499 id=499 data-nosnippet>499</a>                    cmd,
-<a href=#500 id=500 data-nosnippet>500</a>                    program.display(),
-<a href=#501 id=501 data-nosnippet>501</a>                    e
-<a href=#502 id=502 data-nosnippet>502</a>                ),
-<a href=#503 id=503 data-nosnippet>503</a>            ))
-<a href=#504 id=504 data-nosnippet>504</a>        }
-<a href=#505 id=505 data-nosnippet>505</a>    }
-<a href=#506 id=506 data-nosnippet>506</a>}</code></pre></div></section></main></body></html>
+<a href=#361 id=361 data-nosnippet>361</a>    <span class="comment">// Don't care about this output, use the normal settings
+<a href=#362 id=362 data-nosnippet>362</a>    </span>wait_on_child(cmd, <span class="kw-2">&amp;mut </span>child, cargo_output)<span class="question-mark">?</span>;
+<a href=#363 id=363 data-nosnippet>363</a>
+<a href=#364 id=364 data-nosnippet>364</a>    <span class="prelude-val">Ok</span>(stdout)
+<a href=#365 id=365 data-nosnippet>365</a>}
+<a href=#366 id=366 data-nosnippet>366</a>
+<a href=#367 id=367 data-nosnippet>367</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>spawn(cmd: <span class="kw-2">&amp;mut </span>Command, cargo_output: <span class="kw-2">&amp;</span>CargoOutput) -&gt; <span class="prelude-ty">Result</span>&lt;Child, Error&gt; {
+<a href=#368 id=368 data-nosnippet>368</a>    <span class="kw">struct </span>ResetStderr&lt;<span class="lifetime">'cmd</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'cmd </span><span class="kw-2">mut </span>Command);
+<a href=#369 id=369 data-nosnippet>369</a>
+<a href=#370 id=370 data-nosnippet>370</a>    <span class="kw">impl </span>Drop <span class="kw">for </span>ResetStderr&lt;<span class="lifetime">'_</span>&gt; {
+<a href=#371 id=371 data-nosnippet>371</a>        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#372 id=372 data-nosnippet>372</a>            <span class="comment">// Reset stderr to default to release pipe_writer so that print thread will
+<a href=#373 id=373 data-nosnippet>373</a>            // not block forever.
+<a href=#374 id=374 data-nosnippet>374</a>            </span><span class="self">self</span>.<span class="number">0</span>.stderr(Stdio::inherit());
+<a href=#375 id=375 data-nosnippet>375</a>        }
+<a href=#376 id=376 data-nosnippet>376</a>    }
+<a href=#377 id=377 data-nosnippet>377</a>
+<a href=#378 id=378 data-nosnippet>378</a>    cargo_output.print_debug(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">"running: {:?}"</span>, cmd));
+<a href=#379 id=379 data-nosnippet>379</a>
+<a href=#380 id=380 data-nosnippet>380</a>    <span class="kw">let </span>cmd = ResetStderr(cmd);
+<a href=#381 id=381 data-nosnippet>381</a>    <span class="kw">let </span>child = cmd
+<a href=#382 id=382 data-nosnippet>382</a>        .<span class="number">0
+<a href=#383 id=383 data-nosnippet>383</a>        </span>.stderr(cargo_output.stdio_for_warnings())
+<a href=#384 id=384 data-nosnippet>384</a>        .stdout(cargo_output.stdio_for_output())
+<a href=#385 id=385 data-nosnippet>385</a>        .spawn();
+<a href=#386 id=386 data-nosnippet>386</a>    <span class="kw">match </span>child {
+<a href=#387 id=387 data-nosnippet>387</a>        <span class="prelude-val">Ok</span>(child) =&gt; <span class="prelude-val">Ok</span>(child),
+<a href=#388 id=388 data-nosnippet>388</a>        <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span>e.kind() == io::ErrorKind::NotFound =&gt; {
+<a href=#389 id=389 data-nosnippet>389</a>            <span class="kw">let </span>extra = <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
+<a href=#390 id=390 data-nosnippet>390</a>                <span class="string">" (see https://docs.rs/cc/latest/cc/#compile-time-requirements for help)"
+<a href=#391 id=391 data-nosnippet>391</a>            </span>} <span class="kw">else </span>{
+<a href=#392 id=392 data-nosnippet>392</a>                <span class="string">""
+<a href=#393 id=393 data-nosnippet>393</a>            </span>};
+<a href=#394 id=394 data-nosnippet>394</a>            <span class="prelude-val">Err</span>(Error::new(
+<a href=#395 id=395 data-nosnippet>395</a>                ErrorKind::ToolNotFound,
+<a href=#396 id=396 data-nosnippet>396</a>                <span class="macro">format!</span>(<span class="string">"failed to find tool {:?}: {e}{extra}"</span>, cmd.<span class="number">0</span>.get_program()),
+<a href=#397 id=397 data-nosnippet>397</a>            ))
+<a href=#398 id=398 data-nosnippet>398</a>        }
+<a href=#399 id=399 data-nosnippet>399</a>        <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(Error::new(
+<a href=#400 id=400 data-nosnippet>400</a>            ErrorKind::ToolExecError,
+<a href=#401 id=401 data-nosnippet>401</a>            <span class="macro">format!</span>(<span class="string">"command `{:?}` failed to start: {e}"</span>, cmd.<span class="number">0</span>),
+<a href=#402 id=402 data-nosnippet>402</a>        )),
+<a href=#403 id=403 data-nosnippet>403</a>    }
+<a href=#404 id=404 data-nosnippet>404</a>}
+<a href=#405 id=405 data-nosnippet>405</a>
+<a href=#406 id=406 data-nosnippet>406</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CmdAddOutputFileArgs {
+<a href=#407 id=407 data-nosnippet>407</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) cuda: bool,
+<a href=#408 id=408 data-nosnippet>408</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) is_assembler_msvc: bool,
+<a href=#409 id=409 data-nosnippet>409</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) msvc: bool,
+<a href=#410 id=410 data-nosnippet>410</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) clang: bool,
+<a href=#411 id=411 data-nosnippet>411</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) gnu: bool,
+<a href=#412 id=412 data-nosnippet>412</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) is_asm: bool,
+<a href=#413 id=413 data-nosnippet>413</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) is_arm: bool,
+<a href=#414 id=414 data-nosnippet>414</a>}
+<a href=#415 id=415 data-nosnippet>415</a>
+<a href=#416 id=416 data-nosnippet>416</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>command_add_output_file(cmd: <span class="kw-2">&amp;mut </span>Command, dst: <span class="kw-2">&amp;</span>Path, args: CmdAddOutputFileArgs) {
+<a href=#417 id=417 data-nosnippet>417</a>    <span class="kw">if </span>args.is_assembler_msvc
+<a href=#418 id=418 data-nosnippet>418</a>        || !(!args.msvc || args.clang || args.gnu || args.cuda || (args.is_asm &amp;&amp; args.is_arm))
+<a href=#419 id=419 data-nosnippet>419</a>    {
+<a href=#420 id=420 data-nosnippet>420</a>        <span class="kw">let </span><span class="kw-2">mut </span>s = OsString::from(<span class="string">"-Fo"</span>);
+<a href=#421 id=421 data-nosnippet>421</a>        s.push(dst);
+<a href=#422 id=422 data-nosnippet>422</a>        cmd.arg(s);
+<a href=#423 id=423 data-nosnippet>423</a>    } <span class="kw">else </span>{
+<a href=#424 id=424 data-nosnippet>424</a>        cmd.arg(<span class="string">"-o"</span>).arg(dst);
+<a href=#425 id=425 data-nosnippet>425</a>    }
+<a href=#426 id=426 data-nosnippet>426</a>}
+<a href=#427 id=427 data-nosnippet>427</a>
+<a href=#428 id=428 data-nosnippet>428</a><span class="attr">#[cfg(feature = <span class="string">"parallel"</span>)]
+<a href=#429 id=429 data-nosnippet>429</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_wait_on_child(
+<a href=#430 id=430 data-nosnippet>430</a>    cmd: <span class="kw-2">&amp;</span>Command,
+<a href=#431 id=431 data-nosnippet>431</a>    child: <span class="kw-2">&amp;mut </span>Child,
+<a href=#432 id=432 data-nosnippet>432</a>    stdout: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write,
+<a href=#433 id=433 data-nosnippet>433</a>    stderr_forwarder: <span class="kw-2">&amp;mut </span>StderrForwarder,
+<a href=#434 id=434 data-nosnippet>434</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;()&gt;, Error&gt; {
+<a href=#435 id=435 data-nosnippet>435</a>    stderr_forwarder.forward_available();
+<a href=#436 id=436 data-nosnippet>436</a>
+<a href=#437 id=437 data-nosnippet>437</a>    <span class="kw">match </span>child.try_wait() {
+<a href=#438 id=438 data-nosnippet>438</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(status)) =&gt; {
+<a href=#439 id=439 data-nosnippet>439</a>            stderr_forwarder.forward_all();
+<a href=#440 id=440 data-nosnippet>440</a>
+<a href=#441 id=441 data-nosnippet>441</a>            <span class="kw">let _ </span>= <span class="macro">writeln!</span>(stdout, <span class="string">"{}"</span>, status);
+<a href=#442 id=442 data-nosnippet>442</a>
+<a href=#443 id=443 data-nosnippet>443</a>            <span class="kw">if </span>status.success() {
+<a href=#444 id=444 data-nosnippet>444</a>                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(()))
+<a href=#445 id=445 data-nosnippet>445</a>            } <span class="kw">else </span>{
+<a href=#446 id=446 data-nosnippet>446</a>                <span class="prelude-val">Err</span>(Error::new(
+<a href=#447 id=447 data-nosnippet>447</a>                    ErrorKind::ToolExecError,
+<a href=#448 id=448 data-nosnippet>448</a>                    <span class="macro">format!</span>(<span class="string">"command did not execute successfully (status code {status}): {cmd:?}"</span>),
+<a href=#449 id=449 data-nosnippet>449</a>                ))
+<a href=#450 id=450 data-nosnippet>450</a>            }
+<a href=#451 id=451 data-nosnippet>451</a>        }
+<a href=#452 id=452 data-nosnippet>452</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+<a href=#453 id=453 data-nosnippet>453</a>        <span class="prelude-val">Err</span>(e) =&gt; {
+<a href=#454 id=454 data-nosnippet>454</a>            stderr_forwarder.forward_all();
+<a href=#455 id=455 data-nosnippet>455</a>            <span class="prelude-val">Err</span>(Error::new(
+<a href=#456 id=456 data-nosnippet>456</a>                ErrorKind::ToolExecError,
+<a href=#457 id=457 data-nosnippet>457</a>                <span class="macro">format!</span>(<span class="string">"failed to wait on spawned child process `{cmd:?}`: {e}"</span>),
+<a href=#458 id=458 data-nosnippet>458</a>            ))
+<a href=#459 id=459 data-nosnippet>459</a>        }
+<a href=#460 id=460 data-nosnippet>460</a>    }
+<a href=#461 id=461 data-nosnippet>461</a>}</code></pre></div></section></main></body></html>

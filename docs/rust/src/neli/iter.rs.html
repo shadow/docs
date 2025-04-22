@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/neli-0.6.4/src/iter.rs`."><title>iter.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-6c3ea77c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="neli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0 (05f9846f8 2025-03-31)" data-channel="1.86.0" data-search-js="search-581efc7a.js" data-settings-js="settings-6dad6058.js" ><script src="../../static.files/storage-3a5871a4.js"></script><script defer src="../../static.files/src-script-b8d3f215.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-4d63596a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">neli/</div>iter.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Module for iteration over netlink responses
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/neli-0.6.5/src/iter.rs`."><title>iter.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-6c3ea77c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="neli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.86.0 (05f9846f8 2025-03-31)" data-channel="1.86.0" data-search-js="search-581efc7a.js" data-settings-js="settings-6dad6058.js" ><script src="../../static.files/storage-3a5871a4.js"></script><script defer src="../../static.files/src-script-b8d3f215.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-4d63596a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">neli/</div>iter.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Module for iteration over netlink responses
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>std::{fmt::Debug, marker::PhantomData};
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -23,21 +23,21 @@
 <a href=#23 id=23 data-nosnippet>23</a>}
 <a href=#24 id=24 data-nosnippet>24</a>
 <a href=#25 id=25 data-nosnippet>25</a><span class="doccomment">/// Iterator over messages in an
-<a href=#26 id=26 data-nosnippet>26</a>/// [`NlSocketHandle`][crate::socket::NlSocketHandle] type.
+<a href=#26 id=26 data-nosnippet>26</a>/// [`NlSocketHandle`] type.
 <a href=#27 id=27 data-nosnippet>27</a>///
 <a href=#28 id=28 data-nosnippet>28</a>/// This iterator has two high-level options:
 <a href=#29 id=29 data-nosnippet>29</a>/// * Iterate indefinitely over messages. This is most
-<a href=#30 id=30 data-nosnippet>30</a>/// useful in the case of subscribing to messages in a
-<a href=#31 id=31 data-nosnippet>31</a>/// multicast group.
+<a href=#30 id=30 data-nosnippet>30</a>///   useful in the case of subscribing to messages in a
+<a href=#31 id=31 data-nosnippet>31</a>///   multicast group.
 <a href=#32 id=32 data-nosnippet>32</a>/// * Iterate until a message is returned with
-<a href=#33 id=33 data-nosnippet>33</a>/// [`Nlmsg::Done`][crate::consts::nl::Nlmsg::Done] is set.
-<a href=#34 id=34 data-nosnippet>34</a>/// This is most useful in the case of request-response workflows
-<a href=#35 id=35 data-nosnippet>35</a>/// where the iterator will parse and iterate through all of the
-<a href=#36 id=36 data-nosnippet>36</a>/// messages with [`NlmF::Multi`][crate::consts::nl::NlmF::Multi] set
-<a href=#37 id=37 data-nosnippet>37</a>/// until a message with
-<a href=#38 id=38 data-nosnippet>38</a>/// [`Nlmsg::Done`][crate::consts::nl::Nlmsg::Done] is
-<a href=#39 id=39 data-nosnippet>39</a>/// received at which point [`None`] will be returned indicating the
-<a href=#40 id=40 data-nosnippet>40</a>/// end of the response.
+<a href=#33 id=33 data-nosnippet>33</a>///   [`Nlmsg::Done`] is set.
+<a href=#34 id=34 data-nosnippet>34</a>///   This is most useful in the case of request-response workflows
+<a href=#35 id=35 data-nosnippet>35</a>///   where the iterator will parse and iterate through all of the
+<a href=#36 id=36 data-nosnippet>36</a>///   messages with [`NlmF::Multi`] set
+<a href=#37 id=37 data-nosnippet>37</a>///   until a message with
+<a href=#38 id=38 data-nosnippet>38</a>///   [`Nlmsg::Done`] is
+<a href=#39 id=39 data-nosnippet>39</a>///   received at which point [`None`] will be returned indicating the
+<a href=#40 id=40 data-nosnippet>40</a>///   end of the response.
 <a href=#41 id=41 data-nosnippet>41</a></span><span class="kw">pub struct </span>NlMessageIter&lt;<span class="lifetime">'a</span>, T, P&gt; {
 <a href=#42 id=42 data-nosnippet>42</a>    sock_ref: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>NlSocketHandle,
 <a href=#43 id=43 data-nosnippet>43</a>    next_is_none: <span class="prelude-ty">Option</span>&lt;bool&gt;,
@@ -51,23 +51,23 @@
 <a href=#51 id=51 data-nosnippet>51</a>    P: FromBytesWithInput&lt;<span class="lifetime">'a</span>, Input = usize&gt; + Debug,
 <a href=#52 id=52 data-nosnippet>52</a>{
 <a href=#53 id=53 data-nosnippet>53</a>    <span class="doccomment">/// Construct a new iterator that yields
-<a href=#54 id=54 data-nosnippet>54</a>    /// [`Nlmsghdr`][crate::nl::Nlmsghdr] structs from the provided
+<a href=#54 id=54 data-nosnippet>54</a>    /// [`Nlmsghdr`] structs from the provided
 <a href=#55 id=55 data-nosnippet>55</a>    /// buffer. `behavior` set to
 <a href=#56 id=56 data-nosnippet>56</a>    /// [`IterationBehavior::IterIndefinitely`] will treat
 <a href=#57 id=57 data-nosnippet>57</a>    /// messages as a never-ending stream.
 <a href=#58 id=58 data-nosnippet>58</a>    /// [`IterationBehavior::EndMultiOnDone`] will cause
 <a href=#59 id=59 data-nosnippet>59</a>    /// [`NlMessageIter`] to respect the netlink identifiers
-<a href=#60 id=60 data-nosnippet>60</a>    /// [`NlmF::Multi`][crate::consts::nl::NlmF::Multi] and
-<a href=#61 id=61 data-nosnippet>61</a>    /// [`Nlmsg::Done`][crate::consts::nl::Nlmsg::Done].
+<a href=#60 id=60 data-nosnippet>60</a>    /// [`NlmF::Multi`] and
+<a href=#61 id=61 data-nosnippet>61</a>    /// [`Nlmsg::Done`].
 <a href=#62 id=62 data-nosnippet>62</a>    ///
 <a href=#63 id=63 data-nosnippet>63</a>    /// If `behavior` is [`IterationBehavior::EndMultiOnDone`],
 <a href=#64 id=64 data-nosnippet>64</a>    /// this means that [`NlMessageIter`] will iterate through
 <a href=#65 id=65 data-nosnippet>65</a>    /// either exactly one message if
-<a href=#66 id=66 data-nosnippet>66</a>    /// [`NlmF::Multi`][crate::consts::nl::NlmF::Multi] is not
+<a href=#66 id=66 data-nosnippet>66</a>    /// [`NlmF::Multi`] is not
 <a href=#67 id=67 data-nosnippet>67</a>    /// set, or through all consecutive messages with
-<a href=#68 id=68 data-nosnippet>68</a>    /// [`NlmF::Multi`][crate::consts::nl::NlmF::Multi] set until
+<a href=#68 id=68 data-nosnippet>68</a>    /// [`NlmF::Multi`] set until
 <a href=#69 id=69 data-nosnippet>69</a>    /// a terminating message with
-<a href=#70 id=70 data-nosnippet>70</a>    /// [`Nlmsg::Done`][crate::consts::nl::Nlmsg::Done] is reached
+<a href=#70 id=70 data-nosnippet>70</a>    /// [`Nlmsg::Done`] is reached
 <a href=#71 id=71 data-nosnippet>71</a>    /// at which point [`None`] will be returned by the iterator.
 <a href=#72 id=72 data-nosnippet>72</a>    </span><span class="kw">pub fn </span>new(sock_ref: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>NlSocketHandle, behavior: IterationBehavior) -&gt; <span class="self">Self </span>{
 <a href=#73 id=73 data-nosnippet>73</a>        NlMessageIter {
@@ -111,7 +111,7 @@
 <a href=#111 id=111 data-nosnippet>111</a>    }
 <a href=#112 id=112 data-nosnippet>112</a>}
 <a href=#113 id=113 data-nosnippet>113</a>
-<a href=#114 id=114 data-nosnippet>114</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, P&gt; Iterator <span class="kw">for </span>NlMessageIter&lt;<span class="lifetime">'a</span>, T, P&gt;
+<a href=#114 id=114 data-nosnippet>114</a><span class="kw">impl</span>&lt;T, P&gt; Iterator <span class="kw">for </span>NlMessageIter&lt;<span class="lifetime">'_</span>, T, P&gt;
 <a href=#115 id=115 data-nosnippet>115</a><span class="kw">where
 <a href=#116 id=116 data-nosnippet>116</a>    </span>T: NlType + Debug,
 <a href=#117 id=117 data-nosnippet>117</a>    P: <span class="kw">for</span>&lt;<span class="lifetime">'b</span>&gt; FromBytesWithInput&lt;<span class="lifetime">'b</span>, Input = usize&gt; + Debug,
