@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":["Merge"],"mod":["bool","num","ord","vec"],"trait":["Merge"]};
+window.SIDEBAR_ITEMS = {"derive":["Merge"],"mod":["bool","hashmap","num","option","ord","vec"],"trait":["Merge"]};
