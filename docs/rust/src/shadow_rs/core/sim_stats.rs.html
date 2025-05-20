@@ -92,36 +92,30 @@
 <a href=#92 id=92 data-nosnippet>92</a>    </span><span class="kw">pub fn </span>new(stats: <span class="kw-2">&amp;</span>SharedSimStats) -&gt; <span class="self">Self </span>{
 <a href=#93 id=93 data-nosnippet>93</a>        <span class="self">Self </span>{
 <a href=#94 id=94 data-nosnippet>94</a>            objects: ObjectStatsForOutput {
-<a href=#95 id=95 data-nosnippet>95</a>                alloc_counts: std::mem::replace(
-<a href=#96 id=96 data-nosnippet>96</a>                    <span class="kw-2">&amp;mut </span>stats.alloc_counts.lock().unwrap(),
-<a href=#97 id=97 data-nosnippet>97</a>                    Counter::new(),
-<a href=#98 id=98 data-nosnippet>98</a>                ),
-<a href=#99 id=99 data-nosnippet>99</a>                dealloc_counts: std::mem::replace(
-<a href=#100 id=100 data-nosnippet>100</a>                    <span class="kw-2">&amp;mut </span>stats.dealloc_counts.lock().unwrap(),
-<a href=#101 id=101 data-nosnippet>101</a>                    Counter::new(),
-<a href=#102 id=102 data-nosnippet>102</a>                ),
-<a href=#103 id=103 data-nosnippet>103</a>            },
-<a href=#104 id=104 data-nosnippet>104</a>            syscalls: std::mem::replace(<span class="kw-2">&amp;mut </span>stats.syscall_counts.lock().unwrap(), Counter::new()),
-<a href=#105 id=105 data-nosnippet>105</a>        }
-<a href=#106 id=106 data-nosnippet>106</a>    }
-<a href=#107 id=107 data-nosnippet>107</a>}
-<a href=#108 id=108 data-nosnippet>108</a>
-<a href=#109 id=109 data-nosnippet>109</a><span class="doccomment">/// May reset fields of `stats`.
-<a href=#110 id=110 data-nosnippet>110</a></span><span class="kw">pub fn </span>write_stats_to_file(
-<a href=#111 id=111 data-nosnippet>111</a>    filename: <span class="kw-2">&amp;</span>std::path::Path,
-<a href=#112 id=112 data-nosnippet>112</a>    stats: <span class="kw-2">&amp;</span>SharedSimStats,
-<a href=#113 id=113 data-nosnippet>113</a>) -&gt; anyhow::Result&lt;()&gt; {
-<a href=#114 id=114 data-nosnippet>114</a>    <span class="kw">let </span>stats = SimStatsForOutput::new(stats);
-<a href=#115 id=115 data-nosnippet>115</a>
-<a href=#116 id=116 data-nosnippet>116</a>    <span class="kw">let </span>file = std::fs::File::create(filename)
-<a href=#117 id=117 data-nosnippet>117</a>        .with_context(|| <span class="macro">format!</span>(<span class="string">"Failed to create file '{}'"</span>, filename.display()))<span class="question-mark">?</span>;
-<a href=#118 id=118 data-nosnippet>118</a>
-<a href=#119 id=119 data-nosnippet>119</a>    serde_json::to_writer_pretty(file, <span class="kw-2">&amp;</span>stats).with_context(|| {
-<a href=#120 id=120 data-nosnippet>120</a>        <span class="macro">format!</span>(
-<a href=#121 id=121 data-nosnippet>121</a>            <span class="string">"Failed to write stats json to file '{}'"</span>,
-<a href=#122 id=122 data-nosnippet>122</a>            filename.display()
-<a href=#123 id=123 data-nosnippet>123</a>        )
-<a href=#124 id=124 data-nosnippet>124</a>    })<span class="question-mark">?</span>;
-<a href=#125 id=125 data-nosnippet>125</a>
-<a href=#126 id=126 data-nosnippet>126</a>    <span class="prelude-val">Ok</span>(())
-<a href=#127 id=127 data-nosnippet>127</a>}</code></pre></div></section></main></body></html>
+<a href=#95 id=95 data-nosnippet>95</a>                alloc_counts: std::mem::take(<span class="kw-2">&amp;mut </span>stats.alloc_counts.lock().unwrap()),
+<a href=#96 id=96 data-nosnippet>96</a>                dealloc_counts: std::mem::take(<span class="kw-2">&amp;mut </span>stats.dealloc_counts.lock().unwrap()),
+<a href=#97 id=97 data-nosnippet>97</a>            },
+<a href=#98 id=98 data-nosnippet>98</a>            syscalls: std::mem::take(<span class="kw-2">&amp;mut </span>stats.syscall_counts.lock().unwrap()),
+<a href=#99 id=99 data-nosnippet>99</a>        }
+<a href=#100 id=100 data-nosnippet>100</a>    }
+<a href=#101 id=101 data-nosnippet>101</a>}
+<a href=#102 id=102 data-nosnippet>102</a>
+<a href=#103 id=103 data-nosnippet>103</a><span class="doccomment">/// May reset fields of `stats`.
+<a href=#104 id=104 data-nosnippet>104</a></span><span class="kw">pub fn </span>write_stats_to_file(
+<a href=#105 id=105 data-nosnippet>105</a>    filename: <span class="kw-2">&amp;</span>std::path::Path,
+<a href=#106 id=106 data-nosnippet>106</a>    stats: <span class="kw-2">&amp;</span>SharedSimStats,
+<a href=#107 id=107 data-nosnippet>107</a>) -&gt; anyhow::Result&lt;()&gt; {
+<a href=#108 id=108 data-nosnippet>108</a>    <span class="kw">let </span>stats = SimStatsForOutput::new(stats);
+<a href=#109 id=109 data-nosnippet>109</a>
+<a href=#110 id=110 data-nosnippet>110</a>    <span class="kw">let </span>file = std::fs::File::create(filename)
+<a href=#111 id=111 data-nosnippet>111</a>        .with_context(|| <span class="macro">format!</span>(<span class="string">"Failed to create file '{}'"</span>, filename.display()))<span class="question-mark">?</span>;
+<a href=#112 id=112 data-nosnippet>112</a>
+<a href=#113 id=113 data-nosnippet>113</a>    serde_json::to_writer_pretty(file, <span class="kw-2">&amp;</span>stats).with_context(|| {
+<a href=#114 id=114 data-nosnippet>114</a>        <span class="macro">format!</span>(
+<a href=#115 id=115 data-nosnippet>115</a>            <span class="string">"Failed to write stats json to file '{}'"</span>,
+<a href=#116 id=116 data-nosnippet>116</a>            filename.display()
+<a href=#117 id=117 data-nosnippet>117</a>        )
+<a href=#118 id=118 data-nosnippet>118</a>    })<span class="question-mark">?</span>;
+<a href=#119 id=119 data-nosnippet>119</a>
+<a href=#120 id=120 data-nosnippet>120</a>    <span class="prelude-val">Ok</span>(())
+<a href=#121 id=121 data-nosnippet>121</a>}</code></pre></div></section></main></body></html>
