@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":["gid_t","loff_t","off_t","size_t","uid_t","umode_t"]};
