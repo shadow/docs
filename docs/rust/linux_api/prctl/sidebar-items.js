@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PrctlOp"]};
+window.SIDEBAR_ITEMS = {"fn":["arch_prctl","arch_prctl_raw"],"struct":["ArchPrctlOp","PrctlOp"]};
