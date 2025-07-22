@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ShadowBuildCommon"]};
+window.SIDEBAR_ITEMS = {"enum":["Compiler"],"struct":["ShadowBuildCommon"]};
