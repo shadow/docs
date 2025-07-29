@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["DeError","NlError","SerError","WrappedError"],"struct":["Nlmsgerr","NlmsghdrErr"]};
+window.SIDEBAR_ITEMS = {"enum":["BuilderError","DeError","NlmsgerrBuilderError","NlmsghdrAckBuilderError","NlmsghdrErrBuilderError","RouterError","SerError","SocketError","Utf8"],"struct":["MsgError","Nlmsgerr","NlmsgerrBuilder","NlmsghdrAck","NlmsghdrAckBuilder","NlmsghdrErr","NlmsghdrErrBuilder"]};

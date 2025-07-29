@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AttrType","Genlmsghdr","Nlattr","NoUserHeader"]};
+window.SIDEBAR_ITEMS = {"enum":["AttrTypeBuilderError","GenlmsghdrBuilderError","NlattrBuilderError"],"struct":["AttrType","AttrTypeBuilder","Genlmsghdr","GenlmsghdrBuilder","Nlattr","NlattrBuilder","NoUserHeader"],"type":["GenlAttrHandle"]};

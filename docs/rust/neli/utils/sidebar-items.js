@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["NetlinkBitArray"]};
+window.SIDEBAR_ITEMS = {"mod":["synchronous"],"struct":["Groups","NetlinkBitArray"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Af","Arphrd","Ifa","IfaF","Iff","Ifla","IflaInfo","Nda","Ntf","Nud","RtAddrFamily","RtScope","RtTable","Rta","RtaTypeWrapper","Rtm","RtmF","Rtn","Rtprot","Tca"],"struct":["IfaFFlags","IffFlags","NtfFlags","NudFlags","RtmFFlags"],"trait":["RtaType"]};
+window.SIDEBAR_ITEMS = {"enum":["Af","Arphrd","Ifa","Ifla","IflaInfo","Nda","RtAddrFamily","RtScope","RtTable","Rta","RtaTypeWrapper","Rtm","Rtn","Rtprot","Tca"],"struct":["IfaF","Iff","Ntf","Nud","RtmF"],"trait":["RtaType"]};

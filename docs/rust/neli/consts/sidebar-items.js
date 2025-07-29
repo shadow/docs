@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["MAX_NL_LENGTH"],"fn":["alignto"],"mod":["genl","netfilter","nl","rtnl","socket"]};
+window.SIDEBAR_ITEMS = {"constant":["MAX_NL_LENGTH"],"fn":["alignto"],"mod":["connector","genl","netfilter","nl","rtnl","socket"]};

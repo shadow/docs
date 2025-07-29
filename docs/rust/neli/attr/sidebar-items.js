@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AttrHandle","AttrHandleMut"],"trait":["Attribute"]};
+window.SIDEBAR_ITEMS = {"enum":["AttrHandle"],"trait":["Attribute"]};

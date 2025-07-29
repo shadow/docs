@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AddrFamily","NlFamily"]};
+window.SIDEBAR_ITEMS = {"enum":["AddrFamily","NlFamily"],"struct":["Msg"]};

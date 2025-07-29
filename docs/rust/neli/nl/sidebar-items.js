@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["NlPayload"],"struct":["Nlmsghdr"]};
+window.SIDEBAR_ITEMS = {"enum":["NlPayload","NlmsghdrBuilderError"],"struct":["Nlmsghdr","NlmsghdrBuilder"]};

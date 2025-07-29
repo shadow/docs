@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["IterationBehavior"],"struct":["NlMessageIter"]};
+window.SIDEBAR_ITEMS = {"struct":["NlBufferIter"]};

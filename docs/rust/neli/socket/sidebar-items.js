@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["NlSocket","NlSocketHandle"]};
+window.SIDEBAR_ITEMS = {"mod":["synchronous"],"struct":["NlSocket"]};

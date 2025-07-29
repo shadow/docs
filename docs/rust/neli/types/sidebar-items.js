@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Buffer","FlagBuffer","GenlBuffer","NlBuffer","RtBuffer"]};
+window.SIDEBAR_ITEMS = {"struct":["Buffer","GenlBuffer","NlBuffer","RtBuffer"]};
