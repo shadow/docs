@@ -405,7 +405,7 @@
 <a href=#405 id=405 data-nosnippet>405</a>    }
 <a href=#406 id=406 data-nosnippet>406</a>
 <a href=#407 id=407 data-nosnippet>407</a>    <span class="attr">#[track_caller]
-<a href=#408 id=408 data-nosnippet>408</a>    </span><span class="kw">fn </span>first_live_thread(<span class="kw-2">&amp;</span><span class="self">self</span>, root: <span class="kw-2">&amp;</span>Root) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt;&gt; {
+<a href=#408 id=408 data-nosnippet>408</a>    </span><span class="kw">fn </span>first_live_thread(<span class="kw-2">&amp;</span><span class="self">self</span>, root: <span class="kw-2">&amp;</span>Root) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">'_</span>, RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt;&gt; {
 <a href=#409 id=409 data-nosnippet>409</a>        Ref::filter_map(<span class="self">self</span>.threads.borrow(), |threads| {
 <a href=#410 id=410 data-nosnippet>410</a>            threads.values().next().inspect(|thread| {
 <a href=#411 id=411 data-nosnippet>411</a>                <span class="comment">// There shouldn't be any non-running threads in the table.
@@ -426,7 +426,7 @@
 <a href=#426 id=426 data-nosnippet>426</a>    }
 <a href=#427 id=427 data-nosnippet>427</a>
 <a href=#428 id=428 data-nosnippet>428</a>    <span class="attr">#[track_caller]
-<a href=#429 id=429 data-nosnippet>429</a>    </span><span class="kw">fn </span>thread(<span class="kw-2">&amp;</span><span class="self">self</span>, virtual_tid: ThreadId) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt;&gt; {
+<a href=#429 id=429 data-nosnippet>429</a>    </span><span class="kw">fn </span>thread(<span class="kw-2">&amp;</span><span class="self">self</span>, virtual_tid: ThreadId) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">'_</span>, RootedRc&lt;RootedRefCell&lt;Thread&gt;&gt;&gt;&gt; {
 <a href=#430 id=430 data-nosnippet>430</a>        Ref::filter_map(<span class="self">self</span>.threads.borrow(), |threads| threads.get(<span class="kw-2">&amp;</span>virtual_tid)).ok()
 <a href=#431 id=431 data-nosnippet>431</a>    }
 <a href=#432 id=432 data-nosnippet>432</a>
@@ -545,16 +545,16 @@
 <a href=#545 id=545 data-nosnippet>545</a>            process_shmem_protected.set_pending_standard_siginfo(signal, siginfo_t);
 <a href=#546 id=546 data-nosnippet>546</a>        }
 <a href=#547 id=547 data-nosnippet>547</a>
-<a href=#548 id=548 data-nosnippet>548</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(thread) = current_thread {
-<a href=#549 id=549 data-nosnippet>549</a>            <span class="kw">if </span>thread.process_id() == <span class="self">self</span>.common.id() {
-<a href=#550 id=550 data-nosnippet>550</a>                <span class="kw">let </span>host_shmem = host.shim_shmem_lock_borrow().unwrap();
-<a href=#551 id=551 data-nosnippet>551</a>                <span class="kw">let </span>threadmem = thread.shmem();
-<a href=#552 id=552 data-nosnippet>552</a>                <span class="kw">let </span>threadprotmem = threadmem.protected.borrow(<span class="kw-2">&amp;</span>host_shmem.root);
-<a href=#553 id=553 data-nosnippet>553</a>                <span class="kw">if </span>!threadprotmem.blocked_signals.has(signal) {
-<a href=#554 id=554 data-nosnippet>554</a>                    <span class="comment">// Target process is this process, and current thread hasn't blocked
-<a href=#555 id=555 data-nosnippet>555</a>                    // the signal.  It will be delivered to this thread when it resumes.
-<a href=#556 id=556 data-nosnippet>556</a>                    </span><span class="kw">return</span>;
-<a href=#557 id=557 data-nosnippet>557</a>                }
+<a href=#548 id=548 data-nosnippet>548</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(thread) = current_thread
+<a href=#549 id=549 data-nosnippet>549</a>            &amp;&amp; thread.process_id() == <span class="self">self</span>.common.id()
+<a href=#550 id=550 data-nosnippet>550</a>        {
+<a href=#551 id=551 data-nosnippet>551</a>            <span class="kw">let </span>host_shmem = host.shim_shmem_lock_borrow().unwrap();
+<a href=#552 id=552 data-nosnippet>552</a>            <span class="kw">let </span>threadmem = thread.shmem();
+<a href=#553 id=553 data-nosnippet>553</a>            <span class="kw">let </span>threadprotmem = threadmem.protected.borrow(<span class="kw-2">&amp;</span>host_shmem.root);
+<a href=#554 id=554 data-nosnippet>554</a>            <span class="kw">if </span>!threadprotmem.blocked_signals.has(signal) {
+<a href=#555 id=555 data-nosnippet>555</a>                <span class="comment">// Target process is this process, and current thread hasn't blocked
+<a href=#556 id=556 data-nosnippet>556</a>                // the signal.  It will be delivered to this thread when it resumes.
+<a href=#557 id=557 data-nosnippet>557</a>                </span><span class="kw">return</span>;
 <a href=#558 id=558 data-nosnippet>558</a>            }
 <a href=#559 id=559 data-nosnippet>559</a>        }
 <a href=#560 id=560 data-nosnippet>560</a>
@@ -896,26 +896,26 @@
 <a href=#896 id=896 data-nosnippet>896</a>}
 <a href=#897 id=897 data-nosnippet>897</a>
 <a href=#898 id=898 data-nosnippet>898</a><span class="kw">impl </span>Process {
-<a href=#899 id=899 data-nosnippet>899</a>    <span class="kw">fn </span>common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;Common&gt; {
+<a href=#899 id=899 data-nosnippet>899</a>    <span class="kw">fn </span>common(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">'_</span>, Common&gt; {
 <a href=#900 id=900 data-nosnippet>900</a>        Ref::map(<span class="self">self</span>.state.borrow(), |state| {
 <a href=#901 id=901 data-nosnippet>901</a>            state.as_ref().unwrap().common()
 <a href=#902 id=902 data-nosnippet>902</a>        })
 <a href=#903 id=903 data-nosnippet>903</a>    }
 <a href=#904 id=904 data-nosnippet>904</a>
-<a href=#905 id=905 data-nosnippet>905</a>    <span class="kw">fn </span>common_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;Common&gt; {
+<a href=#905 id=905 data-nosnippet>905</a>    <span class="kw">fn </span>common_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">'_</span>, Common&gt; {
 <a href=#906 id=906 data-nosnippet>906</a>        RefMut::map(<span class="self">self</span>.state.borrow_mut(), |state| {
 <a href=#907 id=907 data-nosnippet>907</a>            state.as_mut().unwrap().common_mut()
 <a href=#908 id=908 data-nosnippet>908</a>        })
 <a href=#909 id=909 data-nosnippet>909</a>    }
 <a href=#910 id=910 data-nosnippet>910</a>
-<a href=#911 id=911 data-nosnippet>911</a>    <span class="kw">fn </span>as_runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;RunnableProcess&gt;&gt; {
+<a href=#911 id=911 data-nosnippet>911</a>    <span class="kw">fn </span>as_runnable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">'_</span>, RunnableProcess&gt;&gt; {
 <a href=#912 id=912 data-nosnippet>912</a>        Ref::filter_map(<span class="self">self</span>.state.borrow(), |state| {
 <a href=#913 id=913 data-nosnippet>913</a>            state.as_ref().unwrap().as_runnable()
 <a href=#914 id=914 data-nosnippet>914</a>        })
 <a href=#915 id=915 data-nosnippet>915</a>        .ok()
 <a href=#916 id=916 data-nosnippet>916</a>    }
 <a href=#917 id=917 data-nosnippet>917</a>
-<a href=#918 id=918 data-nosnippet>918</a>    <span class="kw">fn </span>as_runnable_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;RunnableProcess&gt;&gt; {
+<a href=#918 id=918 data-nosnippet>918</a>    <span class="kw">fn </span>as_runnable_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">'_</span>, RunnableProcess&gt;&gt; {
 <a href=#919 id=919 data-nosnippet>919</a>        RefMut::filter_map(<span class="self">self</span>.state.borrow_mut(), |state| {
 <a href=#920 id=920 data-nosnippet>920</a>            state.as_mut().unwrap().as_runnable_mut()
 <a href=#921 id=921 data-nosnippet>921</a>        })
@@ -927,7 +927,7 @@
 <a href=#927 id=927 data-nosnippet>927</a>        <span class="self">self</span>.as_runnable()
 <a href=#928 id=928 data-nosnippet>928</a>    }
 <a href=#929 id=929 data-nosnippet>929</a>
-<a href=#930 id=930 data-nosnippet>930</a>    <span class="kw">fn </span>as_zombie(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;ZombieProcess&gt;&gt; {
+<a href=#930 id=930 data-nosnippet>930</a>    <span class="kw">fn </span>as_zombie(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">'_</span>, ZombieProcess&gt;&gt; {
 <a href=#931 id=931 data-nosnippet>931</a>        Ref::filter_map(<span class="self">self</span>.state.borrow(), |state| {
 <a href=#932 id=932 data-nosnippet>932</a>            state.as_ref().unwrap().as_zombie()
 <a href=#933 id=933 data-nosnippet>933</a>        })

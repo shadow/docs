@@ -173,7 +173,7 @@
 <a href=#173 id=173 data-nosnippet>173</a><span class="kw">impl </span>IsSync <span class="kw">for </span>File {}
 <a href=#174 id=174 data-nosnippet>174</a>
 <a href=#175 id=175 data-nosnippet>175</a><span class="kw">impl </span>File {
-<a href=#176 id=176 data-nosnippet>176</a>    <span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileRef {
+<a href=#176 id=176 data-nosnippet>176</a>    <span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileRef&lt;<span class="lifetime">'_</span>&gt; {
 <a href=#177 id=177 data-nosnippet>177</a>        <span class="kw">match </span><span class="self">self </span>{
 <a href=#178 id=178 data-nosnippet>178</a>            <span class="self">Self</span>::Pipe(f) =&gt; FileRef::Pipe(f.borrow()),
 <a href=#179 id=179 data-nosnippet>179</a>            <span class="self">Self</span>::EventFd(f) =&gt; FileRef::EventFd(f.borrow()),
@@ -183,7 +183,7 @@
 <a href=#183 id=183 data-nosnippet>183</a>        }
 <a href=#184 id=184 data-nosnippet>184</a>    }
 <a href=#185 id=185 data-nosnippet>185</a>
-<a href=#186 id=186 data-nosnippet>186</a>    <span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;FileRef, atomic_refcell::BorrowError&gt; {
+<a href=#186 id=186 data-nosnippet>186</a>    <span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;FileRef&lt;<span class="lifetime">'_</span>&gt;, atomic_refcell::BorrowError&gt; {
 <a href=#187 id=187 data-nosnippet>187</a>        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
 <a href=#188 id=188 data-nosnippet>188</a>            <span class="self">Self</span>::Pipe(f) =&gt; FileRef::Pipe(f.try_borrow()<span class="question-mark">?</span>),
 <a href=#189 id=189 data-nosnippet>189</a>            <span class="self">Self</span>::EventFd(f) =&gt; FileRef::EventFd(f.try_borrow()<span class="question-mark">?</span>),
@@ -193,7 +193,7 @@
 <a href=#193 id=193 data-nosnippet>193</a>        })
 <a href=#194 id=194 data-nosnippet>194</a>    }
 <a href=#195 id=195 data-nosnippet>195</a>
-<a href=#196 id=196 data-nosnippet>196</a>    <span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileRefMut {
+<a href=#196 id=196 data-nosnippet>196</a>    <span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FileRefMut&lt;<span class="lifetime">'_</span>&gt; {
 <a href=#197 id=197 data-nosnippet>197</a>        <span class="kw">match </span><span class="self">self </span>{
 <a href=#198 id=198 data-nosnippet>198</a>            <span class="self">Self</span>::Pipe(f) =&gt; FileRefMut::Pipe(f.borrow_mut()),
 <a href=#199 id=199 data-nosnippet>199</a>            <span class="self">Self</span>::EventFd(f) =&gt; FileRefMut::EventFd(f.borrow_mut()),
@@ -203,7 +203,7 @@
 <a href=#203 id=203 data-nosnippet>203</a>        }
 <a href=#204 id=204 data-nosnippet>204</a>    }
 <a href=#205 id=205 data-nosnippet>205</a>
-<a href=#206 id=206 data-nosnippet>206</a>    <span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;FileRefMut, atomic_refcell::BorrowMutError&gt; {
+<a href=#206 id=206 data-nosnippet>206</a>    <span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;FileRefMut&lt;<span class="lifetime">'_</span>&gt;, atomic_refcell::BorrowMutError&gt; {
 <a href=#207 id=207 data-nosnippet>207</a>        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
 <a href=#208 id=208 data-nosnippet>208</a>            <span class="self">Self</span>::Pipe(f) =&gt; FileRefMut::Pipe(f.try_borrow_mut()<span class="question-mark">?</span>),
 <a href=#209 id=209 data-nosnippet>209</a>            <span class="self">Self</span>::EventFd(f) =&gt; FileRefMut::EventFd(f.try_borrow_mut()<span class="question-mark">?</span>),
@@ -639,10 +639,10 @@
 <a href=#639 id=639 data-nosnippet>639</a>    </span><span class="kw">fn </span>close_helper(<span class="kw-2">&amp;mut </span><span class="self">self</span>, host: <span class="kw-2">&amp;</span>Host) {
 <a href=#640 id=640 data-nosnippet>640</a>        <span class="comment">// this isn't subject to race conditions since we should never access descriptors
 <a href=#641 id=641 data-nosnippet>641</a>        // from multiple threads at the same time
-<a href=#642 id=642 data-nosnippet>642</a>        </span><span class="kw">if </span>Arc::&lt;()&gt;::strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>.open_count) == <span class="number">1 </span>{
-<a href=#643 id=643 data-nosnippet>643</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.file.take() {
-<a href=#644 id=644 data-nosnippet>644</a>                <span class="kw">unsafe </span>{ c::legacyfile_close(file.ptr(), host) }
-<a href=#645 id=645 data-nosnippet>645</a>            }
+<a href=#642 id=642 data-nosnippet>642</a>        </span><span class="kw">if </span>Arc::&lt;()&gt;::strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>.open_count) == <span class="number">1
+<a href=#643 id=643 data-nosnippet>643</a>            </span>&amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>(file) = <span class="self">self</span>.file.take()
+<a href=#644 id=644 data-nosnippet>644</a>        {
+<a href=#645 id=645 data-nosnippet>645</a>            <span class="kw">unsafe </span>{ c::legacyfile_close(file.ptr(), host) }
 <a href=#646 id=646 data-nosnippet>646</a>        }
 <a href=#647 id=647 data-nosnippet>647</a>    }
 <a href=#648 id=648 data-nosnippet>648</a>

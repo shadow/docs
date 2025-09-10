@@ -68,50 +68,51 @@
 <a href=#68 id=68 data-nosnippet>68</a>
 <a href=#69 id=69 data-nosnippet>69</a>        <span class="comment">// helper function for checking if we should update the min_used_latency
 <a href=#70 id=70 data-nosnippet>70</a>        </span><span class="kw">let </span>should_update = |min_used_latency: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;SimulationTime&gt;| {
-<a href=#71 id=71 data-nosnippet>71</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(min_used_latency) = min_used_latency {
-<a href=#72 id=72 data-nosnippet>72</a>                <span class="kw">if </span>latency &gt;= <span class="kw-2">*</span>min_used_latency {
-<a href=#73 id=73 data-nosnippet>73</a>                    <span class="kw">return </span><span class="bool-val">false</span>;
-<a href=#74 id=74 data-nosnippet>74</a>                }
+<a href=#71 id=71 data-nosnippet>71</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(min_used_latency) = min_used_latency
+<a href=#72 id=72 data-nosnippet>72</a>                &amp;&amp; latency &gt;= <span class="kw-2">*</span>min_used_latency
+<a href=#73 id=73 data-nosnippet>73</a>            {
+<a href=#74 id=74 data-nosnippet>74</a>                <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#75 id=75 data-nosnippet>75</a>            }
-<a href=#76 id=76 data-nosnippet>76</a>            <span class="comment">// true if runahead was never set before, or new latency is smaller than the old latency
-<a href=#77 id=77 data-nosnippet>77</a>            </span><span class="bool-val">true
-<a href=#78 id=78 data-nosnippet>78</a>        </span>};
-<a href=#79 id=79 data-nosnippet>79</a>
-<a href=#80 id=80 data-nosnippet>80</a>        <span class="comment">// an initial check with only a read lock
-<a href=#81 id=81 data-nosnippet>81</a>        </span>{
-<a href=#82 id=82 data-nosnippet>82</a>            <span class="kw">let </span>min_used_latency = <span class="self">self</span>.min_used_latency.read().unwrap();
-<a href=#83 id=83 data-nosnippet>83</a>
-<a href=#84 id=84 data-nosnippet>84</a>            <span class="kw">if </span>!should_update(<span class="kw-2">&amp;</span>min_used_latency) {
-<a href=#85 id=85 data-nosnippet>85</a>                <span class="kw">return</span>;
-<a href=#86 id=86 data-nosnippet>86</a>            }
-<a href=#87 id=87 data-nosnippet>87</a>        }
-<a href=#88 id=88 data-nosnippet>88</a>
-<a href=#89 id=89 data-nosnippet>89</a>        <span class="kw">let </span>old_runahead;
-<a href=#90 id=90 data-nosnippet>90</a>        <span class="kw">let </span>min_runahead_config;
-<a href=#91 id=91 data-nosnippet>91</a>
-<a href=#92 id=92 data-nosnippet>92</a>        <span class="comment">// check the same condition again, but with a write lock
-<a href=#93 id=93 data-nosnippet>93</a>        </span>{
-<a href=#94 id=94 data-nosnippet>94</a>            <span class="kw">let </span><span class="kw-2">mut </span>min_used_latency = <span class="self">self</span>.min_used_latency.write().unwrap();
-<a href=#95 id=95 data-nosnippet>95</a>
-<a href=#96 id=96 data-nosnippet>96</a>            <span class="kw">if </span>!should_update(<span class="kw-2">&amp;</span>min_used_latency) {
-<a href=#97 id=97 data-nosnippet>97</a>                <span class="kw">return</span>;
-<a href=#98 id=98 data-nosnippet>98</a>            }
-<a href=#99 id=99 data-nosnippet>99</a>
-<a href=#100 id=100 data-nosnippet>100</a>            <span class="comment">// cache the values for logging
-<a href=#101 id=101 data-nosnippet>101</a>            </span>old_runahead = <span class="kw-2">*</span>min_used_latency;
-<a href=#102 id=102 data-nosnippet>102</a>            min_runahead_config = <span class="self">self</span>.min_runahead_config;
-<a href=#103 id=103 data-nosnippet>103</a>
-<a href=#104 id=104 data-nosnippet>104</a>            <span class="comment">// update the min runahead
-<a href=#105 id=105 data-nosnippet>105</a>            </span><span class="kw-2">*</span>min_used_latency = <span class="prelude-val">Some</span>(latency);
-<a href=#106 id=106 data-nosnippet>106</a>        }
-<a href=#107 id=107 data-nosnippet>107</a>
-<a href=#108 id=108 data-nosnippet>108</a>        <span class="comment">// these info messages may appear out-of-order in the log
-<a href=#109 id=109 data-nosnippet>109</a>        </span><span class="macro">log::info!</span>(
-<a href=#110 id=110 data-nosnippet>110</a>            <span class="string">"Minimum time runahead for next scheduling round updated from {:?} \
-<a href=#111 id=111 data-nosnippet>111</a>             to {} ns; the minimum config override is {:?} ns"</span>,
-<a href=#112 id=112 data-nosnippet>112</a>            old_runahead.map(|x| x.as_nanos()),
-<a href=#113 id=113 data-nosnippet>113</a>            latency.as_nanos(),
-<a href=#114 id=114 data-nosnippet>114</a>            min_runahead_config.map(|x| x.as_nanos())
-<a href=#115 id=115 data-nosnippet>115</a>        );
-<a href=#116 id=116 data-nosnippet>116</a>    }
-<a href=#117 id=117 data-nosnippet>117</a>}</code></pre></div></section></main></body></html>
+<a href=#76 id=76 data-nosnippet>76</a>
+<a href=#77 id=77 data-nosnippet>77</a>            <span class="comment">// true if runahead was never set before, or new latency is smaller than the old latency
+<a href=#78 id=78 data-nosnippet>78</a>            </span><span class="bool-val">true
+<a href=#79 id=79 data-nosnippet>79</a>        </span>};
+<a href=#80 id=80 data-nosnippet>80</a>
+<a href=#81 id=81 data-nosnippet>81</a>        <span class="comment">// an initial check with only a read lock
+<a href=#82 id=82 data-nosnippet>82</a>        </span>{
+<a href=#83 id=83 data-nosnippet>83</a>            <span class="kw">let </span>min_used_latency = <span class="self">self</span>.min_used_latency.read().unwrap();
+<a href=#84 id=84 data-nosnippet>84</a>
+<a href=#85 id=85 data-nosnippet>85</a>            <span class="kw">if </span>!should_update(<span class="kw-2">&amp;</span>min_used_latency) {
+<a href=#86 id=86 data-nosnippet>86</a>                <span class="kw">return</span>;
+<a href=#87 id=87 data-nosnippet>87</a>            }
+<a href=#88 id=88 data-nosnippet>88</a>        }
+<a href=#89 id=89 data-nosnippet>89</a>
+<a href=#90 id=90 data-nosnippet>90</a>        <span class="kw">let </span>old_runahead;
+<a href=#91 id=91 data-nosnippet>91</a>        <span class="kw">let </span>min_runahead_config;
+<a href=#92 id=92 data-nosnippet>92</a>
+<a href=#93 id=93 data-nosnippet>93</a>        <span class="comment">// check the same condition again, but with a write lock
+<a href=#94 id=94 data-nosnippet>94</a>        </span>{
+<a href=#95 id=95 data-nosnippet>95</a>            <span class="kw">let </span><span class="kw-2">mut </span>min_used_latency = <span class="self">self</span>.min_used_latency.write().unwrap();
+<a href=#96 id=96 data-nosnippet>96</a>
+<a href=#97 id=97 data-nosnippet>97</a>            <span class="kw">if </span>!should_update(<span class="kw-2">&amp;</span>min_used_latency) {
+<a href=#98 id=98 data-nosnippet>98</a>                <span class="kw">return</span>;
+<a href=#99 id=99 data-nosnippet>99</a>            }
+<a href=#100 id=100 data-nosnippet>100</a>
+<a href=#101 id=101 data-nosnippet>101</a>            <span class="comment">// cache the values for logging
+<a href=#102 id=102 data-nosnippet>102</a>            </span>old_runahead = <span class="kw-2">*</span>min_used_latency;
+<a href=#103 id=103 data-nosnippet>103</a>            min_runahead_config = <span class="self">self</span>.min_runahead_config;
+<a href=#104 id=104 data-nosnippet>104</a>
+<a href=#105 id=105 data-nosnippet>105</a>            <span class="comment">// update the min runahead
+<a href=#106 id=106 data-nosnippet>106</a>            </span><span class="kw-2">*</span>min_used_latency = <span class="prelude-val">Some</span>(latency);
+<a href=#107 id=107 data-nosnippet>107</a>        }
+<a href=#108 id=108 data-nosnippet>108</a>
+<a href=#109 id=109 data-nosnippet>109</a>        <span class="comment">// these info messages may appear out-of-order in the log
+<a href=#110 id=110 data-nosnippet>110</a>        </span><span class="macro">log::info!</span>(
+<a href=#111 id=111 data-nosnippet>111</a>            <span class="string">"Minimum time runahead for next scheduling round updated from {:?} \
+<a href=#112 id=112 data-nosnippet>112</a>             to {} ns; the minimum config override is {:?} ns"</span>,
+<a href=#113 id=113 data-nosnippet>113</a>            old_runahead.map(|x| x.as_nanos()),
+<a href=#114 id=114 data-nosnippet>114</a>            latency.as_nanos(),
+<a href=#115 id=115 data-nosnippet>115</a>            min_runahead_config.map(|x| x.as_nanos())
+<a href=#116 id=116 data-nosnippet>116</a>        );
+<a href=#117 id=117 data-nosnippet>117</a>    }
+<a href=#118 id=118 data-nosnippet>118</a>}</code></pre></div></section></main></body></html>

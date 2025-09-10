@@ -370,105 +370,104 @@
 <a href=#370 id=370 data-nosnippet>370</a>
 <a href=#371 id=371 data-nosnippet>371</a>        <span class="comment">// Our behavior depends on the value of timeout.
 <a href=#372 id=372 data-nosnippet>372</a>        // Return immediately if timeout is 0.
-<a href=#373 id=373 data-nosnippet>373</a>        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = timeout {
-<a href=#374 id=374 data-nosnippet>374</a>            <span class="kw">if </span>timeout.is_zero() {
-<a href=#375 id=375 data-nosnippet>375</a>                <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and the timeout is 0"</span>);
-<a href=#376 id=376 data-nosnippet>376</a>                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
-<a href=#377 id=377 data-nosnippet>377</a>            }
+<a href=#373 id=373 data-nosnippet>373</a>        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = timeout
+<a href=#374 id=374 data-nosnippet>374</a>            &amp;&amp; timeout.is_zero()
+<a href=#375 id=375 data-nosnippet>375</a>        {
+<a href=#376 id=376 data-nosnippet>376</a>            <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and the timeout is 0"</span>);
+<a href=#377 id=377 data-nosnippet>377</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
 <a href=#378 id=378 data-nosnippet>378</a>        }
 <a href=#379 id=379 data-nosnippet>379</a>
 <a href=#380 id=380 data-nosnippet>380</a>        <span class="comment">// Return immediately if we were already blocked for a while and still have no events.
 <a href=#381 id=381 data-nosnippet>381</a>        // Condition will only exist after a wakeup.
-<a href=#382 id=382 data-nosnippet>382</a>        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cond) = ctx.objs.thread.syscall_condition() {
-<a href=#383 id=383 data-nosnippet>383</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(abs_timeout) = cond.timeout() {
-<a href=#384 id=384 data-nosnippet>384</a>                <span class="kw">if </span>Worker::current_time().unwrap() &gt;= abs_timeout {
-<a href=#385 id=385 data-nosnippet>385</a>                    <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and the timeout expired"</span>);
-<a href=#386 id=386 data-nosnippet>386</a>                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
-<a href=#387 id=387 data-nosnippet>387</a>                }
-<a href=#388 id=388 data-nosnippet>388</a>            }
-<a href=#389 id=389 data-nosnippet>389</a>        }
-<a href=#390 id=390 data-nosnippet>390</a>
-<a href=#391 id=391 data-nosnippet>391</a>        <span class="comment">// If there's a signal pending, this syscall will be interrupted.
-<a href=#392 id=392 data-nosnippet>392</a>        </span><span class="kw">if </span>ctx.objs.thread.unblocked_signal_pending(
-<a href=#393 id=393 data-nosnippet>393</a>            ctx.objs.process,
-<a href=#394 id=394 data-nosnippet>394</a>            <span class="kw-2">&amp;</span>ctx.objs.host.shim_shmem_lock_borrow().unwrap(),
-<a href=#395 id=395 data-nosnippet>395</a>        ) {
-<a href=#396 id=396 data-nosnippet>396</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(SyscallError::new_interrupted(<span class="bool-val">false</span>));
-<a href=#397 id=397 data-nosnippet>397</a>        }
-<a href=#398 id=398 data-nosnippet>398</a>
-<a href=#399 id=399 data-nosnippet>399</a>        <span class="comment">// Convert timeout to an EmulatedTime.
-<a href=#400 id=400 data-nosnippet>400</a>        </span><span class="kw">let </span><span class="prelude-val">Ok</span>(abs_timeout_opt) = timeout
-<a href=#401 id=401 data-nosnippet>401</a>            .map(|x| Worker::current_time().unwrap().checked_add(x).ok_or(()))
-<a href=#402 id=402 data-nosnippet>402</a>            .transpose()
-<a href=#403 id=403 data-nosnippet>403</a>        <span class="kw">else </span>{
-<a href=#404 id=404 data-nosnippet>404</a>            <span class="macro">log::trace!</span>(<span class="string">"Epoll wait with invalid timeout {timeout:?} (too large)"</span>);
-<a href=#405 id=405 data-nosnippet>405</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
-<a href=#406 id=406 data-nosnippet>406</a>        };
-<a href=#407 id=407 data-nosnippet>407</a>
-<a href=#408 id=408 data-nosnippet>408</a>        <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and we need to block"</span>);
-<a href=#409 id=409 data-nosnippet>409</a>
-<a href=#410 id=410 data-nosnippet>410</a>        <span class="comment">// Block on epoll state; an epoll descriptor is readable when it has events.
-<a href=#411 id=411 data-nosnippet>411</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>rv = SyscallError::new_blocked_on_file(
-<a href=#412 id=412 data-nosnippet>412</a>            File::Epoll(Arc::clone(epoll)),
-<a href=#413 id=413 data-nosnippet>413</a>            FileState::READABLE,
-<a href=#414 id=414 data-nosnippet>414</a>            <span class="comment">/* restartable= */ </span><span class="bool-val">false</span>,
-<a href=#415 id=415 data-nosnippet>415</a>        );
-<a href=#416 id=416 data-nosnippet>416</a>
-<a href=#417 id=417 data-nosnippet>417</a>        <span class="comment">// Set timeout, if provided.
-<a href=#418 id=418 data-nosnippet>418</a>        </span><span class="kw">if </span>abs_timeout_opt.is_some() {
-<a href=#419 id=419 data-nosnippet>419</a>            rv.blocked_condition().unwrap().set_timeout(abs_timeout_opt);
-<a href=#420 id=420 data-nosnippet>420</a>        }
-<a href=#421 id=421 data-nosnippet>421</a>
-<a href=#422 id=422 data-nosnippet>422</a>        <span class="prelude-val">Err</span>(rv)
-<a href=#423 id=423 data-nosnippet>423</a>    }
-<a href=#424 id=424 data-nosnippet>424</a>}
-<a href=#425 id=425 data-nosnippet>425</a>
-<a href=#426 id=426 data-nosnippet>426</a><span class="kw">fn </span>timeout_arg_to_maybe_simtime(
-<a href=#427 id=427 data-nosnippet>427</a>    timeout_ms: std::ffi::c_int,
-<a href=#428 id=428 data-nosnippet>428</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SimulationTime&gt;, Errno&gt; {
-<a href=#429 id=429 data-nosnippet>429</a>    <span class="comment">// epoll_wait(2): "Specifying a timeout of -1 causes epoll_wait() to block indefinitely"
-<a href=#430 id=430 data-nosnippet>430</a>    </span><span class="kw">let </span>timeout_ms = (timeout_ms &gt;= <span class="number">0</span>).then_some(timeout_ms);
-<a href=#431 id=431 data-nosnippet>431</a>
-<a href=#432 id=432 data-nosnippet>432</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(timeout_ms) = timeout_ms {
-<a href=#433 id=433 data-nosnippet>433</a>        <span class="comment">// a non-negative c_int should always convert to a u64
-<a href=#434 id=434 data-nosnippet>434</a>        </span><span class="kw">let </span>timeout_ms = timeout_ms.try_into().unwrap();
-<a href=#435 id=435 data-nosnippet>435</a>        <span class="kw">let </span>timeout = SimulationTime::try_from_millis(timeout_ms).ok_or(Errno::EINVAL)<span class="question-mark">?</span>;
-<a href=#436 id=436 data-nosnippet>436</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(timeout))
-<a href=#437 id=437 data-nosnippet>437</a>    } <span class="kw">else </span>{
-<a href=#438 id=438 data-nosnippet>438</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-<a href=#439 id=439 data-nosnippet>439</a>    }
-<a href=#440 id=440 data-nosnippet>440</a>}
-<a href=#441 id=441 data-nosnippet>441</a>
-<a href=#442 id=442 data-nosnippet>442</a><span class="doccomment">/// There is a maximum number of events that can be specified in Linux:
-<a href=#443 id=443 data-nosnippet>443</a>/// https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2291
-<a href=#444 id=444 data-nosnippet>444</a>///
-<a href=#445 id=445 data-nosnippet>445</a>/// The maximum is defined as:
-<a href=#446 id=446 data-nosnippet>446</a>///   `#define EP_MAX_EVENTS (INT_MAX / sizeof(struct epoll_event))`
-<a href=#447 id=447 data-nosnippet>447</a>/// https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L95
-<a href=#448 id=448 data-nosnippet>448</a>///
-<a href=#449 id=449 data-nosnippet>449</a>/// This function performs the above computation as Linux does.
-<a href=#450 id=450 data-nosnippet>450</a></span><span class="kw">fn </span>epoll_max_events_upper_bound() -&gt; i32 {
-<a href=#451 id=451 data-nosnippet>451</a>    <span class="kw">let </span>ep_max_events = i32::MAX;
-<a href=#452 id=452 data-nosnippet>452</a>    <span class="kw">let </span>ep_ev_size: i32 = std::mem::size_of::&lt;linux_api::epoll::epoll_event&gt;()
-<a href=#453 id=453 data-nosnippet>453</a>        .try_into()
-<a href=#454 id=454 data-nosnippet>454</a>        .unwrap_or(i32::MAX);
-<a href=#455 id=455 data-nosnippet>455</a>    ep_max_events.saturating_div(ep_ev_size)
-<a href=#456 id=456 data-nosnippet>456</a>}
-<a href=#457 id=457 data-nosnippet>457</a>
-<a href=#458 id=458 data-nosnippet>458</a><span class="kw">fn </span>write_events_to_ptr(
-<a href=#459 id=459 data-nosnippet>459</a>    mem: <span class="kw-2">&amp;mut </span>MemoryManager,
-<a href=#460 id=460 data-nosnippet>460</a>    ready: Vec&lt;(EpollEvents, u64)&gt;,
-<a href=#461 id=461 data-nosnippet>461</a>    events_ptr: ForeignPtr&lt;linux_api::epoll::epoll_event&gt;,
-<a href=#462 id=462 data-nosnippet>462</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
-<a href=#463 id=463 data-nosnippet>463</a>    <span class="kw">let </span>events_ptr = ForeignArrayPtr::new(events_ptr, ready.len());
-<a href=#464 id=464 data-nosnippet>464</a>    <span class="kw">let </span><span class="kw-2">mut </span>mem_ref = mem.memory_ref_mut(events_ptr)<span class="question-mark">?</span>;
-<a href=#465 id=465 data-nosnippet>465</a>
-<a href=#466 id=466 data-nosnippet>466</a>    <span class="kw">for </span>((ev, data), plugin_ev) <span class="kw">in </span>ready.iter().zip(mem_ref.deref_mut().iter_mut()) {
-<a href=#467 id=467 data-nosnippet>467</a>        plugin_ev.events = ev.bits();
-<a href=#468 id=468 data-nosnippet>468</a>        plugin_ev.data = <span class="kw-2">*</span>data;
-<a href=#469 id=469 data-nosnippet>469</a>    }
-<a href=#470 id=470 data-nosnippet>470</a>
-<a href=#471 id=471 data-nosnippet>471</a>    mem_ref.flush()<span class="question-mark">?</span>;
-<a href=#472 id=472 data-nosnippet>472</a>
-<a href=#473 id=473 data-nosnippet>473</a>    <span class="prelude-val">Ok</span>(())
-<a href=#474 id=474 data-nosnippet>474</a>}</code></pre></div></section></main></body></html>
+<a href=#382 id=382 data-nosnippet>382</a>        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cond) = ctx.objs.thread.syscall_condition()
+<a href=#383 id=383 data-nosnippet>383</a>            &amp;&amp; <span class="kw">let </span><span class="prelude-val">Some</span>(abs_timeout) = cond.timeout()
+<a href=#384 id=384 data-nosnippet>384</a>            &amp;&amp; Worker::current_time().unwrap() &gt;= abs_timeout
+<a href=#385 id=385 data-nosnippet>385</a>        {
+<a href=#386 id=386 data-nosnippet>386</a>            <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and the timeout expired"</span>);
+<a href=#387 id=387 data-nosnippet>387</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+<a href=#388 id=388 data-nosnippet>388</a>        }
+<a href=#389 id=389 data-nosnippet>389</a>
+<a href=#390 id=390 data-nosnippet>390</a>        <span class="comment">// If there's a signal pending, this syscall will be interrupted.
+<a href=#391 id=391 data-nosnippet>391</a>        </span><span class="kw">if </span>ctx.objs.thread.unblocked_signal_pending(
+<a href=#392 id=392 data-nosnippet>392</a>            ctx.objs.process,
+<a href=#393 id=393 data-nosnippet>393</a>            <span class="kw-2">&amp;</span>ctx.objs.host.shim_shmem_lock_borrow().unwrap(),
+<a href=#394 id=394 data-nosnippet>394</a>        ) {
+<a href=#395 id=395 data-nosnippet>395</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(SyscallError::new_interrupted(<span class="bool-val">false</span>));
+<a href=#396 id=396 data-nosnippet>396</a>        }
+<a href=#397 id=397 data-nosnippet>397</a>
+<a href=#398 id=398 data-nosnippet>398</a>        <span class="comment">// Convert timeout to an EmulatedTime.
+<a href=#399 id=399 data-nosnippet>399</a>        </span><span class="kw">let </span><span class="prelude-val">Ok</span>(abs_timeout_opt) = timeout
+<a href=#400 id=400 data-nosnippet>400</a>            .map(|x| Worker::current_time().unwrap().checked_add(x).ok_or(()))
+<a href=#401 id=401 data-nosnippet>401</a>            .transpose()
+<a href=#402 id=402 data-nosnippet>402</a>        <span class="kw">else </span>{
+<a href=#403 id=403 data-nosnippet>403</a>            <span class="macro">log::trace!</span>(<span class="string">"Epoll wait with invalid timeout {timeout:?} (too large)"</span>);
+<a href=#404 id=404 data-nosnippet>404</a>            <span class="kw">return </span><span class="prelude-val">Err</span>(Errno::EINVAL.into());
+<a href=#405 id=405 data-nosnippet>405</a>        };
+<a href=#406 id=406 data-nosnippet>406</a>
+<a href=#407 id=407 data-nosnippet>407</a>        <span class="macro">log::trace!</span>(<span class="string">"No events are ready on epoll {epfd} and we need to block"</span>);
+<a href=#408 id=408 data-nosnippet>408</a>
+<a href=#409 id=409 data-nosnippet>409</a>        <span class="comment">// Block on epoll state; an epoll descriptor is readable when it has events.
+<a href=#410 id=410 data-nosnippet>410</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>rv = SyscallError::new_blocked_on_file(
+<a href=#411 id=411 data-nosnippet>411</a>            File::Epoll(Arc::clone(epoll)),
+<a href=#412 id=412 data-nosnippet>412</a>            FileState::READABLE,
+<a href=#413 id=413 data-nosnippet>413</a>            <span class="comment">/* restartable= */ </span><span class="bool-val">false</span>,
+<a href=#414 id=414 data-nosnippet>414</a>        );
+<a href=#415 id=415 data-nosnippet>415</a>
+<a href=#416 id=416 data-nosnippet>416</a>        <span class="comment">// Set timeout, if provided.
+<a href=#417 id=417 data-nosnippet>417</a>        </span><span class="kw">if </span>abs_timeout_opt.is_some() {
+<a href=#418 id=418 data-nosnippet>418</a>            rv.blocked_condition().unwrap().set_timeout(abs_timeout_opt);
+<a href=#419 id=419 data-nosnippet>419</a>        }
+<a href=#420 id=420 data-nosnippet>420</a>
+<a href=#421 id=421 data-nosnippet>421</a>        <span class="prelude-val">Err</span>(rv)
+<a href=#422 id=422 data-nosnippet>422</a>    }
+<a href=#423 id=423 data-nosnippet>423</a>}
+<a href=#424 id=424 data-nosnippet>424</a>
+<a href=#425 id=425 data-nosnippet>425</a><span class="kw">fn </span>timeout_arg_to_maybe_simtime(
+<a href=#426 id=426 data-nosnippet>426</a>    timeout_ms: std::ffi::c_int,
+<a href=#427 id=427 data-nosnippet>427</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SimulationTime&gt;, Errno&gt; {
+<a href=#428 id=428 data-nosnippet>428</a>    <span class="comment">// epoll_wait(2): "Specifying a timeout of -1 causes epoll_wait() to block indefinitely"
+<a href=#429 id=429 data-nosnippet>429</a>    </span><span class="kw">let </span>timeout_ms = (timeout_ms &gt;= <span class="number">0</span>).then_some(timeout_ms);
+<a href=#430 id=430 data-nosnippet>430</a>
+<a href=#431 id=431 data-nosnippet>431</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(timeout_ms) = timeout_ms {
+<a href=#432 id=432 data-nosnippet>432</a>        <span class="comment">// a non-negative c_int should always convert to a u64
+<a href=#433 id=433 data-nosnippet>433</a>        </span><span class="kw">let </span>timeout_ms = timeout_ms.try_into().unwrap();
+<a href=#434 id=434 data-nosnippet>434</a>        <span class="kw">let </span>timeout = SimulationTime::try_from_millis(timeout_ms).ok_or(Errno::EINVAL)<span class="question-mark">?</span>;
+<a href=#435 id=435 data-nosnippet>435</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(timeout))
+<a href=#436 id=436 data-nosnippet>436</a>    } <span class="kw">else </span>{
+<a href=#437 id=437 data-nosnippet>437</a>        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+<a href=#438 id=438 data-nosnippet>438</a>    }
+<a href=#439 id=439 data-nosnippet>439</a>}
+<a href=#440 id=440 data-nosnippet>440</a>
+<a href=#441 id=441 data-nosnippet>441</a><span class="doccomment">/// There is a maximum number of events that can be specified in Linux:
+<a href=#442 id=442 data-nosnippet>442</a>/// https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L2291
+<a href=#443 id=443 data-nosnippet>443</a>///
+<a href=#444 id=444 data-nosnippet>444</a>/// The maximum is defined as:
+<a href=#445 id=445 data-nosnippet>445</a>///   `#define EP_MAX_EVENTS (INT_MAX / sizeof(struct epoll_event))`
+<a href=#446 id=446 data-nosnippet>446</a>/// https://github.com/torvalds/linux/blob/2cf0f715623872823a72e451243bbf555d10d032/fs/eventpoll.c#L95
+<a href=#447 id=447 data-nosnippet>447</a>///
+<a href=#448 id=448 data-nosnippet>448</a>/// This function performs the above computation as Linux does.
+<a href=#449 id=449 data-nosnippet>449</a></span><span class="kw">fn </span>epoll_max_events_upper_bound() -&gt; i32 {
+<a href=#450 id=450 data-nosnippet>450</a>    <span class="kw">let </span>ep_max_events = i32::MAX;
+<a href=#451 id=451 data-nosnippet>451</a>    <span class="kw">let </span>ep_ev_size: i32 = std::mem::size_of::&lt;linux_api::epoll::epoll_event&gt;()
+<a href=#452 id=452 data-nosnippet>452</a>        .try_into()
+<a href=#453 id=453 data-nosnippet>453</a>        .unwrap_or(i32::MAX);
+<a href=#454 id=454 data-nosnippet>454</a>    ep_max_events.saturating_div(ep_ev_size)
+<a href=#455 id=455 data-nosnippet>455</a>}
+<a href=#456 id=456 data-nosnippet>456</a>
+<a href=#457 id=457 data-nosnippet>457</a><span class="kw">fn </span>write_events_to_ptr(
+<a href=#458 id=458 data-nosnippet>458</a>    mem: <span class="kw-2">&amp;mut </span>MemoryManager,
+<a href=#459 id=459 data-nosnippet>459</a>    ready: Vec&lt;(EpollEvents, u64)&gt;,
+<a href=#460 id=460 data-nosnippet>460</a>    events_ptr: ForeignPtr&lt;linux_api::epoll::epoll_event&gt;,
+<a href=#461 id=461 data-nosnippet>461</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Errno&gt; {
+<a href=#462 id=462 data-nosnippet>462</a>    <span class="kw">let </span>events_ptr = ForeignArrayPtr::new(events_ptr, ready.len());
+<a href=#463 id=463 data-nosnippet>463</a>    <span class="kw">let </span><span class="kw-2">mut </span>mem_ref = mem.memory_ref_mut(events_ptr)<span class="question-mark">?</span>;
+<a href=#464 id=464 data-nosnippet>464</a>
+<a href=#465 id=465 data-nosnippet>465</a>    <span class="kw">for </span>((ev, data), plugin_ev) <span class="kw">in </span>ready.iter().zip(mem_ref.deref_mut().iter_mut()) {
+<a href=#466 id=466 data-nosnippet>466</a>        plugin_ev.events = ev.bits();
+<a href=#467 id=467 data-nosnippet>467</a>        plugin_ev.data = <span class="kw-2">*</span>data;
+<a href=#468 id=468 data-nosnippet>468</a>    }
+<a href=#469 id=469 data-nosnippet>469</a>
+<a href=#470 id=470 data-nosnippet>470</a>    mem_ref.flush()<span class="question-mark">?</span>;
+<a href=#471 id=471 data-nosnippet>471</a>
+<a href=#472 id=472 data-nosnippet>472</a>    <span class="prelude-val">Ok</span>(())
+<a href=#473 id=473 data-nosnippet>473</a>}</code></pre></div></section></main></body></html>
