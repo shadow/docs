@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["ford_fulkerson"]};
+window.SIDEBAR_ITEMS = {};
