@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"type":["rusage"]};
+window.SIDEBAR_ITEMS = {"enum":["Resource"],"type":["rlimit","rusage"]};
