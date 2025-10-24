@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Resource"],"type":["rlimit","rusage"]};
+window.SIDEBAR_ITEMS = {"constant":["RLIM64_INFINITY","RLIM_INFINITY","RLIM_NLIMITS"],"enum":["Resource"],"fn":["prlimit64","prlimit64_raw"],"type":["rlimit","rlimit64","rusage"]};
