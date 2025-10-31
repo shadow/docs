@@ -1,1 +1,0 @@
-searchState.loadedDescShard("getset", 0, "Getset, we’re ready to go!")

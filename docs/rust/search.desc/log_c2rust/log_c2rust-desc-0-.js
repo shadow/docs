@@ -1,1 +1,0 @@
-searchState.loadedDescShard("log_c2rust", 0, "This crate implements a <em>backend</em> to the C logger API in …\nFlush Rust’s log::logger().\nWhether logging is currently enabled for <code>level</code>.\nLog to Rust’s log::logger().")

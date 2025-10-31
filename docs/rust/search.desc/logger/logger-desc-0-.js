@@ -1,1 +1,0 @@
-searchState.loadedDescShard("logger", 0, "logger API suitable for C\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.")

@@ -1,1 +1,0 @@
-searchState.loadedDescShard("merge_derive", 0, "A derive macro for the <code>merge::Merge</code> trait.")

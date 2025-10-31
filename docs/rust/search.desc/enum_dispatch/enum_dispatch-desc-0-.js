@@ -1,1 +1,0 @@
-searchState.loadedDescShard("enum_dispatch", 0, "<code>enum_dispatch</code> provides a set of macros that can be used to …\nAnnotating a trait or enum definition with an …")

@@ -1,1 +1,0 @@
-searchState.loadedDescShard("naked_function_macro", 0, "Implementation of the proc macro used by the <code>naked-function</code>…\nAn attribute to define a function written entirely in …")

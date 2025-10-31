@@ -1,1 +1,0 @@
-searchState.loadedDescShard("va_list", 0, "C FFI - va_list support\nRust version of C’s <code>va_list</code> type from the <code>stdarg.h</code> header\nTrait implemented on types that can be read from a va_list\nReturns the argument unchanged.\nRead a value from the VaList.\nCalls <code>U::from(self)</code>.")
