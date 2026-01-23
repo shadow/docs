@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/memoffset-0.9.1/src/raw_field.rs`."><title>raw_field.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="memoffset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.92.0 (ded5c06cf 2025-12-08)" data-channel="1.92.0" data-search-js="search-d69d8955.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ce535bd0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">memoffset/</div>raw_field.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright (c) 2020 Gilad Naaman, Ralf Jung
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/memoffset-0.9.1/src/raw_field.rs`."><title>raw_field.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="memoffset" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.0 (254b59607 2026-01-19)" data-channel="1.93.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">memoffset/</div>raw_field.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright (c) 2020 Gilad Naaman, Ralf Jung
 <a href=#2 id=2 data-nosnippet>2</a>//
 <a href=#3 id=3 data-nosnippet>3</a>// Permission is hereby granted, free of charge, to any person obtaining a copy
 <a href=#4 id=4 data-nosnippet>4</a>// of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 <a href=#24 id=24 data-nosnippet>24</a>#[doc(hidden)]
 <a href=#25 id=25 data-nosnippet>25</a></span><span class="macro">macro_rules!</span> _memoffset__addr_of {
 <a href=#26 id=26 data-nosnippet>26</a>    (<span class="macro-nonterminal">$path</span>:expr) =&gt; {{
-<a href=#27 id=27 data-nosnippet>27</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::__priv::ptr::addr_of!</span>(<span class="macro-nonterminal">$path</span>)
+<a href=#27 id=27 data-nosnippet>27</a>        <span class="macro-nonterminal">$crate::__priv::ptr::addr_of</span>!(<span class="macro-nonterminal">$path</span>)
 <a href=#28 id=28 data-nosnippet>28</a>    }};
 <a href=#29 id=29 data-nosnippet>29</a>}
 <a href=#30 id=30 data-nosnippet>30</a><span class="attr">#[cfg(not(raw_ref_macros))]
@@ -58,23 +58,23 @@
 <a href=#58 id=58 data-nosnippet>58</a>#[macro_export]
 <a href=#59 id=59 data-nosnippet>59</a>#[doc(hidden)]
 <a href=#60 id=60 data-nosnippet>60</a></span><span class="macro">macro_rules!</span> _memoffset__field_check {
-<a href=#61 id=61 data-nosnippet>61</a>    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">path</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+<a href=#61 id=61 data-nosnippet>61</a>    (<span class="macro-nonterminal">$type</span>:path, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
 <a href=#62 id=62 data-nosnippet>62</a>        <span class="comment">// Make sure the field actually exists. This line ensures that a
 <a href=#63 id=63 data-nosnippet>63</a>        // compile-time error is generated if $field is accessed through a
 <a href=#64 id=64 data-nosnippet>64</a>        // Deref impl.
 <a href=#65 id=65 data-nosnippet>65</a>        </span><span class="attr">#[allow(clippy::unneeded_field_pattern)]
-<a href=#66 id=66 data-nosnippet>66</a>        </span><span class="kw">let </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_</span>, .. };
+<a href=#66 id=66 data-nosnippet>66</a>        </span><span class="kw">let </span><span class="macro-nonterminal">$type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_</span>, .. };
 <a href=#67 id=67 data-nosnippet>67</a>    };
 <a href=#68 id=68 data-nosnippet>68</a>}
 <a href=#69 id=69 data-nosnippet>69</a><span class="attr">#[cfg(not(allow_clippy))]
 <a href=#70 id=70 data-nosnippet>70</a>#[macro_export]
 <a href=#71 id=71 data-nosnippet>71</a>#[doc(hidden)]
 <a href=#72 id=72 data-nosnippet>72</a></span><span class="macro">macro_rules!</span> _memoffset__field_check {
-<a href=#73 id=73 data-nosnippet>73</a>    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">path</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+<a href=#73 id=73 data-nosnippet>73</a>    (<span class="macro-nonterminal">$type</span>:path, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
 <a href=#74 id=74 data-nosnippet>74</a>        <span class="comment">// Make sure the field actually exists. This line ensures that a
 <a href=#75 id=75 data-nosnippet>75</a>        // compile-time error is generated if $field is accessed through a
 <a href=#76 id=76 data-nosnippet>76</a>        // Deref impl.
-<a href=#77 id=77 data-nosnippet>77</a>        </span><span class="kw">let </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_</span>, .. };
+<a href=#77 id=77 data-nosnippet>77</a>        </span><span class="kw">let </span><span class="macro-nonterminal">$type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_</span>, .. };
 <a href=#78 id=78 data-nosnippet>78</a>    };
 <a href=#79 id=79 data-nosnippet>79</a>}
 <a href=#80 id=80 data-nosnippet>80</a>
@@ -91,19 +91,19 @@
 <a href=#91 id=91 data-nosnippet>91</a>#[macro_export]
 <a href=#92 id=92 data-nosnippet>92</a>#[doc(hidden)]
 <a href=#93 id=93 data-nosnippet>93</a></span><span class="macro">macro_rules!</span> _memoffset__field_check_tuple {
-<a href=#94 id=94 data-nosnippet>94</a>    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+<a href=#94 id=94 data-nosnippet>94</a>    (<span class="macro-nonterminal">$type</span>:ty, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
 <a href=#95 id=95 data-nosnippet>95</a>        <span class="comment">// Make sure the type argument is a tuple
 <a href=#96 id=96 data-nosnippet>96</a>        </span><span class="attr">#[allow(clippy::unneeded_wildcard_pattern)]
-<a href=#97 id=97 data-nosnippet>97</a>        </span><span class="kw">let </span>(<span class="kw">_</span>, ..): <span class="macro-nonterminal">$</span><span class="kw">type</span>;
+<a href=#97 id=97 data-nosnippet>97</a>        </span><span class="kw">let </span>(<span class="kw">_</span>, ..): <span class="macro-nonterminal">$type</span>;
 <a href=#98 id=98 data-nosnippet>98</a>    };
 <a href=#99 id=99 data-nosnippet>99</a>}
-<a href=#100 id=100 data-nosnippet>100</a><span class="attr">#[<span class="macro-nonterminal">cfg</span>(not(allow_clippy))]
+<a href=#100 id=100 data-nosnippet>100</a><span class="attr">#[cfg(not(allow_clippy))]
 <a href=#101 id=101 data-nosnippet>101</a>#[macro_export]
 <a href=#102 id=102 data-nosnippet>102</a>#[doc(hidden)]
 <a href=#103 id=103 data-nosnippet>103</a></span><span class="macro">macro_rules!</span> _memoffset__field_check_tuple {
-<a href=#104 id=104 data-nosnippet>104</a>    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+<a href=#104 id=104 data-nosnippet>104</a>    (<span class="macro-nonterminal">$type</span>:ty, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
 <a href=#105 id=105 data-nosnippet>105</a>        <span class="comment">// Make sure the type argument is a tuple
-<a href=#106 id=106 data-nosnippet>106</a>        </span><span class="kw">let </span>(<span class="kw">_</span>, ..): <span class="macro-nonterminal">$</span><span class="kw">type</span>;
+<a href=#106 id=106 data-nosnippet>106</a>        </span><span class="kw">let </span>(<span class="kw">_</span>, ..): <span class="macro-nonterminal">$type</span>;
 <a href=#107 id=107 data-nosnippet>107</a>    };
 <a href=#108 id=108 data-nosnippet>108</a>}
 <a href=#109 id=109 data-nosnippet>109</a>
@@ -122,11 +122,11 @@
 <a href=#122 id=122 data-nosnippet>122</a>///
 <a href=#123 id=123 data-nosnippet>123</a>/// _memoffset__field_check_union!(BoxedFoo, variant_a);
 <a href=#124 id=124 data-nosnippet>124</a>/// ```
-<a href=#125 id=125 data-nosnippet>125</a></span><span class="attr">#[<span class="macro-nonterminal">cfg</span>(allow_clippy)]
+<a href=#125 id=125 data-nosnippet>125</a></span><span class="attr">#[cfg(allow_clippy)]
 <a href=#126 id=126 data-nosnippet>126</a>#[macro_export]
 <a href=#127 id=127 data-nosnippet>127</a>#[doc(hidden)]
 <a href=#128 id=128 data-nosnippet>128</a></span><span class="macro">macro_rules!</span> _memoffset__field_check_union {
-<a href=#129 id=129 data-nosnippet>129</a>    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">path</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+<a href=#129 id=129 data-nosnippet>129</a>    (<span class="macro-nonterminal">$type</span>:path, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
 <a href=#130 id=130 data-nosnippet>130</a>        <span class="comment">// Make sure the field actually exists. This line ensures that a
 <a href=#131 id=131 data-nosnippet>131</a>        // compile-time error is generated if $field is accessed through a
 <a href=#132 id=132 data-nosnippet>132</a>        // Deref impl.
@@ -134,7 +134,7 @@
 <a href=#134 id=134 data-nosnippet>134</a>        </span><span class="comment">// rustc1.19 requires unsafe here for the pattern; not needed in newer versions
 <a href=#135 id=135 data-nosnippet>135</a>        </span><span class="attr">#[allow(unused_unsafe)]
 <a href=#136 id=136 data-nosnippet>136</a>        </span><span class="kw">unsafe </span>{
-<a href=#137 id=137 data-nosnippet>137</a>            <span class="kw">let </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_ </span>};
+<a href=#137 id=137 data-nosnippet>137</a>            <span class="kw">let </span><span class="macro-nonterminal">$type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_ </span>};
 <a href=#138 id=138 data-nosnippet>138</a>        }
 <a href=#139 id=139 data-nosnippet>139</a>    };
 <a href=#140 id=140 data-nosnippet>140</a>}
@@ -142,14 +142,14 @@
 <a href=#142 id=142 data-nosnippet>142</a>#[macro_export]
 <a href=#143 id=143 data-nosnippet>143</a>#[doc(hidden)]
 <a href=#144 id=144 data-nosnippet>144</a></span><span class="macro">macro_rules!</span> _memoffset__field_check_union {
-<a href=#145 id=145 data-nosnippet>145</a>    (<span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">path</span>, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
+<a href=#145 id=145 data-nosnippet>145</a>    (<span class="macro-nonterminal">$type</span>:path, <span class="macro-nonterminal">$field</span>:tt) =&gt; {
 <a href=#146 id=146 data-nosnippet>146</a>        <span class="comment">// Make sure the field actually exists. This line ensures that a
 <a href=#147 id=147 data-nosnippet>147</a>        // compile-time error is generated if $field is accessed through a
 <a href=#148 id=148 data-nosnippet>148</a>        // Deref impl.
 <a href=#149 id=149 data-nosnippet>149</a>        // rustc1.19 requires unsafe here for the pattern; not needed in newer versions
 <a href=#150 id=150 data-nosnippet>150</a>        </span><span class="attr">#[allow(unused_unsafe)]
 <a href=#151 id=151 data-nosnippet>151</a>        </span><span class="kw">unsafe </span>{
-<a href=#152 id=152 data-nosnippet>152</a>            <span class="kw">let </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_ </span>};
+<a href=#152 id=152 data-nosnippet>152</a>            <span class="kw">let </span><span class="macro-nonterminal">$type </span>{ <span class="macro-nonterminal">$field</span>: <span class="kw">_ </span>};
 <a href=#153 id=153 data-nosnippet>153</a>        }
 <a href=#154 id=154 data-nosnippet>154</a>    };
 <a href=#155 id=155 data-nosnippet>155</a>}
@@ -223,4 +223,5 @@
 <a href=#223 id=223 data-nosnippet>223</a>            <span class="macro">_memoffset__addr_of!</span>((<span class="kw-2">*</span>(base <span class="kw">as </span><span class="kw-2">*const </span><span class="macro-nonterminal">$parent</span>)).<span class="macro-nonterminal">$field</span>)
 <a href=#224 id=224 data-nosnippet>224</a>        }
 <a href=#225 id=225 data-nosnippet>225</a>    }};
-<a href=#226 id=226 data-nosnippet>226</a>}</code></pre></div></section></main></body></html>
+<a href=#226 id=226 data-nosnippet>226</a>}
+</code></pre></div></section></main></body></html>

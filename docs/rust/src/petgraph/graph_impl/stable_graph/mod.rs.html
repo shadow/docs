@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/petgraph-0.8.3/src/graph_impl/stable_graph/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="petgraph" data-themes="" data-resource-suffix="" data-rustdoc-version="1.92.0 (ded5c06cf 2025-12-08)" data-channel="1.92.0" data-search-js="search-d69d8955.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-ce535bd0.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">petgraph/graph_impl/stable_graph/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! `StableGraph` keeps indices stable across removals.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/petgraph-0.8.3/src/graph_impl/stable_graph/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="petgraph" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.0 (254b59607 2026-01-19)" data-channel="1.93.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">petgraph/graph_impl/stable_graph/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! `StableGraph` keeps indices stable across removals.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! Depends on `feature = "stable_graph"`.
 <a href=#4 id=4 data-nosnippet>4</a>//!
@@ -378,7 +378,7 @@
 <a href=#378 id=378 data-nosnippet>378</a>    ///
 <a href=#379 id=379 data-nosnippet>379</a>    /// Return [`GraphError::NodeIxLimit`] if the `StableGraph` is at the maximum number of nodes for its index.
 <a href=#380 id=380 data-nosnippet>380</a>    </span><span class="kw">pub fn </span>try_add_node(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: N) -&gt; <span class="prelude-ty">Result</span>&lt;NodeIndex&lt;Ix&gt;, GraphError&gt; {
-<a href=#381 id=381 data-nosnippet>381</a>        <span class="kw">if </span><span class="self">self</span>.free_node != NodeIndex::end() {
+<a href=#381 id=381 data-nosnippet>381</a>        <span class="kw">if </span><span class="self">self</span>.<span class="macro">free_node !</span>= NodeIndex::end() {
 <a href=#382 id=382 data-nosnippet>382</a>            <span class="kw">let </span>node_idx = <span class="self">self</span>.free_node;
 <a href=#383 id=383 data-nosnippet>383</a>            <span class="self">self</span>.occupy_vacant_node(node_idx, weight);
 <a href=#384 id=384 data-nosnippet>384</a>            <span class="prelude-val">Ok</span>(node_idx)
@@ -394,7 +394,7 @@
 <a href=#394 id=394 data-nosnippet>394</a>        <span class="comment">// link the free list
 <a href=#395 id=395 data-nosnippet>395</a>        </span><span class="kw">let </span>node_slot = <span class="kw-2">&amp;mut </span><span class="self">self</span>.g.nodes[node_idx.index()];
 <a href=#396 id=396 data-nosnippet>396</a>        node_slot.next = [free_node._into_edge(), EdgeIndex::end()];
-<a href=#397 id=397 data-nosnippet>397</a>        <span class="kw">if </span><span class="kw-2">*</span>free_node != NodeIndex::end() {
+<a href=#397 id=397 data-nosnippet>397</a>        <span class="kw">if </span><span class="kw-2">*</span><span class="macro">free_node !</span>= NodeIndex::end() {
 <a href=#398 id=398 data-nosnippet>398</a>            <span class="self">self</span>.g.nodes[free_node.index()].next[<span class="number">1</span>] = node_idx._into_edge();
 <a href=#399 id=399 data-nosnippet>399</a>        }
 <a href=#400 id=400 data-nosnippet>400</a>        <span class="kw-2">*</span>free_node = node_idx;
@@ -431,7 +431,7 @@
 <a href=#431 id=431 data-nosnippet>431</a>        <span class="comment">//let node_weight = replace(&amp;mut self.g.nodes[a.index()].weight, Entry::Empty(self.free_node));
 <a href=#432 id=432 data-nosnippet>432</a>        //self.g.nodes[a.index()].next = [EdgeIndex::end(), EdgeIndex::end()];
 <a href=#433 id=433 data-nosnippet>433</a>        </span>node_slot.next = [<span class="self">self</span>.free_node._into_edge(), EdgeIndex::end()];
-<a href=#434 id=434 data-nosnippet>434</a>        <span class="kw">if </span><span class="self">self</span>.free_node != NodeIndex::end() {
+<a href=#434 id=434 data-nosnippet>434</a>        <span class="kw">if </span><span class="self">self</span>.<span class="macro">free_node !</span>= NodeIndex::end() {
 <a href=#435 id=435 data-nosnippet>435</a>            <span class="self">self</span>.g.nodes[<span class="self">self</span>.free_node.index()].next[<span class="number">1</span>] = a._into_edge();
 <a href=#436 id=436 data-nosnippet>436</a>        }
 <a href=#437 id=437 data-nosnippet>437</a>        <span class="self">self</span>.free_node = a;
@@ -500,7 +500,7 @@
 <a href=#500 id=500 data-nosnippet>500</a>        {
 <a href=#501 id=501 data-nosnippet>501</a>            <span class="kw">let </span>edge: <span class="kw-2">&amp;mut </span>Edge&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;;
 <a href=#502 id=502 data-nosnippet>502</a>
-<a href=#503 id=503 data-nosnippet>503</a>            <span class="kw">if </span><span class="self">self</span>.free_edge != EdgeIndex::end() {
+<a href=#503 id=503 data-nosnippet>503</a>            <span class="kw">if </span><span class="self">self</span>.<span class="macro">free_edge !</span>= EdgeIndex::end() {
 <a href=#504 id=504 data-nosnippet>504</a>                edge_idx = <span class="self">self</span>.free_edge;
 <a href=#505 id=505 data-nosnippet>505</a>                edge = <span class="kw-2">&amp;mut </span><span class="self">self</span>.g.edges[edge_idx.index()];
 <a href=#506 id=506 data-nosnippet>506</a>                <span class="kw">let </span>_old = edge.weight.replace(weight);
@@ -560,7 +560,7 @@
 <a href=#560 id=560 data-nosnippet>560</a>    <span class="doccomment">/// free_edge: Which free list to update for the vacancy
 <a href=#561 id=561 data-nosnippet>561</a>    </span><span class="kw">fn </span>add_vacant_edge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, free_edge: <span class="kw-2">&amp;mut </span>EdgeIndex&lt;Ix&gt;) {
 <a href=#562 id=562 data-nosnippet>562</a>        <span class="kw">let </span>edge_idx = EdgeIndex::new(<span class="self">self</span>.g.edges.len());
-<a href=#563 id=563 data-nosnippet>563</a>        <span class="macro">debug_assert!</span>(edge_idx != EdgeIndex::end());
+<a href=#563 id=563 data-nosnippet>563</a>        <span class="macro">debug_assert!</span>(<span class="macro">edge_idx !</span>= EdgeIndex::end());
 <a href=#564 id=564 data-nosnippet>564</a>        <span class="kw">let </span><span class="kw-2">mut </span>edge = Edge {
 <a href=#565 id=565 data-nosnippet>565</a>            weight: <span class="prelude-val">None</span>,
 <a href=#566 id=566 data-nosnippet>566</a>            node: [NodeIndex::end(); <span class="number">2</span>],
@@ -1467,10 +1467,10 @@
 <a href=#1467 id=1467 data-nosnippet>1467</a>        <span class="kw">let </span>previous_node = node_slot.next[<span class="number">1</span>];
 <a href=#1468 id=1468 data-nosnippet>1468</a>        <span class="kw">let </span>next_node = node_slot.next[<span class="number">0</span>];
 <a href=#1469 id=1469 data-nosnippet>1469</a>        node_slot.next = [EdgeIndex::end(), EdgeIndex::end()];
-<a href=#1470 id=1470 data-nosnippet>1470</a>        <span class="kw">if </span>previous_node != EdgeIndex::end() {
+<a href=#1470 id=1470 data-nosnippet>1470</a>        <span class="kw">if </span><span class="macro">previous_node !</span>= EdgeIndex::end() {
 <a href=#1471 id=1471 data-nosnippet>1471</a>            <span class="self">self</span>.g.nodes[previous_node.index()].next[<span class="number">0</span>] = next_node;
 <a href=#1472 id=1472 data-nosnippet>1472</a>        }
-<a href=#1473 id=1473 data-nosnippet>1473</a>        <span class="kw">if </span>next_node != EdgeIndex::end() {
+<a href=#1473 id=1473 data-nosnippet>1473</a>        <span class="kw">if </span><span class="macro">next_node !</span>= EdgeIndex::end() {
 <a href=#1474 id=1474 data-nosnippet>1474</a>            <span class="self">self</span>.g.nodes[next_node.index()].next[<span class="number">1</span>] = previous_node;
 <a href=#1475 id=1475 data-nosnippet>1475</a>        }
 <a href=#1476 id=1476 data-nosnippet>1476</a>        <span class="kw">if </span><span class="self">self</span>.free_node == node_idx {
@@ -1510,7 +1510,7 @@
 <a href=#1510 id=1510 data-nosnippet>1510</a>            } <span class="kw">else </span>{
 <a href=#1511 id=1511 data-nosnippet>1511</a>                <span class="comment">// free node
 <a href=#1512 id=1512 data-nosnippet>1512</a>                </span>node.next = [free_node._into_edge(), EdgeIndex::end()];
-<a href=#1513 id=1513 data-nosnippet>1513</a>                <span class="kw">if </span>free_node != NodeIndex::end() {
+<a href=#1513 id=1513 data-nosnippet>1513</a>                <span class="kw">if </span><span class="macro">free_node !</span>= NodeIndex::end() {
 <a href=#1514 id=1514 data-nosnippet>1514</a>                    <span class="self">self</span>.g.nodes[free_node.index()].next[<span class="number">1</span>] = EdgeIndex::new(node_index);
 <a href=#1515 id=1515 data-nosnippet>1515</a>                }
 <a href=#1516 id=1516 data-nosnippet>1516</a>                free_node = NodeIndex::new(node_index);
@@ -1558,7 +1558,7 @@
 <a href=#1558 id=1558 data-nosnippet>1558</a>        <span class="kw">let </span><span class="kw-2">mut </span>free_node = <span class="self">self</span>.free_node;
 <a href=#1559 id=1559 data-nosnippet>1559</a>        <span class="kw">let </span><span class="kw-2">mut </span>prev_free_node = NodeIndex::end();
 <a href=#1560 id=1560 data-nosnippet>1560</a>        <span class="kw">let </span><span class="kw-2">mut </span>free_node_len = <span class="number">0</span>;
-<a href=#1561 id=1561 data-nosnippet>1561</a>        <span class="kw">while </span>free_node != NodeIndex::end() {
+<a href=#1561 id=1561 data-nosnippet>1561</a>        <span class="kw">while </span><span class="macro">free_node !</span>= NodeIndex::end() {
 <a href=#1562 id=1562 data-nosnippet>1562</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = <span class="self">self</span>.g.nodes.get(free_node.index()) {
 <a href=#1563 id=1563 data-nosnippet>1563</a>                <span class="kw">if </span>n.weight.is_none() {
 <a href=#1564 id=1564 data-nosnippet>1564</a>                    <span class="macro">debug_assert_eq!</span>(n.next[<span class="number">1</span>]._into_node(), prev_free_node);
@@ -1579,7 +1579,7 @@
 <a href=#1579 id=1579 data-nosnippet>1579</a>
 <a href=#1580 id=1580 data-nosnippet>1580</a>        <span class="kw">let </span><span class="kw-2">mut </span>free_edge_len = <span class="number">0</span>;
 <a href=#1581 id=1581 data-nosnippet>1581</a>        <span class="kw">let </span><span class="kw-2">mut </span>free_edge = <span class="self">self</span>.free_edge;
-<a href=#1582 id=1582 data-nosnippet>1582</a>        <span class="kw">while </span>free_edge != EdgeIndex::end() {
+<a href=#1582 id=1582 data-nosnippet>1582</a>        <span class="kw">while </span><span class="macro">free_edge !</span>= EdgeIndex::end() {
 <a href=#1583 id=1583 data-nosnippet>1583</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = <span class="self">self</span>.g.edges.get(free_edge.index()) {
 <a href=#1584 id=1584 data-nosnippet>1584</a>                <span class="kw">if </span>n.weight.is_none() {
 <a href=#1585 id=1585 data-nosnippet>1585</a>                    free_edge = n.next[<span class="number">0</span>];
@@ -1754,8 +1754,8 @@
 <a href=#1754 id=1754 data-nosnippet>1754</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(ew) = edge.weight {
 <a href=#1755 id=1755 data-nosnippet>1755</a>                <span class="kw">let </span>source = node_index_map[source_index];
 <a href=#1756 id=1756 data-nosnippet>1756</a>                <span class="kw">let </span>target = node_index_map[target_index];
-<a href=#1757 id=1757 data-nosnippet>1757</a>                <span class="macro">debug_assert!</span>(source != NodeIndex::end());
-<a href=#1758 id=1758 data-nosnippet>1758</a>                <span class="macro">debug_assert!</span>(target != NodeIndex::end());
+<a href=#1757 id=1757 data-nosnippet>1757</a>                <span class="macro">debug_assert!</span>(<span class="macro">source !</span>= NodeIndex::end());
+<a href=#1758 id=1758 data-nosnippet>1758</a>                <span class="macro">debug_assert!</span>(<span class="macro">target !</span>= NodeIndex::end());
 <a href=#1759 id=1759 data-nosnippet>1759</a>                result_g.add_edge(source, target, ew);
 <a href=#1760 id=1760 data-nosnippet>1760</a>            }
 <a href=#1761 id=1761 data-nosnippet>1761</a>        }
@@ -2613,4 +2613,5 @@
 <a href=#2613 id=2613 data-nosnippet>2613</a>    gr.reverse();
 <a href=#2614 id=2614 data-nosnippet>2614</a>
 <a href=#2615 id=2615 data-nosnippet>2615</a>    gr.check_free_lists();
-<a href=#2616 id=2616 data-nosnippet>2616</a>}</code></pre></div></section></main></body></html>
+<a href=#2616 id=2616 data-nosnippet>2616</a>}
+</code></pre></div></section></main></body></html>
