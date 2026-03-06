@@ -1,9 +1,9 @@
 (function() {
-    var implementors = Object.fromEntries([["adler2",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.93.1/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"adler2/struct.Adler32.html\" title=\"struct adler2::Adler32\">Adler32</a>"]]],["fnv",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.93.1/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"fnv/struct.FnvHasher.html\" title=\"struct fnv::FnvHasher\">FnvHasher</a>"]]],["rustc_hash",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.93.1/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"rustc_hash/struct.FxHasher.html\" title=\"struct rustc_hash::FxHasher\">FxHasher</a>"]]]]);
+    const implementors = Object.fromEntries([["adler2",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.0/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"adler2/struct.Adler32.html\" title=\"struct adler2::Adler32\">Adler32</a>",0]]],["fnv",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.0/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"fnv/struct.FnvHasher.html\" title=\"struct fnv::FnvHasher\">FnvHasher</a>",0]]],["rustc_hash",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.0/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"rustc_hash/struct.FxHasher.html\" title=\"struct rustc_hash::FxHasher\">FxHasher</a>",0]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
         window.pending_implementors = implementors;
     }
 })()
-//{"start":57,"fragment_lengths":[261,259,277]}
+//{"start":59,"fragment_lengths":[263,261,279]}
