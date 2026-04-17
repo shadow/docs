@@ -1,5 +1,5 @@
 (function() {
-    const implementors = Object.fromEntries([["serde",[]],["serde_core",[]],["serde_yaml",[["impl&lt;'a, W&gt; <a class=\"trait\" href=\"serde_core/ser/trait.SerializeStruct.html\" title=\"trait serde_core::ser::SerializeStruct\">SerializeStruct</a> for &amp;'a mut <a class=\"struct\" href=\"serde_yaml/struct.Serializer.html\" title=\"struct serde_yaml::Serializer\">Serializer</a>&lt;W&gt;<div class=\"where\">where\n    W: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.94.1/std/io/trait.Write.html\" title=\"trait std::io::Write\">Write</a>,</div>",0]]]]);
+    const implementors = Object.fromEntries([["serde",[]],["serde_core",[]],["serde_yaml",[["impl&lt;'a, W&gt; <a class=\"trait\" href=\"serde_core/ser/trait.SerializeStruct.html\" title=\"trait serde_core::ser::SerializeStruct\">SerializeStruct</a> for &amp;'a mut <a class=\"struct\" href=\"serde_yaml/struct.Serializer.html\" title=\"struct serde_yaml::Serializer\">Serializer</a>&lt;W&gt;<div class=\"where\">where\n    W: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.95.0/std/io/trait.Write.html\" title=\"trait std::io::Write\">Write</a>,</div>",0]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
