@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CloneResult"],"fn":["clone","clone3","clone3_raw","clone_raw","fork","fork_raw","sched_yield"],"struct":["CloneFlags","SuidDump","linux_clone_args"],"type":["clone_args"]};
+window.SIDEBAR_ITEMS = {"constant":["SCHED_RESET_ON_FORK"],"enum":["CloneResult","Sched"],"fn":["clone","clone3","clone3_raw","clone_raw","fork","fork_raw","sched_yield"],"struct":["CloneFlags","SchedFlags","SuidDump","linux_clone_args"],"type":["clone_args","sched_attr"]};

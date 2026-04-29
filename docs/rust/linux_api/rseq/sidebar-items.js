@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["linux_rseq"],"type":["rseq"]};
+window.SIDEBAR_ITEMS = {"struct":["linux_rseq","rseq_flags"],"type":["rseq"]};
