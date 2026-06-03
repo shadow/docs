@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SHMMIN","SHMMNI","SHMSEG","SHM_HUGE_SHIFT"],"enum":["ShmctlCmd"],"struct":["ShmatFlags","ShmgetFlags","ShmgetFlagsParts","shmid64_ds"]};

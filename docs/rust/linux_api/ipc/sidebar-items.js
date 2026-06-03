@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["IPC_PRIVATE"],"struct":["ipc64_perm"]};
