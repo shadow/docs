@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["scope"],"macro":["select"],"mod":["atomic","channel","deque","epoch","queue","sync","thread","utils"]};
+window.SIDEBAR_ITEMS = {"fn":["scope"],"macro":[["select",1]],"mod":["atomic","channel","deque","epoch","queue","sync","thread","utils"]};
