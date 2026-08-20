@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["SFlag","linux_stat"],"type":["stat"]};
+window.SIDEBAR_ITEMS = {"fn":["fstat_raw"],"struct":["SFlag","linux_stat"],"type":["stat"]};
