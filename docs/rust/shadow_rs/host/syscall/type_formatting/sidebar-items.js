@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["SyscallBufferArg","SyscallNonDeterministicArg","SyscallSockAddrArg","SyscallStringArg"]};
+window.SIDEBAR_ITEMS = {"struct":["SyscallArrayArg","SyscallBufferArg","SyscallNonDeterministicArg","SyscallSockAddrArg","SyscallStringArg"]};
