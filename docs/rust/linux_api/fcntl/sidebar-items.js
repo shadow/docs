@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["FcntlCommand","FcntlLeaseType","FcntlOwner","FcntlRwHint","FcntlSealType"],"struct":["DescriptorFlags","ExecveAtFlags","OFlag"]};
+window.SIDEBAR_ITEMS = {"enum":["FcntlCommand","FcntlLeaseType","FcntlOwner","FcntlRwHint","FcntlSealType","FlockType","FlockWhence"],"struct":["DescriptorFlags","ExecveAtFlags","OFlag","flock"]};

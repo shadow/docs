@@ -2,7 +2,7 @@
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>linux_api::errno::Errno;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>linux_api::fcntl::DescriptorFlags;
 <a href=#4 id=4 data-nosnippet>4</a>
-<a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span><span class="kw">crate</span>::host::descriptor::descriptor_table;
+<a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span><span class="kw">crate</span>::host::descriptor::{DropPosixRecordLocks, descriptor_table};
 <a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span><span class="kw">crate</span>::host::syscall::handler::{SyscallContext, SyscallHandler};
 <a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span><span class="kw">crate</span>::utility::callback_queue::CallbackQueue;
 <a href=#8 id=8 data-nosnippet>8</a>
@@ -72,12 +72,13 @@
 <a href=#72 id=72 data-nosnippet>72</a>                <span class="kw">for </span>desc <span class="kw">in </span>descriptors {
 <a href=#73 id=73 data-nosnippet>73</a>                    <span class="comment">// close_range(2):
 <a href=#74 id=74 data-nosnippet>74</a>                    // &gt; Errors closing a given file descriptor are currently ignored.
-<a href=#75 id=75 data-nosnippet>75</a>                    </span><span class="kw">let _ </span>= desc.close(ctx.objs.host, cb_queue);
-<a href=#76 id=76 data-nosnippet>76</a>                }
-<a href=#77 id=77 data-nosnippet>77</a>            });
-<a href=#78 id=78 data-nosnippet>78</a>        }
-<a href=#79 id=79 data-nosnippet>79</a>
-<a href=#80 id=80 data-nosnippet>80</a>        <span class="prelude-val">Ok</span>(())
-<a href=#81 id=81 data-nosnippet>81</a>    }
-<a href=#82 id=82 data-nosnippet>82</a>}
+<a href=#75 id=75 data-nosnippet>75</a>                    </span><span class="kw">let </span>drop_locks = DropPosixRecordLocks::ForPid(ctx.objs.process.id());
+<a href=#76 id=76 data-nosnippet>76</a>                    <span class="kw">let _ </span>= desc.close(ctx.objs.host, drop_locks, cb_queue);
+<a href=#77 id=77 data-nosnippet>77</a>                }
+<a href=#78 id=78 data-nosnippet>78</a>            });
+<a href=#79 id=79 data-nosnippet>79</a>        }
+<a href=#80 id=80 data-nosnippet>80</a>
+<a href=#81 id=81 data-nosnippet>81</a>        <span class="prelude-val">Ok</span>(())
+<a href=#82 id=82 data-nosnippet>82</a>    }
+<a href=#83 id=83 data-nosnippet>83</a>}
 </code></pre></div></section></main></body></html>
