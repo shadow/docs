@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["FcntlCommand","FcntlLeaseType","FcntlOwner","FcntlRwHint","FcntlSealType","FlockType","FlockWhence"],"struct":["DescriptorFlags","ExecveAtFlags","OFlag","flock"]};
+window.SIDEBAR_ITEMS = {"constant":["LINUX_O_ASYNC"],"enum":["FcntlCommand","FcntlLeaseType","FcntlOwner","FcntlRwHint","FcntlSealType","FlockType","FlockWhence"],"struct":["AccessModeOFlag","DescriptorFlags","ExecveAtFlags","FileCreationOFlag","FileStatusOFlag","OFlag","flock"]};
