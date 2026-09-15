@@ -126,8 +126,8 @@
 <a href=#126 id=126 data-nosnippet>126</a>                mem: <span class="kw-2">&amp;</span>MemoryManager,
 <a href=#127 id=127 data-nosnippet>127</a>            ) -&gt; std::fmt::Result {
 <a href=#128 id=128 data-nosnippet>128</a>                <span class="kw">let </span>ptr = ForeignPtr::&lt;<span class="macro-nonterminal">$type</span>&gt;::from(<span class="self">self</span>.reg);
-<a href=#129 id=129 data-nosnippet>129</a>                <span class="kw">match </span>(options, mem.memory_ref(ForeignArrayPtr::new(ptr, <span class="number">1</span>))) {
-<a href=#130 id=130 data-nosnippet>130</a>                    (FmtOptions::Standard | FmtOptions::Long, <span class="prelude-val">Ok</span>(vals)) =&gt; <span class="macro">write!</span>(f, <span class="string">"{:?} ({:p})"</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>vals)[<span class="number">0</span>], ptr),
+<a href=#129 id=129 data-nosnippet>129</a>                <span class="kw">match </span>(options, mem.read(ptr)) {
+<a href=#130 id=130 data-nosnippet>130</a>                    (FmtOptions::Standard | FmtOptions::Long, <span class="prelude-val">Ok</span>(val)) =&gt; <span class="macro">write!</span>(f, <span class="string">"{:?} ({:p})"</span>, <span class="kw-2">&amp;</span>val, ptr),
 <a href=#131 id=131 data-nosnippet>131</a>                    <span class="comment">// if we couldn't read the memory, just show the pointer instead
 <a href=#132 id=132 data-nosnippet>132</a>                    </span>(FmtOptions::Standard | FmtOptions::Long, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; fmt_ptr_with_suffix(f, ptr, <span class="string">"&lt;invalid-read&gt;"</span>),
 <a href=#133 id=133 data-nosnippet>133</a>                    (FmtOptions::Deterministic, <span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"&lt;pointer&gt;"</span>),
@@ -178,7 +178,7 @@
 <a href=#178 id=178 data-nosnippet>178</a>                mem: <span class="kw-2">&amp;</span>MemoryManager,
 <a href=#179 id=179 data-nosnippet>179</a>            ) -&gt; std::fmt::Result {
 <a href=#180 id=180 data-nosnippet>180</a>                <span class="kw">let </span>ptr = ForeignPtr::&lt;<span class="macro-nonterminal">$type</span>&gt;::from(<span class="self">self</span>.reg);
-<a href=#181 id=181 data-nosnippet>181</a>                <span class="kw">match </span>(options, mem.memory_ref(ForeignArrayPtr::new(ptr, K))) {
+<a href=#181 id=181 data-nosnippet>181</a>                <span class="kw">match </span>(options, mem.read_vec(ForeignArrayPtr::new(ptr, K))) {
 <a href=#182 id=182 data-nosnippet>182</a>                    (FmtOptions::Standard | FmtOptions::Long, <span class="prelude-val">Ok</span>(vals)) =&gt; <span class="macro">write!</span>(f, <span class="string">"{:?} ({:p})"</span>, <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>vals), ptr),
 <a href=#183 id=183 data-nosnippet>183</a>                    <span class="comment">// if we couldn't read the memory, just show the pointer instead
 <a href=#184 id=184 data-nosnippet>184</a>                    </span>(FmtOptions::Standard | FmtOptions::Long, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; fmt_ptr_with_suffix(f, ptr, <span class="string">"&lt;invalid-read&gt;"</span>),
@@ -257,7 +257,7 @@
 <a href=#257 id=257 data-nosnippet>257</a>        </span><span class="kw">return </span><span class="macro">write!</span>(f, <span class="string">"&lt;pointer&gt;"</span>);
 <a href=#258 id=258 data-nosnippet>258</a>    }
 <a href=#259 id=259 data-nosnippet>259</a>
-<a href=#260 id=260 data-nosnippet>260</a>    <span class="kw">let </span>mem_ref = <span class="kw">match </span>mem.memory_ref_prefix(ForeignArrayPtr::new(ptr, len)) {
+<a href=#260 id=260 data-nosnippet>260</a>    <span class="kw">let </span>mem_ref = <span class="kw">match </span>mem.read_prefix(ForeignArrayPtr::new(ptr, len)) {
 <a href=#261 id=261 data-nosnippet>261</a>        <span class="prelude-val">Ok</span>(x) =&gt; x,
 <a href=#262 id=262 data-nosnippet>262</a>        <span class="comment">// the pointer didn't reference any valid memory
 <a href=#263 id=263 data-nosnippet>263</a>        </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>fmt_ptr_with_suffix(f, ptr, <span class="string">"&lt;invalid-addr&gt;"</span>),
@@ -307,7 +307,7 @@
 <a href=#307 id=307 data-nosnippet>307</a>        </span>DISPLAY_LEN + <span class="number">1</span>,
 <a href=#308 id=308 data-nosnippet>308</a>    );
 <a href=#309 id=309 data-nosnippet>309</a>
-<a href=#310 id=310 data-nosnippet>310</a>    <span class="kw">let </span>mem_ref = <span class="kw">match </span>mem.memory_ref_prefix(ForeignArrayPtr::new(ptr, len)) {
+<a href=#310 id=310 data-nosnippet>310</a>    <span class="kw">let </span>mem_ref = <span class="kw">match </span>mem.read_prefix(ForeignArrayPtr::new(ptr, len)) {
 <a href=#311 id=311 data-nosnippet>311</a>        <span class="prelude-val">Ok</span>(x) =&gt; x,
 <a href=#312 id=312 data-nosnippet>312</a>        <span class="comment">// the pointer didn't reference any valid memory
 <a href=#313 id=313 data-nosnippet>313</a>        </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>fmt_ptr_with_suffix(f, ptr, <span class="string">"&lt;invalid-addr&gt;"</span>),
@@ -591,18 +591,16 @@
 <a href=#591 id=591 data-nosnippet>591</a>        }
 <a href=#592 id=592 data-nosnippet>592</a>
 <a href=#593 id=593 data-nosnippet>593</a>        <span class="comment">// read the msghdr
-<a href=#594 id=594 data-nosnippet>594</a>        </span><span class="kw">let </span>ptr = ForeignArrayPtr::new(ptr, <span class="number">1</span>);
-<a href=#595 id=595 data-nosnippet>595</a>        <span class="kw">let </span><span class="prelude-val">Ok</span>(msg) = mem.memory_ref(ptr) <span class="kw">else </span>{
-<a href=#596 id=596 data-nosnippet>596</a>            <span class="comment">// if we couldn't read the memory, just show the pointer instead
-<a href=#597 id=597 data-nosnippet>597</a>            </span><span class="kw">return </span>fmt_ptr_with_suffix(f, ptr.ptr(), <span class="string">"&lt;invalid-read&gt;"</span>);
-<a href=#598 id=598 data-nosnippet>598</a>        };
-<a href=#599 id=599 data-nosnippet>599</a>        <span class="kw">let </span>msg = <span class="kw-2">&amp;</span>(<span class="kw-2">*</span>msg)[<span class="number">0</span>];
-<a href=#600 id=600 data-nosnippet>600</a>
-<a href=#601 id=601 data-nosnippet>601</a>        <span class="comment">// format the msghdr
-<a href=#602 id=602 data-nosnippet>602</a>        </span>fmt_msghdr(f, msg, options, mem)<span class="question-mark">?</span>;
-<a href=#603 id=603 data-nosnippet>603</a>
-<a href=#604 id=604 data-nosnippet>604</a>        <span class="comment">// show the original pointer
-<a href=#605 id=605 data-nosnippet>605</a>        </span><span class="macro">write!</span>(f, <span class="string">" ({:p})"</span>, ptr.ptr())
-<a href=#606 id=606 data-nosnippet>606</a>    }
-<a href=#607 id=607 data-nosnippet>607</a>}
+<a href=#594 id=594 data-nosnippet>594</a>        </span><span class="kw">let </span><span class="prelude-val">Ok</span>(msg) = mem.read(ptr) <span class="kw">else </span>{
+<a href=#595 id=595 data-nosnippet>595</a>            <span class="comment">// if we couldn't read the memory, just show the pointer instead
+<a href=#596 id=596 data-nosnippet>596</a>            </span><span class="kw">return </span>fmt_ptr_with_suffix(f, ptr, <span class="string">"&lt;invalid-read&gt;"</span>);
+<a href=#597 id=597 data-nosnippet>597</a>        };
+<a href=#598 id=598 data-nosnippet>598</a>
+<a href=#599 id=599 data-nosnippet>599</a>        <span class="comment">// format the msghdr
+<a href=#600 id=600 data-nosnippet>600</a>        </span>fmt_msghdr(f, <span class="kw-2">&amp;</span>msg, options, mem)<span class="question-mark">?</span>;
+<a href=#601 id=601 data-nosnippet>601</a>
+<a href=#602 id=602 data-nosnippet>602</a>        <span class="comment">// show the original pointer
+<a href=#603 id=603 data-nosnippet>603</a>        </span><span class="macro">write!</span>(f, <span class="string">" ({:p})"</span>, ptr)
+<a href=#604 id=604 data-nosnippet>604</a>    }
+<a href=#605 id=605 data-nosnippet>605</a>}
 </code></pre></div></section></main></body></html>

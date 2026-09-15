@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AllocdMem","MemoryManager","MemoryReaderCursor","MemoryWriterCursor","ProcessMemoryRef","ProcessMemoryRefMut"]};
+window.SIDEBAR_ITEMS = {"struct":["AllocdMem","MemoryManager","MemoryReaderCursor","MemoryWriterCursor"]};

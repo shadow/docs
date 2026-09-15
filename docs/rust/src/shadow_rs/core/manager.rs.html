@@ -652,253 +652,252 @@
 <a href=#652 id=652 data-nosnippet>652</a>                    .unwrap_or_else(|| <span class="self">self</span>.config.general.log_level.unwrap())
 <a href=#653 id=653 data-nosnippet>653</a>                    .to_c_loglevel(),
 <a href=#654 id=654 data-nosnippet>654</a>                use_new_tcp: <span class="self">self</span>.config.experimental.use_new_tcp.unwrap(),
-<a href=#655 id=655 data-nosnippet>655</a>                use_mem_mapper: <span class="self">self</span>.config.experimental.use_memory_manager.unwrap(),
-<a href=#656 id=656 data-nosnippet>656</a>                use_syscall_counters: <span class="self">self</span>.config.experimental.use_syscall_counters.unwrap(),
-<a href=#657 id=657 data-nosnippet>657</a>            };
-<a href=#658 id=658 data-nosnippet>658</a>
-<a href=#659 id=659 data-nosnippet>659</a>            Box::new(Host::new(
-<a href=#660 id=660 data-nosnippet>660</a>                params,
-<a href=#661 id=661 data-nosnippet>661</a>                <span class="kw-2">&amp;</span><span class="self">self</span>.hosts_path,
-<a href=#662 id=662 data-nosnippet>662</a>                <span class="self">self</span>.raw_frequency,
-<a href=#663 id=663 data-nosnippet>663</a>                <span class="self">self</span>.shmem(),
-<a href=#664 id=664 data-nosnippet>664</a>                <span class="self">self</span>.preload_paths.clone(),
-<a href=#665 id=665 data-nosnippet>665</a>            ))
-<a href=#666 id=666 data-nosnippet>666</a>        };
-<a href=#667 id=667 data-nosnippet>667</a>
-<a href=#668 id=668 data-nosnippet>668</a>        host.lock_shmem();
-<a href=#669 id=669 data-nosnippet>669</a>
-<a href=#670 id=670 data-nosnippet>670</a>        <span class="kw">for </span>proc <span class="kw">in </span><span class="kw-2">&amp;</span>host_info.processes {
-<a href=#671 id=671 data-nosnippet>671</a>            <span class="kw">let </span>plugin_path =
-<a href=#672 id=672 data-nosnippet>672</a>                CString::new(proc.plugin.clone().into_os_string().as_bytes()).unwrap();
-<a href=#673 id=673 data-nosnippet>673</a>            <span class="kw">let </span>plugin_name = CString::new(proc.plugin.file_name().unwrap().as_bytes()).unwrap();
-<a href=#674 id=674 data-nosnippet>674</a>            <span class="kw">let </span>pause_for_debugging = host_info.pause_for_debugging;
-<a href=#675 id=675 data-nosnippet>675</a>
-<a href=#676 id=676 data-nosnippet>676</a>            <span class="kw">let </span>argv: Vec&lt;CString&gt; = proc
-<a href=#677 id=677 data-nosnippet>677</a>                .args
-<a href=#678 id=678 data-nosnippet>678</a>                .iter()
-<a href=#679 id=679 data-nosnippet>679</a>                .map(|x| CString::new(x.as_bytes()).unwrap())
-<a href=#680 id=680 data-nosnippet>680</a>                .collect();
-<a href=#681 id=681 data-nosnippet>681</a>
-<a href=#682 id=682 data-nosnippet>682</a>            <span class="kw">let </span>envv: Vec&lt;CString&gt; = proc
-<a href=#683 id=683 data-nosnippet>683</a>                .env
-<a href=#684 id=684 data-nosnippet>684</a>                .clone()
-<a href=#685 id=685 data-nosnippet>685</a>                .into_iter()
-<a href=#686 id=686 data-nosnippet>686</a>                .map(|(x, y)| {
-<a href=#687 id=687 data-nosnippet>687</a>                    <span class="kw">let </span><span class="kw-2">mut </span>x: OsString = String::from(x).into();
-<a href=#688 id=688 data-nosnippet>688</a>                    x.push(<span class="string">"="</span>);
-<a href=#689 id=689 data-nosnippet>689</a>                    x.push(y);
-<a href=#690 id=690 data-nosnippet>690</a>                    CString::new(x.as_bytes()).unwrap()
-<a href=#691 id=691 data-nosnippet>691</a>                })
-<a href=#692 id=692 data-nosnippet>692</a>                .collect();
-<a href=#693 id=693 data-nosnippet>693</a>
-<a href=#694 id=694 data-nosnippet>694</a>            host.continue_execution_timer();
-<a href=#695 id=695 data-nosnippet>695</a>
-<a href=#696 id=696 data-nosnippet>696</a>            host.add_application(
-<a href=#697 id=697 data-nosnippet>697</a>                proc.start_time,
-<a href=#698 id=698 data-nosnippet>698</a>                proc.shutdown_time,
-<a href=#699 id=699 data-nosnippet>699</a>                proc.shutdown_signal,
-<a href=#700 id=700 data-nosnippet>700</a>                plugin_name,
-<a href=#701 id=701 data-nosnippet>701</a>                plugin_path,
-<a href=#702 id=702 data-nosnippet>702</a>                argv,
-<a href=#703 id=703 data-nosnippet>703</a>                envv,
-<a href=#704 id=704 data-nosnippet>704</a>                pause_for_debugging,
-<a href=#705 id=705 data-nosnippet>705</a>                proc.expected_final_state,
-<a href=#706 id=706 data-nosnippet>706</a>            );
-<a href=#707 id=707 data-nosnippet>707</a>
-<a href=#708 id=708 data-nosnippet>708</a>            host.stop_execution_timer();
-<a href=#709 id=709 data-nosnippet>709</a>        }
-<a href=#710 id=710 data-nosnippet>710</a>
-<a href=#711 id=711 data-nosnippet>711</a>        host.unlock_shmem();
-<a href=#712 id=712 data-nosnippet>712</a>
-<a href=#713 id=713 data-nosnippet>713</a>        <span class="prelude-val">Ok</span>(host)
-<a href=#714 id=714 data-nosnippet>714</a>    }
-<a href=#715 id=715 data-nosnippet>715</a>
-<a href=#716 id=716 data-nosnippet>716</a>    <span class="kw">fn </span>log_heartbeat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: EmulatedTime) {
-<a href=#717 id=717 data-nosnippet>717</a>        <span class="kw">let </span><span class="kw-2">mut </span>resources: libc::rusage = <span class="kw">unsafe </span>{ std::mem::zeroed() };
-<a href=#718 id=718 data-nosnippet>718</a>        <span class="kw">if unsafe </span>{ libc::getrusage(libc::RUSAGE_SELF, <span class="kw-2">&amp;mut </span>resources) } != <span class="number">0 </span>{
-<a href=#719 id=719 data-nosnippet>719</a>            <span class="kw">let </span>err = nix::errno::Errno::last();
-<a href=#720 id=720 data-nosnippet>720</a>            <span class="macro">log::warn!</span>(<span class="string">"Unable to get shadow's resource usage: {err}"</span>);
-<a href=#721 id=721 data-nosnippet>721</a>            <span class="kw">return</span>;
-<a href=#722 id=722 data-nosnippet>722</a>        }
-<a href=#723 id=723 data-nosnippet>723</a>
-<a href=#724 id=724 data-nosnippet>724</a>        <span class="comment">// the sysinfo syscall also would give memory usage info, but it's less detailed
-<a href=#725 id=725 data-nosnippet>725</a>        </span><span class="kw">let </span>mem_info = resource_usage::meminfo(<span class="kw-2">&amp;mut </span><span class="self">self</span>.meminfo_file).unwrap();
-<a href=#726 id=726 data-nosnippet>726</a>
-<a href=#727 id=727 data-nosnippet>727</a>        <span class="comment">// the linux man page says this is in kilobytes, but it seems to be in kibibytes
-<a href=#728 id=728 data-nosnippet>728</a>        </span><span class="kw">let </span>max_memory = (resources.ru_maxrss <span class="kw">as </span>f64) / <span class="number">1048576.0</span>; <span class="comment">// KiB-&gt;GiB
-<a href=#729 id=729 data-nosnippet>729</a>        </span><span class="kw">let </span>user_time_minutes = (resources.ru_utime.tv_sec <span class="kw">as </span>f64) / <span class="number">60.0</span>;
-<a href=#730 id=730 data-nosnippet>730</a>        <span class="kw">let </span>system_time_minutes = (resources.ru_stime.tv_sec <span class="kw">as </span>f64) / <span class="number">60.0</span>;
-<a href=#731 id=731 data-nosnippet>731</a>
-<a href=#732 id=732 data-nosnippet>732</a>        <span class="comment">// tornettools assumes a specific log format for this message, so don't change it without
-<a href=#733 id=733 data-nosnippet>733</a>        // testing that tornettools can parse resource usage information from the shadow log
-<a href=#734 id=734 data-nosnippet>734</a>        // https://github.com/shadow/tornettools/blob/6c00856c3f08899da30bfc452b6a055572cc4536/tornettools/parse_rusage.py#L58-L86
-<a href=#735 id=735 data-nosnippet>735</a>        </span><span class="macro">log::info!</span>(
-<a href=#736 id=736 data-nosnippet>736</a>            <span class="string">"Process resource usage at simtime {} reported by getrusage(): \
-<a href=#737 id=737 data-nosnippet>737</a>            ru_maxrss={:.03} GiB, \
-<a href=#738 id=738 data-nosnippet>738</a>            ru_utime={:.03} minutes, \
-<a href=#739 id=739 data-nosnippet>739</a>            ru_stime={:.03} minutes, \
-<a href=#740 id=740 data-nosnippet>740</a>            ru_nvcsw={}, \
-<a href=#741 id=741 data-nosnippet>741</a>            ru_nivcsw={}"</span>,
-<a href=#742 id=742 data-nosnippet>742</a>            (now - EmulatedTime::SIMULATION_START).as_nanos(),
-<a href=#743 id=743 data-nosnippet>743</a>            max_memory,
-<a href=#744 id=744 data-nosnippet>744</a>            user_time_minutes,
-<a href=#745 id=745 data-nosnippet>745</a>            system_time_minutes,
-<a href=#746 id=746 data-nosnippet>746</a>            resources.ru_nvcsw,
-<a href=#747 id=747 data-nosnippet>747</a>            resources.ru_nivcsw,
-<a href=#748 id=748 data-nosnippet>748</a>        );
-<a href=#749 id=749 data-nosnippet>749</a>
-<a href=#750 id=750 data-nosnippet>750</a>        <span class="comment">// there are different ways of calculating system memory usage (for example 'free' will
-<a href=#751 id=751 data-nosnippet>751</a>        // calculate used memory differently than 'htop'), so we'll log the values we think are
-<a href=#752 id=752 data-nosnippet>752</a>        // useful, and something parsing the log can calculate whatever it wants
-<a href=#753 id=753 data-nosnippet>753</a>        </span><span class="macro">log::info!</span>(
-<a href=#754 id=754 data-nosnippet>754</a>            <span class="string">"System memory usage in bytes at simtime {} ns reported by /proc/meminfo: {}"</span>,
-<a href=#755 id=755 data-nosnippet>755</a>            (now - EmulatedTime::SIMULATION_START).as_nanos(),
-<a href=#756 id=756 data-nosnippet>756</a>            serde_json::to_string(<span class="kw-2">&amp;</span>mem_info).unwrap(),
-<a href=#757 id=757 data-nosnippet>757</a>        );
-<a href=#758 id=758 data-nosnippet>758</a>    }
-<a href=#759 id=759 data-nosnippet>759</a>
-<a href=#760 id=760 data-nosnippet>760</a>    <span class="kw">fn </span>check_resource_usage(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#761 id=761 data-nosnippet>761</a>        <span class="kw">if </span><span class="self">self</span>.check_fd_usage {
-<a href=#762 id=762 data-nosnippet>762</a>            <span class="kw">match </span><span class="self">self</span>.fd_usage() {
-<a href=#763 id=763 data-nosnippet>763</a>                <span class="comment">// if more than 90% in use
-<a href=#764 id=764 data-nosnippet>764</a>                </span><span class="prelude-val">Ok</span>((usage, limit)) <span class="kw">if </span>usage &gt; limit * <span class="number">90 </span>/ <span class="number">100 </span>=&gt; {
-<a href=#765 id=765 data-nosnippet>765</a>                    <span class="macro">log::warn!</span>(
-<a href=#766 id=766 data-nosnippet>766</a>                        <span class="string">"Using more than 90% ({usage}/{limit}) of available file descriptors"
-<a href=#767 id=767 data-nosnippet>767</a>                    </span>);
-<a href=#768 id=768 data-nosnippet>768</a>                    <span class="self">self</span>.check_fd_usage = <span class="bool-val">false</span>;
-<a href=#769 id=769 data-nosnippet>769</a>                }
-<a href=#770 id=770 data-nosnippet>770</a>                <span class="prelude-val">Err</span>(e) =&gt; {
-<a href=#771 id=771 data-nosnippet>771</a>                    <span class="macro">log::warn!</span>(<span class="string">"Unable to check fd usage: {e}"</span>);
-<a href=#772 id=772 data-nosnippet>772</a>                    <span class="self">self</span>.check_fd_usage = <span class="bool-val">false</span>;
-<a href=#773 id=773 data-nosnippet>773</a>                }
-<a href=#774 id=774 data-nosnippet>774</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-<a href=#775 id=775 data-nosnippet>775</a>            }
-<a href=#776 id=776 data-nosnippet>776</a>        }
-<a href=#777 id=777 data-nosnippet>777</a>
-<a href=#778 id=778 data-nosnippet>778</a>        <span class="kw">if </span><span class="self">self</span>.check_mem_usage {
-<a href=#779 id=779 data-nosnippet>779</a>            <span class="kw">match </span><span class="self">self</span>.memory_remaining() {
-<a href=#780 id=780 data-nosnippet>780</a>                <span class="comment">// if less than 500 MiB available
-<a href=#781 id=781 data-nosnippet>781</a>                </span><span class="prelude-val">Ok</span>(remaining) <span class="kw">if </span>remaining &lt; <span class="number">500 </span>* <span class="number">1024 </span>* <span class="number">1024 </span>=&gt; {
-<a href=#782 id=782 data-nosnippet>782</a>                    <span class="macro">log::warn!</span>(<span class="string">"Only {} MiB of memory available"</span>, remaining / <span class="number">1024 </span>/ <span class="number">1024</span>);
-<a href=#783 id=783 data-nosnippet>783</a>                    <span class="self">self</span>.check_mem_usage = <span class="bool-val">false</span>;
-<a href=#784 id=784 data-nosnippet>784</a>                }
-<a href=#785 id=785 data-nosnippet>785</a>                <span class="prelude-val">Err</span>(e) =&gt; {
-<a href=#786 id=786 data-nosnippet>786</a>                    <span class="macro">log::warn!</span>(<span class="string">"Unable to check memory usage: {e}"</span>);
-<a href=#787 id=787 data-nosnippet>787</a>                    <span class="self">self</span>.check_mem_usage = <span class="bool-val">false</span>;
-<a href=#788 id=788 data-nosnippet>788</a>                }
-<a href=#789 id=789 data-nosnippet>789</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-<a href=#790 id=790 data-nosnippet>790</a>            }
-<a href=#791 id=791 data-nosnippet>791</a>        }
-<a href=#792 id=792 data-nosnippet>792</a>    }
-<a href=#793 id=793 data-nosnippet>793</a>
-<a href=#794 id=794 data-nosnippet>794</a>    <span class="doccomment">/// Returns a tuple of (usage, limit).
-<a href=#795 id=795 data-nosnippet>795</a>    </span><span class="kw">fn </span>fd_usage(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;(u64, u64)&gt; {
-<a href=#796 id=796 data-nosnippet>796</a>        <span class="kw">let </span>dir = std::fs::read_dir(<span class="string">"/proc/self/fd"</span>).context(<span class="string">"Failed to open '/proc/self/fd'"</span>)<span class="question-mark">?</span>;
-<a href=#797 id=797 data-nosnippet>797</a>
-<a href=#798 id=798 data-nosnippet>798</a>        <span class="kw">let </span><span class="kw-2">mut </span>fd_count: u64 = <span class="number">0</span>;
-<a href=#799 id=799 data-nosnippet>799</a>        <span class="kw">for </span>entry <span class="kw">in </span>dir {
-<a href=#800 id=800 data-nosnippet>800</a>            <span class="comment">// short-circuit and return on error
-<a href=#801 id=801 data-nosnippet>801</a>            </span>entry.context(<span class="string">"Failed to read entry in '/proc/self/fd'"</span>)<span class="question-mark">?</span>;
-<a href=#802 id=802 data-nosnippet>802</a>            fd_count += <span class="number">1</span>;
-<a href=#803 id=803 data-nosnippet>803</a>        }
-<a href=#804 id=804 data-nosnippet>804</a>
-<a href=#805 id=805 data-nosnippet>805</a>        <span class="kw">let </span>(soft_limit, <span class="kw">_</span>) =
-<a href=#806 id=806 data-nosnippet>806</a>            nix::sys::resource::getrlimit(nix::sys::resource::Resource::RLIMIT_NOFILE)
-<a href=#807 id=807 data-nosnippet>807</a>                .context(<span class="string">"Failed to get the fd limit"</span>)<span class="question-mark">?</span>;
-<a href=#808 id=808 data-nosnippet>808</a>
-<a href=#809 id=809 data-nosnippet>809</a>        <span class="prelude-val">Ok</span>((fd_count, soft_limit))
-<a href=#810 id=810 data-nosnippet>810</a>    }
-<a href=#811 id=811 data-nosnippet>811</a>
-<a href=#812 id=812 data-nosnippet>812</a>    <span class="doccomment">/// Returns the number of bytes remaining.
-<a href=#813 id=813 data-nosnippet>813</a>    </span><span class="kw">fn </span>memory_remaining(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;u64&gt; {
-<a href=#814 id=814 data-nosnippet>814</a>        <span class="kw">let </span>page_size = nix::unistd::sysconf(nix::unistd::SysconfVar::PAGE_SIZE)
-<a href=#815 id=815 data-nosnippet>815</a>            .context(<span class="string">"Failed to get the page size"</span>)<span class="question-mark">?
-<a href=#816 id=816 data-nosnippet>816</a>            </span>.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">"Failed to get the page size (no errno)"</span>))<span class="question-mark">?</span>;
-<a href=#817 id=817 data-nosnippet>817</a>
-<a href=#818 id=818 data-nosnippet>818</a>        <span class="kw">let </span>avl_pages = nix::unistd::sysconf(nix::unistd::SysconfVar::_AVPHYS_PAGES)
-<a href=#819 id=819 data-nosnippet>819</a>            .context(<span class="string">"Failed to get the number of available pages of physical memory"</span>)<span class="question-mark">?
-<a href=#820 id=820 data-nosnippet>820</a>            </span>.ok_or_else(|| {
-<a href=#821 id=821 data-nosnippet>821</a>                <span class="macro">anyhow::anyhow!</span>(
-<a href=#822 id=822 data-nosnippet>822</a>                    <span class="string">"Failed to get the number of available pages of physical memory (no errno)"
-<a href=#823 id=823 data-nosnippet>823</a>                </span>)
-<a href=#824 id=824 data-nosnippet>824</a>            })<span class="question-mark">?</span>;
-<a href=#825 id=825 data-nosnippet>825</a>
-<a href=#826 id=826 data-nosnippet>826</a>        <span class="kw">let </span>page_size: u64 = page_size.try_into().unwrap();
-<a href=#827 id=827 data-nosnippet>827</a>        <span class="kw">let </span>avl_pages: u64 = avl_pages.try_into().unwrap();
-<a href=#828 id=828 data-nosnippet>828</a>
-<a href=#829 id=829 data-nosnippet>829</a>        <span class="prelude-val">Ok</span>(page_size * avl_pages)
-<a href=#830 id=830 data-nosnippet>830</a>    }
-<a href=#831 id=831 data-nosnippet>831</a>
-<a href=#832 id=832 data-nosnippet>832</a>    <span class="kw">pub fn </span>shmem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ShMemBlock&lt;<span class="lifetime">'_</span>, ManagerShmem&gt; {
-<a href=#833 id=833 data-nosnippet>833</a>        <span class="kw-2">&amp;</span><span class="self">self</span>.shmem
-<a href=#834 id=834 data-nosnippet>834</a>    }
-<a href=#835 id=835 data-nosnippet>835</a>}
-<a href=#836 id=836 data-nosnippet>836</a>
-<a href=#837 id=837 data-nosnippet>837</a><span class="kw">pub struct </span>ManagerConfig {
-<a href=#838 id=838 data-nosnippet>838</a>    <span class="comment">// deterministic source of randomness for this manager
-<a href=#839 id=839 data-nosnippet>839</a>    </span><span class="kw">pub </span>random: Xoshiro256PlusPlus,
-<a href=#840 id=840 data-nosnippet>840</a>
-<a href=#841 id=841 data-nosnippet>841</a>    <span class="comment">// map of ip addresses to graph nodes
-<a href=#842 id=842 data-nosnippet>842</a>    </span><span class="kw">pub </span>ip_assignment: IpAssignment&lt;u32&gt;,
-<a href=#843 id=843 data-nosnippet>843</a>
-<a href=#844 id=844 data-nosnippet>844</a>    <span class="comment">// routing information for paths between graph nodes
-<a href=#845 id=845 data-nosnippet>845</a>    </span><span class="kw">pub </span>routing_info: RoutingInfo&lt;u32&gt;,
-<a href=#846 id=846 data-nosnippet>846</a>
-<a href=#847 id=847 data-nosnippet>847</a>    <span class="comment">// bandwidths of hosts at ip addresses
-<a href=#848 id=848 data-nosnippet>848</a>    </span><span class="kw">pub </span>host_bandwidths: HashMap&lt;std::net::IpAddr, Bandwidth&gt;,
-<a href=#849 id=849 data-nosnippet>849</a>
-<a href=#850 id=850 data-nosnippet>850</a>    <span class="comment">// a list of hosts and their processes
-<a href=#851 id=851 data-nosnippet>851</a>    </span><span class="kw">pub </span>hosts: Vec&lt;HostInfo&gt;,
-<a href=#852 id=852 data-nosnippet>852</a>}
-<a href=#853 id=853 data-nosnippet>853</a>
-<a href=#854 id=854 data-nosnippet>854</a><span class="doccomment">/// Helper function to initialize the global [`Host`] before running the closure.
-<a href=#855 id=855 data-nosnippet>855</a></span><span class="kw">fn </span>for_each_host(host_iter: <span class="kw-2">&amp;mut </span>HostIter&lt;Box&lt;Host&gt;&gt;, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>Host)) {
-<a href=#856 id=856 data-nosnippet>856</a>    host_iter.for_each(|host| {
-<a href=#857 id=857 data-nosnippet>857</a>        worker::Worker::set_active_host(host);
-<a href=#858 id=858 data-nosnippet>858</a>        worker::Worker::with_active_host(|host| {
-<a href=#859 id=859 data-nosnippet>859</a>            f(host);
-<a href=#860 id=860 data-nosnippet>860</a>        })
-<a href=#861 id=861 data-nosnippet>861</a>        .unwrap();
-<a href=#862 id=862 data-nosnippet>862</a>        worker::Worker::take_active_host()
-<a href=#863 id=863 data-nosnippet>863</a>    });
-<a href=#864 id=864 data-nosnippet>864</a>}
-<a href=#865 id=865 data-nosnippet>865</a>
-<a href=#866 id=866 data-nosnippet>866</a><span class="doccomment">/// Get the raw speed of the experiment machine.
-<a href=#867 id=867 data-nosnippet>867</a></span><span class="kw">fn </span>get_raw_cpu_frequency_hz() -&gt; anyhow::Result&lt;u64&gt; {
-<a href=#868 id=868 data-nosnippet>868</a>    <span class="kw">const </span>CONFIG_CPU_MAX_FREQ_FILE: <span class="kw-2">&amp;</span>str = <span class="string">"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"</span>;
-<a href=#869 id=869 data-nosnippet>869</a>    <span class="kw">let </span>khz: u64 = std::fs::read_to_string(CONFIG_CPU_MAX_FREQ_FILE)<span class="question-mark">?</span>.parse()<span class="question-mark">?</span>;
-<a href=#870 id=870 data-nosnippet>870</a>    <span class="prelude-val">Ok</span>(khz * <span class="number">1000</span>)
-<a href=#871 id=871 data-nosnippet>871</a>}
-<a href=#872 id=872 data-nosnippet>872</a>
-<a href=#873 id=873 data-nosnippet>873</a><span class="kw">fn </span>get_required_preload_path(libname: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;PathBuf&gt; {
-<a href=#874 id=874 data-nosnippet>874</a>    <span class="kw">let </span>libname_c = CString::new(libname).unwrap();
-<a href=#875 id=875 data-nosnippet>875</a>    <span class="kw">let </span>libpath_c = <span class="kw">unsafe </span>{ c::scanRpathForLib(libname_c.as_ptr()) };
-<a href=#876 id=876 data-nosnippet>876</a>
-<a href=#877 id=877 data-nosnippet>877</a>    <span class="comment">// scope needed to make sure the CStr is dropped before we free libpath_c
-<a href=#878 id=878 data-nosnippet>878</a>    </span><span class="kw">let </span>libpath = <span class="kw">if </span>!libpath_c.is_null() {
-<a href=#879 id=879 data-nosnippet>879</a>        <span class="kw">let </span>libpath = <span class="kw">unsafe </span>{ CStr::from_ptr(libpath_c) };
-<a href=#880 id=880 data-nosnippet>880</a>        <span class="kw">let </span>libpath = OsStr::from_bytes(libpath.to_bytes());
-<a href=#881 id=881 data-nosnippet>881</a>        <span class="prelude-val">Some</span>(PathBuf::from(libpath.to_os_string()))
-<a href=#882 id=882 data-nosnippet>882</a>    } <span class="kw">else </span>{
-<a href=#883 id=883 data-nosnippet>883</a>        <span class="prelude-val">None
-<a href=#884 id=884 data-nosnippet>884</a>    </span>};
-<a href=#885 id=885 data-nosnippet>885</a>
-<a href=#886 id=886 data-nosnippet>886</a>    <span class="kw">unsafe </span>{ libc::free(libpath_c <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void) };
-<a href=#887 id=887 data-nosnippet>887</a>
-<a href=#888 id=888 data-nosnippet>888</a>    <span class="kw">let </span>libpath = libpath.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="macro">format!</span>(<span class="string">"Could not library in rpath"</span>)))<span class="question-mark">?</span>;
-<a href=#889 id=889 data-nosnippet>889</a>
-<a href=#890 id=890 data-nosnippet>890</a>    <span class="kw">let </span>bytes = libpath.as_os_str().as_bytes();
-<a href=#891 id=891 data-nosnippet>891</a>    <span class="kw">if </span>bytes.iter().any(|c| <span class="kw-2">*</span>c == <span class="string">b' ' </span>|| <span class="kw-2">*</span>c == <span class="string">b':'</span>) {
-<a href=#892 id=892 data-nosnippet>892</a>        <span class="comment">// These are unescapable separators in LD_PRELOAD.
-<a href=#893 id=893 data-nosnippet>893</a>        </span><span class="macro">anyhow::bail!</span>(<span class="string">"Preload path contains LD_PRELOAD-incompatible characters: {libpath:?}"</span>);
-<a href=#894 id=894 data-nosnippet>894</a>    }
-<a href=#895 id=895 data-nosnippet>895</a>
-<a href=#896 id=896 data-nosnippet>896</a>    <span class="macro">log::debug!</span>(
-<a href=#897 id=897 data-nosnippet>897</a>        <span class="string">"Found required preload library {} at path {}"</span>,
-<a href=#898 id=898 data-nosnippet>898</a>        libname,
-<a href=#899 id=899 data-nosnippet>899</a>        libpath.display(),
-<a href=#900 id=900 data-nosnippet>900</a>    );
-<a href=#901 id=901 data-nosnippet>901</a>
-<a href=#902 id=902 data-nosnippet>902</a>    <span class="prelude-val">Ok</span>(libpath)
-<a href=#903 id=903 data-nosnippet>903</a>}
+<a href=#655 id=655 data-nosnippet>655</a>                use_syscall_counters: <span class="self">self</span>.config.experimental.use_syscall_counters.unwrap(),
+<a href=#656 id=656 data-nosnippet>656</a>            };
+<a href=#657 id=657 data-nosnippet>657</a>
+<a href=#658 id=658 data-nosnippet>658</a>            Box::new(Host::new(
+<a href=#659 id=659 data-nosnippet>659</a>                params,
+<a href=#660 id=660 data-nosnippet>660</a>                <span class="kw-2">&amp;</span><span class="self">self</span>.hosts_path,
+<a href=#661 id=661 data-nosnippet>661</a>                <span class="self">self</span>.raw_frequency,
+<a href=#662 id=662 data-nosnippet>662</a>                <span class="self">self</span>.shmem(),
+<a href=#663 id=663 data-nosnippet>663</a>                <span class="self">self</span>.preload_paths.clone(),
+<a href=#664 id=664 data-nosnippet>664</a>            ))
+<a href=#665 id=665 data-nosnippet>665</a>        };
+<a href=#666 id=666 data-nosnippet>666</a>
+<a href=#667 id=667 data-nosnippet>667</a>        host.lock_shmem();
+<a href=#668 id=668 data-nosnippet>668</a>
+<a href=#669 id=669 data-nosnippet>669</a>        <span class="kw">for </span>proc <span class="kw">in </span><span class="kw-2">&amp;</span>host_info.processes {
+<a href=#670 id=670 data-nosnippet>670</a>            <span class="kw">let </span>plugin_path =
+<a href=#671 id=671 data-nosnippet>671</a>                CString::new(proc.plugin.clone().into_os_string().as_bytes()).unwrap();
+<a href=#672 id=672 data-nosnippet>672</a>            <span class="kw">let </span>plugin_name = CString::new(proc.plugin.file_name().unwrap().as_bytes()).unwrap();
+<a href=#673 id=673 data-nosnippet>673</a>            <span class="kw">let </span>pause_for_debugging = host_info.pause_for_debugging;
+<a href=#674 id=674 data-nosnippet>674</a>
+<a href=#675 id=675 data-nosnippet>675</a>            <span class="kw">let </span>argv: Vec&lt;CString&gt; = proc
+<a href=#676 id=676 data-nosnippet>676</a>                .args
+<a href=#677 id=677 data-nosnippet>677</a>                .iter()
+<a href=#678 id=678 data-nosnippet>678</a>                .map(|x| CString::new(x.as_bytes()).unwrap())
+<a href=#679 id=679 data-nosnippet>679</a>                .collect();
+<a href=#680 id=680 data-nosnippet>680</a>
+<a href=#681 id=681 data-nosnippet>681</a>            <span class="kw">let </span>envv: Vec&lt;CString&gt; = proc
+<a href=#682 id=682 data-nosnippet>682</a>                .env
+<a href=#683 id=683 data-nosnippet>683</a>                .clone()
+<a href=#684 id=684 data-nosnippet>684</a>                .into_iter()
+<a href=#685 id=685 data-nosnippet>685</a>                .map(|(x, y)| {
+<a href=#686 id=686 data-nosnippet>686</a>                    <span class="kw">let </span><span class="kw-2">mut </span>x: OsString = String::from(x).into();
+<a href=#687 id=687 data-nosnippet>687</a>                    x.push(<span class="string">"="</span>);
+<a href=#688 id=688 data-nosnippet>688</a>                    x.push(y);
+<a href=#689 id=689 data-nosnippet>689</a>                    CString::new(x.as_bytes()).unwrap()
+<a href=#690 id=690 data-nosnippet>690</a>                })
+<a href=#691 id=691 data-nosnippet>691</a>                .collect();
+<a href=#692 id=692 data-nosnippet>692</a>
+<a href=#693 id=693 data-nosnippet>693</a>            host.continue_execution_timer();
+<a href=#694 id=694 data-nosnippet>694</a>
+<a href=#695 id=695 data-nosnippet>695</a>            host.add_application(
+<a href=#696 id=696 data-nosnippet>696</a>                proc.start_time,
+<a href=#697 id=697 data-nosnippet>697</a>                proc.shutdown_time,
+<a href=#698 id=698 data-nosnippet>698</a>                proc.shutdown_signal,
+<a href=#699 id=699 data-nosnippet>699</a>                plugin_name,
+<a href=#700 id=700 data-nosnippet>700</a>                plugin_path,
+<a href=#701 id=701 data-nosnippet>701</a>                argv,
+<a href=#702 id=702 data-nosnippet>702</a>                envv,
+<a href=#703 id=703 data-nosnippet>703</a>                pause_for_debugging,
+<a href=#704 id=704 data-nosnippet>704</a>                proc.expected_final_state,
+<a href=#705 id=705 data-nosnippet>705</a>            );
+<a href=#706 id=706 data-nosnippet>706</a>
+<a href=#707 id=707 data-nosnippet>707</a>            host.stop_execution_timer();
+<a href=#708 id=708 data-nosnippet>708</a>        }
+<a href=#709 id=709 data-nosnippet>709</a>
+<a href=#710 id=710 data-nosnippet>710</a>        host.unlock_shmem();
+<a href=#711 id=711 data-nosnippet>711</a>
+<a href=#712 id=712 data-nosnippet>712</a>        <span class="prelude-val">Ok</span>(host)
+<a href=#713 id=713 data-nosnippet>713</a>    }
+<a href=#714 id=714 data-nosnippet>714</a>
+<a href=#715 id=715 data-nosnippet>715</a>    <span class="kw">fn </span>log_heartbeat(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: EmulatedTime) {
+<a href=#716 id=716 data-nosnippet>716</a>        <span class="kw">let </span><span class="kw-2">mut </span>resources: libc::rusage = <span class="kw">unsafe </span>{ std::mem::zeroed() };
+<a href=#717 id=717 data-nosnippet>717</a>        <span class="kw">if unsafe </span>{ libc::getrusage(libc::RUSAGE_SELF, <span class="kw-2">&amp;mut </span>resources) } != <span class="number">0 </span>{
+<a href=#718 id=718 data-nosnippet>718</a>            <span class="kw">let </span>err = nix::errno::Errno::last();
+<a href=#719 id=719 data-nosnippet>719</a>            <span class="macro">log::warn!</span>(<span class="string">"Unable to get shadow's resource usage: {err}"</span>);
+<a href=#720 id=720 data-nosnippet>720</a>            <span class="kw">return</span>;
+<a href=#721 id=721 data-nosnippet>721</a>        }
+<a href=#722 id=722 data-nosnippet>722</a>
+<a href=#723 id=723 data-nosnippet>723</a>        <span class="comment">// the sysinfo syscall also would give memory usage info, but it's less detailed
+<a href=#724 id=724 data-nosnippet>724</a>        </span><span class="kw">let </span>mem_info = resource_usage::meminfo(<span class="kw-2">&amp;mut </span><span class="self">self</span>.meminfo_file).unwrap();
+<a href=#725 id=725 data-nosnippet>725</a>
+<a href=#726 id=726 data-nosnippet>726</a>        <span class="comment">// the linux man page says this is in kilobytes, but it seems to be in kibibytes
+<a href=#727 id=727 data-nosnippet>727</a>        </span><span class="kw">let </span>max_memory = (resources.ru_maxrss <span class="kw">as </span>f64) / <span class="number">1048576.0</span>; <span class="comment">// KiB-&gt;GiB
+<a href=#728 id=728 data-nosnippet>728</a>        </span><span class="kw">let </span>user_time_minutes = (resources.ru_utime.tv_sec <span class="kw">as </span>f64) / <span class="number">60.0</span>;
+<a href=#729 id=729 data-nosnippet>729</a>        <span class="kw">let </span>system_time_minutes = (resources.ru_stime.tv_sec <span class="kw">as </span>f64) / <span class="number">60.0</span>;
+<a href=#730 id=730 data-nosnippet>730</a>
+<a href=#731 id=731 data-nosnippet>731</a>        <span class="comment">// tornettools assumes a specific log format for this message, so don't change it without
+<a href=#732 id=732 data-nosnippet>732</a>        // testing that tornettools can parse resource usage information from the shadow log
+<a href=#733 id=733 data-nosnippet>733</a>        // https://github.com/shadow/tornettools/blob/6c00856c3f08899da30bfc452b6a055572cc4536/tornettools/parse_rusage.py#L58-L86
+<a href=#734 id=734 data-nosnippet>734</a>        </span><span class="macro">log::info!</span>(
+<a href=#735 id=735 data-nosnippet>735</a>            <span class="string">"Process resource usage at simtime {} reported by getrusage(): \
+<a href=#736 id=736 data-nosnippet>736</a>            ru_maxrss={:.03} GiB, \
+<a href=#737 id=737 data-nosnippet>737</a>            ru_utime={:.03} minutes, \
+<a href=#738 id=738 data-nosnippet>738</a>            ru_stime={:.03} minutes, \
+<a href=#739 id=739 data-nosnippet>739</a>            ru_nvcsw={}, \
+<a href=#740 id=740 data-nosnippet>740</a>            ru_nivcsw={}"</span>,
+<a href=#741 id=741 data-nosnippet>741</a>            (now - EmulatedTime::SIMULATION_START).as_nanos(),
+<a href=#742 id=742 data-nosnippet>742</a>            max_memory,
+<a href=#743 id=743 data-nosnippet>743</a>            user_time_minutes,
+<a href=#744 id=744 data-nosnippet>744</a>            system_time_minutes,
+<a href=#745 id=745 data-nosnippet>745</a>            resources.ru_nvcsw,
+<a href=#746 id=746 data-nosnippet>746</a>            resources.ru_nivcsw,
+<a href=#747 id=747 data-nosnippet>747</a>        );
+<a href=#748 id=748 data-nosnippet>748</a>
+<a href=#749 id=749 data-nosnippet>749</a>        <span class="comment">// there are different ways of calculating system memory usage (for example 'free' will
+<a href=#750 id=750 data-nosnippet>750</a>        // calculate used memory differently than 'htop'), so we'll log the values we think are
+<a href=#751 id=751 data-nosnippet>751</a>        // useful, and something parsing the log can calculate whatever it wants
+<a href=#752 id=752 data-nosnippet>752</a>        </span><span class="macro">log::info!</span>(
+<a href=#753 id=753 data-nosnippet>753</a>            <span class="string">"System memory usage in bytes at simtime {} ns reported by /proc/meminfo: {}"</span>,
+<a href=#754 id=754 data-nosnippet>754</a>            (now - EmulatedTime::SIMULATION_START).as_nanos(),
+<a href=#755 id=755 data-nosnippet>755</a>            serde_json::to_string(<span class="kw-2">&amp;</span>mem_info).unwrap(),
+<a href=#756 id=756 data-nosnippet>756</a>        );
+<a href=#757 id=757 data-nosnippet>757</a>    }
+<a href=#758 id=758 data-nosnippet>758</a>
+<a href=#759 id=759 data-nosnippet>759</a>    <span class="kw">fn </span>check_resource_usage(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#760 id=760 data-nosnippet>760</a>        <span class="kw">if </span><span class="self">self</span>.check_fd_usage {
+<a href=#761 id=761 data-nosnippet>761</a>            <span class="kw">match </span><span class="self">self</span>.fd_usage() {
+<a href=#762 id=762 data-nosnippet>762</a>                <span class="comment">// if more than 90% in use
+<a href=#763 id=763 data-nosnippet>763</a>                </span><span class="prelude-val">Ok</span>((usage, limit)) <span class="kw">if </span>usage &gt; limit * <span class="number">90 </span>/ <span class="number">100 </span>=&gt; {
+<a href=#764 id=764 data-nosnippet>764</a>                    <span class="macro">log::warn!</span>(
+<a href=#765 id=765 data-nosnippet>765</a>                        <span class="string">"Using more than 90% ({usage}/{limit}) of available file descriptors"
+<a href=#766 id=766 data-nosnippet>766</a>                    </span>);
+<a href=#767 id=767 data-nosnippet>767</a>                    <span class="self">self</span>.check_fd_usage = <span class="bool-val">false</span>;
+<a href=#768 id=768 data-nosnippet>768</a>                }
+<a href=#769 id=769 data-nosnippet>769</a>                <span class="prelude-val">Err</span>(e) =&gt; {
+<a href=#770 id=770 data-nosnippet>770</a>                    <span class="macro">log::warn!</span>(<span class="string">"Unable to check fd usage: {e}"</span>);
+<a href=#771 id=771 data-nosnippet>771</a>                    <span class="self">self</span>.check_fd_usage = <span class="bool-val">false</span>;
+<a href=#772 id=772 data-nosnippet>772</a>                }
+<a href=#773 id=773 data-nosnippet>773</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+<a href=#774 id=774 data-nosnippet>774</a>            }
+<a href=#775 id=775 data-nosnippet>775</a>        }
+<a href=#776 id=776 data-nosnippet>776</a>
+<a href=#777 id=777 data-nosnippet>777</a>        <span class="kw">if </span><span class="self">self</span>.check_mem_usage {
+<a href=#778 id=778 data-nosnippet>778</a>            <span class="kw">match </span><span class="self">self</span>.memory_remaining() {
+<a href=#779 id=779 data-nosnippet>779</a>                <span class="comment">// if less than 500 MiB available
+<a href=#780 id=780 data-nosnippet>780</a>                </span><span class="prelude-val">Ok</span>(remaining) <span class="kw">if </span>remaining &lt; <span class="number">500 </span>* <span class="number">1024 </span>* <span class="number">1024 </span>=&gt; {
+<a href=#781 id=781 data-nosnippet>781</a>                    <span class="macro">log::warn!</span>(<span class="string">"Only {} MiB of memory available"</span>, remaining / <span class="number">1024 </span>/ <span class="number">1024</span>);
+<a href=#782 id=782 data-nosnippet>782</a>                    <span class="self">self</span>.check_mem_usage = <span class="bool-val">false</span>;
+<a href=#783 id=783 data-nosnippet>783</a>                }
+<a href=#784 id=784 data-nosnippet>784</a>                <span class="prelude-val">Err</span>(e) =&gt; {
+<a href=#785 id=785 data-nosnippet>785</a>                    <span class="macro">log::warn!</span>(<span class="string">"Unable to check memory usage: {e}"</span>);
+<a href=#786 id=786 data-nosnippet>786</a>                    <span class="self">self</span>.check_mem_usage = <span class="bool-val">false</span>;
+<a href=#787 id=787 data-nosnippet>787</a>                }
+<a href=#788 id=788 data-nosnippet>788</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+<a href=#789 id=789 data-nosnippet>789</a>            }
+<a href=#790 id=790 data-nosnippet>790</a>        }
+<a href=#791 id=791 data-nosnippet>791</a>    }
+<a href=#792 id=792 data-nosnippet>792</a>
+<a href=#793 id=793 data-nosnippet>793</a>    <span class="doccomment">/// Returns a tuple of (usage, limit).
+<a href=#794 id=794 data-nosnippet>794</a>    </span><span class="kw">fn </span>fd_usage(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;(u64, u64)&gt; {
+<a href=#795 id=795 data-nosnippet>795</a>        <span class="kw">let </span>dir = std::fs::read_dir(<span class="string">"/proc/self/fd"</span>).context(<span class="string">"Failed to open '/proc/self/fd'"</span>)<span class="question-mark">?</span>;
+<a href=#796 id=796 data-nosnippet>796</a>
+<a href=#797 id=797 data-nosnippet>797</a>        <span class="kw">let </span><span class="kw-2">mut </span>fd_count: u64 = <span class="number">0</span>;
+<a href=#798 id=798 data-nosnippet>798</a>        <span class="kw">for </span>entry <span class="kw">in </span>dir {
+<a href=#799 id=799 data-nosnippet>799</a>            <span class="comment">// short-circuit and return on error
+<a href=#800 id=800 data-nosnippet>800</a>            </span>entry.context(<span class="string">"Failed to read entry in '/proc/self/fd'"</span>)<span class="question-mark">?</span>;
+<a href=#801 id=801 data-nosnippet>801</a>            fd_count += <span class="number">1</span>;
+<a href=#802 id=802 data-nosnippet>802</a>        }
+<a href=#803 id=803 data-nosnippet>803</a>
+<a href=#804 id=804 data-nosnippet>804</a>        <span class="kw">let </span>(soft_limit, <span class="kw">_</span>) =
+<a href=#805 id=805 data-nosnippet>805</a>            nix::sys::resource::getrlimit(nix::sys::resource::Resource::RLIMIT_NOFILE)
+<a href=#806 id=806 data-nosnippet>806</a>                .context(<span class="string">"Failed to get the fd limit"</span>)<span class="question-mark">?</span>;
+<a href=#807 id=807 data-nosnippet>807</a>
+<a href=#808 id=808 data-nosnippet>808</a>        <span class="prelude-val">Ok</span>((fd_count, soft_limit))
+<a href=#809 id=809 data-nosnippet>809</a>    }
+<a href=#810 id=810 data-nosnippet>810</a>
+<a href=#811 id=811 data-nosnippet>811</a>    <span class="doccomment">/// Returns the number of bytes remaining.
+<a href=#812 id=812 data-nosnippet>812</a>    </span><span class="kw">fn </span>memory_remaining(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;u64&gt; {
+<a href=#813 id=813 data-nosnippet>813</a>        <span class="kw">let </span>page_size = nix::unistd::sysconf(nix::unistd::SysconfVar::PAGE_SIZE)
+<a href=#814 id=814 data-nosnippet>814</a>            .context(<span class="string">"Failed to get the page size"</span>)<span class="question-mark">?
+<a href=#815 id=815 data-nosnippet>815</a>            </span>.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">"Failed to get the page size (no errno)"</span>))<span class="question-mark">?</span>;
+<a href=#816 id=816 data-nosnippet>816</a>
+<a href=#817 id=817 data-nosnippet>817</a>        <span class="kw">let </span>avl_pages = nix::unistd::sysconf(nix::unistd::SysconfVar::_AVPHYS_PAGES)
+<a href=#818 id=818 data-nosnippet>818</a>            .context(<span class="string">"Failed to get the number of available pages of physical memory"</span>)<span class="question-mark">?
+<a href=#819 id=819 data-nosnippet>819</a>            </span>.ok_or_else(|| {
+<a href=#820 id=820 data-nosnippet>820</a>                <span class="macro">anyhow::anyhow!</span>(
+<a href=#821 id=821 data-nosnippet>821</a>                    <span class="string">"Failed to get the number of available pages of physical memory (no errno)"
+<a href=#822 id=822 data-nosnippet>822</a>                </span>)
+<a href=#823 id=823 data-nosnippet>823</a>            })<span class="question-mark">?</span>;
+<a href=#824 id=824 data-nosnippet>824</a>
+<a href=#825 id=825 data-nosnippet>825</a>        <span class="kw">let </span>page_size: u64 = page_size.try_into().unwrap();
+<a href=#826 id=826 data-nosnippet>826</a>        <span class="kw">let </span>avl_pages: u64 = avl_pages.try_into().unwrap();
+<a href=#827 id=827 data-nosnippet>827</a>
+<a href=#828 id=828 data-nosnippet>828</a>        <span class="prelude-val">Ok</span>(page_size * avl_pages)
+<a href=#829 id=829 data-nosnippet>829</a>    }
+<a href=#830 id=830 data-nosnippet>830</a>
+<a href=#831 id=831 data-nosnippet>831</a>    <span class="kw">pub fn </span>shmem(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ShMemBlock&lt;<span class="lifetime">'_</span>, ManagerShmem&gt; {
+<a href=#832 id=832 data-nosnippet>832</a>        <span class="kw-2">&amp;</span><span class="self">self</span>.shmem
+<a href=#833 id=833 data-nosnippet>833</a>    }
+<a href=#834 id=834 data-nosnippet>834</a>}
+<a href=#835 id=835 data-nosnippet>835</a>
+<a href=#836 id=836 data-nosnippet>836</a><span class="kw">pub struct </span>ManagerConfig {
+<a href=#837 id=837 data-nosnippet>837</a>    <span class="comment">// deterministic source of randomness for this manager
+<a href=#838 id=838 data-nosnippet>838</a>    </span><span class="kw">pub </span>random: Xoshiro256PlusPlus,
+<a href=#839 id=839 data-nosnippet>839</a>
+<a href=#840 id=840 data-nosnippet>840</a>    <span class="comment">// map of ip addresses to graph nodes
+<a href=#841 id=841 data-nosnippet>841</a>    </span><span class="kw">pub </span>ip_assignment: IpAssignment&lt;u32&gt;,
+<a href=#842 id=842 data-nosnippet>842</a>
+<a href=#843 id=843 data-nosnippet>843</a>    <span class="comment">// routing information for paths between graph nodes
+<a href=#844 id=844 data-nosnippet>844</a>    </span><span class="kw">pub </span>routing_info: RoutingInfo&lt;u32&gt;,
+<a href=#845 id=845 data-nosnippet>845</a>
+<a href=#846 id=846 data-nosnippet>846</a>    <span class="comment">// bandwidths of hosts at ip addresses
+<a href=#847 id=847 data-nosnippet>847</a>    </span><span class="kw">pub </span>host_bandwidths: HashMap&lt;std::net::IpAddr, Bandwidth&gt;,
+<a href=#848 id=848 data-nosnippet>848</a>
+<a href=#849 id=849 data-nosnippet>849</a>    <span class="comment">// a list of hosts and their processes
+<a href=#850 id=850 data-nosnippet>850</a>    </span><span class="kw">pub </span>hosts: Vec&lt;HostInfo&gt;,
+<a href=#851 id=851 data-nosnippet>851</a>}
+<a href=#852 id=852 data-nosnippet>852</a>
+<a href=#853 id=853 data-nosnippet>853</a><span class="doccomment">/// Helper function to initialize the global [`Host`] before running the closure.
+<a href=#854 id=854 data-nosnippet>854</a></span><span class="kw">fn </span>for_each_host(host_iter: <span class="kw-2">&amp;mut </span>HostIter&lt;Box&lt;Host&gt;&gt;, <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>Host)) {
+<a href=#855 id=855 data-nosnippet>855</a>    host_iter.for_each(|host| {
+<a href=#856 id=856 data-nosnippet>856</a>        worker::Worker::set_active_host(host);
+<a href=#857 id=857 data-nosnippet>857</a>        worker::Worker::with_active_host(|host| {
+<a href=#858 id=858 data-nosnippet>858</a>            f(host);
+<a href=#859 id=859 data-nosnippet>859</a>        })
+<a href=#860 id=860 data-nosnippet>860</a>        .unwrap();
+<a href=#861 id=861 data-nosnippet>861</a>        worker::Worker::take_active_host()
+<a href=#862 id=862 data-nosnippet>862</a>    });
+<a href=#863 id=863 data-nosnippet>863</a>}
+<a href=#864 id=864 data-nosnippet>864</a>
+<a href=#865 id=865 data-nosnippet>865</a><span class="doccomment">/// Get the raw speed of the experiment machine.
+<a href=#866 id=866 data-nosnippet>866</a></span><span class="kw">fn </span>get_raw_cpu_frequency_hz() -&gt; anyhow::Result&lt;u64&gt; {
+<a href=#867 id=867 data-nosnippet>867</a>    <span class="kw">const </span>CONFIG_CPU_MAX_FREQ_FILE: <span class="kw-2">&amp;</span>str = <span class="string">"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq"</span>;
+<a href=#868 id=868 data-nosnippet>868</a>    <span class="kw">let </span>khz: u64 = std::fs::read_to_string(CONFIG_CPU_MAX_FREQ_FILE)<span class="question-mark">?</span>.parse()<span class="question-mark">?</span>;
+<a href=#869 id=869 data-nosnippet>869</a>    <span class="prelude-val">Ok</span>(khz * <span class="number">1000</span>)
+<a href=#870 id=870 data-nosnippet>870</a>}
+<a href=#871 id=871 data-nosnippet>871</a>
+<a href=#872 id=872 data-nosnippet>872</a><span class="kw">fn </span>get_required_preload_path(libname: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;PathBuf&gt; {
+<a href=#873 id=873 data-nosnippet>873</a>    <span class="kw">let </span>libname_c = CString::new(libname).unwrap();
+<a href=#874 id=874 data-nosnippet>874</a>    <span class="kw">let </span>libpath_c = <span class="kw">unsafe </span>{ c::scanRpathForLib(libname_c.as_ptr()) };
+<a href=#875 id=875 data-nosnippet>875</a>
+<a href=#876 id=876 data-nosnippet>876</a>    <span class="comment">// scope needed to make sure the CStr is dropped before we free libpath_c
+<a href=#877 id=877 data-nosnippet>877</a>    </span><span class="kw">let </span>libpath = <span class="kw">if </span>!libpath_c.is_null() {
+<a href=#878 id=878 data-nosnippet>878</a>        <span class="kw">let </span>libpath = <span class="kw">unsafe </span>{ CStr::from_ptr(libpath_c) };
+<a href=#879 id=879 data-nosnippet>879</a>        <span class="kw">let </span>libpath = OsStr::from_bytes(libpath.to_bytes());
+<a href=#880 id=880 data-nosnippet>880</a>        <span class="prelude-val">Some</span>(PathBuf::from(libpath.to_os_string()))
+<a href=#881 id=881 data-nosnippet>881</a>    } <span class="kw">else </span>{
+<a href=#882 id=882 data-nosnippet>882</a>        <span class="prelude-val">None
+<a href=#883 id=883 data-nosnippet>883</a>    </span>};
+<a href=#884 id=884 data-nosnippet>884</a>
+<a href=#885 id=885 data-nosnippet>885</a>    <span class="kw">unsafe </span>{ libc::free(libpath_c <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void) };
+<a href=#886 id=886 data-nosnippet>886</a>
+<a href=#887 id=887 data-nosnippet>887</a>    <span class="kw">let </span>libpath = libpath.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="macro">format!</span>(<span class="string">"Could not library in rpath"</span>)))<span class="question-mark">?</span>;
+<a href=#888 id=888 data-nosnippet>888</a>
+<a href=#889 id=889 data-nosnippet>889</a>    <span class="kw">let </span>bytes = libpath.as_os_str().as_bytes();
+<a href=#890 id=890 data-nosnippet>890</a>    <span class="kw">if </span>bytes.iter().any(|c| <span class="kw-2">*</span>c == <span class="string">b' ' </span>|| <span class="kw-2">*</span>c == <span class="string">b':'</span>) {
+<a href=#891 id=891 data-nosnippet>891</a>        <span class="comment">// These are unescapable separators in LD_PRELOAD.
+<a href=#892 id=892 data-nosnippet>892</a>        </span><span class="macro">anyhow::bail!</span>(<span class="string">"Preload path contains LD_PRELOAD-incompatible characters: {libpath:?}"</span>);
+<a href=#893 id=893 data-nosnippet>893</a>    }
+<a href=#894 id=894 data-nosnippet>894</a>
+<a href=#895 id=895 data-nosnippet>895</a>    <span class="macro">log::debug!</span>(
+<a href=#896 id=896 data-nosnippet>896</a>        <span class="string">"Found required preload library {} at path {}"</span>,
+<a href=#897 id=897 data-nosnippet>897</a>        libname,
+<a href=#898 id=898 data-nosnippet>898</a>        libpath.display(),
+<a href=#899 id=899 data-nosnippet>899</a>    );
+<a href=#900 id=900 data-nosnippet>900</a>
+<a href=#901 id=901 data-nosnippet>901</a>    <span class="prelude-val">Ok</span>(libpath)
+<a href=#902 id=902 data-nosnippet>902</a>}
 </code></pre></div></section></main></body></html>

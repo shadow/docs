@@ -1239,7 +1239,6 @@ hosts:
 <li><a href="shadow_config_spec.html#experimentalunblocked_vdso_latency"><code>experimental.unblocked_vdso_latency</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_cpu_pinning"><code>experimental.use_cpu_pinning</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_dynamic_runahead"><code>experimental.use_dynamic_runahead</code></a></li>
-<li><a href="shadow_config_spec.html#experimentaluse_memory_manager"><code>experimental.use_memory_manager</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_new_tcp"><code>experimental.use_new_tcp</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_object_counters"><code>experimental.use_object_counters</code></a></li>
 <li><a href="shadow_config_spec.html#experimentaluse_preload_libc"><code>experimental.use_preload_libc</code></a></li>
@@ -1517,12 +1516,6 @@ improve cache affinity.</p>
 <p>Default: false<br />
 Type: Bool</p>
 <p>Update the minimum runahead dynamically throughout the simulation.</p>
-<h4 id="experimentaluse_memory_manager"><a class="header" href="#experimentaluse_memory_manager"><code>experimental.use_memory_manager</code></a></h4>
-<p>Default: false<br />
-Type: Bool</p>
-<p>Use the MemoryManager in memory-mapping mode. This can improve
-performance, but disables support for dynamically spawning processes
-inside the simulation (e.g. the <code>fork</code> syscall).</p>
 <h4 id="experimentaluse_new_tcp"><a class="header" href="#experimentaluse_new_tcp"><code>experimental.use_new_tcp</code></a></h4>
 <p>Default: false<br />
 Type: Bool</p>
@@ -2441,13 +2434,6 @@ disable this option.</p>
 <code>thread_per_core</code> scheduler has been found to be significantly faster on most
 machines, but may perform worse than the <code>thread_per_host</code> scheduler in rare
 circumstances.</p>
-<h3 id="use_memory_manager"><a class="header" href="#use_memory_manager"><a href="https://shadow.github.io/docs/guide/shadow_config_spec.html#experimentaluse_memory_manager"><code>use_memory_manager</code></a></a></h3>
-<p>Shadow supports a memory manager that uses shared memory maps to reduce the
-overhead of accessing a managed process' data from Shadow's main process, but
-this is disabled by default as it does not support other Shadow features such
-as emulating the fork/exec syscalls. If you do not need support for these
-features, enabling this memory manager may slightly improve simulation
-performance.</p>
 <h3 id="use_worker_spinning"><a class="header" href="#use_worker_spinning"><a href="https://shadow.github.io/docs/guide/shadow_config_spec.html#experimentaluse_worker_spinning"><code>use_worker_spinning</code></a></a></h3>
 <p>Shadow's thread-per-core scheduler uses a spinloop by default. While this
 results in significant performance improvements in our benchmarks, it may be
@@ -3531,26 +3517,7 @@ with all combinations of its arguments with both valid and invalid values.</p>
 <p>Shadow supports unit tests for rust code. These can be written as standard rust
 unit tests. These tests run natively and not under Shadow, but they are also
 run under <a href="https://github.com/rust-lang/miri">Miri</a> and <a href="https://github.com/tokio-rs/loom">Loom</a> as "extra" tests.</p>
-<p>For example see the <a href="https://github.com/shadow/shadow/blob/main/src/main/utility/interval_map.rs"><code>IntervalMap</code></a> tests.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // ...
-
-    #[test]
-    fn test_insert_into_empty() {
-        let mut m = IntervalMap::new();
-        insert_and_validate(&amp;mut m, 10..20, "x", &amp;[], &amp;[(10..20, "x")]);
-    }
-
-    // ...
-}
-<span class="boring">}</span></code></pre></pre>
-<pre><code class="language-text">1/1 Test #1: rust-unit-tests ..................   Passed  149.52 sec
-</code></pre>
+<p>For example see the <a href="https://github.com/shadow/shadow/blob/main/src/main/utility/byte_queue.rs"><code>ByteQueue</code></a> tests.</p>
 <h2 id="regression-tests"><a class="header" href="#regression-tests">Regression tests</a></h2>
 <p>Sometimes it's useful to write a regression test that doesn't belong under any
 specific system call tests. These tests can be written like the system call
