@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["from_str"],"struct":["Deserializer","Error","ValueDeserializer"]};
+window.SIDEBAR_ITEMS = {"enum":["DeValue"],"struct":["DeArray","DeFloat","DeInteger","Error"],"type":["DeString","DeTable"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rangemap-1.7.1/src/inclusive_set.rs`."><title>inclusive_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rangemap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">rangemap/</div>inclusive_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::borrow::Borrow;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rangemap-1.8.0/src/inclusive_set.rs`."><title>inclusive_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rangemap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">rangemap/</div>inclusive_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::borrow::Borrow;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>core::fmt::{<span class="self">self</span>, Debug};
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>core::iter::{DoubleEndedIterator, FromIterator};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>core::ops::{BitAnd, BitOr, RangeInclusive};
@@ -846,5 +846,72 @@
 <a href=#846 id=846 data-nosnippet>846</a>            xs == xs
 <a href=#847 id=847 data-nosnippet>847</a>        }
 <a href=#848 id=848 data-nosnippet>848</a>    }
-<a href=#849 id=849 data-nosnippet>849</a>}
+<a href=#849 id=849 data-nosnippet>849</a>
+<a href=#850 id=850 data-nosnippet>850</a>    <span class="comment">// ordered-float
+<a href=#851 id=851 data-nosnippet>851</a>
+<a href=#852 id=852 data-nosnippet>852</a>    </span><span class="attr">#[cfg(feature = <span class="string">"ordered-float5"</span>)]
+<a href=#853 id=853 data-nosnippet>853</a>    </span><span class="kw">mod </span>ordered_float {
+<a href=#854 id=854 data-nosnippet>854</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#855 id=855 data-nosnippet>855</a>        <span class="kw">use </span>::ordered_float::NotNan;
+<a href=#856 id=856 data-nosnippet>856</a>
+<a href=#857 id=857 data-nosnippet>857</a>        <span class="kw">type </span>F64 = NotNan&lt;f64&gt;;
+<a href=#858 id=858 data-nosnippet>858</a>
+<a href=#859 id=859 data-nosnippet>859</a>        <span class="attr">#[proptest]
+<a href=#860 id=860 data-nosnippet>860</a>        </span><span class="kw">fn </span>test_first(set: RangeInclusiveSet&lt;F64&gt;) {
+<a href=#861 id=861 data-nosnippet>861</a>            <span class="macro">assert_eq!</span>(set.first(), set.iter().min_by_key(|range| range.start()));
+<a href=#862 id=862 data-nosnippet>862</a>        }
+<a href=#863 id=863 data-nosnippet>863</a>
+<a href=#864 id=864 data-nosnippet>864</a>        <span class="attr">#[proptest]
+<a href=#865 id=865 data-nosnippet>865</a>        #[allow(clippy::len_zero)]
+<a href=#866 id=866 data-nosnippet>866</a>        </span><span class="kw">fn </span>test_len(<span class="kw-2">mut </span>map: RangeInclusiveSet&lt;F64&gt;) {
+<a href=#867 id=867 data-nosnippet>867</a>            <span class="macro">assert_eq!</span>(map.len(), map.iter().count());
+<a href=#868 id=868 data-nosnippet>868</a>            <span class="macro">assert_eq!</span>(map.is_empty(), map.len() == <span class="number">0</span>);
+<a href=#869 id=869 data-nosnippet>869</a>            map.clear();
+<a href=#870 id=870 data-nosnippet>870</a>            <span class="macro">assert_eq!</span>(map.len(), <span class="number">0</span>);
+<a href=#871 id=871 data-nosnippet>871</a>            <span class="macro">assert!</span>(map.is_empty());
+<a href=#872 id=872 data-nosnippet>872</a>            <span class="macro">assert_eq!</span>(map.iter().count(), <span class="number">0</span>);
+<a href=#873 id=873 data-nosnippet>873</a>        }
+<a href=#874 id=874 data-nosnippet>874</a>
+<a href=#875 id=875 data-nosnippet>875</a>        <span class="attr">#[proptest]
+<a href=#876 id=876 data-nosnippet>876</a>        </span><span class="kw">fn </span>test_last(set: RangeInclusiveSet&lt;F64&gt;) {
+<a href=#877 id=877 data-nosnippet>877</a>            <span class="macro">assert_eq!</span>(set.last(), set.iter().max_by_key(|range| range.end()));
+<a href=#878 id=878 data-nosnippet>878</a>        }
+<a href=#879 id=879 data-nosnippet>879</a>
+<a href=#880 id=880 data-nosnippet>880</a>        <span class="attr">#[proptest]
+<a href=#881 id=881 data-nosnippet>881</a>        </span><span class="kw">fn </span>test_iter_reversible(set: RangeInclusiveSet&lt;F64&gt;) {
+<a href=#882 id=882 data-nosnippet>882</a>            <span class="kw">let </span>forward: Vec&lt;<span class="kw">_</span>&gt; = set.iter().collect();
+<a href=#883 id=883 data-nosnippet>883</a>            <span class="kw">let </span><span class="kw-2">mut </span>backward: Vec&lt;<span class="kw">_</span>&gt; = set.iter().rev().collect();
+<a href=#884 id=884 data-nosnippet>884</a>            backward.reverse();
+<a href=#885 id=885 data-nosnippet>885</a>            <span class="macro">assert_eq!</span>(forward, backward);
+<a href=#886 id=886 data-nosnippet>886</a>        }
+<a href=#887 id=887 data-nosnippet>887</a>
+<a href=#888 id=888 data-nosnippet>888</a>        <span class="attr">#[proptest]
+<a href=#889 id=889 data-nosnippet>889</a>        </span><span class="kw">fn </span>test_into_iter_reversible(set: RangeInclusiveSet&lt;F64&gt;) {
+<a href=#890 id=890 data-nosnippet>890</a>            <span class="kw">let </span>forward: Vec&lt;<span class="kw">_</span>&gt; = set.clone().into_iter().collect();
+<a href=#891 id=891 data-nosnippet>891</a>            <span class="kw">let </span><span class="kw-2">mut </span>backward: Vec&lt;<span class="kw">_</span>&gt; = set.into_iter().rev().collect();
+<a href=#892 id=892 data-nosnippet>892</a>            backward.reverse();
+<a href=#893 id=893 data-nosnippet>893</a>            <span class="macro">assert_eq!</span>(forward, backward);
+<a href=#894 id=894 data-nosnippet>894</a>        }
+<a href=#895 id=895 data-nosnippet>895</a>
+<a href=#896 id=896 data-nosnippet>896</a>        <span class="attr">#[proptest]
+<a href=#897 id=897 data-nosnippet>897</a>        </span><span class="kw">fn </span>test_overlapping_reversible(set: RangeInclusiveSet&lt;F64&gt;, range: RangeInclusive&lt;F64&gt;) {
+<a href=#898 id=898 data-nosnippet>898</a>            <span class="kw">let </span>forward: Vec&lt;<span class="kw">_</span>&gt; = set.overlapping(<span class="kw-2">&amp;</span>range).collect();
+<a href=#899 id=899 data-nosnippet>899</a>            <span class="kw">let </span><span class="kw-2">mut </span>backward: Vec&lt;<span class="kw">_</span>&gt; = set.overlapping(<span class="kw-2">&amp;</span>range).rev().collect();
+<a href=#900 id=900 data-nosnippet>900</a>            backward.reverse();
+<a href=#901 id=901 data-nosnippet>901</a>            <span class="macro">assert_eq!</span>(forward, backward);
+<a href=#902 id=902 data-nosnippet>902</a>        }
+<a href=#903 id=903 data-nosnippet>903</a>
+<a href=#904 id=904 data-nosnippet>904</a>        <span class="kw">fn </span>not_nan(x: f64) -&gt; F64 {
+<a href=#905 id=905 data-nosnippet>905</a>            NotNan::new(x).unwrap()
+<a href=#906 id=906 data-nosnippet>906</a>        }
+<a href=#907 id=907 data-nosnippet>907</a>
+<a href=#908 id=908 data-nosnippet>908</a>        <span class="attr">#[test]
+<a href=#909 id=909 data-nosnippet>909</a>        </span><span class="kw">fn </span>ranges_one_ulp_apart_are_coalesced() {
+<a href=#910 id=910 data-nosnippet>910</a>            <span class="kw">let </span><span class="kw-2">mut </span>set = RangeInclusiveSet::new();
+<a href=#911 id=911 data-nosnippet>911</a>            set.insert(not_nan(<span class="number">0.0</span>)..=not_nan(<span class="number">1.0</span>));
+<a href=#912 id=912 data-nosnippet>912</a>            set.insert(not_nan(<span class="number">1.0</span>).add_one()..=not_nan(<span class="number">2.0</span>));
+<a href=#913 id=913 data-nosnippet>913</a>            <span class="macro">assert_eq!</span>(set, RangeInclusiveSet::from([not_nan(<span class="number">0.0</span>)..=not_nan(<span class="number">2.0</span>)]));
+<a href=#914 id=914 data-nosnippet>914</a>        }
+<a href=#915 id=915 data-nosnippet>915</a>    }
+<a href=#916 id=916 data-nosnippet>916</a>}
 </code></pre></div></section></main></body></html>
