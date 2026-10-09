@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["windows_registry"],"struct":["Build","Error","Tool"]};
+window.SIDEBAR_ITEMS = {"enum":["BuildMessage","BuildMessageKind"],"fn":["emit_link_directives","try_emit_link_directives"],"mod":["windows_registry"],"struct":["Build","Error","Tool"],"trait":["BuildMessageLogger"]};
