@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BUF_CAPACITY"],"enum":["Event"],"fn":["generate_connection_id"],"struct":["ConnectionManager"]};
