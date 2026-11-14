@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Router","RouterDevice"]};
+window.SIDEBAR_ITEMS = {"enum":["Event"],"struct":["Context","Router"],"type":["RouterContext","RouterEvent"]};
